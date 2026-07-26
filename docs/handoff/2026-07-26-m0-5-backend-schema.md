@@ -50,14 +50,35 @@ passed every test. Guards were added; that change now fails three tests, as does
 `notifications`. Other mutations verified as caught: an UPDATE policy on `approvals`, RLS disabled
 on `users`, a plaintext `token` column, and a missing enum value.
 
-**What this does not cover: the policies have never run.** Docker Desktop was not running, so
-`supabase start` was unavailable. These tests check that the SQL *says* the right thing, not that
-Postgres *does* the right thing. Confusable pairs — `using` vs `with check`, a policy that is
-correct but unreachable, `security definer` search_path issues — would pass.
+### The policies now actually run — without Docker
 
-**Next session, if Docker Desktop is running:** `npx supabase start`, apply migrations, then write
-integration tests that authenticate as a non-participant and assert an empty result rather than an
-error. That is the test that actually proves existence-hiding works.
+The PO does not use Docker, so `supabase start` was never an option. **PGlite** solves it: Postgres
+18.3 compiled to WASM, running in-process under Node. `supabase/tests/harness.ts` boots it, applies
+the migrations, and recreates the two things a real Supabase project provides that migrations do
+not — the `auth` schema with `auth.uid()`, and the `anon` / `authenticated` / `service_role` roles
+plus the default `public` grants. RLS is genuinely enforced: a superuser and a role-switched user
+see different row counts.
+
+`supabase/tests/rls.test.ts` then proves the behaviour: a non-participant gets an **empty result,
+not an error**; an anonymous visitor sees nothing; a witness is blocked from DRAFT and PENDING but
+reads the full text once ACTIVE; a confirmed promise cannot be edited or deleted by either party;
+approvals cannot be updated, deleted, or written by a client.
+
+**This found a bug the structural tests could not.** Creating a promise failed at
+`insert ... returning`. RETURNING re-reads the new row, the select policy resolved participation
+through `promise_participants`, and that row does not exist yet at that instant. Worse,
+`can_read_promise` is `stable`, so it reads the statement-start snapshot and cannot see the row
+being inserted at all. In practice this would have broken Supabase's ordinary
+`.insert().select()` on the very first screen that creates a promise. The policy now compares
+`creator_id` on the row directly.
+
+A second, smaller correction: a test assumed both denial paths look alike. They do not — a `using`
+violation filters silently to zero rows, a `with check` violation raises. Worth remembering when
+reading any future RLS failure.
+
+**Still not covered:** these run against stock Postgres, not against Supabase's own
+`auth` implementation. Claim shapes, GoTrue's session handling and Storage policies are not
+exercised here. The first real deployment is still the moment those get tested.
 
 ## The Codex verification gate
 
@@ -83,5 +104,5 @@ skipped — then **wait**. Do not roll into M1.
 2. **The repo has no GitHub remote yet**, so neither workflow can run.
 3. **Migrations have not been applied to the live project.** `supabase link` then `supabase db push`
    — the PO's call whether to do that now or after the Edge Functions land.
-4. **Verify the anon key type** — legacy `anon` JWT or newer `sb_publishable_...`. `.env` and the
-   keep-alive workflow both assume `anon`.
+4. ~~Verify the anon key type~~ — **resolved 2026-07-26: it is the legacy `anon public` JWT.**
+   `.env`, `.env.example` and the keep-alive workflow are correct as written.
