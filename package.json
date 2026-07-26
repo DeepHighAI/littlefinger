@@ -9,11 +9,13 @@
   ],
   "scripts": {
     "preview": "node design-reference/serve.js",
-    "test": "vitest run",
+    "test": "vitest run && npm run test --workspace=@littlefinger/mobile",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit -p packages/shared",
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p apps/mobile",
     "sync:agents": "node tools/sync-agent-docs.js",
-    "check:agents": "node tools/sync-agent-docs.js --check"
+    "check:agents": "node tools/sync-agent-docs.js --check",
+    "test:shared": "vitest run",
+    "test:mobile": "npm run test --workspace=@littlefinger/mobile"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

@@ -18,3 +18,10 @@ coverage/
 .DS_Store
 Thumbs.db
 node_modules/
+
+# Expo
+.expo/
+android/
+ios/
+*.jks
+*.keystore
