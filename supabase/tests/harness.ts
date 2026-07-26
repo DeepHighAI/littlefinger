@@ -26,6 +26,13 @@ const MIGRATIONS_DIR = join(__dirname, '../migrations');
  * 원본은 JWT 클레임에서 sub 를 꺼내지만, 여기서는 세션 GUC 로 대신한다.
  */
 const AUTH_SHIM = `
+  -- **UTC 로 고정한다.** PGlite 는 머신 시간대를 물려받는데, 개발 머신이 한국이면
+  -- 세션 시간대가 KST 가 되어 now()::date 와 (now() at time zone 'Asia/Seoul')::date 가
+  -- 같은 값이 된다 — 즉 KST 변환을 통째로 빼먹어도 테스트가 전부 통과한다.
+  -- Supabase Postgres 는 UTC 로 돌기 때문에 그 버그는 배포 후에야 드러난다.
+  -- 변이 테스트로 실제 확인한 구멍이다(M20·M21).
+  set time zone 'UTC';
+
   create schema if not exists auth;
 
   create table auth.users (
@@ -134,20 +141,49 @@ export async function createUser(db: TestDb, nickname: string): Promise<string> 
   return id;
 }
 
-/** 약속 하나와 참여자 행을 만든다. 준비 작업이므로 RLS 를 우회한다. */
+/**
+ * 약속 하나와 참여자 행을 만든다. 준비 작업이므로 RLS 를 우회한다.
+ *
+ * **버전 행(v1)도 같이 만든다.** T-01 이 약속과 v1 을 함께 생성하고 DRAFT 수정은 v1 을
+ * 덮어쓰므로, 확정 이전에도 `promise_versions` 행은 이미 존재한다 —
+ * `content_hash` 가 NOT NULL 인 것이 그 사실을 스키마 수준에서 못박는다.
+ * 버전 행 없는 약속은 실제로 존재할 수 없으므로 픽스처도 만들지 않는다.
+ */
 export async function createPromise(
   db: TestDb,
-  options: { creatorId: string; partnerId?: string; witnessId?: string; status?: string },
+  options: {
+    creatorId: string;
+    partnerId?: string;
+    witnessId?: string;
+    status?: string;
+    /** 종료일 = KST 오늘 + n. 음수면 이미 지난 약속이다(EC-B10). */
+    endDateOffsetDays?: number;
+  },
 ): Promise<string> {
   const status = options.status ?? 'DRAFT';
   const { rows } = await db.asAdmin(
-    `insert into public.promises (creator_id, status, title, body, category, end_date, keeper)
+    `insert into public.promises (creator_id, status, title, body, category, end_date, keeper,
+                                 reward, penalty)
      values ($1, $2::public.promise_status, '매일 걷기', '매일 30분 걷기로 했다', 'HABIT',
-             current_date + 7, 'BOTH')
+             (now() at time zone 'Asia/Seoul')::date + $3::int, 'BOTH',
+             '커피 한 잔', '설거지 1주일')
      returning id`,
-    [options.creatorId, status],
+    [options.creatorId, status, options.endDateOffsetDays ?? 7],
   );
   const promiseId = String((rows[0] as { id: string }).id);
+
+  await db.asAdmin(
+    `insert into public.promise_versions
+       (promise_id, version_no, title, body, category, end_date, keeper, reward, penalty,
+        content_hash, created_by)
+     select p.id, 1, p.title, p.body, p.category, p.end_date, p.keeper, p.reward, p.penalty,
+            public.lf_content_hash(p.title, p.body, p.category, p.end_date, p.keeper,
+                                   p.reward, p.penalty, 1),
+            p.creator_id
+       from public.promises p
+      where p.id = $1`,
+    [promiseId],
+  );
 
   await db.asAdmin(
     `insert into public.promise_participants (promise_id, user_id, role, status)
