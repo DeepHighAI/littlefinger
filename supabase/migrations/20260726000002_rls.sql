@@ -18,6 +18,9 @@
 -- 헬퍼 — 정책이 서로를 재귀 호출하지 않도록 security definer 로 RLS 를 우회한다.
 -- ============================================================
 
+-- 작성자는 참여자 행과 무관하게 언제나 자기 약속에 접근한다.
+-- 이 분기가 없으면 약속을 막 만든 직후 — participants 행이 아직 없는 순간 —
+-- 작성자가 자기 행을 읽지 못해 `insert ... returning` 이 통째로 막힌다.
 create or replace function public.is_promise_participant(p_promise_id uuid)
 returns boolean
 language sql
@@ -26,6 +29,9 @@ security definer
 set search_path = public
 as $$
   select exists (
+    select 1 from public.promises p
+    where p.id = p_promise_id and p.creator_id = auth.uid()
+  ) or exists (
     select 1
     from public.promise_participants pp
     where pp.promise_id = p_promise_id
@@ -35,6 +41,7 @@ as $$
 $$;
 
 -- 증인은 ACTIVE 이후에만 전문을 볼 수 있다(§9).
+-- 작성자 분기는 위와 같은 이유로 따로 둔다.
 create or replace function public.can_read_promise(p_promise_id uuid)
 returns boolean
 language sql
@@ -43,6 +50,9 @@ security definer
 set search_path = public
 as $$
   select exists (
+    select 1 from public.promises p
+    where p.id = p_promise_id and p.creator_id = auth.uid()
+  ) or exists (
     select 1
     from public.promise_participants pp
     join public.promises p on p.id = pp.promise_id
@@ -112,8 +122,12 @@ create policy "device tokens delete own" on public.device_tokens
 -- 쓰기: DRAFT 일 때 작성자만. 그 밖의 모든 전이는 Edge Function 이 한다.
 -- ============================================================
 
+-- creator_id 를 함수로 감싸지 않고 **행의 컬럼을 직접** 본다.
+-- can_read_promise 는 stable 이라 문장 시작 시점 스냅샷을 보는데,
+-- `insert ... returning` 이 방금 넣은 행은 그 스냅샷에 없다.
+-- 컬럼을 직접 비교하면 새 행의 값을 그대로 읽으므로 그 문제가 사라진다.
 create policy "promises read participants" on public.promises
-  for select using (public.can_read_promise(id));
+  for select using (creator_id = auth.uid() or public.can_read_promise(id));
 
 create policy "promises insert own draft" on public.promises
   for insert with check (creator_id = auth.uid() and status = 'DRAFT');
