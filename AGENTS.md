@@ -311,7 +311,32 @@ react-native-web / Expo Web for the acceptance web · `@react-native-kakao/*` (u
 Render / Railway / Fly.io. Rationale: `04` §2.
 
 **Kakao login goes through Supabase Auth's official Kakao OAuth provider.** No unofficial SDK.
-Sessions are stored in `expo-secure-store`, not `AsyncStorage`.
+
+### 6-1. Kakao setup — three things that are not what they look like
+
+Verified 2026-07-26 against current docs and adversarially reviewed. Full detail:
+[`docs/handoff/2026-07-26-kakao-supabase-oauth-findings.md`](docs/handoff/2026-07-26-kakao-supabase-oauth-findings.md).
+
+1. **비즈 앱 is mandatory for login itself, not for email.** gotrue hardcodes the scope list
+   `account_email profile_image profile_nickname` and the dashboard can only *append* to it. If that
+   consent item is not registered in the Kakao console, Kakao rejects the authorize request with
+   **KOE205** before the consent screen renders. `04` §13's framing — "Biz App only matters if you
+   want email" — is wrong.
+2. **The PO chose not to collect email (2026-07-26).** Register `account_email` as **[선택 동의]**
+   and turn Supabase's **"Allow users without an email" ON**; the app then never stores or reads it.
+   `User.email` keeps its `string | null` type. Note this covers the *Kakao-provided* email only —
+   the separately typed reminder email on SCR-W03 (`02` §5-3) is a different field and still specced.
+3. **`expo-secure-store` cannot hold a Supabase session directly** — it caps values at 2048 bytes
+   and a session exceeds that. Use the `LargeSecureStore` pattern: AES-256 key in SecureStore,
+   ciphertext in AsyncStorage. Also required: `autoRefreshToken`, `persistSession`, and an
+   `AppState` listener driving `startAutoRefresh` / `stopAutoRefresh`.
+
+Redirect URIs live in **two different allowlists**. Kakao accepts only HTTP/HTTPS, so it gets just
+`https://<ref>.supabase.co/auth/v1/callback`; the app deep link and web origins go in Supabase's
+own list. `04` §8's "3종 등록" conflates them.
+
+`openAuthSessionAsync` alone never stores a session — the returned URL must be parsed and passed to
+`setSession()`, or login silently succeeds with `getSession()` forever null.
 
 ---
 
@@ -396,7 +421,8 @@ Full detail: `04` §10.
 | # | Issue | State |
 |---|---|---|
 | ~~N-3~~ | ~~App framework~~ | **Decided: React Native + Expo** (2026-07-25). Rationale `03`, port rules `04` |
-| ~~C-1~~ | ~~Business registration → email collection~~ | **Resolved 2026-07-26: the PO has a business registration.** Kakao Biz App is available, so `account_email` **can** be collected — email reminders are back in scope for F-05·EC-G03. `User.email` stays `string \| null` (consent is still declinable). `04` §13 and ADR 0002 need back-propagation |
+| ~~C-1~~ | ~~Business registration → email collection~~ | **Closed 2026-07-26. The PO has a business registration, and chose not to collect email anyway.** See §6-1 below — Biz App is still mandatory, for a different reason than `04` §13 assumed |
+| ~~Emoji~~ | ~~`02` §2-3 wants both "count code points" and "emoji counts as 1"~~ | **Decided 2026-07-26: code points.** A family emoji counts 5, 🇰🇷 counts 2. Grapheme counting needs `Intl.Segmenter`, an ECMA-402 surface where Hermes has gaps. Revisit at M4 if device testing allows |
 | C-2 | Match icons to the original 100%? | Default: no — Expo MaterialIcons, slight corner-curvature difference |
 | C-3 | Buy a domain for the acceptance web? | Default: start on the free Cloudflare address |
 | C-4 | Pretty KakaoTalk share card for invites? | Default: out of MVP scope — OS share sheet, link only |

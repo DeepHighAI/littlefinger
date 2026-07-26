@@ -163,3 +163,31 @@ which key type project `vepnrrmxvsytguocicfe` issues** before hardcoding either.
    exclusive** — a family emoji is 5 code points but 1 grapheme. Current code counts code points.
    Resolving toward "emoji = 1" needs `Intl.Segmenter`, which is exactly the ECMA-402 surface where
    Hermes has gaps, so it needs device verification before adoption. Not changed as a side effect.
+
+---
+
+## PO decisions, 2026-07-26 (these close the questions above)
+
+**`account_email`: do not collect.** Register it in the Kakao console as **[선택 동의]** — that
+registration is not optional, since without it Kakao returns KOE205 and login fails outright — and
+turn Supabase's **"Allow users without an email" ON**. The app never stores or reads the value.
+`User.email` keeps `string | null`. Email reminders (F-05, EC-G03) are **out of scope**.
+
+Scope note: this covers the Kakao-provided email only. The reminder email a web participant types
+themselves on SCR-W03 (`02` §5-3) is a different field and is still specced. Do not delete it.
+
+**Character counting: code points.** `02` §2-3 demands both "count by code point" and "emoji counts
+as 1", which cannot both hold — measured, 👍 is 1 code point but ❤️/🇰🇷/👍🏽 are 2 and 👨‍👩‍👧 is 5.
+Code points win; grapheme counting needs `Intl.Segmenter`, an ECMA-402 surface where Hermes has
+gaps, and would have to be mirrored server-side. Revisit at M4. `codepointLength` is unchanged.
+
+**Hosting stays Cloudflare Pages.** Raised again this session: Vercel is excluded because its free
+Hobby plan forbids ad-monetized commercial services, not because of anything to do with domains —
+both platforms hand out a free subdomain. Settled in `03` §6, `04` §2, ADR 0002. Open issue C-3 is
+only about whether to *buy* a custom domain; the default remains the free `*.pages.dev` address.
+
+## Still blocking
+
+- **C-3** — the Cloudflare Pages subdomain is needed to finish the Supabase redirect allowlist.
+- Verify whether project `vepnrrmxvsytguocicfe` issues a legacy `anon` JWT or an
+  `sb_publishable_...` key; `CLAUDE.md` §9 and `.env.example` currently assume `anon`.
