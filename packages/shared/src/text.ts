@@ -25,12 +25,21 @@ function isControlExceptLf(codePoint: number): boolean {
 /** 3줄 이상 연속된 개행 */
 const THREE_OR_MORE_NEWLINES = /\n{3,}/gu;
 
+/**
+ * 순서가 중요하다.
+ *
+ * 1. 제어문자 제거 — **NFC 보다 먼저.** 자모 사이에 낀 제어문자가 조합을 막기 때문이다.
+ *    (`ᄀ` + NUL + `ᅡ` 는 NFC 를 먼저 돌리면 `가` 로 합쳐지지 않는다.)
+ * 2. NFC 정규화 — PO 결정(2026-07-26). 한글 조합형 자모를 완성형 음절로 합친다.
+ *    이걸 건너뛰면 같은 "가속"이 2자가 아니라 5자로 세어져 글자 수 제한이 잘못 걸린다.
+ * 3. 개행 축약, 4. trim.
+ */
 export function normalizeInput(value: string): string {
   const withoutControls = [...value]
     .filter((char) => !isControlExceptLf(char.codePointAt(0) ?? 0))
     .join('');
 
-  return withoutControls.replace(THREE_OR_MORE_NEWLINES, '\n\n').trim();
+  return withoutControls.normalize('NFC').replace(THREE_OR_MORE_NEWLINES, '\n\n').trim();
 }
 
 /**

@@ -56,6 +56,46 @@ describe('normalizeInput', () => {
   });
 });
 
+// 한글 조합형 자모 — 일부 IME·클립보드 경로로 이렇게 들어온다.
+const JAMO_GA = String.fromCodePoint(0x1100, 0x1161); // ᄀ + ᅡ
+const JAMO_GASOK = String.fromCodePoint(0x1100, 0x1161, 0x1109, 0x1169, 0x11a8); // 가속
+
+// 근거: PO 결정(2026-07-26) — NFC 정규화를 적용한다.
+// 02 §2-3 은 정규화 형식을 말하지 않았고 04 §7-3 은 content_hash 에만 NFC 를 요구했다.
+// 이 결정이 그 공백을 메운다.
+describe('normalizeInput — NFC 정규화', () => {
+  test('조합형 자모를 완성형 음절로 합친다', () => {
+    expect(normalizeInput(JAMO_GA)).toBe('가');
+  });
+
+  test('정규화하지 않으면 길이가 부풀어 글자 수 제한이 잘못 걸린다', () => {
+    // 이것이 NFC 가 필요한 이유다: 같은 "가속"이 5자로 세어진다.
+    expect(codepointLength(JAMO_GASOK)).toBe(5);
+    expect(codepointLength(normalizeInput(JAMO_GASOK))).toBe(2);
+  });
+
+  test('이미 완성형인 한글은 그대로 둔다', () => {
+    expect(normalizeInput('가속')).toBe('가속');
+  });
+
+  test('두 번 정규화해도 결과가 같다', () => {
+    const once = normalizeInput(JAMO_GASOK);
+    expect(normalizeInput(once)).toBe(once);
+  });
+
+  test('제어문자가 자모 사이에 끼어 있어도 합쳐진다', () => {
+    // 제어문자 제거가 NFC 보다 먼저 와야 성립한다.
+    // 순서가 뒤바뀌면 NUL 이 조합을 막아 자모가 분리된 채로 남는다.
+    const withControl = String.fromCodePoint(0x1100, 0x00, 0x1161);
+    expect(normalizeInput(withControl)).toBe('가');
+  });
+
+  test('ZWJ 이모지 시퀀스는 건드리지 않는다', () => {
+    const family = '👨‍👩‍👧';
+    expect(normalizeInput(family)).toBe(family);
+  });
+});
+
 // 근거: 02_세부기능명세서 §2-3 "글자 수는 유니코드 코드포인트 기준(이모지 1자 처리)"
 describe('codepointLength', () => {
   test('한글은 글자 수 그대로 센다', () => {
