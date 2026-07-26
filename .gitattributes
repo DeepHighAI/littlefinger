@@ -1,0 +1,11 @@
+# 개행은 LF로 통일한다. Windows에서 작업해도 저장소에는 LF만 들어간다.
+# tools/sync-agent-docs.js 가 LF로 파일을 생성하므로, 체크아웃이 CRLF면
+# check:agents 가 개행 차이만으로 실패한다.
+* text=auto eol=lf
+
+# 바이너리
+*.woff2 binary
+*.ttf   binary
+*.png   binary
+*.jpg   binary
+*.webp  binary
