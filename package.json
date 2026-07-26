@@ -1,0 +1,15 @@
+{
+  "name": "littlefinger",
+  "version": "0.1.0",
+  "private": true,
+  "description": "리틀핑거 — 상호 약속 관리 서비스. 확정된 핑키 UI 컨셉의 화면 구현.",
+  "scripts": {
+    "preview": "node tools/serve.js",
+    "typecheck": "tsc --noEmit",
+    "sync:agents": "node tools/sync-agent-docs.js",
+    "check:agents": "node tools/sync-agent-docs.js --check"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

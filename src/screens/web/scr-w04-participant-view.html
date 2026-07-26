@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-W04 참여 약속 열람·응답 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/web.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-W04" data-screen-name="참여 약속 열람·응답">
+
+<div class="lf-device">
+  <div class="lf-device__viewport">
+
+    <!-- 카톡 인앱 브라우저에서 열리는 화면. 광고 금지. 카드별 상황에 따라 주 CTA가 다르다. -->
+    <div class="lf-screen">
+
+      <div class="lf-browserbar">
+        <button class="lf-icon-button" type="button" aria-label="닫기">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+        <div class="lf-browserbar__identity">
+          <span class="lf-browserbar__name">리틀핑거</span>
+          <span class="lf-browserbar__host">promise.littlefinger.app</span>
+        </div>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </div>
+
+      <div class="lf-screen__body lf-screen__body--web">
+
+        <h1 class="lf-title lf-title--web">참여 중인 약속</h1>
+        <p class="lf-caption lf-caption--accent">응답이 필요해요 · 2건</p>
+
+        <ul class="lf-stack lf-gap-5">
+
+          <!-- CHECKING — 이행 확인 대기 카드 -->
+          <li>
+            <div class="lf-card lf-card--web lf-card--emphasis lf-text-left">
+              <div class="lf-card__header">
+                <span class="lf-chip lf-chip--urgent">이행 확인 중</span>
+                <span class="lf-card__spacer"></span>
+                <span class="lf-caption">응답 기한 6일</span>
+              </div>
+              <h2 class="lf-card__title">매주 화·목 아침 러닝 같이 하기</h2>
+              <p class="lf-card__meta">종료일이 지났어요 — 지켜졌나요?</p>
+
+              <div class="lf-row lf-gap-3 lf-mt-4">
+                <button class="lf-response-btn lf-response-btn--yes" type="button" aria-pressed="true">
+                  <span class="material-symbols-rounded" aria-hidden="true">check</span>
+                  <span>지켰어요</span>
+                </button>
+                <button class="lf-response-btn lf-response-btn--no" type="button" aria-pressed="false">
+                  <span>안 지켜졌어요</span>
+                </button>
+              </div>
+
+              <div class="lf-row lf-gap-3 lf-mt-3">
+                <button class="lf-attach-btn" type="button">
+                  <span class="material-symbols-rounded" aria-hidden="true">photo_camera</span>
+                  <span class="lf-attach-btn__label">증빙 추가</span>
+                </button>
+                <p class="lf-caption lf-grow">사진은 상대와 증인에게 공개돼요 (선택)</p>
+              </div>
+
+              <button class="lf-btn lf-btn--filled lf-btn--block lf-mt-4" type="button">제출</button>
+            </div>
+          </li>
+
+          <!-- AMEND_PENDING — 변경 협의 중 카드 -->
+          <li>
+            <div class="lf-card lf-card--web lf-text-left">
+              <div class="lf-card__header">
+                <span class="lf-chip lf-chip--pending">변경 협의 중</span>
+                <span class="lf-card__spacer"></span>
+                <span class="lf-caption">어제</span>
+              </div>
+              <h2 class="lf-card__title">월말까지 야식 끊기</h2>
+              <p class="lf-body--secondary lf-mt-1">지우님의 변경 제안 — 종료일 <del class="lf-diff-old">7/31</del> → <ins class="lf-diff-new">8/14</ins></p>
+
+              <div class="lf-row lf-gap-3 lf-mt-4">
+                <button class="lf-btn lf-btn--tonal lf-btn--compact lf-btn--grow" type="button">변경 승인</button>
+                <button class="lf-btn lf-btn--outlined-neutral lf-btn--compact lf-btn--grow" type="button">거절</button>
+              </div>
+            </div>
+          </li>
+
+        </ul>
+
+        <p class="lf-disclaimer lf-text-center">앱을 설치하면 푸시로 바로 알려드려요</p>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../frame.js"></script>
+</body>
+</html>

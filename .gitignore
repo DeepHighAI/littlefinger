@@ -1,0 +1,20 @@
+# 미리보기·검증 과정에서 생기는 산출물
+.playwright-mcp/
+*.png
+!design-reference/**/*.png
+
+# 빌드·테스트 산출물
+dist/
+coverage/
+.expo/
+.vite/
+
+# 환경변수 — .env.example 만 커밋한다 (04 §9)
+.env
+.env.*
+!.env.example
+
+# 에디터 · OS
+.DS_Store
+Thumbs.db
+node_modules/

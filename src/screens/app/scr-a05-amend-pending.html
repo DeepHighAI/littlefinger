@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A05 / AMEND_PENDING 변경 협의 중 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-detail.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A05 / AMEND_PENDING" data-screen-name="변경 협의 중">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <header class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <h1 class="lf-appbar__title">약속 상세</h1>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </header>
+
+      <div class="lf-screen__body">
+
+        <div class="lf-row lf-gap-3">
+          <span class="lf-chip lf-chip--amend">변경 협의 중</span>
+          <span class="lf-caption">v1 → v2 제안</span>
+        </div>
+
+        <h2 class="lf-title">매주 화·목 아침 러닝 같이 하기</h2>
+
+        <p class="lf-note lf-note--emphasis">
+          <span class="material-symbols-rounded" aria-hidden="true">sync_alt</span>
+          <span>지우님(나)이 변경을 요청했어요 — 민준님이 승인해야 적용돼요</span>
+        </p>
+
+        <div class="lf-card lf-stack lf-gap-4">
+          <p class="lf-section-title">변경 전 → 후 비교</p>
+
+          <ul class="lf-compare">
+            <li class="lf-compare__item lf-compare__item--before">
+              <p class="lf-compare__label">변경 전 · 종료일</p>
+              <p class="lf-compare__value">8월 11일 (화)</p>
+            </li>
+            <li class="lf-compare__item lf-compare__item--after">
+              <p class="lf-compare__label">변경 후 · 종료일</p>
+              <p class="lf-compare__value">8월 25일 (화)</p>
+            </li>
+          </ul>
+
+          <ul class="lf-compare">
+            <li class="lf-compare__item lf-compare__item--after">
+              <p class="lf-compare__label">추가되는 내용</p>
+              <p class="lf-compare__value">"휴가 기간(8/10–14)은 러닝을 쉬고, 그만큼 2주 연장" 문구 추가</p>
+            </li>
+          </ul>
+
+          <hr class="lf-divider">
+
+          <div class="lf-row lf-gap-3">
+            <span class="lf-avatar lf-avatar--muted">민</span>
+            <span class="lf-caption lf-grow">민준님의 응답을 기다리는 중</span>
+            <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">hourglass_empty</span>
+          </div>
+
+          <div class="lf-compare__item lf-row lf-gap-3">
+            <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">history</span>
+            <span class="lf-body--secondary lf-grow">원본(v1)은 버전 이력에 그대로 남아요</span>
+            <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">chevron_right</span>
+          </div>
+
+          <p class="lf-caption lf-text-center">합의 전까지는 기존 약속(v1)이 유효해요</p>
+        </div>
+
+      </div>
+
+      <div class="lf-screen__actions">
+        <button class="lf-btn lf-btn--outlined lf-btn--block" type="button">요청 철회</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

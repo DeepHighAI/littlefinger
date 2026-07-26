@@ -1,0 +1,26 @@
+/* =============================================================
+   Little Finger — 화면 파일을 단독으로 열었을 때의 페이지 크롬.
+   실제 앱에는 이식되지 않는, 미리보기 전용 스타일이다.
+   ============================================================= */
+
+.lf-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--lf-space-4);
+  background: #ECEAF0;
+}
+
+.lf-page__caption {
+  font-size: var(--lf-type-micro-size);
+  font-weight: var(--lf-weight-medium);
+  color: #65616B;
+}
+
+.lf-page__caption strong {
+  color: #1C1B1F;
+  font-weight: var(--lf-weight-bold);
+}

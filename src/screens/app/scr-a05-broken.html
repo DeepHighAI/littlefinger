@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A05 / BROKEN 불이행 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-detail.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A05 / BROKEN" data-screen-name="불이행">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <header class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <h1 class="lf-appbar__title">약속 상세</h1>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </header>
+
+      <div class="lf-screen__body">
+
+        <div class="lf-row lf-gap-3">
+          <span class="lf-chip lf-chip--broken">불이행</span>
+          <span class="lf-caption">2026-08-01 종결</span>
+        </div>
+
+        <h2 class="lf-title">월말까지 야식 끊기</h2>
+
+        <div class="lf-stamp lf-stamp--compact lf-stamp--broken">
+          <span class="material-symbols-rounded lf-stamp__icon" aria-hidden="true">heart_broken</span>
+          <p class="lf-stamp__headline">이번엔 못 지켰어요</p>
+          <p class="lf-stamp__time">두 사람 모두 "안 지켜졌어요" · 지킬 사람: 지우</p>
+        </div>
+
+        <!-- 기록된 벌칙 강조 표시 -->
+        <ul class="lf-outcomes">
+          <li class="lf-outcome lf-outcome--enforced">
+            <div class="lf-row lf-gap-2">
+              <span class="material-symbols-rounded lf-icon-error" aria-hidden="true">gavel</span>
+              <p class="lf-outcome__label">기록된 벌칙</p>
+            </div>
+            <p class="lf-outcome__value">한 달 커피 셔틀</p>
+          </li>
+        </ul>
+        <p class="lf-caption">벌칙은 두 사람이 정한 그대로 기록만 해요</p>
+
+        <ul class="lf-list lf-gap-3">
+          <li class="lf-compare__item lf-row lf-gap-3">
+            <span class="lf-avatar lf-avatar--a">지</span>
+            <span class="lf-body--secondary lf-grow">지우 · 안 지켜졌어요 (8/1 09:12)</span>
+          </li>
+          <li class="lf-compare__item lf-row lf-gap-3">
+            <span class="lf-avatar lf-avatar--b">민</span>
+            <span class="lf-body--secondary lf-grow">민준 · 안 지켜졌어요 (8/1 10:30)</span>
+          </li>
+        </ul>
+
+        <p class="lf-caption lf-text-center">약속 지킴율에 반영됐어요 · 다음 약속은 꼭!</p>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

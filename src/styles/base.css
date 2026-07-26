@@ -1,0 +1,217 @@
+/* =============================================================
+   Little Finger — Base / Reset + 디바이스 프레임
+   ============================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--lf-font-brand);
+  color: var(--lf-color-text);
+  background: var(--lf-color-background);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+.material-symbols-rounded {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+  flex: none;
+}
+
+/* 스크린 리더 전용 텍스트 — 상태를 색상만으로 구분하지 않기 위한 보조 (요청서 §8) */
+.lf-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =============================================================
+   DEVICE — 안드로이드 프레임 (360×800dp 콘텐츠 영역)
+   원본 android-frame.jsx를 프레임워크 없이 재구현
+   ============================================================= */
+
+.lf-device {
+  width: calc(var(--lf-viewport-width) + 16px);
+  height: calc(
+    var(--lf-viewport-height) + var(--lf-statusbar-height) +
+    var(--lf-navbar-height) + 16px
+  );
+  border: 8px solid var(--lf-color-frame-border);
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--lf-color-background);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+}
+
+/* 상태 표시줄 — 시간 / 펀치홀 / 신호·배터리 */
+.lf-statusbar {
+  height: var(--lf-statusbar-height);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--lf-space-7);
+  position: relative;
+  color: var(--lf-color-text);
+}
+
+.lf-statusbar__time {
+  font-size: var(--lf-type-body-size);
+  letter-spacing: 0.25px;
+}
+
+.lf-statusbar__punchhole {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--lf-radius-pill);
+  background: #2e2e2e;
+}
+
+.lf-statusbar__icons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* 앱 화면이 놓이는 영역 = 360×800dp */
+.lf-device__viewport {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--lf-color-background);
+}
+
+/* 제스처 내비게이션 바 */
+.lf-navbar {
+  height: var(--lf-navbar-height);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lf-navbar::after {
+  content: '';
+  width: 108px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--lf-color-text);
+  opacity: 0.4;
+}
+
+/* =============================================================
+   SCREEN — 모든 화면의 최상위 레이아웃
+   ============================================================= */
+
+.lf-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--lf-color-background);
+  overflow: hidden;
+}
+
+/* 스크롤되는 본문. 앱바/하단 액션바 사이를 채운다. */
+.lf-screen__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-5);
+  padding: var(--lf-space-1) var(--lf-gutter-app) var(--lf-space-5);
+}
+
+.lf-screen__body--web {
+  padding: var(--lf-space-7) var(--lf-gutter-web) var(--lf-space-5);
+}
+
+/* 중앙 정렬 본문 (랜딩 · 빈 상태 · 만료 안내) */
+.lf-screen__body--centered {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* 하단 고정 액션 영역 */
+.lf-screen__actions {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-4);
+  padding: var(--lf-space-4) var(--lf-gutter-app) var(--lf-space-6);
+  border-top: 1px solid var(--lf-color-outline);
+}
+
+.lf-screen__actions--web {
+  padding: var(--lf-space-4) var(--lf-gutter-web) var(--lf-space-8);
+}
+
+.lf-screen__actions--plain {
+  border-top: none;
+}
+
+.lf-screen__actions-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-4);
+}

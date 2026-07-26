@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A02 홈·약속 목록 (빈 상태) — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-entry.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A02" data-screen-name="홈·약속 목록 (빈 상태)">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <header class="lf-appbar lf-appbar--brand">
+        <svg class="lf-pinky lf-pinky--sm lf-pinky--hooked" viewBox="0 0 120 120" aria-hidden="true">
+          <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+          <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+        </svg>
+        <h1 class="lf-appbar__title">리틀핑거</h1>
+        <button class="lf-icon-button" type="button" aria-label="알림">
+          <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
+          <span class="lf-icon-button__dot" aria-hidden="true"></span>
+        </button>
+        <div class="lf-avatar" aria-hidden="true">지</div>
+      </header>
+
+      <!-- 약속이 하나도 없으므로 진행 현황 인사말은 생략하고 탭은 0건으로 표시 -->
+      <div class="lf-tabs" role="tablist" aria-label="약속 상태 필터">
+        <button class="lf-tab" type="button" role="tab" aria-selected="true">진행 중 0</button>
+        <button class="lf-tab" type="button" role="tab" aria-selected="false">대기 0</button>
+        <button class="lf-tab" type="button" role="tab" aria-selected="false">완료 0</button>
+      </div>
+
+      <div class="lf-screen__body lf-home__body">
+
+        <!-- 빈 상태 — 첫 약속 생성을 FAB로 유도 (별도 CTA를 추가하지 않아 화면당 주 CTA 1개 원칙 유지) -->
+        <div class="lf-empty">
+          <div class="lf-pinky-badge">
+            <svg class="lf-pinky lf-pinky--xl lf-pinky--hooked" viewBox="0 0 120 120" role="img" aria-label="새끼손가락 걸기">
+              <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+              <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+            </svg>
+          </div>
+          <div class="lf-stack lf-gap-2">
+            <h2 class="lf-empty__title">아직 건 약속이 없어요</h2>
+            <p class="lf-body--secondary">소중한 사람과 새끼손가락 걸고<br>지킬 약속을 만들어보세요</p>
+          </div>
+          <p class="lf-caption">아래 <strong>약속 만들기</strong> 버튼을 눌러 시작해요</p>
+        </div>
+
+        <!-- 광고 슬롯 — 빈 상태에서도 자리는 동일하게 노출, MVP에서는 비활성 -->
+        <div class="lf-ad-slot">
+          <span class="material-symbols-rounded" aria-hidden="true">ads_click</span>
+          <span>광고 자리 · MVP에서는 비활성</span>
+        </div>
+
+      </div>
+
+      <button class="lf-fab" type="button">
+        <svg class="lf-pinky lf-pinky--xs lf-pinky--on-primary" viewBox="0 0 120 120" aria-hidden="true">
+          <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+          <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+        </svg>
+        <span>약속 만들기</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

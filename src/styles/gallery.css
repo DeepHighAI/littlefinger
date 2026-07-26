@@ -1,0 +1,111 @@
+/* =============================================================
+   Little Finger — 화면 갤러리 (미리보기 전용)
+   각 화면 파일을 iframe으로 불러와 축소한 컨택트 시트.
+   ============================================================= */
+
+:root {
+  /* 화면 페이지 한 장의 실제 크기 — 이 값에 맞춰 iframe을 잡고 축소한다. */
+  --gallery-frame-width: 420px;
+  --gallery-frame-height: 990px;
+  --gallery-scale: 0.44;
+  --gallery-canvas: #ECEAF0;
+  --gallery-ink: #1C1B1F;
+  --gallery-ink-muted: #65616B;
+}
+
+body.gallery {
+  background: var(--gallery-canvas);
+  padding: 40px 44px 64px;
+}
+
+.gallery__masthead {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+  margin-bottom: var(--lf-space-2);
+}
+
+.gallery__title {
+  font-size: 26px;
+  font-weight: var(--lf-weight-heavy);
+  color: var(--gallery-ink);
+}
+
+.gallery__lede {
+  max-width: 70ch;
+  font-size: var(--lf-type-label-size);
+  line-height: 20px;
+  color: var(--gallery-ink-muted);
+}
+
+.gallery__lede a { color: var(--lf-color-primary); }
+
+.gallery__section {
+  margin-top: 44px;
+}
+
+.gallery__section-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--lf-space-5);
+  flex-wrap: wrap;
+  margin-bottom: var(--lf-space-7);
+}
+
+.gallery__section-title {
+  font-size: var(--lf-type-heading-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--gallery-ink);
+}
+
+.gallery__section-note {
+  font-size: var(--lf-type-caption-size);
+  color: var(--gallery-ink-muted);
+}
+
+.gallery__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+}
+
+.gallery__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-3);
+  width: calc(var(--gallery-frame-width) * var(--gallery-scale));
+}
+
+/* iframe을 실제 크기로 렌더한 뒤 축소해, 화면 안 레이아웃이 뷰포트 폭에
+   영향받지 않도록 한다. 래퍼가 축소된 만큼의 높이만 차지한다. */
+.gallery__thumb {
+  width: calc(var(--gallery-frame-width) * var(--gallery-scale));
+  height: calc(var(--gallery-frame-height) * var(--gallery-scale));
+  overflow: hidden;
+  border-radius: var(--lf-radius-sm);
+}
+
+.gallery__thumb iframe {
+  width: var(--gallery-frame-width);
+  height: var(--gallery-frame-height);
+  border: none;
+  transform: scale(var(--gallery-scale));
+  transform-origin: top left;
+}
+
+.gallery__caption {
+  font-size: var(--lf-type-micro-size);
+  line-height: 15px;
+  font-weight: var(--lf-weight-medium);
+  color: var(--gallery-ink-muted);
+}
+
+.gallery__caption a {
+  color: var(--gallery-ink);
+  font-weight: var(--lf-weight-bold);
+  text-decoration: none;
+}
+
+.gallery__caption a:hover { text-decoration: underline; }
+
+.gallery__caption span { display: block; }

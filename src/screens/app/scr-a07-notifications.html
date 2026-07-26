@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A07 알림함 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-support.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A07" data-screen-name="알림함">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <header class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로가기">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <h1 class="lf-appbar__title">알림</h1>
+        <button class="lf-text-action" type="button">모두 읽음</button>
+      </header>
+
+      <div class="lf-screen__body">
+
+        <h2 class="lf-section-title">오늘</h2>
+        <ul class="lf-notif-list">
+          <li>
+            <!-- 승인 요청/확정 유형 — 핑키 마크로 "약속 성립"을 표시 -->
+            <button type="button" class="lf-notif-item lf-notif-item--unread">
+              <div class="lf-notif-item__icon lf-notif-item__icon--accent" aria-hidden="true">
+                <svg class="lf-pinky lf-pinky--xs lf-pinky--on-container" viewBox="0 0 120 120" aria-hidden="true">
+                  <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+                  <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+                </svg>
+              </div>
+              <div class="lf-notif-item__body">
+                <div class="lf-notif-item__headline">민준님이 손가락 걸었어요! 약속 성립</div>
+                <div class="lf-notif-item__meta">매주 화·목 아침 러닝 같이 하기 · 방금</div>
+              </div>
+              <span class="lf-notif-item__dot" aria-hidden="true"></span>
+              <span class="lf-sr-only">읽지 않음</span>
+            </button>
+          </li>
+          <li>
+            <!-- 이행 확인 유형 — 강조색으로 긴급성 표시 -->
+            <button type="button" class="lf-notif-item lf-notif-item--unread">
+              <div class="lf-notif-item__icon lf-notif-item__icon--urgent" aria-hidden="true">
+                <span class="material-symbols-rounded">notification_important</span>
+              </div>
+              <div class="lf-notif-item__body">
+                <div class="lf-notif-item__headline">지켜졌나요? 이행 확인이 필요해요</div>
+                <div class="lf-notif-item__meta">월급날까지 배달앱 금지 · 2시간 전</div>
+              </div>
+              <span class="lf-notif-item__dot" aria-hidden="true"></span>
+              <span class="lf-sr-only">읽지 않음</span>
+            </button>
+          </li>
+        </ul>
+
+        <h2 class="lf-section-title">어제</h2>
+        <ul class="lf-notif-list">
+          <li>
+            <!-- 리마인드 유형 -->
+            <button type="button" class="lf-notif-item">
+              <div class="lf-notif-item__icon" aria-hidden="true">
+                <span class="material-symbols-rounded">alarm</span>
+              </div>
+              <div class="lf-notif-item__body">
+                <div class="lf-notif-item__headline">리마인드 D-3 — 곧 종료일이에요</div>
+                <div class="lf-notif-item__meta">월말까지 야식 끊기 · 어제 09:00</div>
+              </div>
+            </button>
+          </li>
+          <li>
+            <!-- 변경 요청 유형 -->
+            <button type="button" class="lf-notif-item">
+              <div class="lf-notif-item__icon" aria-hidden="true">
+                <span class="material-symbols-rounded">sync_alt</span>
+              </div>
+              <div class="lf-notif-item__body">
+                <div class="lf-notif-item__headline">민준님이 변경을 요청했어요</div>
+                <div class="lf-notif-item__meta">종료일 8/11 → 8/25 · 어제 20:14</div>
+              </div>
+            </button>
+          </li>
+          <li>
+            <!-- 증인 서명 완료 유형 -->
+            <button type="button" class="lf-notif-item">
+              <div class="lf-notif-item__icon" aria-hidden="true">
+                <span class="material-symbols-rounded">draw</span>
+              </div>
+              <div class="lf-notif-item__body">
+                <div class="lf-notif-item__headline">하영님이 증인 서명을 완료했어요</div>
+                <div class="lf-notif-item__meta">매주 화·목 아침 러닝 · 어제 18:03</div>
+              </div>
+            </button>
+          </li>
+        </ul>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

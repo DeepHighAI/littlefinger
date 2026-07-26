@@ -1,0 +1,176 @@
+/* =============================================================
+   Little Finger — 화면 간 플로우 연결도 (요청서 §7)
+   ============================================================= */
+
+body.flows {
+  background: #ECEAF0;
+  padding: 40px 44px 64px;
+}
+
+.flows__title {
+  font-size: 26px;
+  font-weight: var(--lf-weight-heavy);
+  color: #1C1B1F;
+}
+
+.flows__lede {
+  margin-top: var(--lf-space-2);
+  max-width: 70ch;
+  font-size: var(--lf-type-label-size);
+  line-height: 20px;
+  color: #65616B;
+}
+
+.flows__lede a { color: var(--lf-color-primary); white-space: nowrap; }
+
+.flows__sheet {
+  margin-top: 28px;
+  max-width: 1240px;
+  background: var(--lf-color-surface);
+  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-md);
+  padding: var(--lf-space-8) var(--lf-space-9);
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.flow__head {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--lf-space-4);
+}
+
+.flow__badge {
+  padding: var(--lf-space-1) var(--lf-space-5);
+  border-radius: var(--lf-radius-pill);
+  font-size: 11.5px;
+  font-weight: var(--lf-weight-heavy);
+  background: var(--lf-color-primary);
+  color: var(--lf-color-on-primary);
+}
+
+.flow__badge--soft   { background: var(--lf-color-primary-container); color: var(--lf-color-on-primary-container); }
+.flow__badge--reward { background: var(--lf-color-reward-container); color: var(--lf-color-on-reward-container); }
+
+.flow__note {
+  font-size: var(--lf-type-micro-size);
+  color: var(--lf-color-text-muted);
+}
+
+/* 노드 체인 */
+.flow__chain {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-2);
+  flex-wrap: wrap;
+}
+
+.flow__node {
+  border: 1px solid var(--lf-color-outline-strong);
+  border-radius: var(--lf-radius-sm);
+  padding: 7px var(--lf-space-5);
+  background: var(--lf-color-surface);
+  text-decoration: none;
+}
+
+/* 이 라운드에서 새로 그린 핵심 화면 */
+.flow__node--key {
+  border: 1.5px solid var(--lf-color-primary);
+  background: var(--lf-color-primary-soft);
+}
+
+.flow__node-id {
+  font-size: 10.5px;
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text-muted);
+}
+
+.flow__node--key .flow__node-id { color: var(--lf-color-primary); }
+
+.flow__node-name {
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+a.flow__node:hover { border-color: var(--lf-color-primary); }
+
+.flow__arrow {
+  font-size: 17px;
+  color: var(--lf-color-outline-icon);
+}
+
+/* 화살표에 붙는 조건 라벨 */
+.flow__edge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.flow__tag {
+  padding: 2px var(--lf-space-3);
+  border-radius: var(--lf-radius-xs);
+  font-size: 10px;
+  font-weight: var(--lf-weight-heavy);
+  background: var(--lf-color-surface-muted);
+  color: var(--lf-color-text-secondary);
+  white-space: nowrap;
+}
+
+.flow__tag--yes    { background: var(--lf-color-reward-container); color: var(--lf-color-on-reward-container); }
+.flow__tag--broken { background: var(--lf-color-error-container); color: var(--lf-color-error); }
+
+/* 분기 목록 */
+.flow__branches {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: var(--lf-space-3) 0 0 22px;
+}
+
+.flow__branch {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-2);
+  flex-wrap: wrap;
+}
+
+.flow__branch .material-symbols-rounded {
+  font-size: 16px;
+  color: var(--lf-color-outline-icon);
+}
+
+.flow__branch-text {
+  font-size: 11.5px;
+  color: var(--lf-color-text-secondary);
+}
+
+/* 열린 질문 */
+.flows__questions {
+  margin-top: 26px;
+  max-width: 1240px;
+  background: var(--lf-color-surface);
+  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-md);
+  padding: var(--lf-space-7) var(--lf-space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-3);
+}
+
+.flows__questions h2 {
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: #1C1B1F;
+}
+
+.flows__question {
+  font-size: var(--lf-type-caption-size);
+  line-height: 19px;
+  color: var(--lf-color-text-secondary);
+}
+
+.flows__question strong { color: var(--lf-color-primary); }

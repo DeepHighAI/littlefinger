@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A05 / DISPUTED 의견 불일치 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-detail.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A05 / DISPUTED" data-screen-name="의견 불일치">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <header class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <h1 class="lf-appbar__title">약속 상세</h1>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </header>
+
+      <div class="lf-screen__body">
+
+        <div class="lf-row lf-gap-3">
+          <span class="lf-chip lf-chip--neutral">의견 불일치</span>
+          <span class="lf-caption">재협의로만 종결돼요</span>
+        </div>
+
+        <h2 class="lf-title">월급날까지 배달앱 금지</h2>
+
+        <!-- 서비스 원칙 P1: 리틀핑거는 기록자이지 심판이 아니다 — 절대 누가 옳은지 표시하지 않는다 -->
+        <div class="lf-card lf-card--muted lf-stack lf-center lf-gap-2">
+          <p class="lf-card__title">두 분의 확인이 서로 달라요</p>
+          <p class="lf-body--secondary">리틀핑거는 양쪽 주장을 기록만 해요 — 누가 옳은지 판정하지 않아요</p>
+        </div>
+
+        <!-- 양측 주장을 동일한 시각적 무게로 나란히 배치 -->
+        <ul class="lf-claims">
+          <li class="lf-claim lf-stack lf-center lf-gap-2">
+            <span class="lf-avatar lf-avatar--a">지</span>
+            <p class="lf-claim__who">지우</p>
+            <span class="lf-result lf-result--kept">지켰어요</span>
+            <p class="lf-claim__time">8/1 09:12 · 증빙 1장</p>
+            <div class="lf-claim__evidence">
+              <span class="material-symbols-rounded" aria-hidden="true">image</span>
+            </div>
+          </li>
+          <li class="lf-claim lf-stack lf-center lf-gap-2">
+            <span class="lf-avatar lf-avatar--b">민</span>
+            <p class="lf-claim__who">민준</p>
+            <span class="lf-result lf-result--broken">안 지켜졌어요</span>
+            <p class="lf-claim__time">8/1 22:47 · 증빙 없음</p>
+            <div class="lf-claim__evidence lf-claim__evidence--empty"></div>
+          </li>
+        </ul>
+
+        <div class="lf-compare__item lf-row lf-gap-3">
+          <span class="lf-avatar lf-avatar--muted">하</span>
+          <p class="lf-body--secondary lf-grow">증인 하영 · 내용 확인 서명함 <span class="lf-witness-caveat">(참고용 · 판정 아님)</span></p>
+        </div>
+
+        <p class="lf-note">직접 이야기 나눈 뒤, 재협의로 "완료" 또는 "불이행"에 함께 합의하면 종결돼요</p>
+
+      </div>
+
+      <div class="lf-screen__actions">
+        <button class="lf-btn lf-btn--filled lf-btn--block" type="button">재협의 요청</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

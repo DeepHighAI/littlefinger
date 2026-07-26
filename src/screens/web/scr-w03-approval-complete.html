@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-W03 승인 완료 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/web.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-W03" data-screen-name="승인 완료">
+
+<div class="lf-device">
+  <div class="lf-device__viewport">
+
+    <!-- 카톡 인앱 브라우저에서 열리는 화면. 광고 금지, 주 CTA 1개(앱에서 계속하기). -->
+    <div class="lf-screen">
+
+      <div class="lf-browserbar">
+        <button class="lf-icon-button" type="button" aria-label="닫기">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+        <div class="lf-browserbar__identity">
+          <span class="lf-browserbar__name">리틀핑거</span>
+          <span class="lf-browserbar__host">promise.littlefinger.app</span>
+        </div>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </div>
+
+      <div class="lf-screen__body lf-screen__body--web">
+
+        <!-- 확정 스탬프 — "제대로 기록됐다"는 신뢰감 (요청서 §8) -->
+        <div class="lf-stamp">
+          <svg class="lf-pinky lf-pinky--lg lf-pinky--on-container lf-pinky--hooked" viewBox="0 0 120 120" role="img" aria-label="새끼손가락 걸기">
+            <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+            <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+          </svg>
+          <h1 class="lf-stamp__headline">딱! 약속이 성립됐어요</h1>
+          <p class="lf-stamp__time">2026-07-12 21:04 확정</p>
+          <div class="lf-stamp__approvals">
+            <span class="lf-approval">
+              <span class="material-symbols-rounded" aria-hidden="true">check</span>
+              지우 20:58
+            </span>
+            <span class="lf-approval">
+              <span class="material-symbols-rounded" aria-hidden="true">check</span>
+              민준 21:04
+            </span>
+          </div>
+          <!-- 기록 지문 (Q-4) — 모든 확정 영역에 노출 -->
+          <p class="lf-fingerprint">
+            <span class="material-symbols-rounded" aria-hidden="true">fingerprint</span>
+            기록 지문 <span class="lf-fingerprint__code">A3F9-77C2-01</span>
+          </p>
+        </div>
+
+        <!-- 디스클레이머 — 문구 변경 금지 (요청서 §8) -->
+        <p class="lf-disclaimer">리틀핑거의 약속 기록은 공증이나 전자계약 서비스가 아니며, 법적 효력을 보증하지 않습니다. 다만 양측의 승인 이력과 시각 정보는 분쟁 시 참고 자료로 활용될 수 있습니다.</p>
+
+        <div class="lf-card lf-card--web lf-text-left">
+          <h2 class="lf-section-title">리마인드 이메일 (선택)</h2>
+          <p class="lf-card__meta">종료일이 다가오면 알려드려요 · D-7 / D-3 / D-1 / 디데이</p>
+          <div class="lf-row lf-gap-3 lf-mt-4">
+            <label class="lf-sr-only" for="w03-email">이메일 주소</label>
+            <input id="w03-email" class="lf-input lf-grow" type="email" placeholder="이메일 주소">
+            <button class="lf-btn lf-btn--filled lf-btn--compact" type="button">등록</button>
+          </div>
+        </div>
+
+        <div class="lf-card lf-card--web lf-app-hint">
+          <svg class="lf-pinky lf-pinky--sm" viewBox="0 0 120 120" aria-hidden="true">
+            <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+            <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+          </svg>
+          <p class="lf-app-hint__text">앱에서는 푸시로<br>약속을 챙겨드려요</p>
+        </div>
+
+      </div>
+
+      <div class="lf-screen__actions lf-screen__actions--web">
+        <button class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button">앱에서 계속하기</button>
+        <button class="lf-btn-link" type="button">웹으로 볼게요</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../frame.js"></script>
+</body>
+</html>

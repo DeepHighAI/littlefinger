@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A05 / PENDING 승인 대기 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-detail.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A05 / PENDING" data-screen-name="승인 대기">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <header class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <h1 class="lf-appbar__title">약속 상세</h1>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </header>
+
+      <div class="lf-screen__body">
+
+        <div class="lf-row lf-gap-3">
+          <span class="lf-chip lf-chip--neutral">승인 대기</span>
+          <span class="lf-caption">보낸 시각 오늘 09:12</span>
+        </div>
+
+        <h2 class="lf-title">제주 여행 경비 반반 모으기</h2>
+
+        <!-- 상대가 아직 손가락을 걸지 않은 상태 -->
+        <div class="lf-card lf-stack lf-center lf-gap-3">
+          <div class="lf-row">
+            <span class="lf-avatar lf-avatar--md lf-avatar--a">지</span>
+            <svg class="lf-pinky lf-pinky--sm" viewBox="0 0 120 120" aria-hidden="true">
+              <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+              <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+            </svg>
+            <span class="lf-avatar lf-avatar--md lf-avatar--pending">민</span>
+          </div>
+          <p class="lf-card__title">민준님의 확인을 기다리는 중</p>
+          <p class="lf-caption lf-text-center">민준님이 걸어야 약속이 성립돼요<br>승인하면 푸시로 바로 알려드릴게요</p>
+        </div>
+
+        <div class="lf-card lf-stack lf-gap-4">
+          <div class="lf-row lf-gap-4">
+            <span class="material-symbols-rounded lf-icon-primary" aria-hidden="true">schedule</span>
+            <div class="lf-grow">
+              <p class="lf-caption">초대 링크 만료까지</p>
+              <p class="lf-countdown">47:12:08</p>
+            </div>
+          </div>
+          <div class="lf-progress">
+            <div class="lf-progress__fill lf-progress__fill--expiry"></div>
+          </div>
+        </div>
+
+        <div class="lf-stack lf-gap-3">
+          <div>
+            <p class="lf-section-title">내용 (읽기 전용)</p>
+            <p class="lf-readonly">10월 여행 전까지 매달 25일에 각자 30만 원씩 공동 통장에 입금한다.</p>
+          </div>
+          <ul class="lf-row lf-gap-2 lf-wrap">
+            <li class="lf-chip">카테고리 · 금전</li>
+            <li class="lf-chip">지킬 사람 · 둘 다</li>
+          </ul>
+        </div>
+
+        <p class="lf-caption lf-text-center">발송 후에는 내용을 바꿀 수 없어요 · 만료되면 재발송할 수 있어요</p>
+
+      </div>
+
+      <!-- O-D1: PENDING 상태에는 철회 버튼 없음. 만료 후 재발송만 가능 -->
+      <div class="lf-screen__actions">
+        <button class="lf-btn lf-btn--outlined lf-btn--block" type="button" disabled>
+          <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+          <span>재발송 — 만료 후 가능</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

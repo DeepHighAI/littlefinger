@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리틀핑거 — 화면 간 플로우 연결도</title>
+<link rel="stylesheet" href="../src/styles/tokens.css">
+<link rel="stylesheet" href="../src/styles/base.css">
+<link rel="stylesheet" href="../src/styles/flows.css">
+</head>
+<body class="flows">
+
+<h1 class="flows__title">화면 간 플로우 연결도</h1>
+<p class="flows__lede">
+  디자인요청서 §7의 핵심 플로우 3개입니다. 화면 상자를 누르면 해당 화면이 열립니다 ·
+  <a href="../index.html">화면 갤러리로 돌아가기</a>
+</p>
+
+<div class="flows__sheet">
+
+  <section>
+    <div class="flow__head">
+      <span class="flow__badge">플로우 1 · 상대방 수락 (최우선)</span>
+      <span class="flow__note">KPI: 초대 → 승인 전환율 ≥ 50% · 3분 완주</span>
+    </div>
+
+    <div class="flow__chain">
+      <div class="flow__node">
+        <div class="flow__node-id">카톡</div>
+        <div class="flow__node-name">링크 클릭</div>
+      </div>
+      <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      <a class="flow__node flow__node--key" href="../src/screens/web/scr-w01-invite-landing.html">
+        <div class="flow__node-id">SCR-W01</div>
+        <div class="flow__node-name">초대 랜딩</div>
+      </a>
+      <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      <div class="flow__node">
+        <div class="flow__node-id">카카오</div>
+        <div class="flow__node-name">로그인</div>
+      </div>
+      <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      <a class="flow__node flow__node--key" href="../src/screens/web/scr-w02-promise-review.html">
+        <div class="flow__node-id">SCR-W02</div>
+        <div class="flow__node-name">약속 검토</div>
+      </a>
+      <span class="flow__edge">
+        <span class="flow__tag flow__tag--yes">승인</span>
+        <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      </span>
+      <a class="flow__node flow__node--key" href="../src/screens/web/scr-w03-approval-complete.html">
+        <div class="flow__node-id">SCR-W03</div>
+        <div class="flow__node-name">승인 완료</div>
+      </a>
+      <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      <div class="flow__node">
+        <div class="flow__node-id">연결</div>
+        <div class="flow__node-name">이메일 등록 · 앱 유도</div>
+      </div>
+    </div>
+
+    <div class="flow__branches">
+      <p class="flow__branch">
+        <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+        <span class="flow__tag">수정 제안</span>
+        <span class="flow__branch-text">의견과 함께 작성자에게 회귀 → 재작성(DRAFT) 후 재발송</span>
+      </p>
+      <p class="flow__branch">
+        <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+        <span class="flow__tag">거절</span>
+        <span class="flow__branch-text">사유(선택) 입력 → SCR-A05 / DECLINED 종결 안내</span>
+      </p>
+      <p class="flow__branch">
+        <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+        <span class="flow__tag">만료·재사용 링크</span>
+        <span class="flow__branch-text">SCR-W06 안내 → 작성자 재발송(SCR-A04)</span>
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="flow__head">
+      <span class="flow__badge flow__badge--soft">플로우 2 · 작성자 생성</span>
+    </div>
+
+    <div class="flow__chain">
+      <a class="flow__node" href="../src/screens/app/scr-a01-login.html">
+        <div class="flow__node-id">SCR-A01</div>
+        <div class="flow__node-name">카카오 로그인</div>
+      </a>
+      <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      <a class="flow__node" href="../src/screens/app/scr-a02-home-empty.html">
+        <div class="flow__node-id">SCR-A02</div>
+        <div class="flow__node-name">홈 (빈 상태)</div>
+      </a>
+      <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      <a class="flow__node" href="../src/screens/app/scr-a03-promise-create.html">
+        <div class="flow__node-id">SCR-A03</div>
+        <div class="flow__node-name">약속 작성 (DRAFT)</div>
+      </a>
+      <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      <a class="flow__node" href="../src/screens/app/scr-a04-invite-sent.html">
+        <div class="flow__node-id">SCR-A04</div>
+        <div class="flow__node-name">카톡 초대 (PENDING)</div>
+      </a>
+      <span class="flow__edge">
+        <span class="flow__tag flow__tag--yes">상대 승인 푸시</span>
+        <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      </span>
+      <a class="flow__node flow__node--key" href="../src/screens/app/scr-a05-active.html">
+        <div class="flow__node-id">SCR-A05 / ACTIVE</div>
+        <div class="flow__node-name">확정 스탬프 + 기록 지문</div>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div class="flow__head">
+      <span class="flow__badge flow__badge--reward">플로우 3 · 이행 확인</span>
+      <span class="flow__note">응답 기한 7일 · 리마인드 반복</span>
+    </div>
+
+    <div class="flow__chain">
+      <div class="flow__node">
+        <div class="flow__node-id">푸시</div>
+        <div class="flow__node-name">종료일 도래</div>
+      </div>
+      <span class="material-symbols-rounded flow__arrow" aria-hidden="true">east</span>
+      <a class="flow__node" href="../src/screens/app/scr-a06-fulfillment-check.html">
+        <div class="flow__node-id">SCR-A06</div>
+        <div class="flow__node-name">이행 확인 입력 (+증빙)</div>
+      </a>
+    </div>
+
+    <div class="flow__branches">
+      <p class="flow__branch">
+        <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+        <span class="flow__tag flow__tag--yes">양측 일치 "지켰다"</span>
+        <span class="flow__branch-text">MOD-03 축하 → SCR-A05 / COMPLETED</span>
+      </p>
+      <p class="flow__branch">
+        <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+        <span class="flow__tag flow__tag--broken">양측 일치 "안 지켜졌다"</span>
+        <span class="flow__branch-text">SCR-A05 / BROKEN · 기록된 벌칙 표시</span>
+      </p>
+      <p class="flow__branch">
+        <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+        <span class="flow__tag">불일치</span>
+        <span class="flow__branch-text">SCR-A05 / DISPUTED · 재협의로만 종결</span>
+      </p>
+      <p class="flow__branch">
+        <span class="material-symbols-rounded" aria-hidden="true">subdirectory_arrow_right</span>
+        <span class="flow__tag">무응답 7일</span>
+        <span class="flow__branch-text">SCR-A05 / UNRESOLVED · 지킴율 제외, 별도 표기</span>
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<div class="flows__questions">
+  <h2>디자인이 남긴 질문 (Round 2) — PO 결정 대기</h2>
+  <p class="flows__question">
+    <strong>Q-5</strong> 온보딩은 3장 구성 중 1장만 제작됐습니다. 2·3장 주제 제안 —
+    ② "웹으로 3분 승인"(상대방 관점) ③ "지킴율로 쌓이는 신뢰" — 이대로 진행할까요?
+  </p>
+  <p class="flows__question">
+    <strong>Q-6</strong> COMPLETED의 "공유하기"가 만드는 공유 카드(이미지) 디자인은 범위 밖입니다. 다음 라운드에 포함할까요?
+  </p>
+  <p class="flows__question">
+    <strong>Q-7</strong> 증빙 사진 최대 장수 기준이 요청서에 없어 UI는 "여러 장 추가 가능"으로 열어뒀습니다. 제한(예: 3장)이 필요하면 알려주세요.
+  </p>
+</div>
+
+</body>
+</html>

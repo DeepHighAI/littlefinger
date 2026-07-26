@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A05 / ACTIVE 진행 중 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-detail.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A05 / ACTIVE" data-screen-name="진행 중">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <header class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <h1 class="lf-appbar__title">약속 상세</h1>
+        <button class="lf-icon-button" type="button" aria-label="공유">
+          <span class="material-symbols-rounded" aria-hidden="true">share</span>
+        </button>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </header>
+
+      <div class="lf-screen__body">
+
+        <!-- 상태 라벨은 색으로만 구분하지 않고 항상 텍스트를 동반한다 (§8) -->
+        <div class="lf-row lf-gap-3">
+          <span class="lf-chip lf-chip--status">진행 중</span>
+          <span class="lf-caption">종료일 2026-08-11 (화)</span>
+          <span class="lf-grow" aria-hidden="true"></span>
+          <span class="lf-dday lf-dday--lg">D-17</span>
+        </div>
+
+        <h2 class="lf-title">매주 화·목 아침 러닝 같이 하기</h2>
+
+        <!-- 확정 스탬프 — 양측 승인 로그 + 기록 지문 (Q-4) -->
+        <div class="lf-stamp lf-stamp--compact">
+          <svg class="lf-pinky lf-pinky--md lf-pinky--on-container" viewBox="0 0 120 120" aria-hidden="true">
+            <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+            <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+          </svg>
+          <p class="lf-stamp__headline">두 사람이 손가락 걸었어요!</p>
+          <p class="lf-stamp__time">2026-07-12 21:04 확정</p>
+          <ul class="lf-stamp__approvals">
+            <li class="lf-approval">
+              <span class="material-symbols-rounded" aria-hidden="true">check</span>지우 20:58
+            </li>
+            <li class="lf-approval">
+              <span class="material-symbols-rounded" aria-hidden="true">check</span>민준 21:04
+            </li>
+          </ul>
+          <p class="lf-fingerprint">
+            <span class="material-symbols-rounded" aria-hidden="true">fingerprint</span>
+            <span>기록 지문</span>
+            <span class="lf-fingerprint__code">A3F9-77C2-01</span>
+          </p>
+        </div>
+
+        <div class="lf-stack lf-gap-3">
+          <div>
+            <p class="lf-section-title">내용</p>
+            <p class="lf-body">8월 11일까지 매주 화·목 아침 7시, 반포한강공원에서 함께 러닝한다. 우천 시 다음 날로 순연.</p>
+          </div>
+          <ul class="lf-row lf-gap-2 lf-wrap">
+            <li class="lf-chip">카테고리 · 습관</li>
+            <li class="lf-chip">지킬 사람 · 둘 다</li>
+          </ul>
+        </div>
+
+        <!-- 보상 / 벌칙 — "패널티" 대신 "벌칙" 사용 (§9) -->
+        <ul class="lf-outcomes">
+          <li class="lf-outcome lf-outcome--reward">
+            <p class="lf-outcome__label">보상</p>
+            <p class="lf-outcome__value">성공하면 오마카세 사주기</p>
+          </li>
+          <li class="lf-outcome lf-outcome--penalty">
+            <p class="lf-outcome__label">벌칙</p>
+            <p class="lf-outcome__value">한 달 커피 셔틀</p>
+          </li>
+        </ul>
+
+        <button class="lf-row-link" type="button">
+          <span class="material-symbols-rounded" aria-hidden="true">history</span>
+          <span class="lf-row-link__label">버전 이력 · v1</span>
+          <span class="material-symbols-rounded lf-chevron" aria-hidden="true">chevron_right</span>
+        </button>
+
+        <!-- 디스클레이머 — 문구 변경 금지 (요청서 §8, §10 확정 문구) -->
+        <p class="lf-disclaimer">리틀핑거의 약속 기록은 공증이나 전자계약 서비스가 아니며, 법적 효력을 보증하지 않습니다. 다만 양측의 승인 이력과 시각 정보는 분쟁 시 참고 자료로 활용될 수 있습니다.</p>
+
+      </div>
+
+      <div class="lf-screen__actions">
+        <div class="lf-screen__actions-row">
+          <button class="lf-btn lf-btn--outlined lf-btn--grow" type="button">변경·파기 요청</button>
+          <button class="lf-btn lf-btn--tonal lf-btn--grow" type="button">증인 초대</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

@@ -1,0 +1,1174 @@
+/* =============================================================
+   Little Finger — Components ("Pinky")
+   화면은 이 클래스들만 조합해서 만든다. 인라인 스타일 금지.
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   PINKY MARK — 새끼손가락 두 개가 맞걸린 브랜드 심볼
+   viewBox 120×120 고정. 크기는 --lf-pinky-size 로 조절.
+   ------------------------------------------------------------- */
+.lf-pinky {
+  --lf-pinky-size: 46px;
+  --lf-pinky-stroke: 15;
+  width: var(--lf-pinky-size);
+  height: var(--lf-pinky-size);
+  flex: none;
+}
+
+.lf-pinky path {
+  fill: none;
+  stroke-width: var(--lf-pinky-stroke);
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* 기본: 진한 로즈 + 연한 로즈 (밝은 배경 위) */
+.lf-pinky__left  { stroke: var(--lf-color-primary); }
+.lf-pinky__right { stroke: var(--lf-color-primary-pale); }
+
+/* primary-container(#FFD9DE) 위에 올릴 때 — 보조 획을 흰색으로 */
+.lf-pinky--on-container .lf-pinky__right { stroke: var(--lf-color-surface); }
+
+/* primary(#C74B64) 위에 올릴 때 — 둘 다 흰색 */
+.lf-pinky--on-primary .lf-pinky__left  { stroke: var(--lf-color-on-primary); }
+.lf-pinky--on-primary .lf-pinky__right { stroke: var(--lf-color-on-primary); opacity: 0.65; }
+
+/* 걸었다 풀었다 반복하는 루프 애니메이션 (Q-3 홈 타이틀) */
+.lf-pinky--hooked .lf-pinky__left {
+  animation: lf-hook-left var(--lf-duration-hook) ease-in-out infinite;
+}
+.lf-pinky--hooked .lf-pinky__right {
+  animation: lf-hook-right var(--lf-duration-hook) ease-in-out infinite;
+}
+
+@keyframes lf-hook-left {
+  0%, 14%  { transform: translate(-9px, -7px) rotate(-9deg); }
+  42%, 86% { transform: translate(0, 0) rotate(0deg); }
+  100%     { transform: translate(-9px, -7px) rotate(-9deg); }
+}
+
+@keyframes lf-hook-right {
+  0%, 14%  { transform: translate(9px, 7px) rotate(-9deg); }
+  42%, 86% { transform: translate(0, 0) rotate(0deg); }
+  100%     { transform: translate(9px, 7px) rotate(-9deg); }
+}
+
+@keyframes lf-pop-in {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* 로고 탭 시 손가락을 거는 반응 (SCR-A01) */
+@keyframes lf-pinky-hook {
+  0%   { transform: scale(1)    rotate(0deg); }
+  30%  { transform: scale(1.09) rotate(-6deg); }
+  55%  { transform: scale(1.04) rotate(5deg); }
+  78%  { transform: scale(1.06) rotate(-2deg); }
+  100% { transform: scale(1)    rotate(0deg); }
+}
+
+.lf-pinky--tapped { animation: lf-pinky-hook var(--lf-duration-long) var(--lf-easing-standard); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-pinky--hooked .lf-pinky__left,
+  .lf-pinky--hooked .lf-pinky__right,
+  .lf-pinky--tapped {
+    animation: none;
+  }
+}
+
+/* 브랜드 마크 크기 프리셋 */
+.lf-pinky--xs  { --lf-pinky-size: 20px; --lf-pinky-stroke: 16; }
+.lf-pinky--sm  { --lf-pinky-size: 26px; --lf-pinky-stroke: 16; }
+.lf-pinky--md  { --lf-pinky-size: 46px; }
+.lf-pinky--lg  { --lf-pinky-size: 56px; }
+.lf-pinky--xl  { --lf-pinky-size: 64px; }
+
+/* 원형 배경에 담긴 마크 (랜딩 히어로) */
+.lf-pinky-badge {
+  width: 104px;
+  height: 104px;
+  border-radius: 36px;
+  background: var(--lf-color-primary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+/* -------------------------------------------------------------
+   APP BAR — 앱 상단 바
+   ------------------------------------------------------------- */
+.lf-appbar {
+  flex: none;
+  height: var(--lf-appbar-height);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 var(--lf-space-3);
+  background: var(--lf-color-background);
+}
+
+.lf-appbar__title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--lf-type-heading-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 홈 전용 — 브랜드 마크 + 서비스명 (Q-3) */
+.lf-appbar--brand {
+  height: 60px;
+  gap: var(--lf-space-3);
+  padding: 0 var(--lf-space-4) 0 var(--lf-gutter-app);
+}
+
+.lf-appbar--brand .lf-appbar__title {
+  font-size: var(--lf-type-title-size);
+}
+
+.lf-icon-button {
+  width: var(--lf-icon-button);
+  height: var(--lf-icon-button);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: var(--lf-radius-pill);
+  color: var(--lf-color-text-secondary);
+  flex: none;
+}
+
+.lf-icon-button--strong { color: var(--lf-color-text); }
+
+.lf-icon-button .material-symbols-rounded { font-size: 22px; }
+.lf-icon-button--strong .material-symbols-rounded { font-size: 24px; }
+
+/* 아이콘 버튼(44dp)과 탭(38dp)은 디자인 시안의 시각 크기를 그대로 두되,
+   실제 터치 타깃은 48dp를 보장한다 (요청서 §8 접근성). */
+.lf-icon-button::after,
+.lf-tab::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: var(--lf-touch-min);
+  min-height: var(--lf-touch-min);
+  width: 100%;
+  height: 100%;
+}
+
+/* 읽지 않은 알림 점 */
+.lf-icon-button__dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary);
+}
+
+/* -------------------------------------------------------------
+   BROWSER BAR — 카톡 인앱 브라우저 크롬 (수락 웹 전용)
+   ------------------------------------------------------------- */
+.lf-browserbar {
+  flex: none;
+  height: var(--lf-browserbar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--lf-space-1);
+  border-bottom: 1px solid var(--lf-color-outline);
+  background: var(--lf-color-surface-chrome);
+}
+
+.lf-browserbar__identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lf-browserbar__name {
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-browserbar__host {
+  font-size: 10px;
+  color: var(--lf-color-text-muted);
+}
+
+.lf-browserbar .lf-icon-button {
+  width: 40px;
+  height: 40px;
+}
+
+/* -------------------------------------------------------------
+   BUTTON
+   ------------------------------------------------------------- */
+.lf-btn {
+  height: var(--lf-action-height);
+  min-height: var(--lf-touch-min);
+  padding: 0 var(--lf-space-8);
+  border-radius: var(--lf-radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lf-space-3);
+  font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-bold);
+  text-align: center;
+  transition: filter var(--lf-duration-short) var(--lf-easing-standard);
+}
+
+.lf-btn:active { filter: brightness(0.94); }
+
+.lf-btn:disabled,
+.lf-btn[aria-disabled='true'] {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+/* 주 CTA — 화면당 1개 (요청서 §8) */
+.lf-btn--filled {
+  background: var(--lf-color-primary);
+  color: var(--lf-color-on-primary);
+  font-weight: var(--lf-weight-heavy);
+}
+
+.lf-btn--tonal {
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-on-primary-container);
+  font-weight: var(--lf-weight-heavy);
+}
+
+.lf-btn--outlined {
+  border: 1.5px solid var(--lf-color-primary);
+  color: var(--lf-color-primary);
+  background: transparent;
+}
+
+.lf-btn--text {
+  color: var(--lf-color-text-muted);
+  font-weight: var(--lf-weight-medium);
+}
+
+.lf-btn--kakao {
+  background: var(--lf-color-kakao);
+  color: var(--lf-color-on-kakao);
+  font-weight: var(--lf-weight-medium);
+  font-size: var(--lf-type-body-lg-size);
+}
+
+/* 파괴적 액션 (파기 요청 등) */
+.lf-btn--danger {
+  border: 1.5px solid var(--lf-color-error);
+  color: var(--lf-color-error);
+  background: transparent;
+}
+
+/* 크기 변형 */
+.lf-btn--cta     { height: var(--lf-cta-height); font-size: var(--lf-type-body-lg-size); }
+.lf-btn--compact { height: 44px; font-size: var(--lf-type-label-size); padding: 0 var(--lf-space-7); }
+.lf-btn--block   { width: 100%; }
+.lf-btn--grow    { flex: 1; }
+
+/* 링크형 보조 액션 */
+.lf-btn-link {
+  align-self: center;
+  min-height: var(--lf-touch-min);
+  display: flex;
+  align-items: center;
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-muted);
+  text-decoration: underline;
+}
+
+/* FAB — 홈 우하단 '약속 만들기' */
+.lf-fab {
+  position: absolute;
+  right: var(--lf-gutter-app);
+  bottom: var(--lf-gutter-app);
+  height: var(--lf-fab-height);
+  padding: 0 22px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary);
+  color: var(--lf-color-on-primary);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 15px;
+  font-weight: var(--lf-weight-heavy);
+  box-shadow: var(--lf-elevation-fab);
+}
+
+/* -------------------------------------------------------------
+   CHIP / TAB
+   ------------------------------------------------------------- */
+.lf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lf-space-1);
+  padding: var(--lf-space-1) 11px;
+  border-radius: var(--lf-radius-pill);
+  font-size: 11.5px;
+  font-weight: var(--lf-weight-bold);
+  background: var(--lf-color-surface-muted);
+  color: var(--lf-color-text-secondary);
+  white-space: nowrap;
+}
+
+/* 상태 라벨 — 색상만으로 구분하지 않도록 항상 텍스트를 동반한다 (§8) */
+.lf-chip--status    { background: var(--lf-color-primary-container); color: var(--lf-color-on-primary-container); }
+.lf-chip--urgent    { background: var(--lf-color-primary); color: var(--lf-color-on-primary); font-weight: var(--lf-weight-heavy); }
+.lf-chip--broken    { background: var(--lf-color-error-container); color: var(--lf-color-error); }
+.lf-chip--done      { background: var(--lf-color-success-container); color: var(--lf-color-success); }
+.lf-chip--neutral   { background: var(--lf-color-surface-muted); color: var(--lf-color-text-secondary); }
+
+/* 알림 pill (카운트다운 · 안내) */
+.lf-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lf-space-2);
+  height: 30px;
+  padding: 0 13px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary-soft);
+  color: var(--lf-color-primary);
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
+  white-space: nowrap;
+}
+
+.lf-notice .material-symbols-rounded { font-size: 14px; }
+.lf-notice__timer { font-family: var(--lf-font-mono); }
+
+/* 탭 — 진행 중 / 대기 / 완료 (O-D4 기본안) */
+.lf-tabs {
+  flex: none;
+  display: flex;
+  gap: var(--lf-space-3);
+  padding: 0 var(--lf-gutter-app);
+}
+
+.lf-tab {
+  position: relative;
+  height: var(--lf-tab-height);
+  min-height: var(--lf-tab-height);
+  padding: 0 var(--lf-space-7);
+  border-radius: var(--lf-radius-pill);
+  display: flex;
+  align-items: center;
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-medium);
+  background: var(--lf-color-surface-muted);
+  color: var(--lf-color-text-secondary);
+  white-space: nowrap;
+}
+
+.lf-tab[aria-selected='true'] {
+  background: var(--lf-color-primary);
+  color: var(--lf-color-on-primary);
+  font-weight: var(--lf-weight-bold);
+}
+
+/* -------------------------------------------------------------
+   CARD
+   ------------------------------------------------------------- */
+.lf-card {
+  background: var(--lf-color-surface);
+  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-xl);
+  padding: var(--lf-space-6) var(--lf-space-7);
+}
+
+/* 수락 웹 카드는 조금 더 각지고 여백이 넓다 */
+.lf-card--web { border-radius: var(--lf-radius-lg); padding: var(--lf-space-7); }
+
+/* 액션이 필요한 카드 — 2px 로즈 테두리로 주목 (이행 확인 필요) */
+.lf-card--emphasis { border: 2px solid var(--lf-color-primary); }
+
+/* 톤 카드 — 임박 약속 · 확정 스탬프 배경 */
+.lf-card--container {
+  background: var(--lf-color-primary-container);
+  border: none;
+  color: var(--lf-color-on-primary-container);
+}
+
+.lf-card--flat { border: none; background: transparent; padding: 0; }
+
+.lf-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+}
+
+.lf-card__spacer { flex: 1; }
+
+.lf-card__title {
+  margin-top: var(--lf-space-3);
+  font-size: 15px;
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-card__meta {
+  margin-top: var(--lf-space-2);
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+}
+
+/* 약속 미리보기 (로그인 전 노출되는 최소 정보) */
+.lf-preview__title {
+  margin-top: 5px;
+  font-size: var(--lf-type-body-lg-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-preview__hint {
+  margin-top: var(--lf-space-1);
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+}
+
+/* D-Day 숫자 */
+.lf-dday {
+  font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-primary);
+  white-space: nowrap;
+}
+
+.lf-dday--lg { font-size: 18px; }
+.lf-dday--xl { font-size: var(--lf-type-display-size); }
+
+/* -------------------------------------------------------------
+   확정 스탬프 — "제대로 기록됐다"는 신뢰감 (요청서 §8)
+   ------------------------------------------------------------- */
+.lf-stamp {
+  background: var(--lf-color-primary-container);
+  border-radius: var(--lf-radius-2xl);
+  padding: var(--lf-space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--lf-space-3);
+  text-align: center;
+  animation: lf-pop-in var(--lf-duration-long) var(--lf-easing-emphasized-decelerate);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-stamp { animation: none; }
+}
+
+.lf-stamp--compact { padding: 18px; gap: 7px; }
+
+.lf-stamp__headline {
+  font-size: 20px;
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-on-primary-container);
+}
+
+.lf-stamp--compact .lf-stamp__headline { font-size: 15.5px; }
+
+.lf-stamp__time {
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-primary-ink);
+}
+
+/* 양측 승인 로그 */
+.lf-stamp__approvals {
+  display: flex;
+  gap: var(--lf-space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.lf-approval {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-1);
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: var(--lf-radius-pill);
+  padding: var(--lf-space-1) var(--lf-space-4);
+  font-size: var(--lf-type-micro-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-on-primary-container);
+  white-space: nowrap;
+}
+
+.lf-approval .material-symbols-rounded {
+  font-size: 13px;
+  color: var(--lf-color-primary);
+}
+
+/* 기록 지문 (Q-4) — 모든 확정 영역에 노출 */
+.lf-fingerprint {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-2);
+  font-size: var(--lf-type-micro-size);
+  color: var(--lf-color-primary-ink);
+  white-space: nowrap;
+}
+
+.lf-fingerprint .material-symbols-rounded { font-size: 14px; }
+.lf-fingerprint__code { font-family: var(--lf-font-mono); }
+
+/* -------------------------------------------------------------
+   TEXT / SECTION
+   ------------------------------------------------------------- */
+.lf-title {
+  font-size: var(--lf-type-title-size);
+  line-height: var(--lf-line-title);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+}
+
+.lf-title--web { font-size: var(--lf-type-heading-size); line-height: 26px; }
+
+.lf-headline {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+}
+
+.lf-subtitle {
+  font-size: var(--lf-type-subtitle-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+}
+
+.lf-section-title {
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-muted);
+  margin-bottom: var(--lf-space-2);
+}
+
+.lf-body {
+  font-size: var(--lf-type-body-size);
+  line-height: var(--lf-line-body);
+  color: var(--lf-color-text);
+}
+
+.lf-body--secondary { color: var(--lf-color-text-secondary); font-size: var(--lf-type-label-size); line-height: 20px; }
+
+.lf-caption {
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-divider {
+  height: 1px;
+  background: var(--lf-color-outline);
+  border: none;
+  margin: 0;
+}
+
+/* 디스클레이머 — 문구 변경 금지 (요청서 §8) */
+.lf-disclaimer {
+  font-size: var(--lf-type-micro-size);
+  line-height: var(--lf-line-micro);
+  color: var(--lf-color-text-faint);
+}
+
+/* -------------------------------------------------------------
+   META ROW — 종료일 / 지킬 사람 / 카테고리
+   ------------------------------------------------------------- */
+.lf-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.lf-meta__row {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+}
+
+.lf-meta__row .material-symbols-rounded {
+  font-size: 16px;
+  color: var(--lf-color-primary);
+}
+
+.lf-meta__label {
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+  width: 56px;
+  flex: none;
+}
+
+.lf-meta__value {
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+/* -------------------------------------------------------------
+   REWARD / PENALTY — 보상 / 벌칙
+   ------------------------------------------------------------- */
+.lf-outcomes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lf-space-3);
+}
+
+.lf-outcome {
+  border-radius: 18px;
+  padding: 11px var(--lf-space-5);
+}
+
+.lf-outcome__label {
+  font-size: var(--lf-type-micro-size);
+  font-weight: var(--lf-weight-heavy);
+}
+
+.lf-outcome__value {
+  margin-top: 3px;
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+}
+
+.lf-outcome--reward { background: var(--lf-color-reward-container); }
+.lf-outcome--reward .lf-outcome__label { color: var(--lf-color-reward-label); }
+.lf-outcome--reward .lf-outcome__value { color: var(--lf-color-on-reward-container); }
+
+.lf-outcome--penalty { background: var(--lf-color-penalty-container); }
+.lf-outcome--penalty .lf-outcome__label { color: var(--lf-color-penalty-label); }
+.lf-outcome--penalty .lf-outcome__value { color: var(--lf-color-on-penalty-container); }
+
+/* BROKEN 상태에서 기록된 벌칙을 강조 */
+.lf-outcome--enforced {
+  background: var(--lf-color-error-container);
+  border: 1.5px solid var(--lf-color-error);
+  grid-column: 1 / -1;
+}
+
+.lf-outcome--enforced .lf-outcome__label { color: var(--lf-color-error); }
+.lf-outcome--enforced .lf-outcome__value { color: var(--lf-color-error); }
+
+/* -------------------------------------------------------------
+   FORM
+   ------------------------------------------------------------- */
+.lf-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-2);
+}
+
+.lf-field__label {
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
+}
+
+.lf-field__hint {
+  font-size: var(--lf-type-micro-size);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-input {
+  min-height: var(--lf-touch-min);
+  padding: var(--lf-space-5) var(--lf-space-6);
+  border: 1px solid var(--lf-color-outline-strong);
+  border-radius: var(--lf-radius-sm);
+  background: var(--lf-color-surface);
+  font-size: var(--lf-type-body-size);
+  color: var(--lf-color-text);
+  width: 100%;
+}
+
+.lf-input::placeholder { color: var(--lf-color-text-muted); }
+
+.lf-input:focus-visible {
+  outline: 2px solid var(--lf-color-primary);
+  outline-offset: -2px;
+}
+
+.lf-textarea {
+  min-height: 84px;
+  resize: none;
+  line-height: var(--lf-line-body);
+}
+
+/* 값을 고르는 행(날짜 피커 진입점 등) */
+.lf-picker {
+  min-height: var(--lf-touch-min);
+  padding: var(--lf-space-5) var(--lf-space-6);
+  border: 1px solid var(--lf-color-outline-strong);
+  border-radius: var(--lf-radius-sm);
+  background: var(--lf-color-surface);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+  font-size: var(--lf-type-body-size);
+  color: var(--lf-color-text);
+  width: 100%;
+}
+
+.lf-picker__value { flex: 1; text-align: left; font-weight: var(--lf-weight-bold); }
+.lf-picker--placeholder .lf-picker__value { font-weight: var(--lf-weight-regular); color: var(--lf-color-text-muted); }
+.lf-picker .material-symbols-rounded { font-size: 20px; color: var(--lf-color-primary); }
+
+/* 선택 그룹 — 카테고리 / 지킬 사람 / 보상·벌칙 프리셋 */
+.lf-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lf-space-2);
+}
+
+.lf-choice {
+  min-height: var(--lf-touch-min);
+  padding: var(--lf-space-4) var(--lf-space-6);
+  border-radius: var(--lf-radius-pill);
+  border: 1px solid var(--lf-color-outline-strong);
+  background: var(--lf-color-surface);
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-2);
+}
+
+.lf-choice[aria-pressed='true'],
+.lf-choice[aria-selected='true'] {
+  background: var(--lf-color-primary-container);
+  border-color: var(--lf-color-primary);
+  color: var(--lf-color-on-primary-container);
+  font-weight: var(--lf-weight-bold);
+}
+
+/* 점선 플레이스홀더 — 자유 입력 / 첨부 안내 */
+.lf-dashed {
+  border: 1.5px dashed var(--lf-color-outline-strong);
+  border-radius: var(--lf-radius-md);
+  padding: var(--lf-space-4) var(--lf-space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-dashed .material-symbols-rounded { font-size: 18px; color: var(--lf-color-outline-icon); }
+
+/* 토글 스위치 (리마인드 설정) */
+.lf-switch {
+  width: 52px;
+  height: 32px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-surface-muted);
+  border: 2px solid var(--lf-color-outline-strong);
+  position: relative;
+  flex: none;
+  transition: background var(--lf-duration-short) var(--lf-easing-standard);
+}
+
+.lf-switch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-outline-icon);
+  transform: translateY(-50%);
+  transition: transform var(--lf-duration-short) var(--lf-easing-standard),
+              background var(--lf-duration-short) var(--lf-easing-standard);
+}
+
+.lf-switch[aria-checked='true'] {
+  background: var(--lf-color-primary);
+  border-color: var(--lf-color-primary);
+}
+
+.lf-switch[aria-checked='true']::after {
+  transform: translate(20px, -50%);
+  background: var(--lf-color-on-primary);
+}
+
+/* -------------------------------------------------------------
+   LIST
+   ------------------------------------------------------------- */
+.lf-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.lf-list-item {
+  min-height: var(--lf-touch-min);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+  padding: var(--lf-space-5) 0;
+  text-align: left;
+  width: 100%;
+}
+
+.lf-list-item + .lf-list-item { border-top: 1px solid var(--lf-color-outline); }
+
+.lf-list-item__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.lf-list-item__icon .material-symbols-rounded { font-size: 20px; }
+
+.lf-list-item__text { flex: 1; min-width: 0; }
+
+.lf-list-item__headline {
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-list-item__supporting {
+  margin-top: 2px;
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-list-item__trailing {
+  font-size: var(--lf-type-micro-size);
+  color: var(--lf-color-text-muted);
+  flex: none;
+}
+
+.lf-list-item .material-symbols-rounded.lf-chevron {
+  font-size: 20px;
+  color: var(--lf-color-outline-icon);
+}
+
+/* 읽지 않은 알림 */
+.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-primary); }
+
+/* 행 전체가 링크처럼 동작하는 진입점 (버전 이력 등) */
+.lf-row-link {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+  height: var(--lf-touch-min);
+  border-top: 1px solid var(--lf-color-outline);
+  width: 100%;
+  text-align: left;
+}
+
+.lf-row-link__label {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text);
+}
+
+.lf-row-link .material-symbols-rounded { font-size: 20px; color: var(--lf-color-text-muted); }
+.lf-row-link .lf-chevron { color: var(--lf-color-outline-icon); }
+
+/* -------------------------------------------------------------
+   AVATAR
+   ------------------------------------------------------------- */
+.lf-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-on-primary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-bold);
+  flex: none;
+}
+
+.lf-avatar--lg { width: 56px; height: 56px; font-size: 22px; }
+
+/* -------------------------------------------------------------
+   STAT — 약속 지킴율 (O-D3)
+   ------------------------------------------------------------- */
+.lf-stat-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--lf-space-1);
+}
+
+.lf-stat-hero__value {
+  font-size: 44px;
+  line-height: 52px;
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-primary);
+}
+
+.lf-stat-hero__label {
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-on-primary-container);
+}
+
+.lf-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--lf-space-3);
+}
+
+.lf-stat {
+  background: var(--lf-color-surface);
+  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-md);
+  padding: var(--lf-space-5) var(--lf-space-3);
+  text-align: center;
+}
+
+.lf-stat__value {
+  font-size: var(--lf-type-subtitle-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+}
+
+.lf-stat__label {
+  margin-top: 2px;
+  font-size: var(--lf-type-micro-size);
+  color: var(--lf-color-text-muted);
+}
+
+/* 지킴율 진행 막대 */
+.lf-progress {
+  height: 10px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-surface-muted);
+  overflow: hidden;
+}
+
+.lf-progress__fill {
+  height: 100%;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary);
+}
+
+/* -------------------------------------------------------------
+   EMPTY STATE — 첫 약속 유도
+   ------------------------------------------------------------- */
+.lf-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--lf-space-5);
+  padding: 0 var(--lf-space-9);
+}
+
+.lf-empty__title {
+  font-size: var(--lf-type-subtitle-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+}
+
+/* 안내용 원형 아이콘 (만료 · 종결 화면) */
+.lf-status-icon {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-surface-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.lf-status-icon .material-symbols-rounded {
+  font-size: 42px;
+  color: var(--lf-color-text-muted);
+}
+
+/* -------------------------------------------------------------
+   AD SLOT — 홈 하단 1구좌, MVP에서는 비활성 (요청서 §8)
+   ------------------------------------------------------------- */
+.lf-ad-slot {
+  border: 1.5px dashed var(--lf-color-outline-strong);
+  border-radius: var(--lf-radius-md);
+  padding: var(--lf-space-4) var(--lf-space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-ad-slot .material-symbols-rounded { font-size: 18px; color: var(--lf-color-outline-icon); }
+
+/* -------------------------------------------------------------
+   COMPARE — 변경 전/후 (AMEND_PENDING) · 양측 주장 (DISPUTED)
+   ------------------------------------------------------------- */
+.lf-compare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-3);
+}
+
+.lf-compare__item {
+  border-radius: var(--lf-radius-md);
+  border: 1px solid var(--lf-color-outline);
+  background: var(--lf-color-surface);
+  padding: var(--lf-space-5) var(--lf-space-6);
+}
+
+.lf-compare__label {
+  font-size: var(--lf-type-micro-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-compare__value {
+  margin-top: var(--lf-space-1);
+  font-size: var(--lf-type-label-size);
+  line-height: 20px;
+  color: var(--lf-color-text);
+}
+
+.lf-compare__item--before { opacity: 0.7; }
+.lf-compare__item--before .lf-compare__value { text-decoration: line-through; }
+.lf-compare__item--after { border-color: var(--lf-color-primary); background: var(--lf-color-primary-soft); }
+
+/* DISPUTED — 양측 주장을 동등한 무게로 나란히 (P1: 판정하지 않는다) */
+.lf-claims {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lf-space-3);
+}
+
+.lf-claim {
+  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-md);
+  background: var(--lf-color-surface);
+  padding: var(--lf-space-5);
+  text-align: center;
+}
+
+.lf-claim__who {
+  font-size: var(--lf-type-micro-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-claim__answer {
+  margin-top: var(--lf-space-2);
+  font-size: 15px;
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+}
+
+.lf-claim__time {
+  margin-top: var(--lf-space-1);
+  font-size: var(--lf-type-micro-size);
+  color: var(--lf-color-text-muted);
+}
+
+/* -------------------------------------------------------------
+   PROOF — 이행 증빙 사진
+   ------------------------------------------------------------- */
+.lf-proof {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--lf-radius-md);
+  background: var(--lf-color-surface-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lf-space-2);
+  color: var(--lf-color-text-muted);
+  font-size: var(--lf-type-caption-size);
+}
+
+.lf-proof .material-symbols-rounded { font-size: 32px; color: var(--lf-color-outline-icon); }
+
+/* -------------------------------------------------------------
+   BOTTOM SHEET — MOD-01 / MOD-02 / MOD-03
+   ------------------------------------------------------------- */
+.lf-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--lf-color-scrim);
+}
+
+.lf-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--lf-color-background);
+  border-radius: var(--lf-radius-2xl) var(--lf-radius-2xl) 0 0;
+  box-shadow: var(--lf-elevation-sheet);
+  padding: var(--lf-space-5) var(--lf-gutter-app) var(--lf-space-9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-5);
+  max-height: 88%;
+  overflow-y: auto;
+}
+
+.lf-sheet__handle {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--lf-color-outline-strong);
+  align-self: center;
+  flex: none;
+}
+
+.lf-sheet__title {
+  font-size: var(--lf-type-subtitle-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+}
+
+/* 축하 시트 (MOD-03) — 가운데 정렬 */
+.lf-sheet--celebrate {
+  align-items: center;
+  text-align: center;
+  background: var(--lf-color-primary-container);
+}
+
+/* -------------------------------------------------------------
+   UTILITY
+   ------------------------------------------------------------- */
+.lf-stack    { display: flex; flex-direction: column; }
+.lf-row      { display: flex; align-items: center; }
+.lf-wrap     { flex-wrap: wrap; }
+.lf-grow     { flex: 1; min-width: 0; }
+.lf-center   { align-items: center; justify-content: center; text-align: center; }
+.lf-gap-1    { gap: var(--lf-space-1); }
+.lf-gap-2    { gap: var(--lf-space-2); }
+.lf-gap-3    { gap: var(--lf-space-3); }
+.lf-gap-4    { gap: var(--lf-space-4); }
+.lf-gap-5    { gap: var(--lf-space-5); }
+.lf-gap-6    { gap: var(--lf-space-6); }
+.lf-gap-7    { gap: var(--lf-space-7); }
+.lf-text-center { text-align: center; }
+.lf-text-left   { text-align: left; }
