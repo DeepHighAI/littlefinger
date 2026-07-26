@@ -77,3 +77,11 @@ export const EVIDENCE_SIGNED_URL_MIN = 10;
 
 /** 목록에서 "임박"으로 올리는 기준 (02 §6-4: 0 ≤ D ≤ 3 이고 상태 ACTIVE) */
 export const IMMINENT_THRESHOLD_DAYS = 3;
+
+/**
+ * `Idempotency-Key` 응답 캐시 유효 시간(분) (02 §7-3.6).
+ *
+ * 정본은 SQL 쪽 `lf_idempotency_ttl_minutes()` 다 — 캐시 판정이 거기서 일어나기 때문이다.
+ * SQL 은 이 파일을 import 할 수 없으므로 `supabase/tests/idempotency.test.ts` 가 두 값을 대조한다.
+ */
+export const IDEMPOTENCY_TTL_MIN = 10;

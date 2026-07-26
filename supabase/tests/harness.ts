@@ -42,6 +42,13 @@ const AUTH_SHIM = `
   create role anon nologin noinherit;
   create role authenticated nologin noinherit;
   create role service_role nologin noinherit bypassrls;
+
+  -- Supabase 는 public 스키마에 이 기본 권한을 걸어 둔다. 그래서 새로 만든 함수는
+  -- **아무 것도 안 해도 클라이언트가 부를 수 있다**. 마이그레이션보다 먼저 걸어야
+  -- 이후에 생성되는 함수에 적용된다 — 서버 전용 함수의 revoke 가 실제로 필요한지
+  -- 여기서 재현하지 않으면 로컬에서만 안전해 보인다.
+  alter default privileges in schema public
+    grant all on functions to anon, authenticated, service_role;
 `;
 
 /** Supabase 는 public 스키마의 새 테이블에 대해 이 권한을 기본으로 준다. RLS 가 실제 관문이다. */
