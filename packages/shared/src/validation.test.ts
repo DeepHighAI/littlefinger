@@ -47,6 +47,16 @@ describe('validateTitle — 2~40자, 개행 불가', () => {
     expect(ok(validateTitle('가'.repeat(41)))).toBe(false);
   });
 
+  test('길이 초과에는 "2자 이상" 문구를 쓰지 않는다', () => {
+    // §5-1 의 실패 문구는 최소 길이 위반용이다. 41자를 넣은 사람에게
+    // "2자 이상 입력해 주세요"는 틀린 안내다. 명세에 문구가 없으므로 null.
+    expect(validateTitle('가'.repeat(41)).message).toBeNull();
+  });
+
+  test('개행 위반에도 "2자 이상" 문구를 쓰지 않는다', () => {
+    expect(validateTitle('약속\n입니다').message).toBeNull();
+  });
+
   test('빈 값은 거절한다 — 필수 필드다', () => {
     expect(ok(validateTitle(''))).toBe(false);
   });
@@ -90,6 +100,12 @@ describe('validateBody — 5~1000자, 최대 20줄', () => {
   test('1000자면 통과하고 1001자는 거절한다', () => {
     expect(ok(validateBody('가'.repeat(1000)))).toBe(true);
     expect(ok(validateBody('가'.repeat(1001)))).toBe(false);
+  });
+
+  test('길이 초과·줄 수 초과에는 "5자 이상" 문구를 쓰지 않는다', () => {
+    expect(validateBody('가'.repeat(1001)).message).toBeNull();
+    const tooManyLines = Array.from({ length: 21 }, (_, i) => `${i + 1}번째 줄`).join('\n');
+    expect(validateBody(tooManyLines).message).toBeNull();
   });
 
   test('개행을 허용한다', () => {

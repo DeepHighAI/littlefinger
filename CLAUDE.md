@@ -176,7 +176,8 @@ Port rules are fully specified in `04` §3–§5. **Follow them; do not improvis
 | `promise.ts` | 11 `PromiseStatus` values, label maps, entity shapes, `LEGAL_DISCLAIMER` | `02` §2-4·§6-3 |
 | `config.ts` | **every policy number** | `02` §11-3 |
 | `errors.ts` | 14 error codes + HTTP status + user-facing copy | `02` §2-3 |
-| `text.ts` | input normalization, code-point length | `02` §2-3 |
+| `text.ts` | input normalization (**NFC**), code-point length | `02` §2-3 |
+| `validation.ts` | the `02` §5 field rules, as pure functions | `02` §5 |
 | `datetime.ts` | KST D-Day, imminence, CHECKING window, quiet hours | `02` §2-2·§6-4 |
 | `keep-rate.ts` | keepRate — `null` below `TRUST_MIN_SAMPLE` means "집계 중" | `02` §4-9-1 |
 | `transitions.ts` | the T-01…T-18 table + `canTransition` | `02` §7-1 |
@@ -190,7 +191,18 @@ from the label maps, keepRate math comes from the status sets, and no transition
 `TRANSITIONS`. **Contracts-first**: read the types before implementing; if a type is missing, write
 the type first, implement against it, then `npm test && npm run typecheck`.
 
-Still to build here: `validation.ts` (`02` §5 field rules) and `api.ts` (Supabase wrappers).
+Still to build here: `api.ts` (Supabase wrappers).
+
+**Normalize before you measure.** `02` §2-3 mandates code-point length counting but never named a
+normalization form; the PO chose **NFC** (2026-07-26). Korean typed as conjoining jamo counts far
+longer than the same text precomposed — 가속 is 5 code points raw and 2 after NFC — so every length
+check runs `normalizeInput` first. Control characters are stripped *before* NFC, because one sitting
+between jamo blocks composition. `content_hash` keeps its own NFC step inside the Edge Function,
+since it cannot assume its input came through the client path.
+
+**Validators never read the clock.** `validateEndDate(value, now)` takes the instant as an argument
+so the Edge Function can re-run the identical rule at approval time (T-03·T-08) instead of trusting
+a client-computed date.
 
 Lifecycle:
 
@@ -345,8 +357,16 @@ verbatim in code, DB, and design; screen labels **always** go through `PROMISE_S
 
 ## 9. Security
 
+The Supabase project exists (created by the PO, 2026-07-26). The URL and `anon` key live in the
+gitignored root `.env`; `.env.example` documents the shape. **Free-plan trap**: the project is paused
+after 7 days of inactivity and deleted after 90 days paused, so the daily GitHub Actions keep-alive
+ping is load-bearing — switch it on before development goes quiet.
+
 - The Supabase `service_role` key exists **only inside Edge Functions**. App and web ship the `anon`
-  key only.
+  key only. The `anon` key is designed to be public — **RLS is what protects the data**, which is
+  why every table gets RLS.
+- `KAKAO_REST_API_KEY` and `KAKAO_CLIENT_SECRET` never enter the repo in any form. They go only
+  into Supabase Dashboard → Authentication → Providers → Kakao.
 - `content_hash` is generated **only inside an Edge Function**, so a client cannot forge it.
   SHA-256, fixed key order, NFC-normalized strings (`02` §6).
 - `.env*` is gitignored; only `.env.example` is committed. **If a key was ever committed, rotate it
@@ -376,7 +396,7 @@ Full detail: `04` §10.
 | # | Issue | State |
 |---|---|---|
 | ~~N-3~~ | ~~App framework~~ | **Decided: React Native + Expo** (2026-07-25). Rationale `03`, port rules `04` |
-| C-1 | Business registration → Kakao Biz App → **can we collect email?** | **Awaiting PO.** Default: proceed without email (`User.email` is already `string \| null`) |
+| ~~C-1~~ | ~~Business registration → email collection~~ | **Resolved 2026-07-26: the PO has a business registration.** Kakao Biz App is available, so `account_email` **can** be collected — email reminders are back in scope for F-05·EC-G03. `User.email` stays `string \| null` (consent is still declinable). `04` §13 and ADR 0002 need back-propagation |
 | C-2 | Match icons to the original 100%? | Default: no — Expo MaterialIcons, slight corner-curvature difference |
 | C-3 | Buy a domain for the acceptance web? | Default: start on the free Cloudflare address |
 | C-4 | Pretty KakaoTalk share card for invites? | Default: out of MVP scope — OS share sheet, link only |

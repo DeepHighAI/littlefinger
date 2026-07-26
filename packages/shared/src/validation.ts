@@ -49,26 +49,31 @@ function checkLength(
 
 const TITLE_MIN = 2;
 const TITLE_MAX = 40;
-const TITLE_MESSAGE = '제목을 2자 이상 입력해 주세요.';
+/** §5-1 의 이 문구는 **최소 길이 위반 전용**이다. 상한·개행 위반에 재사용하면 틀린 안내가 된다. */
+const TITLE_TOO_SHORT = '제목을 2자 이상 입력해 주세요.';
 
 /** 제목 — 2~40자, 개행 불가 */
 export function validateTitle(value: string): ValidationResult {
   const { text, length } = normalizedLength(value);
-  if (text.includes('\n')) return invalid(TITLE_MESSAGE);
-  return length >= TITLE_MIN && length <= TITLE_MAX ? VALID : invalid(TITLE_MESSAGE);
+  if (length < TITLE_MIN) return invalid(TITLE_TOO_SHORT);
+  // 상한 초과와 개행은 §5-1 에 문구가 없다. 지어내지 않고 CTA 비활성으로 처리한다(§2-3).
+  if (length > TITLE_MAX || text.includes('\n')) return invalid(null);
+  return VALID;
 }
 
 const BODY_MIN = 5;
 const BODY_MAX = 1000;
 const BODY_MAX_LINES = 20;
-const BODY_MESSAGE = '어떤 약속인지 5자 이상 적어주세요.';
+/** 최소 길이 위반 전용 문구. 상한·줄 수 위반에는 쓰지 않는다. */
+const BODY_TOO_SHORT = '어떤 약속인지 5자 이상 적어주세요.';
 
 /** 약속 내용 — 5~1000자, 개행 허용하되 최대 20줄 */
 export function validateBody(value: string): ValidationResult {
   const { text, length } = normalizedLength(value);
+  if (length < BODY_MIN) return invalid(BODY_TOO_SHORT);
   // 줄 수는 개행 축약이 끝난 뒤 센다. 축약 전 기준으로 세면 빈 줄만으로 상한에 걸린다.
-  if (text.split('\n').length > BODY_MAX_LINES) return invalid(BODY_MESSAGE);
-  return length >= BODY_MIN && length <= BODY_MAX ? VALID : invalid(BODY_MESSAGE);
+  if (length > BODY_MAX || text.split('\n').length > BODY_MAX_LINES) return invalid(null);
+  return VALID;
 }
 
 const CATEGORIES: readonly string[] = ['HABIT', 'BET', 'MONEY', 'ETC'] satisfies PromiseCategory[];
@@ -135,7 +140,9 @@ export function validatePenalty(value: string): ValidationResult {
 
 /** 수정 제안 의견 — 수정 제안 시 필수, 5~300자 (T-05) */
 export function validateAmendSuggestion(value: string): ValidationResult {
-  return checkLength(value, 5, 300, '어떤 부분을 바꾸고 싶은지 알려주세요.');
+  const { length } = normalizedLength(value);
+  if (length < 5) return invalid('어떤 부분을 바꾸고 싶은지 알려주세요.');
+  return length <= 300 ? VALID : invalid(null);
 }
 
 /** 거절 사유 — 선택 (S-4 기본안), 0~200자 */
