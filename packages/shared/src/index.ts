@@ -16,3 +16,4 @@ export * from './keep-rate.js';
 export * from './promise.js';
 export * from './text.js';
 export * from './transitions.js';
+export * from './validation.js';
