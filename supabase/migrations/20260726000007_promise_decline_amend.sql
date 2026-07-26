@@ -295,6 +295,8 @@ begin
            'status',     'DECLINED',
            'closed_at',  v_closed_at,
            'creator_id', v_creator_id,
+           -- 알림 본문. 원본인 버전 행에서 읽는다(§6-2).
+           'title',      v_ver.title,
            'partner',    jsonb_build_object(
                            'user_id',           pu.id,
                            'nickname',          pu.nickname,
@@ -443,6 +445,9 @@ begin
            'promise_id', v_promise_id,
            'status',     'DRAFT',
            'creator_id', v_creator_id,
+           -- 알림 본문. 버전 행에서 읽어야 하는 이유가 여기서 가장 분명하다 — DRAFT 로 돌아간
+           -- 뒤 작성자가 SCR-A03 에서 제목을 고쳐도, 알림에는 제안받은 시점의 제목이 남는다.
+           'title',      v_ver.title,
            'partner',    jsonb_build_object(
                            'user_id',           pu.id,
                            'nickname',          pu.nickname,

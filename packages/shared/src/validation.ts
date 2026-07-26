@@ -12,10 +12,10 @@
  * 순수 함수로만 만든다 — 여기 있는 어떤 함수도 현재 시각이나 기기 정보를 직접 읽지 않는다.
  */
 
-import { END_DATE_MAX_DAYS, EVIDENCE_MAX_COUNT, EVIDENCE_MAX_MB } from './config.js';
-import { toKstDate } from './datetime.js';
-import type { Keeper, PromiseCategory } from './promise.js';
-import { codepointLength, normalizeInput } from './text.js';
+import { END_DATE_MAX_DAYS, EVIDENCE_MAX_COUNT, EVIDENCE_MAX_MB } from './config.ts';
+import { toKstDate } from './datetime.ts';
+import type { Keeper, PromiseCategory } from './promise.ts';
+import { codepointLength, normalizeInput } from './text.ts';
 
 export interface ValidationResult {
   valid: boolean;

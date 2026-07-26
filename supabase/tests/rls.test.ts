@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { createPromise, createTestDb, createUser, type TestDb } from './harness.js';
+import { createPromise, createTestDb, createUser, type TestDb } from './harness.ts';
 
 /**
  * RLS 동작 검증 — 실제 Postgres(PGlite) 위에서 정책을 돌린다.

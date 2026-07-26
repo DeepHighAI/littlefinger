@@ -279,6 +279,9 @@ begin
            'status',       'ACTIVE',
            'activated_at', v_activated_at,
            'creator_id',   v_creator_id,
+           -- 알림 본문(SCR-A07 두 번째 줄)이 이 값이다. promises 의 캐시가 아니라 버전 행에서
+           -- 읽는다 — 원본은 promise_versions 이고(§6-2), 전이 시점의 제목이 박혀야 한다.
+           'title',        v_ver.title,
            'partner',      jsonb_build_object(
                              'user_id',           pu.id,
                              'nickname',          pu.nickname,

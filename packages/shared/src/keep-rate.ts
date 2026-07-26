@@ -10,7 +10,7 @@
  * 그 필터링은 조회 계층의 몫이고, 이 함수는 걸러진 건수만 받는다.
  */
 
-import { TRUST_MIN_SAMPLE } from './config.js';
+import { TRUST_MIN_SAMPLE } from './config.ts';
 
 export interface KeepRateCounts {
   /** 종결 상태가 COMPLETED 인 약속 수 */

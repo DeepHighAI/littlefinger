@@ -4,14 +4,14 @@ import { join } from 'node:path';
 
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { ERROR_CODES } from '../../packages/shared/src/errors.js';
+import { ERROR_CODES } from '../../packages/shared/src/errors.ts';
 import {
   createInvitation,
   createPromise,
   createTestDb,
   createUser,
   type TestDb,
-} from './harness.js';
+} from './harness.ts';
 
 /**
  * `lf_invite_resolve` — 02 §4-3-3 (SCR-W01 초대 랜딩, 비로그인).

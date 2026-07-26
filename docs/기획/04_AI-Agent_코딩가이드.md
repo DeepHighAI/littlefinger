@@ -445,7 +445,7 @@ MVP는 **OS 기본 공유 시트**(RN `Share` API)로 초대 링크를 보낸다
 
 **절대 클라이언트에 넣지 않는 값** (Supabase Secrets / GitHub Secrets에만)
 
-`SUPABASE_SERVICE_ROLE_KEY`, `KAKAO_REST_API_KEY`, `KAKAO_CLIENT_SECRET`, `INVITE_TOKEN_PEPPER`(초대 토큰 해시용), `EXPO_ACCESS_TOKEN`(푸시 발송용).
+`SUPABASE_SERVICE_ROLE_KEY`, `KAKAO_REST_API_KEY`, `KAKAO_CLIENT_SECRET`, `INVITE_TOKEN_PEPPER`(초대 토큰 해시용), `PII_HASH_SALT`(IP·User-Agent 해시용 — **pepper 와 다른 값**. 같은 값을 쓰면 링크 인증용 비밀이 새는 순간 저장된 IP 를 되짚는 오라클까지 함께 넘어간다), `EXPO_ACCESS_TOKEN`(푸시 발송용).
 
 `.env*`는 `.gitignore`에 포함한다. `.env.example`만 커밋한다. **키를 커밋했다면 즉시 회전(regenerate)한다.**
 

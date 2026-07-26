@@ -8,7 +8,7 @@ import {
   isImminent,
   isQuietHours,
   toKstDate,
-} from './datetime.js';
+} from './datetime.ts';
 
 // 근거: 02_세부기능명세서 §2-2 시각·날짜 규칙, §6-4 파생 값 계산 규칙
 // 핵심 전제: 저장은 UTC, 계산·표시는 Asia/Seoul 고정. 기기 타임존을 따르지 않는다(EC-F09).

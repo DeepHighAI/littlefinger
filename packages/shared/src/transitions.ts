@@ -9,7 +9,7 @@
  * 모든 전이는 서버에서만 수행하고 클라이언트는 요청만 할 수 있다(02 §1-3).
  */
 
-import type { PromiseStatus } from './promise.js';
+import type { PromiseStatus } from './promise.ts';
 
 export interface Transition {
   /** 명세의 전이 ID. 새로 만들지 않는다(02 §1-2). */

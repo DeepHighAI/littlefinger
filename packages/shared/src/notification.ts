@@ -1,0 +1,86 @@
+/**
+ * 알림 이벤트 — 02_세부기능명세서 §8-1 · §6-2.
+ *
+ * `notifications.type` 에 들어가는 값은 §6-2 가 "§8-1 NT 코드"라고 못박았다. 그래서 이 파일의
+ * 어휘가 곧 DB 에 저장되는 문자열이고, `notifications` 는 UPDATE 정책이 아예 없는 append-only
+ * 테이블이라 **첫 행을 쓰는 순간 되돌릴 수 없다**.
+ *
+ * §8-1 은 NT-01~NT-19 를 나열하지만 여기에는 실제로 발송하는 것만 둔다. 전이표에 없는 전이를
+ * 구현하지 않는 것과 같은 이유다 — 쓰지 않는 코드에 문구를 붙여 두면 그 문구가 검토를 거치지
+ * 않은 채 나중에 그대로 나간다.
+ *
+ * `promise.ts` 의 `NotificationType` 과는 층이 다르다. 그쪽은 알림함 아이콘을 고르는 **분류**고
+ * 이쪽은 **어떤 사건이었는지**다. 한 분류에 여러 사건이 들어간다.
+ */
+
+/** §8-1 NT 코드 중 현재 발송하는 것 */
+export type NotificationEvent = 'NT-01' | 'NT-02' | 'NT-03';
+
+/**
+ * 알림 제목. 디자인 레퍼런스의 브랜드 톤을 따른다(PO 결정 2026-07-26).
+ *
+ * 축하 문형은 **승인에만** 쓴다. 원본 마크업이 그렇게 갈라 두었고(SCR-A07 은 "손가락 걸었어요!",
+ * SCR-A05/DECLINED 는 "거절했어요") 그 구분이 옳다 — 거절 알림에 새끼손가락 장식을 붙이면
+ * 받는 사람을 놀리는 문구가 된다.
+ *
+ * NT-03 은 레퍼런스에 문구가 없어 같은 화면의 형제 문구("민준님이 변경을 요청했어요", NT-15)와
+ * 같은 문형으로 맞췄다.
+ */
+export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: string) => string> = {
+  'NT-01': (n) => `${n}님이 손가락 걸었어요! 약속 성립`,
+  'NT-02': (n) => `${n}님이 거절했어요`,
+  'NT-03': (n) => `${n}님이 수정을 제안했어요`,
+};
+
+/**
+ * 알림함 항목을 탭했을 때 갈 화면. §8-1 딥링크 열의 값 그대로다.
+ *
+ * URL 이 아니라 **화면 ID** 를 저장한다. 라우트는 앱이 아직 만들지 않았고, `notifications` 에
+ * UPDATE 정책이 없어 지금 박아 넣은 URL 이 틀리면 영구히 고칠 수 없다. 같은 행에 `promise_id`
+ * 가 이미 있으므로 클라이언트가 화면 ID + 인자로 경로를 조립하면 된다.
+ */
+export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, string> = {
+  'NT-01': 'SCR-A05',
+  'NT-02': 'SCR-A05',
+  // 수정 제안은 약속이 DRAFT 로 돌아간 뒤라, 갈 곳은 상세가 아니라 재작성 화면이다.
+  'NT-03': 'SCR-A03',
+};
+
+/**
+ * `notifications.dedupe_key` 조립 (§6-2 · EC-G04, PO 결정 2026-07-26).
+ *
+ * EC-G04 원문은 `{promise_id}:{type}:{yyyymmdd}` 인데, 컬럼이 UNIQUE 라 한 이벤트가 채널마다
+ * 행을 만드는 순간 깨진다 — NT-01 은 작성자 한 명에게 PUSH + INAPP 두 행이다. 그래서 수신자와
+ * 채널을 키에 넣는다.
+ *
+ * 마지막 조각은 **두 종류**다.
+ *
+ * - 전이 알림(NT-01~03)은 `Idempotency-Key` 를 쓴다. 껍데기가 재시도되면 RPC 가 캐시된
+ *   payload 를 그대로 돌려주므로 같은 키가 다시 조립되고, UNIQUE 가 중복 삽입을 막는다.
+ *   날짜를 쓰면 같은 날 두 번째 수정 제안(재발송 → 또 수정 제안)이 조용히 사라진다.
+ * - 배치 알림은 날짜(KST)를 쓴다. 거기서는 "하루 1회"가 실제로 의도한 규칙이고, 배치를 두 번
+ *   돌려도 중복 발송되지 않게 하는 것이 EC-G04 의 목적이다.
+ */
+export function transitionDedupeKey(input: {
+  promiseId: string;
+  event: NotificationEvent;
+  userId: string;
+  channel: string;
+  idempotencyKey: string;
+}): string {
+  return [input.promiseId, input.event, input.userId, input.channel, input.idempotencyKey].join(
+    ':',
+  );
+}
+
+/** 배치 알림용. 날짜는 **KST** 다 — UTC 로 잡으면 00:00~09:00 KST 발송이 전부 전날로 들어간다. */
+export function scheduledDedupeKey(input: {
+  promiseId: string;
+  event: string;
+  userId: string;
+  channel: string;
+  /** `YYYYMMDD` (KST) */
+  yyyymmddKst: string;
+}): string {
+  return [input.promiseId, input.event, input.userId, input.channel, input.yyyymmddKst].join(':');
+}

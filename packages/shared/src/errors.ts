@@ -6,7 +6,7 @@
  * 약속의 존재 자체를 알리지 않기 위해서다(04 §7-2).
  */
 
-import { INVITE_TTL_HOURS, WITNESS_MAX } from './config.js';
+import { INVITE_TTL_HOURS, WITNESS_MAX } from './config.ts';
 
 export const ERROR_CODES = [
   'E_AUTH_REQUIRED',

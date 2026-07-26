@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { IDEMPOTENCY_TTL_MIN } from '../../packages/shared/src/config.js';
-import { createPromise, createTestDb, createUser, type TestDb } from './harness.js';
+import { IDEMPOTENCY_TTL_MIN } from '../../packages/shared/src/config.ts';
+import { createPromise, createTestDb, createUser, type TestDb } from './harness.ts';
 
 /**
  * Idempotency-Key 저장소 — 02 §7-3.6 · EC-C01.

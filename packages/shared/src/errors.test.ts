@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { INVITE_TTL_HOURS, WITNESS_MAX } from './config.js';
-import { ERROR_CODES, ERROR_HTTP_STATUS, ERROR_MESSAGE } from './errors.js';
+import { INVITE_TTL_HOURS, WITNESS_MAX } from './config.ts';
+import { ERROR_CODES, ERROR_HTTP_STATUS, ERROR_MESSAGE } from './errors.ts';
 
 // 근거: 02_세부기능명세서 §2-3 에러 코드표
 describe('ERROR_CODES', () => {

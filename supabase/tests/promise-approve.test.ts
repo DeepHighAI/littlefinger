@@ -5,15 +5,15 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {
   REMINDER_OFFSETS_DAYS,
   REMINDER_SEND_HOUR_KST,
-} from '../../packages/shared/src/config.js';
-import { ERROR_CODES } from '../../packages/shared/src/errors.js';
+} from '../../packages/shared/src/config.ts';
+import { ERROR_CODES } from '../../packages/shared/src/errors.ts';
 import {
   createInvitation,
   createPromise,
   createTestDb,
   createUser,
   type TestDb,
-} from './harness.js';
+} from './harness.ts';
 
 /**
  * `lf_promise_approve` — 02 §4-3-5 승인 트랜잭션 10단계.
@@ -39,6 +39,7 @@ const ENDPOINT_KEYS = [
   'partner',
   'promise_id',
   'status',
+  'title',
   'version_no',
 ] as const;
 
@@ -227,6 +228,18 @@ describe('성공 경로 — 열 단계가 실제로 일어난다', () => {
   test('반환 payload 의 키 집합이 정확히 일치한다', async () => {
     const f = await seed();
     expect(Object.keys(await approve(f)).sort()).toEqual([...ENDPOINT_KEYS]);
+  });
+
+  test('title 은 promises 캐시가 아니라 버전 행에서 온다', async () => {
+    // 알림 본문이 이 값이다. promises 의 내용 컬럼은 목록 조회용 캐시일 뿐이고 원본은
+    // promise_versions 다(§6-2). 둘을 갈라 놓고 어느 쪽을 읽는지 본다 —
+    // 같은 값이면 캐시를 읽어도 테스트가 통과해 버린다.
+    const f = await seed();
+    await db.asAdmin(`update public.promises set title = '캐시 쪽 제목' where id = $1`, [
+      f.promiseId,
+    ]);
+
+    expect((await approve(f)).title).toBe('매일 걷기');
   });
 
   test('payload 가 NT-01 을 만들 재료를 담고 있다', async () => {

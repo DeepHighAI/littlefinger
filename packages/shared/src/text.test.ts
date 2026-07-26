@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { codepointLength, normalizeInput } from './text.js';
+import { codepointLength, normalizeInput } from './text.ts';
 
 // 제어문자는 소스에 리터럴로 박지 않는다. 편집기가 건드리면 조용히 다른 테스트가 된다.
 const NUL = String.fromCodePoint(0x00);

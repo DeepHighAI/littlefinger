@@ -25,7 +25,7 @@ import {
   REMINDER_SEND_HOUR_KST,
   TRUST_MIN_SAMPLE,
   WITNESS_MAX,
-} from './config.js';
+} from './config.ts';
 
 // 근거: 02_세부기능명세서 §11-3 설정값 목록.
 // 값이 명세와 어긋나면 실패한다. 정책 수치를 코드 여기저기 박지 않기 위한 단일 출처다.

@@ -10,7 +10,7 @@ import {
   RATE_COUNTED_STATUSES,
   RATE_EXCLUDED_STATUSES,
   TERMINAL_STATUSES,
-} from './promise.js';
+} from './promise.ts';
 
 // 근거: 02_세부기능명세서 §2-4 상태 값(변경 금지), §6-3 Enum 목록
 describe('PROMISE_STATUSES', () => {

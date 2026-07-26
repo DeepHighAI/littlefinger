@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { END_DATE_MAX_DAYS, EVIDENCE_MAX_COUNT, EVIDENCE_MAX_MB } from './config.js';
+import { END_DATE_MAX_DAYS, EVIDENCE_MAX_COUNT, EVIDENCE_MAX_MB } from './config.ts';
 import {
   validateAmendSuggestion,
   validateBody,
@@ -13,7 +13,7 @@ import {
   validateKeeper,
   validateReward,
   validateTitle,
-} from './validation.js';
+} from './validation.ts';
 
 // 근거: 02_세부기능명세서 §5 필드 명세, §2-3 입력·검증·에러 표준.
 //

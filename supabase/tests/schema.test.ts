@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { describe, expect, test } from 'vitest';
 
-import { PROMISE_STATUSES } from '../../packages/shared/src/promise.js';
+import { PROMISE_STATUSES } from '../../packages/shared/src/promise.ts';
 
 /**
  * 스키마·RLS 구조 검증 — 02 §6, §9, 04 §7-2, §12.

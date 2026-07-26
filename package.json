@@ -11,7 +11,7 @@
     "preview": "node design-reference/serve.js",
     "test": "vitest run && npm run test --workspace=@littlefinger/mobile",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p apps/mobile",
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p apps/mobile && tsc --noEmit -p supabase/functions && tsc --noEmit -p supabase/tests",
     "sync:agents": "node tools/sync-agent-docs.js",
     "check:agents": "node tools/sync-agent-docs.js --check",
     "test:shared": "vitest run",
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.4",
+    "@supabase/supabase-js": "2.110.8",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }

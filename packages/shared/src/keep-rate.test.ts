@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { TRUST_MIN_SAMPLE } from './config.js';
-import { calculateKeepRate } from './keep-rate.js';
+import { TRUST_MIN_SAMPLE } from './config.ts';
+import { calculateKeepRate } from './keep-rate.ts';
 
 // 근거: 02_세부기능명세서 §4-9-1 약속 지킴율.
 //   분자 = COMPLETED,  분모 = COMPLETED + BROKEN,  round(분자/분모 × 100)

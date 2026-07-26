@@ -9,8 +9,8 @@
  * 여기 계산은 화면 표시와 클라이언트 CTA 게이팅용이다.
  */
 
-import { CHECK_DEADLINE_DAYS, IMMINENT_THRESHOLD_DAYS } from './config.js';
-import type { IsoDate, PromiseStatus } from './promise.js';
+import { CHECK_DEADLINE_DAYS, IMMINENT_THRESHOLD_DAYS } from './config.ts';
+import type { IsoDate, PromiseStatus } from './promise.ts';
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;

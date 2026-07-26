@@ -113,11 +113,29 @@ Edit `CLAUDE.md` only, then `npm run sync:agents` regenerates `AGENTS.md`. Never
 tests (every EC-\* case, concurrency cases in parallel, every batch job idempotent across two runs),
 so a runner is not optional.
 
-`typecheck` currently covers `packages/shared` only. As `apps/*` land it becomes the composite from
-`04` §4: `tsc --noEmit -p packages/shared && tsc --noEmit -p apps/mobile && tsc --noEmit -p apps/web`.
+`typecheck` covers four projects: `packages/shared`, `apps/mobile`, `supabase/functions`,
+`supabase/tests`. `apps/web` joins when it exists. Nothing that ships is outside it —
+`supabase/functions` has no Deno available locally, so `tsc` plus `functions/deno.d.ts` is the only
+check those files get before deploy.
 
 The strict compiler flags (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
 `verbatimModuleSyntax`, `isolatedModules`) are **never disabled** to make something compile.
+
+**Relative imports carry the `.ts` extension**, not `.js` (PO, 2026-07-26; needs
+`allowImportingTsExtensions`, legal because `noEmit` is on). Deno resolves specifiers literally and
+the Supabase CLI bundler skips files it cannot find — with `.js` the Edge Functions fail at deploy
+with Module not found, and nothing before deploy says so.
+
+Deploying an Edge Function:
+
+```bash
+npx supabase functions deploy --use-api
+```
+
+`--use-api` is not optional. Without it the CLI bundles with Docker when Docker is running and
+silently falls back to server-side bundling when it is not, so the same source produces two
+different builds depending on the machine. Docker is not installed here, which also means
+`supabase functions serve` — and therefore any local run of the four functions — is unavailable.
 
 ---
 
@@ -181,6 +199,8 @@ Port rules are fully specified in `04` §3–§5. **Follow them; do not improvis
 | `datetime.ts` | KST D-Day, imminence, CHECKING window, quiet hours | `02` §2-2·§6-4 |
 | `keep-rate.ts` | keepRate — `null` below `TRUST_MIN_SAMPLE` means "집계 중" | `02` §4-9-1 |
 | `transitions.ts` | the T-01…T-18 table + `canTransition` | `02` §7-1 |
+| `api.ts` | the Edge Function HTTP contract — error body, request shapes, endpoint slugs | `02` §2-3·§7-3.6 |
+| `notification.ts` | NT event codes, titles, deeplinks, `dedupe_key` builders | `02` §8-1·§6-2 |
 
 Naming follows **`02`, not `04`** where they conflict (PO, 2026-07-26): `keeper` not `obligor`,
 `INVITE_TTL_HOURS` not `INVITE_EXPIRY_HOURS`, `CHECK_DEADLINE_DAYS`, `WITNESS_MAX`,
@@ -191,7 +211,8 @@ from the label maps, keepRate math comes from the status sets, and no transition
 `TRANSITIONS`. **Contracts-first**: read the types before implementing; if a type is missing, write
 the type first, implement against it, then `npm test && npm run typecheck`.
 
-Still to build here: `api.ts` (Supabase wrappers).
+Still to build here: the Supabase client wrappers the app and web call (`api.ts` currently holds the
+HTTP contract only — types and constants, no calls).
 
 **Normalize before you measure.** `02` §2-3 mandates code-point length counting but never named a
 normalization form; the PO chose **NFC** (2026-07-26). Korean typed as conjoining jamo counts far
@@ -276,6 +297,27 @@ Functions only (`04` §7-3): `invite-resolve`, `promise-approve` (state transiti
 `content_hash` generation), `promise-decline` / `promise-amend` / `promise-cancel`,
 `fulfillment-submit` (the COMPLETED/BROKEN/DISPUTED verdict), `evidence-sign-url`, `push-send`
 (quiet hours 21:00–08:00 KST).
+
+But the transition itself is **not** in the Edge Function — it is a Postgres `lf_*` function, one
+per transition, and the function boundary is the transaction boundary (ADR 0003). The Edge Function
+is a shell: JWT → user id, request shape, call the RPC, map the raised message to the `02` §2-3 code
+and HTTP status, and write the notification **after** the commit.
+
+Every shell splits in two, and this is load-bearing rather than stylistic: `handler.ts` is pure and
+takes a `Deps` object, `index.ts` is `Deno.serve(create…(createDeps()))` and nothing else. Touching a
+Deno global at module top level makes the whole file unimportable by Vitest, so logic in `index.ts`
+is logic no test can reach.
+
+Three things the shells own that nothing below them can:
+- **`surface`** comes from the presence of the `Origin` header (browsers always send it cross-origin,
+  RN's fetch never does). Not from the request body — `approvals` is append-only and cannot be
+  corrected, so a client-declared value there is permanent. Not from `users.primary_surface`, which
+  is the **signup** surface (`02` §6-2), a KPI field.
+- **Unknown failures are flattened to a 500** with EC-C02's copy. A raised message that is not one of
+  the 14 codes carries Postgres's table and column names, and letting it through breaks `02` §9 on
+  the failure path only.
+- **Notification failure never fails the response.** The transition is already committed; throwing
+  there shows the user an error for a promise that is confirmed.
 
 RLS on every table, derived from the `02` §9 permission matrix, with three principles:
 1. Non-participants are not told a promise **exists** — unauthorized reads return empty, and the app
@@ -392,8 +434,17 @@ ping is load-bearing — switch it on before development goes quiet.
   why every table gets RLS.
 - `KAKAO_REST_API_KEY` and `KAKAO_CLIENT_SECRET` never enter the repo in any form. They go only
   into Supabase Dashboard → Authentication → Providers → Kakao.
-- `content_hash` is generated **only inside an Edge Function**, so a client cannot forge it.
-  SHA-256, fixed key order, NFC-normalized strings (`02` §6).
+- `content_hash` is generated **only on the server**, so a client cannot forge it. SHA-256, fixed key
+  order, NFC-normalized strings (`02` §6). It lives in Postgres (`lf_content_hash`), one layer deeper
+  than `04` §7-3 put it — see ADR 0003.
+- **Invite tokens hash as `SHA-256(token + INVITE_TOKEN_PEPPER)`** (PO, 2026-07-26; `02` §6-2 was
+  corrected to match `04` §9). The issuing path (T-02, not built) and the resolving path must use
+  the same rule — if they diverge every valid link fails as `E_NOT_FOUND` and there is no other
+  symptom to trace.
+- **IP and User-Agent hash with `PII_HASH_SALT`, a different secret.** Sharing the invite pepper
+  would mean one leaked secret hands over both link authentication and an oracle for stored IPs.
+  Both columns are nullable and stay NULL when the header is absent — hashing a placeholder makes
+  different people share a hash, which makes the audit log lie.
 - `.env*` is gitignored; only `.env.example` is committed. **If a key was ever committed, rotate it
   immediately.**
 

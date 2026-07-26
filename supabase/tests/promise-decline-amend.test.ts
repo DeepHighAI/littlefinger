@@ -2,19 +2,19 @@ import { randomUUID } from 'node:crypto';
 
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { ERROR_CODES } from '../../packages/shared/src/errors.js';
-import { codepointLength, normalizeInput } from '../../packages/shared/src/text.js';
+import { ERROR_CODES } from '../../packages/shared/src/errors.ts';
+import { codepointLength, normalizeInput } from '../../packages/shared/src/text.ts';
 import {
   validateAmendSuggestion,
   validateDeclineReason,
-} from '../../packages/shared/src/validation.js';
+} from '../../packages/shared/src/validation.ts';
 import {
   createInvitation,
   createPromise,
   createTestDb,
   createUser,
   type TestDb,
-} from './harness.js';
+} from './harness.ts';
 
 /**
  * `lf_promise_decline` (T-04) · `lf_promise_amend_suggest` (T-05) — 02 §4-3-4.
@@ -365,6 +365,22 @@ describe('거절 — T-04 (PENDING → DECLINED)', () => {
     expect(typeof partner['nickname']).toBe('string');
     expect(Object.keys(partner).sort()).toEqual(['nickname', 'profile_image_url', 'user_id']);
   });
+});
+
+describe('알림 본문용 title — 두 응답 공통', () => {
+  // 알림 행의 body 가 이 값이다. promises 의 내용 컬럼은 캐시이고 원본은 promise_versions 라
+  // (§6-2) 둘을 갈라 놓고 어느 쪽을 읽는지 본다. 같은 값이면 캐시를 읽어도 통과해 버린다.
+  test.each(['decline', 'amend'] as const)(
+    '%s 의 title 은 promises 캐시가 아니라 버전 행에서 온다',
+    async (rpc) => {
+      const f = await seed();
+      await db.asAdmin(`update public.promises set title = '캐시 쪽 제목' where id = $1`, [
+        f.promiseId,
+      ]);
+
+      expect((await respond(rpc, f))['title']).toBe('매일 걷기');
+    },
+  );
 });
 
 describe('수정 제안 — T-05 (PENDING → DRAFT)', () => {

@@ -1,0 +1,13 @@
+{
+  // §3 의 strict 플래그는 그대로 상속한다. 컴파일을 통과시키려고 끄지 않는다.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Edge Function 은 웹 표준 위에서 돈다 — Request·Response·crypto.subtle·TextEncoder.
+    // Deno 전역은 deno.d.ts 가 따로 선언한다.
+    "lib": ["ES2022", "DOM"],
+    // `npm:@supabase/supabase-js@2` 를 설치된 타입으로 잇기 위해 node_modules 를 본다.
+    "types": []
+  },
+  // supabase/tests 는 vitest 가 맡는다. 여기서는 배포되는 코드만 본다.
+  "include": ["**/*.ts"]
+}

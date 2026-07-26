@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { PGlite } from '@electric-sql/pglite';
 
-import { INVITE_TTL_HOURS } from '../../packages/shared/src/config.js';
+import { INVITE_TTL_HOURS } from '../../packages/shared/src/config.ts';
 
 /**
  * 실제 Postgres 위에서 RLS 를 검증하기 위한 하니스.

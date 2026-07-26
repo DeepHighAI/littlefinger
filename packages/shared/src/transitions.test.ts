@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { PROMISE_STATUSES } from './promise.js';
-import { canTransition, TRANSITIONS } from './transitions.js';
+import { PROMISE_STATUSES } from './promise.ts';
+import { canTransition, TRANSITIONS } from './transitions.ts';
 
 // 근거: 02_세부기능명세서 §7-1 전이표.
 // "이 표에 없는 전이는 구현하지 않는다" — 그래서 허용 목록이 아니라 전수 검사로 잠근다.

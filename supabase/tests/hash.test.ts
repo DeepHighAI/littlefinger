@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
-import { createTestDb, type TestDb } from './harness.js';
-import { canonicalJson, contentHash, fingerprint, type HashInput } from './reference/content-hash.js';
+import { createTestDb, type TestDb } from './harness.ts';
+import { canonicalJson, contentHash, fingerprint, type HashInput } from './reference/content-hash.ts';
 
 /**
  * `content_hash` · 기록 지문 — 02 §4-4-2.
