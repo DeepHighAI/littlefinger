@@ -1,7 +1,10 @@
+import { createHash, randomUUID } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { PGlite } from '@electric-sql/pglite';
+
+import { INVITE_TTL_HOURS } from '../../packages/shared/src/config.js';
 
 /**
  * 실제 Postgres 위에서 RLS 를 검증하기 위한 하니스.
@@ -169,4 +172,40 @@ export async function createPromise(
   }
 
   return promiseId;
+}
+
+/**
+ * 초대 하나를 만들고 **토큰 해시**를 돌려준다. 서버는 원문 토큰을 절대 갖지 않으므로
+ * (04 §12-8) 테스트도 해시만 들고 다닌다.
+ *
+ * `status` 와 `expiresInSeconds` 를 따로 받는 이유: 둘은 실제로 어긋날 수 있다.
+ * J-04 는 30분마다 돌기 때문에 `status='PENDING'` 인데 `expires_at` 은 이미 지난
+ * 구간이 존재한다(02 §7-2). 그 조합을 만들 수 없으면 그 창을 테스트할 수 없다.
+ */
+export async function createInvitation(
+  db: TestDb,
+  options: {
+    promiseId: string;
+    createdBy: string;
+    targetRole?: 'PARTNER' | 'WITNESS';
+    status?: 'PENDING' | 'USED' | 'EXPIRED' | 'REVOKED';
+    expiresInSeconds?: number;
+  },
+): Promise<string> {
+  const tokenHash = createHash('sha256').update(randomUUID()).digest('hex');
+  await db.asAdmin(
+    `insert into public.invitations
+       (promise_id, target_role, token_hash, created_by, expires_at, status)
+     values ($1, $2::public.participant_role, $3, $4,
+             now() + make_interval(secs => $5), $6::public.invitation_status)`,
+    [
+      options.promiseId,
+      options.targetRole ?? 'PARTNER',
+      tokenHash,
+      options.createdBy,
+      options.expiresInSeconds ?? INVITE_TTL_HOURS * 3600,
+      options.status ?? 'PENDING',
+    ],
+  );
+  return tokenHash;
 }
