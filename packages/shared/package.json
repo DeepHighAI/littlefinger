@@ -1,0 +1,15 @@
+{
+  "name": "@littlefinger/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "앱·웹이 공유하는 유일한 코드 — 도메인 타입·정책 상수·검증 규칙. 플랫폼 API를 import하지 않는다.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

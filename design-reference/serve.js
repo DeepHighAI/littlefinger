@@ -12,7 +12,7 @@ const path = require('node:path');
 const url = require('node:url');
 
 const PORT = Number(process.env.PORT) || 4173;
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = __dirname;
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',

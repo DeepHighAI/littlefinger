@@ -4,7 +4,7 @@
     {
       "name": "littlefinger-preview",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["tools/serve.js"],
+      "runtimeArgs": ["design-reference/serve.js"],
       "port": 4173
     }
   ]
