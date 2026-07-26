@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
     "@littlefinger/shared": "*",
     "expo": "~57.0.8",
     "expo-constants": "~57.0.7",
@@ -34,6 +35,6 @@
     "@types/react": "~19.2.2",
     "jest": "^29.7.0",
     "jest-expo": "^57.0.2",
-    "react-test-renderer": "^19.2.3"
+    "test-renderer": "^1.2.0"
   }
 }
