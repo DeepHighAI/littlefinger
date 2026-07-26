@@ -21,8 +21,12 @@ export const PRETENDARD_FILES = {
 
 export type PretendardWeight = keyof typeof PRETENDARD_FILES;
 
-/** 폰트 파일이 번들에 들어왔는지. 파일 추가 시 true 로 바꾼다. */
-export const BRAND_FONTS_LOADED = false;
+/**
+ * 폰트 파일이 번들에 들어왔는지.
+ * `fonts.test.ts` 가 이 플래그와 실제 `.ttf` 존재를 함께 검사하므로,
+ * 파일 없이 true 로 켜두면 테스트가 막는다.
+ */
+export const BRAND_FONTS_LOADED = true;
 
 export function brandFontFamily(fontWeight: PretendardWeight): string | undefined {
   return BRAND_FONTS_LOADED ? PRETENDARD_FILES[fontWeight] : undefined;
