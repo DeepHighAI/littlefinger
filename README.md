@@ -20,15 +20,19 @@ Claude Design에서 확정된 "핑키" 컨셉을 프레임워크 없는 HTML/CSS
 이식 규칙은 [04_AI-Agent_코딩가이드](docs/기획/04_AI-Agent_코딩가이드.md),
 배경은 [ADR 0002](docs/adr/0002-react-native-expo-and-port-strategy.md).
 
-**다음 작업은 이식이다.** 앱은 이 HTML/CSS를 React Native로 옮기고, 수락 웹은 CSS를 그대로
-Vite 프로젝트로 옮긴다. 이 저장소의 화면 라이브러리는 이식이 끝나면 `design-reference/`로
-이동해 **읽기 전용 시각 기준**이 된다. 이식 규칙(토큰 변환 표, 컴포넌트 매핑, 폰트·아이콘
-주의점)은 04 문서 §3~§5에 전부 있다. 추측하지 말고 그 문서를 따른다.
+**진행 상황.** 저장소는 npm workspaces 모노레포로 재구성됐고, 화면 라이브러리는
+`design-reference/`로 옮겨져 **읽기 전용 시각 기준**이 됐다. 공유 도메인 패키지
+`packages/shared`는 TDD로 구현 중이다 — 상태·라벨·정책 상수·에러 코드·입력 정규화·KST 날짜
+계산·지킴율·상태 전이표까지 완료(111개 테스트). 남은 것은 `validation.ts`와 `api.ts`.
+
+**다음 작업은 앱·웹 이식이다.** `apps/mobile`(Expo)과 `apps/web`(Vite)은 아직 없다.
+이식 규칙(토큰 변환 표, 컴포넌트 매핑, 폰트·아이콘 주의점)은 04 문서 §3~§5에 전부 있다.
+추측하지 말고 그 문서를 따른다.
 
 ## 미리보기
 
 ```bash
-node tools/serve.js
+npm run preview
 ```
 
 | 주소 | 내용 |
@@ -42,45 +46,41 @@ node tools/serve.js
 ## 구조 (현재)
 
 ```
-littlefinger/
-├── index.html                 # 화면 갤러리
-├── src/
-│   ├── types/promise.ts       # 도메인 계약 — 상태·역할·라벨·정책 상수
-│   ├── styles/
-│   │   ├── tokens.css         # 핑키 디자인 토큰 (색·타입·형태·여백·모션)
-│   │   ├── base.css           # 리셋 + 디바이스 프레임 + 화면 레이아웃
-│   │   ├── components.css     # 공용 lf-* 컴포넌트 (111개 클래스)
-│   │   └── screens/           # 화면군별 보조 스타일
-│   └── screens/
-│       ├── app/               # 안드로이드 앱 화면 (SCR-A*, MOD-*) → RN 이식 대상
-│       ├── web/               # 수락용 웹 화면 (SCR-W*) → Vite로 이동, CSS 그대로
-│       └── frame.js           # 상태 표시줄·제스처 바 주입 (미리보기 전용, 이식 시 제거)
+littlefinger/                      # npm workspaces
+├── packages/shared/src/           # 앱·웹이 공유하는 유일한 코드 (플랫폼 API import 금지)
+│   ├── promise.ts                 # 도메인 계약 — 상태 11종·역할·라벨·엔티티
+│   ├── config.ts                  # 정책 수치 전부 (02 §11-3)
+│   ├── errors.ts                  # 에러 코드 14종 (02 §2-3)
+│   ├── text.ts                    # 입력 정규화·코드포인트 길이
+│   ├── datetime.ts                # KST D-Day·임박·이행확인 창·조용시간
+│   ├── keep-rate.ts               # 약속 지킴율 (02 §4-9-1)
+│   └── transitions.ts             # 상태 전이표 T-01~T-18 (02 §7-1)
+├── design-reference/              # ★ 읽기 전용 — 확정 UI의 시각 기준
+│   ├── screens/{app,web}/         # 27개 화면
+│   ├── styles/                    # tokens.css(90종) · base · components(lf-* 110개)
+│   ├── assets/fonts/              # Pretendard woff2 (웹 전용)
+│   ├── concept-4.html             # Claude Design 원본
+│   └── serve.js, index.html       # 미리보기 서버 + 갤러리
 ├── docs/
-│   ├── 기획/                  # 01 상위기획서 · 02 세부기능명세서 · 03 기술스택 · 04 코딩가이드
-│   ├── 디자인/                # 01 와이어프레임 디자인요청서
-│   ├── adr/                   # 구현 결정 기록
-│   ├── flows.html             # 플로우 연결도
-│   └── _archive/              # 구버전 문서 (읽지 않는다)
-├── design/concept-4.html      # Claude Design 원본 (읽기 전용)
-├── tools/
-│   ├── serve.js               # 정적 미리보기 서버
-│   └── sync-agent-docs.js     # CLAUDE.md → AGENTS.md 동기화
-├── CLAUDE.md                  # AI 에이전트 지침 (원본)
-└── AGENTS.md                  # 위와 동일 내용 — Codex Agent 용, 자동 생성
+│   ├── 기획/                      # 01 상위기획서 · 02 세부기능명세서 · 03 기술스택 · 04 코딩가이드
+│   ├── 디자인/                    # 01 와이어프레임 디자인요청서
+│   ├── adr/                       # 구현 결정 기록
+│   ├── handoff/                   # 세션 인수인계
+│   └── _archive/                  # 구버전 문서 (읽지 않는다)
+├── tools/sync-agent-docs.js       # CLAUDE.md → AGENTS.md 동기화
+├── CLAUDE.md                      # AI 에이전트 지침 (원본)
+└── AGENTS.md                      # 위와 동일 내용 — Codex Agent 용, 자동 생성
 ```
 
-`CLAUDE.md`와 `AGENTS.md`는 헤더 3줄만 다르고 나머지는 완전히 같다. **`CLAUDE.md`만 고치고**
+`CLAUDE.md`와 `AGENTS.md`는 헤더만 다르고 나머지는 완전히 같다. **`CLAUDE.md`만 고치고**
 `npm run sync:agents`로 재생성한다. `npm run check:agents`는 어긋나 있으면 실패한다.
 
-## 구조 (이식 후 목표)
+## 아직 없는 것
 
 ```
-littlefinger/                  # npm workspaces
-├── packages/shared/           # 앱·웹이 공유하는 유일한 코드 (플랫폼 API import 금지)
-├── apps/mobile/               # Expo — 앱 화면
-├── apps/web/                  # Vite — 수락 웹 (지금의 CSS 그대로)
-├── supabase/                  # migrations + Edge Functions
-└── design-reference/          # 지금의 HTML/CSS (읽기 전용)
+apps/mobile/     # Expo — 앱 화면 (SCR-A*, MOD-*)
+apps/web/        # Vite — 수락 웹 (SCR-W01~W06, CSS 그대로 재사용)
+supabase/        # migrations + Edge Functions
 ```
 
 ## 화면 인벤토리

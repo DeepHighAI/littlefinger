@@ -85,7 +85,15 @@ Two surfaces, one domain:
 ## 3. Commands
 
 ```bash
-node tools/serve.js       # preview server → http://localhost:4173  (also: npm run preview)
+npm test                  # vitest run — must pass before every commit
+```
+
+```bash
+npm run typecheck         # tsc --noEmit — must pass before every commit
+```
+
+```bash
+npm run preview           # node design-reference/serve.js → http://localhost:4173
 ```
 
 | URL | Contents |
@@ -94,18 +102,19 @@ node tools/serve.js       # preview server → http://localhost:4173  (also: npm
 | `http://localhost:4173/docs/flows.html` | Screen-to-screen flow map |
 
 ```bash
-npm run typecheck         # tsc --noEmit — must pass before every commit
-```
-
-```bash
-npm run sync:agents       # regenerate AGENTS.md from CLAUDE.md
 npm run check:agents      # fail if AGENTS.md is out of sync (run before commit)
 ```
 
-There is **no test runner in this repo yet**. Do not invent one or reference scripts that do not
-exist in `package.json`. Verification today = `npm run typecheck` + visual diff against the gallery.
-When the monorepo lands (§5), `typecheck` becomes the composite defined in `04` §4:
-`tsc --noEmit -p packages/shared && tsc --noEmit -p apps/mobile && tsc --noEmit -p apps/web`.
+Edit `CLAUDE.md` only, then `npm run sync:agents` regenerates `AGENTS.md`. Never hand-edit
+`AGENTS.md`.
+
+**Test runners** (`04` §4 omits these — decided by PO 2026-07-26): **Vitest** for
+`packages/shared` and `apps/web`; **jest-expo** for `apps/mobile` once it exists. `02` §13 requires
+tests (every EC-\* case, concurrency cases in parallel, every batch job idempotent across two runs),
+so a runner is not optional.
+
+`typecheck` currently covers `packages/shared` only. As `apps/*` land it becomes the composite from
+`04` §4: `tsc --noEmit -p packages/shared && tsc --noEmit -p apps/mobile && tsc --noEmit -p apps/web`.
 
 The strict compiler flags (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
 `verbatimModuleSyntax`, `isolatedModules`) are **never disabled** to make something compile.
@@ -141,33 +150,47 @@ guidance lives in `04`. **`docs/_archive/` is stale — never read it.**
 
 ## 5. Architecture
 
-### 5-1. Repo state: a screen library awaiting port
+### 5-1. Repo state: monorepo skeleton, port not started
 
 The app framework (open point N-3) is **decided: React Native + Expo** (PO, 2026-07-25; ADR 0002).
-What exists today is the approved UI built as a **framework-free HTML/CSS screen library** — 27
-screens, design tokens, 110 `lf-*` component classes. It is the **visual source of truth for the
-port**, not throwaway work.
+
+`design-reference/` holds the approved UI as a **framework-free HTML/CSS screen library** — 27
+screens, 90 design tokens, 110 `lf-*` component classes. It is **read-only, permanently.** The point
+is to diff the port against the original and catch visual regressions, which fails the moment the
+original moves. Preview it with `npm run preview`.
 
 - App screens (SCR-A\*, MOD-\*) → **ported** to React Native against this reference.
 - Acceptance web (SCR-W\*) → moved to Vite **reusing the CSS verbatim**.
-- Once ported, this HTML/CSS moves to `design-reference/` and becomes **read-only forever** — the
-  point is to be able to diff the port against the original and catch visual regressions.
 
-Port rules are fully specified in `04` §3–§5. **Follow them; do not improvise.**
+`packages/shared/` exists and is under test. `apps/mobile` and `apps/web` do **not exist yet** —
+that is the next milestone (M0-B: `tokens.ts`, the 6 base components, SCR-A01).
 
-### 5-2. The domain contract is one file
+Port rules are fully specified in `04` §3–§5. **Follow them; do not improvise.** Two known gaps in
+`04`: it counts 111 `lf-*` classes (actually 110), and its §4-6 dependency list omits
+`react-native-svg`, which SCR-A01's 핑키 logo needs.
 
-`src/types/promise.ts` → moves **byte-for-byte unchanged** to `packages/shared/src/promise.ts`.
+### 5-2. The domain contract lives in `packages/shared`
 
-It defines the 11 `PromiseStatus` values, `PROMISE_STATUS_LABEL`, which statuses count toward
-keepRate (`RATE_COUNTED_STATUSES` = COMPLETED, BROKEN) versus which are excluded but shown as
-separate counts (`RATE_EXCLUDED_STATUSES` = DISPUTED, UNRESOLVED, DECLINED, CANCELED), the entity
-shapes, the policy constants, and `LEGAL_DISCLAIMER`.
+| File | Holds | Spec |
+|---|---|---|
+| `promise.ts` | 11 `PromiseStatus` values, label maps, entity shapes, `LEGAL_DISCLAIMER` | `02` §2-4·§6-3 |
+| `config.ts` | **every policy number** | `02` §11-3 |
+| `errors.ts` | 14 error codes + HTTP status + user-facing copy | `02` §2-3 |
+| `text.ts` | input normalization, code-point length | `02` §2-3 |
+| `datetime.ts` | KST D-Day, imminence, CHECKING window, quiet hours | `02` §2-2·§6-4 |
+| `keep-rate.ts` | keepRate — `null` below `TRUST_MIN_SAMPLE` means "집계 중" | `02` §4-9-1 |
+| `transitions.ts` | the T-01…T-18 table + `canTransition` | `02` §7-1 |
 
-Everything downstream derives from it: DB enum strings are the *same* strings, screen labels come
-from the label maps, keepRate math comes from the status sets. **Contracts-first**: read the types
-before implementing; if a type is missing, write the type first, implement against it, then
-`npm run typecheck`.
+Naming follows **`02`, not `04`** where they conflict (PO, 2026-07-26): `keeper` not `obligor`,
+`INVITE_TTL_HOURS` not `INVITE_EXPIRY_HOURS`, `CHECK_DEADLINE_DAYS`, `WITNESS_MAX`,
+`REMINDER_OFFSETS_DAYS`. `04` §3's "move `promise.ts` unchanged" is superseded — `02` outranks `04`.
+
+Everything downstream derives from these: DB enum strings are the *same* strings, screen labels come
+from the label maps, keepRate math comes from the status sets, and no transition exists outside
+`TRANSITIONS`. **Contracts-first**: read the types before implementing; if a type is missing, write
+the type first, implement against it, then `npm test && npm run typecheck`.
+
+Still to build here: `validation.ts` (`02` §5 field rules) and `api.ts` (Supabase wrappers).
 
 Lifecycle:
 
@@ -290,7 +313,7 @@ verbatim in code, DB, and design; screen labels **always** go through `PROMISE_S
 | 약속 | `promise` | 약속 | contract, agreement, 계약 |
 | Promise entity type | `PromiseRecord` | — | `Promise` (collides with the JS global) |
 | 작성자 / 상대방 / 증인 | `creator` / `partner` / `witness` | 작성자 / 상대방 / 증인 | owner, invitee, guest |
-| 지킬 사람 (obligated party) | `obligor` | 지킬 사람 | assignee, target |
+| 지킬 사람 (obligated party) | `keeper` | 지킬 사람 | obligor, assignee, target |
 | 보상 / 벌칙 | `reward` / `penalty` | 보상 / **벌칙** | 패널티 |
 | 약속 지킴율 | `keepRate` | 약속 지킴율 | 이행률, 성공률 (O-D3) |
 | 확정 기록 지문 | `fingerprint` | 기록 지문 | hash, 해시, 서명 |
@@ -361,4 +384,4 @@ Full detail: `04` §10.
 | N-2 | iOS launch timing | Decided in v2 |
 | Q-5 | Onboarding pages 2 and 3 | Only page 1 is implemented |
 | Q-6 | COMPLETED share card design | Out of scope |
-| Q-7 | Max evidence photo count | Unlimited (confirmed S-10) |
+| Q-7 | Max evidence photo count | **3** (`EVIDENCE_MAX_COUNT`, `02` §5-2·§11-3). S-10 is about amend rounds, not photos |
