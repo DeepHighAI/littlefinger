@@ -1,0 +1,37 @@
+# 무료 플랜에는 자동 백업이 없다(04 §7-5). 주 1회 덤프를 떠 아티팩트로 보관한다.
+name: supabase weekly backup
+
+on:
+  schedule:
+    # 매주 일요일 19:00 UTC = 월요일 04:00 KST. 배치가 몰리는 시간대를 피한다.
+    - cron: '0 19 * * 0'
+  workflow_dispatch:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: 스키마와 데이터를 덤프
+        env:
+          # 덤프는 전체 데이터를 읽으므로 DB 접속 문자열이 필요하다.
+          # GitHub Secrets 에만 두고 저장소에는 절대 넣지 않는다.
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          mkdir -p backup
+          supabase db dump --db-url "${SUPABASE_DB_URL}" -f backup/schema.sql
+          supabase db dump --db-url "${SUPABASE_DB_URL}" --data-only -f backup/data.sql
+          ls -la backup/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: backup/
+          # 무료 저장 용량을 고려해 90일. 그 이상 보관이 필요하면 외부로 옮긴다.
+          retention-days: 90

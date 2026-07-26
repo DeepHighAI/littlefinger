@@ -1,0 +1,39 @@
+# Supabase 무료 플랜은 7일간 활동이 없으면 프로젝트를 일시정지하고,
+# 정지 상태로 90일이 지나면 삭제한다(04 §7-5).
+#
+# 이 워크플로는 선택 사항이 아니다 — 개발이 며칠 멈춰도 프로젝트가 죽지 않게 하는 장치다.
+# 개발 초기부터 켜 둔다.
+name: supabase keep-alive
+
+on:
+  schedule:
+    # 매일 00:10 UTC = KST 09:10. 배치 잡(J-02 00:05 KST)과 겹치지 않는 시간대다.
+    - cron: '10 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 가벼운 쿼리로 활동 기록 남기기
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+
+          # app_configs 는 누구나 읽을 수 있는 유일한 테이블이라 anon 키로 충분하다.
+          # service_role 키를 이 워크플로에 넣지 않는다 — 필요가 없다.
+          status=$(curl -sS -o /tmp/body -w '%{http_code}' \
+            "${SUPABASE_URL}/rest/v1/app_configs?select=key&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          echo "HTTP ${status}"
+          cat /tmp/body
+
+          # 200 이 아니면 프로젝트가 이미 정지됐거나 키가 회전된 것이다. 조용히 넘기지 않는다.
+          if [ "${status}" != "200" ]; then
+            echo "::error::keep-alive ping failed with HTTP ${status}"
+            exit 1
+          fi

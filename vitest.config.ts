@@ -4,7 +4,11 @@ import { defineConfig } from 'vitest/config';
 // apps/mobile 은 jest-expo 를 쓰므로 여기서 제외한다 (RN 트랜스폼이 다르다).
 export default defineConfig({
   test: {
-    include: ['packages/*/src/**/*.test.ts', 'apps/web/src/**/*.test.{ts,tsx}'],
+    include: [
+      'packages/*/src/**/*.test.ts',
+      'apps/web/src/**/*.test.{ts,tsx}',
+      'supabase/tests/**/*.test.ts',
+    ],
     environment: 'node',
     // 테스트가 하나도 수집되지 않으면 조용히 통과시키지 않고 실패시킨다.
     passWithNoTests: false,

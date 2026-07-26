@@ -1,0 +1,28 @@
+# Supabase 로컬 개발 설정. 원격 프로젝트 연결은 `supabase link` 가 별도로 관리한다.
+project_id = "littlefinger"
+
+[db]
+port = 54322
+major_version = 17
+
+[api]
+port = 54321
+schemas = ["public"]
+
+[auth]
+# 앱 딥링크. 04 §8 · 카카오 설정 핸드오프 참조.
+site_url = "littlefinger://login-callback/"
+additional_redirect_urls = [
+  "littlefinger://auth-callback",
+  "https://littlefinger.pages.dev",
+  "https://littlefinger.pages.dev/**",
+]
+# 02 §11-3 기본안: access 30분 / refresh 30일
+jwt_expiry = 1800
+enable_refresh_token_rotation = true
+
+[auth.external.kakao]
+enabled = true
+# 실제 값은 Supabase Dashboard 와 로컬 .env 에만 둔다. 저장소에 키를 넣지 않는다.
+client_id = "env(KAKAO_REST_API_KEY)"
+secret = "env(KAKAO_CLIENT_SECRET)"
