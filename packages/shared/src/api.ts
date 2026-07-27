@@ -40,12 +40,81 @@ export interface ApiErrorBody {
 /** §5 의 코드 키. 껍데기가 실제로 돌려줄 수 있는 것만 적는다. */
 export type ApiValidationField =
   | 'token'
+  | 'title'
+  | 'body'
+  | 'category'
   | 'end_date'
+  | 'keeper'
+  | 'reward'
+  | 'penalty'
+  | 'witness_enabled'
+  | 'promise_id'
   | 'decline_reason'
   | 'amend_suggestion'
   | 'idempotency_key';
 
 export type ApiErrorAction = 'AMEND_SUGGEST';
+
+/**
+ * 약속 작성 (§5-1). `send` 가 true 면 DRAFT 생성과 초대 발송이 **한 트랜잭션**에서 끝난다 —
+ * SCR-A03 의 주 CTA [상대에게 보내기]가 한 번의 사용자 행동이기 때문이다(PO 결정 2026-07-27).
+ * false 면 [임시저장]이다.
+ *
+ * 길이·형식 판정은 서버가 최종이다(§2-3). 클라이언트가 같은 규칙을 먼저 돌리는 것은
+ * CTA 를 비활성화하기 위해서지, 서버 검증을 대신하기 위해서가 아니다.
+ */
+export interface PromiseCreateRequest {
+  title: string;
+  body: string;
+  category: string;
+  /** `YYYY-MM-DD`, KST 기준. 내일 ~ 오늘 + `END_DATE_MAX_DAYS`. */
+  end_date: string;
+  /** 생략하면 `BOTH` (§5-1 기본값). */
+  keeper?: string;
+  reward?: string;
+  penalty?: string;
+  witness_enabled?: boolean;
+  send?: boolean;
+}
+
+/** 이미 있는 DRAFT 를 보내거나(§4-2-1) PENDING 인 약속의 초대를 다시 보낸다(§4-3-2). */
+export interface PromiseInviteRequest {
+  promise_id: string;
+}
+
+/** [임시저장] 응답. */
+export interface PromiseDraftResponse {
+  promise_id: string;
+  status: 'DRAFT';
+}
+
+/**
+ * 초대 발송 응답.
+ *
+ * **`token` 은 이 응답에만 존재한다.** DB 에는 해시만 남으므로(§4-3-1, §13) 이 값을 잃으면
+ * 링크를 다시 만들 방법이 없고, 새 토큰을 받으려면 재발송해야 한다(`resend_count` 가 오른다).
+ *
+ * **`token` 이 없는 응답은 멱등 재시도의 캐시본이다.** 같은 `Idempotency-Key` 로 두 번 보내면
+ * 서버는 첫 요청의 결과를 그대로 돌려주는데, 그 토큰은 두 번째 요청이 만든 것이 아니라
+ * 서버가 되돌려줄 수 없다. 이때 두 번째 요청이 만든 토큰으로 링크를 조립하면 **DB 에 없는
+ * 토큰**이 사용자에게 가고, 증상은 E_NOT_FOUND 하나뿐이라 추적할 단서가 없다. 그래서 서버는
+ * 아예 싣지 않는다 — 클라이언트는 먼저 도착한 응답의 토큰을 쓴다.
+ *
+ * 링크는 클라이언트가 조립한다: `https://{web}/i/{token}` (§4-3-1). 웹 도메인은 C-3 이
+ * 확정되지 않아 서버에 두지 않는다(PO 결정 2026-07-27).
+ */
+export interface PromiseInviteResponse {
+  promise_id: string;
+  status: 'PENDING';
+  invitation_id: string;
+  /** 발급 + `INVITE_TTL_HOURS`. SCR-A04 카운트다운의 기준점이다. */
+  expires_at: string;
+  /** 최초 발송은 0. `INVITE_RESEND_MAX` 를 넘으면 `E_RATE_LIMIT` (EC-B08). */
+  resend_count: number;
+  /** 공유 문구용. §4-3-2 는 제목과 링크만 담으라고 한다. */
+  title: string;
+  token?: string;
+}
 
 /** 요청 본문 — 초대 토큰 하나로 시작하는 네 함수의 공통 부분 */
 export interface InviteTokenRequest {
@@ -71,6 +140,8 @@ export interface PromiseAmendRequest extends InviteTokenRequest {
  * 하다 — 같으면 한쪽 응답이 다른 쪽 요청으로 샌다.
  */
 export const ENDPOINT = {
+  promiseCreate: 'promise-create',
+  promiseInvite: 'promise-invite',
   inviteResolve: 'invite-resolve',
   promiseApprove: 'promise-approve',
   promiseDecline: 'promise-decline',

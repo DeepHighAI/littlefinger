@@ -38,6 +38,14 @@ export const REMINDER_OFFSETS_DAYS: readonly number[] = [7, 3, 1, 0];
 export const REMINDER_SEND_HOUR_KST = 9;
 
 /**
+ * NT-04 "초대가 곧 만료돼요" 를 만료 몇 시간 전에 보낼지 (§8-2).
+ *
+ * §11-3 설정값 표에는 없고 §8-2 본문에만 "expires_at - 12시간"으로 적혀 있다. 정책 수치를
+ * 코드에 박지 않는 규칙은 표에 실린 값에만 적용되는 것이 아니므로 여기로 끌어올렸다.
+ */
+export const INVITE_EXPIRE_SOON_LEAD_HOURS = 12;
+
+/**
  * 조용한 시간 (KST). 이 구간의 **예약 알림**은 다음 08:00 으로 이연한다.
  * 즉시성 알림은 예외다(§8-3).
  */

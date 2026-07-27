@@ -90,18 +90,39 @@ export function idempotencyKeyOf(request: Request): string {
   return key;
 }
 
-/** 본문 JSON. 형태가 아니면 `E_VALIDATION` 이다 — 우리 클라이언트가 보낸 요청이 아니다. */
-export async function jsonBody(request: Request): Promise<Record<string, unknown>> {
+/**
+ * 본문 JSON. 형태가 아니면 `E_VALIDATION` 이다 — 우리 클라이언트가 보낸 요청이 아니다.
+ *
+ * `field` 는 함수마다 다르다. 토큰 하나로 시작하는 네 함수는 `token`, 약속 작성은 `title` 이다.
+ */
+export async function jsonBody(
+  request: Request,
+  field: ApiValidationField = 'token',
+): Promise<Record<string, unknown>> {
   let parsed: unknown;
   try {
     parsed = await request.json();
   } catch {
-    throw new ApiError('E_VALIDATION', { field: 'token' });
+    throw new ApiError('E_VALIDATION', { field });
   }
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-    throw new ApiError('E_VALIDATION', { field: 'token' });
+    throw new ApiError('E_VALIDATION', { field });
   }
   return parsed as Record<string, unknown>;
+}
+
+/** 선택 불리언. 없으면 `null` 이고 RPC 가 기본값을 정한다. */
+export function optionalBoolean(
+  body: Record<string, unknown>,
+  key: string,
+  field: ApiValidationField,
+): boolean | null {
+  const value = body[key];
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'boolean') {
+    throw new ApiError('E_VALIDATION', { field });
+  }
+  return value;
 }
 
 /** 필수 문자열 필드. 길이 판정은 하지 않는다 — 그건 RPC 가 정규화한 뒤에 하는 일이다(§2-3). */

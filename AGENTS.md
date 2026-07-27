@@ -307,6 +307,13 @@ Functions only (`04` §7-3): `invite-resolve`, `promise-approve` (state transiti
 `fulfillment-submit` (the COMPLETED/BROKEN/DISPUTED verdict), `evidence-sign-url`, `push-send`
 (quiet hours 21:00–08:00 KST).
 
+**`promise-create` and `promise-invite` joined that list** (2026-07-27), which `04` §7-3 did not
+anticipate — it left T-01 to the client over RLS. Two things forced the move: EC-H05's "DRAFT 20건 ·
+일 30건" can only be counted where creation happens, and `content_hash` is server-generated (§9). The
+client-side INSERT/UPDATE policies on `promises` and `promise_versions` were therefore **dropped**;
+`promises delete own draft` stays (§4-2-2.5). DRAFT editing waits on its own RPC. **Neither function
+emits a notification** — §8-1: "초대 발송 자체는 시스템 알림이 아니다".
+
 But the transition itself is **not** in the Edge Function — it is a Postgres `lf_*` function, one
 per transition, and the function boundary is the transaction boundary (ADR 0003). The Edge Function
 is a shell: JWT → user id, request shape, call the RPC, map the raised message to the `02` §2-3 code

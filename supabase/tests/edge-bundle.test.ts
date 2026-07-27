@@ -21,6 +21,8 @@ const FUNCTIONS_DIR = resolve(REPO_ROOT, 'supabase/functions');
 
 const ENTRYPOINTS = [
   'invite-resolve/index.ts',
+  'promise-create/index.ts',
+  'promise-invite/index.ts',
   'promise-approve/index.ts',
   'promise-decline/index.ts',
   'promise-amend/index.ts',
