@@ -9,17 +9,28 @@ major_version = 17
 port = 54321
 schemas = ["public"]
 
-[auth]
-# 앱 딥링크. 04 §8 · 카카오 설정 핸드오프 참조.
-site_url = "littlefinger://login-callback/"
-additional_redirect_urls = [
-  "littlefinger://auth-callback",
-  "https://littlefinger.pages.dev",
-  "https://littlefinger.pages.dev/**",
-]
-# 02 §11-3 기본안: access 30분 / refresh 30일
-jwt_expiry = 1800
-enable_refresh_token_rotation = true
+# ============================================================
+# auth 는 **주석으로만** 둔다. 살아 있는 키로 두지 않는다.
+#
+# `supabase config push` 는 드리프트가 하나라도 있으면 auth 설정 **전체**를 PATCH 한다 —
+# site_url·리다이렉트 허용목록·jwt_expiry 만이 아니라 disable_signup·비밀번호 규칙·
+# rate limit 까지 로컬 기본값으로 덮어쓴다. 그리고 아래 목록은 완성본이 아니다:
+# `littlefinger://**` 가 빠져 있고, pages.dev 하위 도메인은 C-3 이 아직 열려 있어 확정값이
+# 아니며, 대시보드에만 있는 "Allow users without an email"(§6-1)은 표현할 방법이 없다.
+# 부분만 적힌 config-as-code 는 없는 것보다 나쁘다 — 정본처럼 보이는데 부분집합이다.
+#
+# **정본은 Supabase Dashboard 다.** 의도값의 근거는 아래 문서에 있다:
+#   docs/handoff/2026-07-26-kakao-supabase-oauth-findings.md
+#
+# 참고용 의도값 (Dashboard 에 이 값들이 들어가 있어야 한다):
+#   site_url                      littlefinger://login-callback/
+#   additional_redirect_urls      littlefinger://auth-callback
+#                                 littlefinger://**
+#                                 https://<수락웹 도메인>  및 /**
+#   jwt_expiry                    1800        (02 §11-3 기본안: access 30분)
+#   enable_refresh_token_rotation true        (refresh 30일)
+#   Allow users without an email  ON          (§6-1 — 없으면 이메일 미제공 계정이 500)
+# ============================================================
 
 # ============================================================
 # Edge Functions — 04 §7-3
@@ -44,8 +55,22 @@ verify_jwt = true
 [functions.promise-amend]
 verify_jwt = true
 
-[auth.external.kakao]
-enabled = true
-# 실제 값은 Supabase Dashboard 와 로컬 .env 에만 둔다. 저장소에 키를 넣지 않는다.
-client_id = "env(KAKAO_REST_API_KEY)"
-secret = "env(KAKAO_CLIENT_SECRET)"
+# ============================================================
+# 카카오 프로바이더 블록을 **의도적으로 두지 않는다.**
+#
+# 블록이 있으면 `supabase config push` 가 client_id 를 리터럴 문자열
+# `"env(KAKAO_REST_API_KEY)"` 로 덮어쓴다 — 빈 값도, 건너뛰기도 아니다. CLI 소스에서 확인했다:
+# `secret` 은 Secret 타입이라 env() 미해결 시 가드가 걸리지만 `client_id` 는 그냥 string 이라
+# 가드가 없다. 검증도 못 잡는다(리터럴은 빈 문자열이 아니다). 확인 프롬프트도 방어가 아니다 —
+# 기본값이 yes 이고 TTY 가 아니면 그대로 진행한다.
+#
+# 결과는 조용하다: 대시보드에는 설정된 것처럼 보이는데 카카오에 없는 client_id 를 보내
+# 모든 로그인이 실패한다. 되돌리려면 키를 손으로 다시 넣는 수밖에 없다.
+#
+# 블록이 없으면 CLI 는 이 프로바이더에 **구조적으로 닿을 수 없다** — 양쪽 구현 모두
+# config.toml 에 실재하는 프로바이더만 순회하므로 `external_kakao_*` 키가 요청 본문에
+# 아예 들어가지 않는다.
+#
+# 로컬 `supabase start` 에서 카카오가 빠지는 것이 대가인데, 이 저장소에는 Docker 가 없어
+# 로컬 스택을 띄우지 않으므로 비용이 0 이다(CLAUDE.md §3).
+# ============================================================

@@ -137,6 +137,15 @@ silently falls back to server-side bundling when it is not, so the same source p
 different builds depending on the machine. Docker is not installed here, which also means
 `supabase functions serve` — and therefore any local run of the four functions — is unavailable.
 
+**`supabase config push` is never run on this project.** The Dashboard is the source of truth for
+auth. `link`, `db push` and `functions deploy` cannot touch config — verified against the CLI source
+— so only this one command is dangerous, and it is dangerous in a way nothing catches: it PATCHes
+the *entire* auth body from an incomplete local file, and an unresolved `env()` in a provider's
+`client_id` is sent as the **literal string** rather than being skipped (`secret` has an env()-aware
+guard; `client_id`, a plain string, does not). The failure is silent — the provider looks configured
+and every login fails. `supabase/config.toml` therefore keeps only `[db]`, `[api]` and
+`[functions]`; auth lives there as comments, which cannot be pushed.
+
 ---
 
 ## 4. Document hierarchy — the specs outrank the code
