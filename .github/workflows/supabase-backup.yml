@@ -21,6 +21,12 @@ jobs:
         env:
           # 덤프는 전체 데이터를 읽으므로 DB 접속 문자열이 필요하다.
           # GitHub Secrets 에만 두고 저장소에는 절대 넣지 않는다.
+          #
+          # **반드시 Session pooler 문자열이어야 한다** (호스트 `*.pooler.supabase.com`, 포트 5432).
+          # 대시보드가 기본으로 보여주는 직접 접속 주소(`db.<ref>.supabase.co`)는 **IPv6 전용**이고
+          # GitHub 러너는 IPv4 전용이라 아예 닿지 않는다 — 2026-07-27 에 이걸로 한 번 실패했다.
+          # Transaction pooler(포트 6543)도 안 된다: IPv4 지만 트랜잭션 모드라 pg_dump 가 못 돈다.
+          # 비밀번호의 특수문자는 퍼센트 인코딩한다.
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
