@@ -7,9 +7,9 @@ Date: 2026-07-27. Follows `2026-07-26-b1-5-decline-amend.md`.
 **B1-6 complete.** `npm test` → Vitest **660 passed** (18 files, 117 new), jest-expo **137 passed**.
 `npm run typecheck` clean across **four** projects (was two). `npm run check:agents` clean.
 
-The four shells exist, are tested, and are type-checked. **None of them has ever run.** Docker is not
-installed on this machine, so `supabase functions serve` cannot start and no `supabase db push` has
-happened — see "What the tests cannot prove".
+**Deployed and smoke-tested the same day.** `supabase db push` applied migrations 0001–0007, and
+`supabase functions deploy --use-api` shipped all four functions to `vepnrrmxvsytguocicfe`. See
+"Verified on the live instance" below — several things PGlite could not prove are now proven.
 
 | File | What |
 |---|---|
@@ -63,45 +63,67 @@ tests and names `./config.js` in the output.
 | D-ah | Deploys must pass **`--use-api`** | Without it the CLI bundles with Docker when present and silently falls back to the API bundler when not, so the same source builds two ways depending on the machine |
 | D-ai | `notifications.type` = NT codes, `deeplink` = screen IDs | Both are §6-2/§8-1 verbatim, not inventions. Screen IDs because `notifications` has no UPDATE policy — a wrong URL written today can never be corrected |
 
-## What the tests cannot prove
+## Verified on the live instance (2026-07-27, after deploy)
 
-1. **Nothing has run.** No Deno, no Docker, so `supabase functions serve` is unavailable and the four
-   handlers have never executed on the real runtime. Covered by construction: `deps.ts` isolates every
-   external call, `edge-bundle.test.ts` replicates the CLI's file collector, and `tsc` sees all 12
-   function files. Not covered: whether the Edge Runtime accepts the module graph, whether
-   `auth.getUser` behaves as assumed, and whether `verify_jwt` is applied as configured.
+These are the things PGlite structurally could not reach.
+
+| Check | Result |
+|---|---|
+| Migrations 0001–0007 applied | `migration list` — 7 rows, local and remote paired |
+| `anon` calling a server-only `lf_*` with **correct arguments** | `42501 permission denied for function` |
+| Control: `can_read_promise` (deliberately not revoked) | HTTP 200 — so the block above is privilege, not signature mismatch |
+| `anon` INSERT into `app_configs` | rejected, "new row violates row-level security policy" |
+| `--use-api` bundling of the cross-directory import | **`packages/shared/src/config.ts` appears in the upload list for every function** — the transitive hop that a `.js` specifier would have dropped |
+| `invite-resolve` end to end | HTTP 404 `{"code":"E_NOT_FOUND","message":"약속을 찾을 수 없어요."}` — module graph, secrets, service_role, RPC and error mapping all live |
+| `verify_jwt = true` on the three transitions | platform rejects with `UNAUTHORIZED_NO_AUTH_HEADER` before our code runs |
+| `verify_jwt = false` on `invite-resolve` | answers with **no apikey at all** |
+| anon key used as the JWT on `promise-approve` | **passes the platform gate, blocked by our own `authenticate`** → `E_AUTH_REQUIRED`. The redundant check in `deps.ts` earned its place |
+| CORS preflight | 204, `access-control-allow-headers` includes `idempotency-key` |
+
+## What is still not proven
+
+1. **RLS filtering is not demonstrated on the live instance.** Every table returns `[]` to `anon`, but
+   the database is empty — an RLS filter and an empty table are indistinguishable from outside. The
+   policies themselves are covered by `rls.test.ts` (28 tests) against real Postgres, and the INSERT
+   rejection above confirms RLS is enabled. Redo the read checks once there is data.
 2. **§13 parallel concurrency is still open** (EC-B06 · EC-C01 · EC-C03). Third handoff carrying it.
-   The shells are now the parallel-request surface PGlite never was, but only after a deploy.
-3. **`--use-api` bundling is unverified** — it is deploy-only and, per Supabase's own announcement,
-   experimental for exactly this monorepo case.
+   It is now actually testable — the functions are live — so it has no excuse left.
+3. **No transition has ever succeeded.** Every live call so far was a failure path; nothing has
+   reached `lf_promise_approve`'s happy path, so the notification insert, the `dedupe_key` shape and
+   `content_hash` generation are untested outside PGlite. Needs a real invite, which needs T-02.
 4. **Metro** resolves `.ts` specifiers through the barrel (probed with jest-expo, then deleted). A real
    `expo start` bundle was not run.
 
 ## The exact next step
 
-**Deploy and verify, in this order.** Everything below is blocked until the two secrets exist.
+Steps 1–3 of the original plan are **done** (secrets registered via the Dashboard, `db push`,
+`functions deploy --use-api`). What remains:
 
-1. PO registers `INVITE_TOKEN_PEPPER` and `PII_HASH_SALT` in Supabase Secrets, and the GitHub Actions
-   secrets that keep-alive needs (still unset since B1-1 — Free tier pauses after 7 idle days).
-2. `npx supabase db push` — the migrations have never been applied. `db push` first, functions second;
-   the shells call RPCs that do not exist yet on the remote.
-3. `npx supabase functions deploy --use-api`. Expect the module graph to be the first thing that
-   breaks; `edge-bundle.test.ts` is the local proxy for it, not a guarantee.
+1. **Rate-limit `invite-resolve` — this is now the most urgent item in the project.** It is deployed
+   with `verify_jwt = false` and answers with **no apikey at all**, so it is an open endpoint on the
+   public internet today. Guessing a token is not the worry (32-byte CSPRNG); burning the Free-tier
+   quota is. `E_RATE_LIMIT` → 429 already exists in `packages/shared/src/errors.ts` and nothing raises
+   it. Recommended shape: a Postgres counter table hit by the same RPC layer as everything else,
+   testable in the existing PGlite harness, rather than a third-party limiter holding token-derived
+   keys. Must land before the acceptance-web URL is shared with anyone.
+2. **Turn on the keep-alive.** The GitHub Actions secrets are still unset, and the database now holds
+   real schema rather than nothing. Free tier pauses after 7 idle days.
+3. **T-02 (issue an invite)** — until it exists no transition can be exercised end to end, so the
+   happy paths of all three transition shells remain PGlite-only.
 4. `supabase/tests/concurrency.pg.test.ts` driving two real `pg` clients over all three transition
-   RPCs — closes the §13 item.
-5. Rate-limit `invite-resolve` before the URL is public. It is `verify_jwt = false`, so it is open to
-   the internet with no abuse control at all. `E_RATE_LIMIT` → 429 already exists in
-   `packages/shared/src/errors.ts`. Recommendation: a Postgres counter table, testable in the existing
-   PGlite harness, rather than a third-party limiter holding token-derived keys.
+   RPCs — closes the §13 item that three handoffs have now carried.
+
+**Migrations are append-only from here.** The window in which 0006/0007 could be edited in place
+(D-v) closed the moment `db push` ran.
 
 ## PO 확인 필요
 
 **New:**
 
-1. **`invite-resolve` 는 지금 아무 남용 방지 장치가 없습니다.** `verify_jwt = false` 라 인터넷 전체가
-   부를 수 있고, 토큰을 계속 대입해 볼 수 있습니다. 토큰이 32바이트 난수라 맞힐 가능성은 사실상
-   없지만, 호출 자체를 막을 것이 없어 무료 플랜 사용량을 태울 수는 있습니다. URL 을 공개하기 전에
-   반드시 넣어야 합니다 (위 5번).
+1. **`invite-resolve` 는 이미 배포됐고 아무 남용 방지 장치가 없습니다.** 배포 후 `apikey` 조차 없이
+   호출해 정상 응답을 확인했습니다 — 지금 인터넷에 열려 있습니다. 토큰이 32바이트 난수라 맞힐
+   가능성은 없지만, 호출 자체를 막을 것이 없어 무료 플랜 사용량을 태울 수 있습니다. 수락 웹 URL 을
+   누구에게든 공유하기 전에 반드시 넣어야 합니다.
 2. **EC-B02 의 "참여자 본인이면 약속 상세로" 분기는 구현하지 않았습니다.** `invite-resolve` 는
    로그인 전 함수라 누가 부르는지 모르고, 사용된 토큰에는 `E_INVITE_USED` 만 돌려줍니다. 로그인 전
    함수를 로그인 전 그대로 두는 편이 감사하기 쉬워서 그렇게 뒀습니다. SCR-W06 에
