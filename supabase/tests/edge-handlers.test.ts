@@ -91,7 +91,7 @@ function transitionRequest(body: Record<string, unknown> = { token: TOKEN }): Re
     headers: {
       authorization: 'Bearer jwt-value',
       'idempotency-key': KEY,
-      'x-forwarded-for': '1.2.3.4, 10.0.0.1',
+      'cf-connecting-ip': '1.2.3.4',
       'user-agent': 'KAKAOTALK/10',
       origin: 'https://littlefinger.pages.dev',
     },
@@ -135,11 +135,76 @@ describe('invite-resolve — 비로그인 경로 (§4-3-3)', () => {
   test('원문 토큰이 아니라 해시를 RPC 에 넘긴다', async () => {
     await createInviteResolveHandler(s.deps)(request({ body: { token: TOKEN } }));
 
-    expect(s.rpcCalls).toHaveLength(1);
-    expect(s.rpcCalls[0]?.fn).toBe('lf_invite_resolve');
-    expect(s.rpcCalls[0]?.args).toEqual({ p_token_hash: expectedTokenHash });
+    const resolve = s.rpcCalls.find((c) => c.fn === 'lf_invite_resolve');
+    expect(resolve?.args).toEqual({ p_token_hash: expectedTokenHash });
     // 원문이 인자에 남아 있으면 안 된다(§13 "DB·로그 어디에도").
-    expect(JSON.stringify(s.rpcCalls[0]?.args)).not.toContain(TOKEN);
+    expect(JSON.stringify(resolve?.args)).not.toContain(TOKEN);
+  });
+
+  test('빈도 제한을 **먼저** 세고 나서 토큰을 조회한다', async () => {
+    // 순서가 뒤집히면 막으려던 호출을 이미 다 한 뒤에 세는 셈이라 사용량이 그대로 나간다.
+    await createInviteResolveHandler(s.deps)(
+      request({ headers: { 'cf-connecting-ip': '203.0.113.7' }, body: { token: TOKEN } }),
+    );
+
+    expect(s.rpcCalls.map((c) => c.fn)).toEqual(['lf_rate_limit_hit', 'lf_invite_resolve']);
+  });
+
+  test('버킷은 cf-connecting-ip 해시로 만든다', async () => {
+    await createInviteResolveHandler(s.deps)(
+      request({
+        headers: { 'cf-connecting-ip': '203.0.113.7', 'x-forwarded-for': '9.9.9.9' },
+        body: { token: TOKEN },
+      }),
+    );
+    const real = createHash('sha256').update('203.0.113.7' + SALT, 'utf8').digest('hex');
+
+    const bucket = String(s.rpcCalls[0]?.args['p_bucket']);
+    expect(bucket).toBe(`invite-resolve:${real}`);
+    // 원문 IP 는 어디에도 실리지 않는다(§13).
+    expect(bucket).not.toContain('203.0.113.7');
+  });
+
+  test('내부 홉만 다른 두 요청은 같은 버킷에 들어간다', async () => {
+    // 이게 깨지면 요청마다 새 버킷이 생겨 빈도 제한이 존재하지 않는 것과 같다.
+    // 실제로 마지막 XFF 항목을 읽던 버전이 그랬고, 210회를 두드려도 429 가 나오지 않았다.
+    const hops = (last: string): Request =>
+      request({
+        headers: { 'x-forwarded-for': `203.0.113.7, 203.0.113.7, ${last}` },
+        body: { token: TOKEN },
+      });
+
+    const a = spy();
+    const b = spy();
+    await createInviteResolveHandler(a.deps)(hops('10.0.0.1'));
+    await createInviteResolveHandler(b.deps)(hops('10.0.0.2'));
+
+    expect(a.rpcCalls[0]?.args['p_bucket']).toBe(b.rpcCalls[0]?.args['p_bucket']);
+  });
+
+  test('한도를 넘으면 429 이고 토큰 조회는 아예 하지 않는다', async () => {
+    const limited = spy({
+      rpc: async (fn) => {
+        if (fn === 'lf_rate_limit_hit') throw new Error('E_RATE_LIMIT');
+        return PAYLOAD;
+      },
+    });
+    const response = await createInviteResolveHandler(limited.deps)(
+      request({ body: { token: TOKEN } }),
+    );
+
+    expect(response.status).toBe(429);
+    expect(await jsonOf(response)).toEqual({
+      code: 'E_RATE_LIMIT',
+      message: '잠시 후 다시 시도해 주세요.',
+    });
+    expect(limited.rpcCalls.map((c) => c.fn)).toEqual(['lf_rate_limit_hit']);
+  });
+
+  test('IP 헤더가 없어도 제한을 건너뛰지 않는다', async () => {
+    // 건너뛰면 헤더를 지우는 것이 곧 우회가 된다.
+    await createInviteResolveHandler(s.deps)(request({ body: { token: TOKEN } }));
+    expect(s.rpcCalls[0]?.args['p_bucket']).toBe('invite-resolve:unknown');
   });
 
   test('Idempotency-Key 를 요구하지 않는다 — 상태를 바꾸지 않기 때문이다', async () => {
@@ -171,10 +236,12 @@ describe('invite-resolve — 비로그인 경로 (§4-3-3)', () => {
     },
   );
 
-  test('토큰이 없으면 RPC 를 부르지 않는다', async () => {
+  test('토큰이 없으면 조회는 하지 않지만 빈도 제한에는 센다', async () => {
+    // 형식이 틀린 요청을 세지 않으면, 아무 본문이나 던지는 것이 곧 제한 우회가 된다.
     const response = await createInviteResolveHandler(s.deps)(request({ body: {} }));
+
     expect(response.status).toBe(422);
-    expect(s.rpcCalls).toHaveLength(0);
+    expect(s.rpcCalls.map((c) => c.fn)).toEqual(['lf_rate_limit_hit']);
   });
 
   test('OPTIONS 는 preflight 로 답한다', async () => {

@@ -16,6 +16,7 @@ import {
   idempotencyKeyOf,
   jsonBody,
   optionalString,
+  rateLimitBucket,
   requiredString,
   surfaceOf,
   userAgent,
@@ -86,8 +87,34 @@ describe('표면 판정 (§2-1)', () => {
 });
 
 describe('IP·UA 추출', () => {
-  test('x-forwarded-for 의 첫 항목이 클라이언트다', () => {
-    expect(clientIp(post({ headers: { 'x-forwarded-for': '1.2.3.4, 10.0.0.1' } }))).toBe('1.2.3.4');
+  test('cf-connecting-ip 가 있으면 그것을 쓴다', () => {
+    // 배포된 함수에서 실제 관측한 헤더다(2026-07-27). Cloudflare 가 넣고 클라이언트는
+    // 위조할 수 없다.
+    expect(
+      clientIp(
+        post({ headers: { 'cf-connecting-ip': '203.0.113.7', 'x-forwarded-for': '9.9.9.9' } }),
+      ),
+    ).toBe('203.0.113.7');
+  });
+
+  test('x-forwarded-for 는 **마지막이 아니라 첫** 항목을 예비로 쓴다', () => {
+    // 관측된 실제 구조는 [실제주소, 실제주소, 내부홉] 이고 **마지막이 요청마다 바뀐다**.
+    // 마지막을 읽으면 빈도 제한 버킷이 매번 새로 생겨 제한이 통째로 무력화된다 —
+    // 실제로 210회를 두드려도 429 가 나오지 않았다.
+    const request = post({ headers: { 'x-forwarded-for': '203.0.113.7, 203.0.113.7, 10.9.9.9' } });
+    expect(clientIp(request)).toBe('203.0.113.7');
+    expect(clientIp(request)).not.toBe('10.9.9.9');
+  });
+
+  test('항목이 하나뿐이면 그 값이다', () => {
+    expect(clientIp(post({ headers: { 'x-forwarded-for': '203.0.113.7' } }))).toBe('203.0.113.7');
+  });
+
+  test('같은 클라이언트의 연속 요청은 같은 값을 낸다 — 버킷이 고정돼야 한다', () => {
+    // 내부 홉만 바뀌는 두 요청. 값이 갈리면 빈도 제한이 존재하지 않는 것과 같다.
+    const a = post({ headers: { 'x-forwarded-for': '203.0.113.7, 203.0.113.7, 10.0.0.1' } });
+    const b = post({ headers: { 'x-forwarded-for': '203.0.113.7, 203.0.113.7, 10.0.0.2' } });
+    expect(clientIp(a)).toBe(clientIp(b));
   });
 
   test('헤더가 없으면 null 이고 자리 표시자를 만들지 않는다', () => {
@@ -99,6 +126,17 @@ describe('IP·UA 추출', () => {
 
   test('빈 x-forwarded-for 도 null 이다', () => {
     expect(clientIp(post({ headers: { 'x-forwarded-for': '' } }))).toBeNull();
+  });
+});
+
+describe('빈도 제한 버킷', () => {
+  test('엔드포인트와 IP 해시를 합친다', () => {
+    expect(rateLimitBucket('invite-resolve', 'abc')).toBe('invite-resolve:abc');
+  });
+
+  test('IP 를 모르면 unknown 하나를 공유한다 — 건너뛰지 않는다', () => {
+    // 건너뛰면 헤더를 지우는 것이 곧 우회가 된다.
+    expect(rateLimitBucket('invite-resolve', null)).toBe('invite-resolve:unknown');
   });
 });
 

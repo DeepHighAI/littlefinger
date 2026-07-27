@@ -31,12 +31,43 @@ export function surfaceOf(request: Request): Surface {
  * `approvals.ip_hash` 는 nullable 이고 RPC 자신도 작성자 행에는 NULL 을 쓴다. 프록시 뒤라
  * 헤더가 비는 경우(카카오톡 인앱 브라우저에서 실제로 일어난다)에 자리 표시자를 해싱해
  * 넣으면, 서로 다른 사람이 같은 해시를 갖게 되어 기록이 거짓말을 한다.
+ *
+ * **`cf-connecting-ip` 을 쓴다. `x-forwarded-for` 는 예비다.** 배포된 함수에 실제로 도착하는
+ * 헤더를 관측해서 정했다(2026-07-27) — Supabase Edge Functions 앞에는 Cloudflare 가 있다.
+ *
+ *   cf-connecting-ip : 실제 클라이언트 주소. 요청마다 고정.
+ *   x-forwarded-for  : `[실제주소, 실제주소, 내부홉]` — **마지막 항목이 요청마다 바뀐다.**
+ *   클라이언트가 보낸 X-Forwarded-For : Cloudflare 가 버린다. 위조본은 아예 도착하지 않는다.
+ *
+ * 이걸 추측으로 정했다가 실제로 당했다. 처음엔 "프록시가 뒤에 덧붙이니 맨 뒤가 진짜"라고
+ * 보고 마지막 항목을 읽었는데, 그 자리는 회전하는 내부 홉이라 요청마다 rate limit 버킷이
+ * 새로 생겼다 — 210회를 두드려도 429 가 나오지 않았다. 맨 앞도 안전한 근거가 얕다.
+ * 위조본이 도착하지 않는 것은 Cloudflare 가 그렇게 설정돼 있기 때문이지 XFF 규약 때문이
+ * 아니어서, 그 설정이 바뀌면 조용히 위조를 신뢰하게 된다.
  */
 export function clientIp(request: Request): string | null {
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded === null) return null;
-  const first = forwarded.split(',')[0]?.trim();
-  return first !== undefined && first.length > 0 ? first : null;
+  // 예비 경로는 맨 앞이다. 관측상 [실제주소, …] 이고, 마지막은 절대 쓰지 않는다.
+  const candidates = [
+    request.headers.get('cf-connecting-ip'),
+    request.headers.get('x-forwarded-for')?.split(',')[0] ?? null,
+  ];
+
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (value !== undefined && value.length > 0) return value;
+  }
+  return null;
+}
+
+/**
+ * 빈도 제한 버킷 이름. `{endpoint}:{IP 해시}` 다.
+ *
+ * IP 를 모르면 `unknown` 하나를 공유한다. 제한을 건너뛰는 것보다 낫다 — 건너뛰면 헤더를
+ * 지우는 것이 곧 우회가 된다. 호스팅된 함수 앞에는 언제나 프록시가 있으므로 이 갈래는
+ * 사실상 오지 않는다.
+ */
+export function rateLimitBucket(endpoint: string, ipHash: string | null): string {
+  return `${endpoint}:${ipHash ?? 'unknown'}`;
 }
 
 export function userAgent(request: Request): string | null {

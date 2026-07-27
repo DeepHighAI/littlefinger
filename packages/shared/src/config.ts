@@ -79,6 +79,22 @@ export const EVIDENCE_SIGNED_URL_MIN = 10;
 export const IMMINENT_THRESHOLD_DAYS = 3;
 
 /**
+ * `invite-resolve` 요청 빈도 제한 (PO 결정 2026-07-27).
+ *
+ * §11-3 에 없는 값이다 — §10 의 `E_RATE_LIMIT` 용례는 전부 자원 개수 제한이고 요청 빈도
+ * 제한은 명세가 다루지 않는다. 이 함수만 `verify_jwt = false` 라 열쇠 없이 호출되기 때문에
+ * 필요하다.
+ *
+ * **버킷은 IP 해시이고 값이 넉넉한 데는 이유가 있다.** 한국 이동통신 3사는 CGNAT 를 널리
+ * 써서 수백~수천 명이 공인 IP 하나를 공유하고, 그게 하필 카카오톡 인앱 브라우저 경로 —
+ * SCR-W01 이 실제로 열리는 그 경로다. 빡빡하게 잡으면 아무 잘못 없는 상대방이 차단된다.
+ *
+ * 정본은 SQL 쪽 `lf_rate_limit_window_seconds()` · `lf_rate_limit_max_hits()` 다.
+ * SQL 은 이 파일을 import 할 수 없으므로 `supabase/tests/rate-limit.test.ts` 가 대조한다.
+ */
+export const INVITE_RESOLVE_RATE_LIMIT = { windowSeconds: 600, maxHits: 60 } as const;
+
+/**
  * `Idempotency-Key` 응답 캐시 유효 시간(분) (02 §7-3.6).
  *
  * 정본은 SQL 쪽 `lf_idempotency_ttl_minutes()` 다 — 캐시 판정이 거기서 일어나기 때문이다.
