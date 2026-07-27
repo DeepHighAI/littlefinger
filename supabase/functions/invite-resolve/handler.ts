@@ -7,7 +7,8 @@
 // 2. 상태를 바꾸지 않는다 — `lf_invite_resolve` 는 `stable` 이라 Postgres 가 INSERT/UPDATE 를
 //    문법 수준에서 거부한다. 그래서 `Idempotency-Key` 도 알림도 없다.
 //
-// **아직 없는 것: 남용 방지.** 토큰 대입을 막을 수단이 이 경로에는 없다(핸드오프 참조).
+// 3. 열쇠 없이 불릴 수 있으므로 **빈도 제한이 이 함수에만** 붙는다(IP 당 10분 60회, PO 2026-07-27).
+//    나머지 셋은 JWT 게이트와 1회용 토큰이 이미 반복 호출을 막는다.
 
 import { ENDPOINT } from '../../../packages/shared/src/api.ts';
 import type { Deps } from '../_shared/deps.ts';
