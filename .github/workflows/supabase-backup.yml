@@ -1,4 +1,9 @@
 # 무료 플랜에는 자동 백업이 없다(04 §7-5). 주 1회 덤프를 떠 아티팩트로 보관한다.
+#
+# `supabase db dump` 를 쓰지 않고 `pg_dump` 를 직접 부른다. CLI 는 덤프를 **Docker 컨테이너 안에서**
+# 수행하느라 매 실행마다 `supabase/postgres` 이미지(수백 MB)를 내려받고, 그러고 나서야 접속에
+# 실패했다 — 2026-07-27, 이미지 전체를 받은 뒤 IPv6 도달 불가로 죽었다. 진단 한 번에 2분이 든다.
+# pg_dump 를 직접 부르면 이미지도 CLI 의존도 없고, 접속 문자열이 그대로 쓰인다.
 name: supabase weekly backup
 
 on:
@@ -13,27 +18,88 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      - name: 접속 문자열이 pooler 인지 먼저 확인
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        # 값을 출력하지 않고 호스트와 포트만 꺼내 본다. 이 검사가 앞에 있어야 잘못된 값이
+        # 20초 뒤가 아니라 즉시, 고칠 방법과 함께 드러난다.
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_DB_URL:-}" ]; then
+            echo "::error::SUPABASE_DB_URL 시크릿이 비어 있습니다."
+            exit 1
+          fi
+
+          hostport=$(printf '%s' "${SUPABASE_DB_URL}" | sed -E 's|^.*@([^/?]+).*|\1|')
+          host=${hostport%%:*}
+          port=${hostport##*:}
+          echo "host=${host} port=${port}"
+
+          # 직접 접속 주소는 IPv6 전용이고 GitHub 러너는 IPv4 전용이라 아예 닿지 않는다.
+          case "${host}" in
+            *.pooler.supabase.com) ;;
+            *)
+              echo "::error::SUPABASE_DB_URL 이 pooler 가 아닙니다 (host=${host}). Dashboard → Project Settings → Database → Connection string → **Session pooler** 값을 넣으세요. 직접 접속 주소(db.<ref>.supabase.co)는 IPv6 전용이라 러너에서 닿지 않습니다."
+              exit 1
+              ;;
+          esac
+
+          # Transaction pooler(6543)는 IPv4 지만 트랜잭션 모드라 pg_dump 가 못 돈다.
+          if [ "${port}" != "5432" ]; then
+            echo "::error::포트가 ${port} 입니다. pg_dump 는 **Session pooler(5432)** 가 필요합니다 — Transaction pooler(6543)는 트랜잭션 모드라 동작하지 않습니다."
+            exit 1
+          fi
+
+      - name: PostgreSQL 17 클라이언트 설치
+        # 원격은 PG 17 이고, pg_dump 는 자기보다 높은 서버 버전을 거부한다.
+        # 러너 기본 클라이언트는 17 보다 낮을 수 있어 PGDG 에서 받는다.
+        run: |
+          set -euo pipefail
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+          pg_dump --version
 
       - name: 스키마와 데이터를 덤프
         env:
-          # 덤프는 전체 데이터를 읽으므로 DB 접속 문자열이 필요하다.
-          # GitHub Secrets 에만 두고 저장소에는 절대 넣지 않는다.
-          #
-          # **반드시 Session pooler 문자열이어야 한다** (호스트 `*.pooler.supabase.com`, 포트 5432).
-          # 대시보드가 기본으로 보여주는 직접 접속 주소(`db.<ref>.supabase.co`)는 **IPv6 전용**이고
-          # GitHub 러너는 IPv4 전용이라 아예 닿지 않는다 — 2026-07-27 에 이걸로 한 번 실패했다.
-          # Transaction pooler(포트 6543)도 안 된다: IPv4 지만 트랜잭션 모드라 pg_dump 가 못 돈다.
+          # GitHub Secrets 에만 두고 저장소에는 절대 넣지 않는다(04 §9).
           # 비밀번호의 특수문자는 퍼센트 인코딩한다.
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
           mkdir -p backup
-          supabase db dump --db-url "${SUPABASE_DB_URL}" -f backup/schema.sql
-          supabase db dump --db-url "${SUPABASE_DB_URL}" --data-only -f backup/data.sql
+
+          # `public` 만 뜬다. auth·storage 등 Supabase 관리 스키마는 이 역할로 온전히 덤프되지도,
+          # 되돌려 넣지도 못한다. 스키마 정본은 어차피 supabase/migrations/ 로 git 에 있으므로
+          # 이 백업의 실질 가치는 **데이터** 쪽이다.
+          #
+          # --no-owner / --no-privileges: 소유자와 권한은 마이그레이션이 다시 만든다.
+          # -x 는 쓰지 않는다(권한 구문 제거는 --no-privileges 로 충분하고 의미가 겹친다).
+          pg_dump "${SUPABASE_DB_URL}" \
+            --schema=public --schema-only --no-owner --no-privileges \
+            -f backup/schema.sql
+          pg_dump "${SUPABASE_DB_URL}" \
+            --schema=public --data-only --no-owner --no-privileges \
+            -f backup/data.sql
+
           ls -la backup/
+
+          # 0바이트 덤프를 조용히 업로드하면 백업이 있다고 착각하게 된다. 있는 것보다 나쁘다.
+          for f in backup/schema.sql backup/data.sql; do
+            if [ ! -s "$f" ]; then
+              echo "::error::${f} 가 비었습니다. 덤프가 실패했는데 종료 코드가 0 이었습니다."
+              exit 1
+            fi
+          done
+
+          # 스키마 덤프에 실제 테이블이 있는지 최소한으로 확인한다.
+          if ! grep -q "CREATE TABLE" backup/schema.sql; then
+            echo "::error::schema.sql 에 CREATE TABLE 이 없습니다. 잘못된 데이터베이스를 떴을 수 있습니다."
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
