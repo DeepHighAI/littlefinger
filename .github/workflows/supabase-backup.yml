@@ -51,8 +51,7 @@ jobs:
           fi
 
       - name: PostgreSQL 17 클라이언트 설치
-        # 원격은 PG 17 이고, pg_dump 는 자기보다 높은 서버 버전을 거부한다.
-        # 러너 기본 클라이언트는 17 보다 낮을 수 있어 PGDG 에서 받는다.
+        # 원격은 PG 17 이고, pg_dump 는 자기보다 **높은** 서버 버전을 거부한다.
         run: |
           set -euo pipefail
           curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
@@ -61,7 +60,27 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends postgresql-client-17
-          pg_dump --version
+
+          # **설치만으로는 부족하다.** 러너에는 PG 16 클라이언트가 이미 있고 `/usr/bin/pg_dump`
+          # 가 그쪽을 가리킨다. 17 을 깔아도 그냥 `pg_dump` 를 부르면 16 이 잡혀
+          # "server version mismatch" 로 죽는다 — 2026-07-27 에 이걸로 실패했다.
+          # PATH 순서에 기대지 않고 절대 경로를 고정해 다음 스텝으로 넘긴다.
+          echo "PG_DUMP=/usr/lib/postgresql/17/bin/pg_dump" >> "$GITHUB_ENV"
+
+      - name: pg_dump 가 정말 17 인지 확인
+        # 덤프를 뜨기 전에 끊는다. 버전이 어긋나면 어차피 한 줄도 못 뜨고,
+        # 여기서 죽어야 원인이 "무엇을 설치해야 하는지"로 바로 읽힌다.
+        run: |
+          set -euo pipefail
+          if [ ! -x "${PG_DUMP}" ]; then
+            echo "::error::${PG_DUMP} 가 없습니다. postgresql-client-17 설치가 실패했습니다."
+            exit 1
+          fi
+          "${PG_DUMP}" --version
+          "${PG_DUMP}" --version | grep -qE ' 17\.' || {
+            echo "::error::pg_dump 가 17 이 아닙니다: $("${PG_DUMP}" --version)"
+            exit 1
+          }
 
       - name: 스키마와 데이터를 덤프
         env:
@@ -78,10 +97,11 @@ jobs:
           #
           # --no-owner / --no-privileges: 소유자와 권한은 마이그레이션이 다시 만든다.
           # -x 는 쓰지 않는다(권한 구문 제거는 --no-privileges 로 충분하고 의미가 겹친다).
-          pg_dump "${SUPABASE_DB_URL}" \
+          # `pg_dump` 가 아니라 `${PG_DUMP}` 다. PATH 에는 러너 기본 16 이 앞서 있다.
+          "${PG_DUMP}" "${SUPABASE_DB_URL}" \
             --schema=public --schema-only --no-owner --no-privileges \
             -f backup/schema.sql
-          pg_dump "${SUPABASE_DB_URL}" \
+          "${PG_DUMP}" "${SUPABASE_DB_URL}" \
             --schema=public --data-only --no-owner --no-privileges \
             -f backup/data.sql
 
