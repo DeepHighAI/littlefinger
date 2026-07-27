@@ -5,13 +5,14 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import type { Deps } from '../functions/_shared/deps.ts';
 import { ApiError } from '../functions/_shared/errors.ts';
 import type { NotificationRow } from '../functions/_shared/notify.ts';
+import { createInvitePreviewHandler } from '../functions/invite-preview/handler.ts';
 import { createInviteResolveHandler } from '../functions/invite-resolve/handler.ts';
 import { createAmendHandler } from '../functions/promise-amend/handler.ts';
 import { createApproveHandler } from '../functions/promise-approve/handler.ts';
 import { createDeclineHandler } from '../functions/promise-decline/handler.ts';
 
 /**
- * 껍데기 네 개를 가짜 `Deps` 위에서 끝까지 돌린다.
+ * 껍데기 다섯 개를 가짜 `Deps` 위에서 끝까지 돌린다.
  *
  * RPC 안쪽은 `promise-approve.test.ts` 와 `promise-decline-amend.test.ts` 가 PGlite 로 이미
  * 붙들고 있다. 여기서 보는 것은 **껍데기만 아는 것**이다 — 판정 순서, RPC 인자, 에러 매핑,
@@ -248,6 +249,167 @@ describe('invite-resolve — 비로그인 경로 (§4-3-3)', () => {
     const response = await createInviteResolveHandler(s.deps)(request({ method: 'OPTIONS' }));
     expect(response.status).toBe(204);
     expect(response.headers.get('Access-Control-Allow-Headers')).toContain('idempotency-key');
+  });
+});
+
+describe('invite-preview — 로그인 후 검토 경로 (§4-3-4)', () => {
+  const PREVIEW = {
+    title: '매일 걷기',
+    body: '매일 30분 걷기로 했다',
+    category: 'HABIT',
+    end_date: '2026-08-10',
+    keeper: 'BOTH',
+    reward: '커피 한 잔',
+    penalty: '설거지 1주일',
+    witness_enabled: false,
+    creator: { nickname: '민준', profile_image_url: null },
+  };
+
+  function previewSpy(
+    overrides: Parameters<typeof spy>[0] = {},
+  ): Spy {
+    return spy({ rpc: async () => PREVIEW, ...overrides });
+  }
+
+  /** 검토 요청의 정상 형태. `Idempotency-Key` 는 없다 — 상태를 바꾸지 않는다. */
+  function previewRequest(body: unknown = { token: TOKEN }): Request {
+    return request({ headers: { authorization: 'Bearer jwt-value' }, body });
+  }
+
+  test('세션 확인이 가장 먼저다 — 인증 실패면 RPC 를 부르지 않는다', async () => {
+    const s = previewSpy();
+    const response = await createInvitePreviewHandler(s.deps)(request({ body: { token: TOKEN } }));
+
+    expect(response.status).toBe(401);
+    expect(s.rpcCalls).toEqual([]);
+  });
+
+  test('세션 확인이 토큰 파싱보다 먼저다 — 둘 다 틀려도 401 이다', async () => {
+    // 가드를 **겹쳐서** 건다. 정상 본문으로는 순서를 뒤집어도 401 이 나오므로 위 테스트만으로는
+    // 순서를 전혀 검사하지 못한다. 로그인하지 않은 호출에 "토큰 형식이 틀렸다"고 답하면
+    // 그것만으로 비로그인 호출자가 요청 형식을 탐색할 수 있다.
+    const s = previewSpy();
+    const response = await createInvitePreviewHandler(s.deps)(request({ body: {} }));
+
+    expect(response.status).toBe(401);
+    expect(s.rpcCalls).toEqual([]);
+  });
+
+  test('POST 가 아니면 422 이고 RPC 를 부르지 않는다', async () => {
+    const s = previewSpy();
+    const response = await createInvitePreviewHandler(s.deps)(
+      request({ method: 'GET', headers: { authorization: 'Bearer jwt-value' } }),
+    );
+
+    expect(response.status).toBe(422);
+    expect(s.rpcCalls).toEqual([]);
+  });
+
+  test('원문 토큰이 아니라 해시를 넘기고 user_id 를 함께 싣는다', async () => {
+    const s = previewSpy();
+    await createInvitePreviewHandler(s.deps)(previewRequest());
+
+    expect(s.rpcCalls).toHaveLength(1);
+    expect(s.rpcCalls[0]?.fn).toBe('lf_invite_preview');
+    expect(s.rpcCalls[0]?.args).toEqual({
+      p_token_hash: expectedTokenHash,
+      p_user_id: 'u-1',
+    });
+    // 원문이 인자에 남으면 §13 "DB·로그 어디에도"가 깨진다.
+    expect(JSON.stringify(s.rpcCalls[0]?.args)).not.toContain(TOKEN);
+  });
+
+  test('RPC payload 를 그대로 최상위에 싣는다', async () => {
+    const s = previewSpy();
+    const response = await createInvitePreviewHandler(s.deps)(previewRequest());
+
+    expect(response.status).toBe(200);
+    expect(await jsonOf(response)).toEqual(PREVIEW);
+  });
+
+  test('Idempotency-Key 를 요구하지 않는다 — 읽기다', async () => {
+    const s = previewSpy();
+    expect((await createInvitePreviewHandler(s.deps)(previewRequest())).status).toBe(200);
+  });
+
+  test('알림을 만들지 않는다 — 읽기에 대응하는 NT-* 이벤트가 없다', async () => {
+    const s = previewSpy();
+    await createInvitePreviewHandler(s.deps)(previewRequest());
+    expect(s.notifications).toHaveLength(0);
+  });
+
+  test('빈도 제한을 세지 않는다 — verify_jwt=true 라 invite-resolve 와 조건이 다르다', async () => {
+    const s = previewSpy();
+    await createInvitePreviewHandler(s.deps)(previewRequest());
+    expect(s.rpcCalls.map((c) => c.fn)).toEqual(['lf_invite_preview']);
+  });
+
+  test('토큰이 없으면 422 이고 RPC 를 부르지 않는다', async () => {
+    const s = previewSpy();
+    const response = await createInvitePreviewHandler(s.deps)(previewRequest({}));
+
+    expect(response.status).toBe(422);
+    expect((await jsonOf(response))['field']).toBe('token');
+    expect(s.rpcCalls).toEqual([]);
+  });
+
+  test.each([
+    ['E_NOT_FOUND', 404],
+    ['E_INVITE_EXPIRED', 410],
+    ['E_INVITE_USED', 410],
+    ['E_INVITE_REVOKED', 410],
+    ['E_SELF_INVITE', 422],
+    ['E_DUPLICATE_ROLE', 422],
+    ['E_BLOCKED', 422],
+    ['E_FORBIDDEN', 403],
+    ['E_STATE_CONFLICT', 409],
+  ] as const)('%s 는 %i 이고 payload 를 한 조각도 싣지 않는다', async (code, status) => {
+    const s = previewSpy({
+      rpc: async () => {
+        throw new Error(code);
+      },
+    });
+    const response = await createInvitePreviewHandler(s.deps)(previewRequest());
+    const body = await jsonOf(response);
+
+    expect(response.status).toBe(status);
+    expect(body['code']).toBe(code);
+    // 실패 경로에 약속의 존재를 알리는 조각이 남으면 §9 가 거기서만 무너진다.
+    expect(Object.keys(body).sort()).toEqual(['code', 'message']);
+  });
+
+  test('E_VALIDATION 에 EC-B10 의 종료일 안내를 덧씌우지 않는다', async () => {
+    // 검토 화면은 종료일이 지나도 **정상 응답**을 받는다. 여기에 승인의 문구를 붙이면
+    // 사용자가 고칠 수 없는 것을 고치라고 말하게 된다.
+    const s = previewSpy({
+      rpc: async () => {
+        throw new Error('E_VALIDATION');
+      },
+    });
+    const body = await jsonOf(await createInvitePreviewHandler(s.deps)(previewRequest()));
+
+    expect(body['action']).toBeUndefined();
+    expect(String(body['message'])).not.toContain('종료일');
+  });
+
+  test('모르는 실패는 500 으로 뭉갠다 — Postgres 메시지가 새지 않는다', async () => {
+    const s = previewSpy({
+      rpc: async () => {
+        throw new Error('null value in column "title" of relation "promise_versions"');
+      },
+    });
+    const response = await createInvitePreviewHandler(s.deps)(previewRequest());
+    const body = await jsonOf(response);
+
+    expect(response.status).toBe(500);
+    expect(JSON.stringify(body)).not.toContain('promise_versions');
+    expect(s.logs).toContain('unmapped RPC failure');
+  });
+
+  test('OPTIONS 는 preflight 로 답한다', async () => {
+    const s = previewSpy();
+    const response = await createInvitePreviewHandler(s.deps)(request({ method: 'OPTIONS' }));
+    expect(response.status).toBe(204);
   });
 });
 

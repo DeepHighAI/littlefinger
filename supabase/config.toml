@@ -44,6 +44,12 @@ schemas = ["public"]
 [functions.invite-resolve]
 verify_jwt = false
 
+# SCR-W02 는 같은 링크의 **로그인 후** 화면이다(§4-3-4). 여기서만 약속 전문·보상·벌칙이
+# 나가므로 익명에게 열리면 invite-resolve 가 로그인 전에 그것들을 감춘 의미가 사라진다.
+# RPC 도 user_id 를 받아 승인과 같은 열람자 가드(자기 초대·중복 역할·차단)를 돌린다.
+[functions.invite-preview]
+verify_jwt = true
+
 # 작성·초대 발송은 작성자 전용이다(§9). 익명에게 열리면 남의 이름으로 약속을 만들 수 있는
 # 것은 물론이고, EC-H05 의 사용자당 한도가 셀 대상을 잃는다.
 [functions.promise-create]

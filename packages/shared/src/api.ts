@@ -11,6 +11,7 @@
  */
 
 import type { ErrorCode } from './errors.ts';
+import type { IsoDate, Keeper, PromiseCategory } from './promise.ts';
 
 /** 상태 변경 요청이 반드시 달고 오는 헤더 (§7-3.6). 값은 UUID 다. */
 export const IDEMPOTENCY_KEY_HEADER = 'Idempotency-Key';
@@ -116,10 +117,39 @@ export interface PromiseInviteResponse {
   token?: string;
 }
 
-/** 요청 본문 — 초대 토큰 하나로 시작하는 네 함수의 공통 부분 */
+/** 요청 본문 — 초대 토큰 하나로 시작하는 다섯 함수의 공통 부분 */
 export interface InviteTokenRequest {
   /** URL-safe Base64 원문 토큰. 서버는 해시만 저장하므로 원문은 여기서만 존재한다(§4-3-1). */
   token: string;
+}
+
+/**
+ * SCR-W02 약속 검토 (§4-3-4). 로그인 **후** 한 번 부르고, 그 응답 하나로 화면이 다 그려진다.
+ *
+ * `invite-resolve`(로그인 전)와 담는 것이 정반대다 — 그쪽은 링크 유출을 전제로 본문·보상·
+ * 벌칙을 **뺀** 최소 정보만 주고, 이쪽은 승인과 같은 가드를 통과한 사람에게만 전문을 준다.
+ *
+ * 담지 않는 것 두 가지:
+ * - **디스클레이머**. `LEGAL_DISCLAIMER` 상수를 그대로 쓴다. 서버가 보내면 문구가 두 벌이 된다.
+ * - **D-Day**. `end_date` 만 보내고 `datetime.ts` 가 KST 로 계산한다. 서버가 미리 계산해
+ *   문자열로 내려보내면 자정을 넘긴 화면이 갱신되지 않는다.
+ */
+export interface InvitePreviewResponse {
+  title: string;
+  body: string;
+  category: PromiseCategory;
+  /** `YYYY-MM-DD`, KST 기준. 지난 날짜여도 응답은 온다 — 화면은 그려야 하고 CTA 만 잠긴다(EC-B10). */
+  end_date: IsoDate;
+  keeper: Keeper;
+  reward: string | null;
+  penalty: string | null;
+  /** 증인 사용 **예정** 여부. 확정 전이라 실제 증인은 아직 없다. */
+  witness_enabled: boolean;
+  /** 오수락 방지 확인 시트가 "{nickname}님이 보낸 약속이 맞나요?"에 쓴다(§4-3-4). */
+  creator: {
+    nickname: string;
+    profile_image_url: string | null;
+  };
 }
 
 export interface PromiseDeclineRequest extends InviteTokenRequest {
@@ -143,6 +173,7 @@ export const ENDPOINT = {
   promiseCreate: 'promise-create',
   promiseInvite: 'promise-invite',
   inviteResolve: 'invite-resolve',
+  invitePreview: 'invite-preview',
   promiseApprove: 'promise-approve',
   promiseDecline: 'promise-decline',
   promiseAmend: 'promise-amend',

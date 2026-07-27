@@ -314,6 +314,17 @@ client-side INSERT/UPDATE policies on `promises` and `promise_versions` were the
 `promises delete own draft` stays (§4-2-2.5). DRAFT editing waits on its own RPC. **Neither function
 emits a notification** — §8-1: "초대 발송 자체는 시스템 알림이 아니다".
 
+**`invite-preview` joined it too** (2026-07-27, ADR 0004) — SCR-W02 had no server read path at all.
+`invite-resolve` could not grow one: it is the pre-login endpoint and what it *refuses* to return is
+its design. RLS could not supply one either — at PENDING the partner has no `promise_participants`
+row yet (T-01 writes CREATOR only; PARTNER appears inside `lf_promise_approve`), so
+`can_read_promise()` is false and the select returns empty. `lf_invite_preview` is therefore the
+**read twin of approve**: the same guards in the same order, and the `02` §4-3-4 content only for a
+caller who would be allowed to approve. It is `stable`, which is enforcement rather than
+optimization — Postgres rejects INSERT/UPDATE/DELETE and `select … for update` inside it, so a
+review screen reopened by refresh or back-button (EC-A01) cannot consume the invite it is about to
+approve.
+
 But the transition itself is **not** in the Edge Function — it is a Postgres `lf_*` function, one
 per transition, and the function boundary is the transaction boundary (ADR 0003). The Edge Function
 is a shell: JWT → user id, request shape, call the RPC, map the raised message to the `02` §2-3 code

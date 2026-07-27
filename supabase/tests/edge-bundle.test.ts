@@ -19,14 +19,24 @@ import { describe, expect, test } from 'vitest';
 const REPO_ROOT = resolve(__dirname, '../..');
 const FUNCTIONS_DIR = resolve(REPO_ROOT, 'supabase/functions');
 
-const ENTRYPOINTS = [
-  'invite-resolve/index.ts',
-  'promise-create/index.ts',
-  'promise-invite/index.ts',
-  'promise-approve/index.ts',
-  'promise-decline/index.ts',
-  'promise-amend/index.ts',
-];
+/**
+ * 진입점과 그 함수가 **가져야 하는** `verify_jwt` 값.
+ *
+ * 값까지 적는다. 키의 존재만 보면 `invite-preview` 를 `false` 로 뒤집어도 CI 가 초록이고,
+ * 그 순간 약속 전문·보상·벌칙이 익명에게 열린다 — `invite-resolve` 가 로그인 전에 그것들을
+ * 감춘 의미가 통째로 사라지는데 아무 신호가 없다. 열려 있어도 되는 함수는 SCR-W01 하나뿐이다.
+ */
+const VERIFY_JWT: Record<string, boolean> = {
+  'invite-resolve': false,
+  'invite-preview': true,
+  'promise-create': true,
+  'promise-invite': true,
+  'promise-approve': true,
+  'promise-decline': true,
+  'promise-amend': true,
+};
+
+const ENTRYPOINTS = Object.keys(VERIFY_JWT).map((slug) => `${slug}/index.ts`);
 
 /** `from '…'` / `import '…'` 의 지정자. CLI 워커와 같은 수준의 텍스트 스캔이다. */
 const SPECIFIER = /(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g;
@@ -106,6 +116,21 @@ describe('Edge Function 번들 그래프', () => {
       const handler = resolve(FUNCTIONS_DIR, entrypoint.replace('index.ts', 'handler.ts'));
       const { files } = walk(relative(FUNCTIONS_DIR, handler));
       expect(files.filter((file) => file.endsWith('runtime.ts'))).toEqual([]);
+    }
+  });
+
+  test('모든 함수가 config.toml 에 기대한 verify_jwt 값으로 적혀 있다', () => {
+    // 빠뜨린 함수는 값이 **전송되지 않아** 서버가 이전 값을 그대로 유지한다. 새 함수의
+    // 경우 그건 "기본값이 뭐였더라"에 인증을 맡기는 것이다 — 실패하면 조용히 열린다.
+    const config = readFileSync(resolve(REPO_ROOT, 'supabase/config.toml'), 'utf8');
+
+    for (const [slug, expected] of Object.entries(VERIFY_JWT)) {
+      const found = new RegExp(`\\[functions\\.${slug}\\][^[]*?verify_jwt\\s*=\\s*(true|false)`, 'u')
+        .exec(config)?.[1];
+      expect(found, `${slug} 의 verify_jwt 가 config.toml 에 없다`).toBeDefined();
+      expect(found === 'true', `${slug} 의 verify_jwt 가 ${String(expected)} 가 아니다`).toBe(
+        expected,
+      );
     }
   });
 
