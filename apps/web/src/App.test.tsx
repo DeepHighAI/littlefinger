@@ -34,9 +34,9 @@ describe('App 라우팅', () => {
     expect(screen.getByTestId('invite-token').textContent).toBe(token);
   });
 
-  it('모르는 경로는 안내 화면으로 떨어진다', () => {
+  it('모르는 경로는 SCR-W06 으로 떨어진다', () => {
     renderAt('/nope');
-    expect(screen.getByTestId('not-found')).toBeTruthy();
+    expect(screen.getByTestId('reason').textContent).toBe('초대 링크를 찾을 수 없습니다.');
   });
 
   it('packages/shared 를 웹에서 그대로 읽는다', () => {
