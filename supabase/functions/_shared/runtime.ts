@@ -60,7 +60,16 @@ export function createDeps(): Deps {
       if (jwt.length === 0) throw new ApiError('E_AUTH_REQUIRED');
 
       const { data, error } = await admin.auth.getUser(jwt);
-      if (error !== null || data.user === null) throw new ApiError('E_AUTH_REQUIRED');
+      if (error !== null || data.user === null) {
+        // 이유를 삼키지 않는다. `/auth/v1/user` 가 200 을 주는 토큰이 여기서만 401 이 되는
+        // 원인이 아직 미상인데(2026-07-29), 그 이유를 아무도 본 적이 없어서 미상이다.
+        // `AuthError.toJSON()` 이 name·message·status·code 만 내놓으므로 토큰은 새지 않는다(§13).
+        logger.error(
+          'auth.getUser rejected the token',
+          error === null ? 'no error returned, but user was null' : JSON.stringify(error),
+        );
+        throw new ApiError('E_AUTH_REQUIRED');
+      }
       return data.user.id;
     },
 
