@@ -15,6 +15,16 @@ const EXPECTED: Record<LinkUnavailableReason, string> = {
   E_NOT_FOUND: '초대 링크를 찾을 수 없습니다.',
 };
 
+/**
+ * 사용자가 실제로 읽는 글자. aria-hidden 을 떼고 읽으므로, 아이콘이 aria-hidden 을 잃으면
+ * 이 함수가 먼저 알려 준다 — 스크린 리더에 아이콘 코드포인트가 새는 것을 막는다.
+ */
+function visibleText(el: Element): string {
+  const clone = el.cloneNode(true) as Element;
+  for (const hidden of clone.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
+  return clone.textContent?.trim() ?? '';
+}
+
 describe('SCR-W06 링크 무효·만료 안내', () => {
   it.each(Object.entries(EXPECTED))('%s 는 사유별 문구를 그대로 쓴다', (reason, body) => {
     render(<ScrW06LinkExpired reason={reason as LinkUnavailableReason} />);
@@ -43,15 +53,25 @@ describe('SCR-W06 링크 무효·만료 안내', () => {
     for (const contentClass of ['.lf-screen__actions', '.lf-card', '.lf-fingerprint', '.lf-btn']) {
       expect(container.querySelector(contentClass)).toBeNull();
     }
-    // 보이는 글자는 제목·사유·안내 셋뿐이다. 아이콘 span 은 aria-hidden 이라 세지 않는다.
-    const visible = [...container.querySelectorAll('h1, p')]
-      .map((el) => el.textContent?.replace(/link_off|info/g, '').trim())
-      .filter((t) => t);
+    const visible = [...container.querySelectorAll('h1, p')].map(visibleText).filter((t) => t);
     expect(visible).toEqual([
       '이 링크는 더 쓸 수 없어요',
       '초대 링크가 만료되었습니다. 상대에게 새 링크를 요청해 주세요.',
       '초대 링크는 1회용이에요',
     ]);
+  });
+
+  it('아이콘은 리가처가 아니라 코드포인트를 쓴다', () => {
+    // 리가처를 쓰면 폰트 서브셋이 사실상 불가능하고(실측 5220 KB → 4655 KB), 폰트가 늦게
+    // 오면 링크가 끊겼다고 알려 주는 화면에 'link_off' 라는 낱말이 그대로 보인다.
+    const { container } = render(<ScrW06LinkExpired reason="E_INVITE_EXPIRED" />);
+    const icons = [...container.querySelectorAll('.material-symbols-rounded')];
+    expect(icons.length).toBe(2);
+    for (const icon of icons) {
+      expect(icon.getAttribute('aria-hidden')).toBe('true');
+      expect(icon.textContent).not.toMatch(/[a-z_]/);
+      expect(icon.textContent?.codePointAt(0)).toBeGreaterThanOrEqual(0xe000);
+    }
   });
 
   it('광고 슬롯이 없다', () => {

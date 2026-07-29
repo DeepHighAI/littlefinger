@@ -20,8 +20,10 @@
     "vite": "^8.1.5"
   },
   "dependencies": {
+    "@fontsource/roboto-mono": "^5.3.0",
     "@littlefinger/shared": "*",
     "@supabase/supabase-js": "^2.110.8",
+    "material-symbols": "^0.45.9",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"

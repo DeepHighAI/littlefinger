@@ -1,5 +1,7 @@
 import type { ErrorCode } from '@littlefinger/shared';
 
+import { LfIcon } from '../components/LfIcon.tsx';
+
 /**
  * SCR-W06 링크 무효·만료 안내.
  *
@@ -44,9 +46,7 @@ export function ScrW06LinkExpired({ reason }: { reason: LinkUnavailableReason })
     <div className="lf-screen">
       <div className="lf-screen__body lf-screen__body--web lf-screen__body--centered lf-gap-5">
         <div className="lf-status-icon">
-          <span className="material-symbols-rounded" aria-hidden="true">
-            link_off
-          </span>
+          <LfIcon name="link_off" />
         </div>
 
         <h1 className="lf-title lf-title--web">{SCREEN_TITLE}</h1>
@@ -57,9 +57,7 @@ export function ScrW06LinkExpired({ reason }: { reason: LinkUnavailableReason })
 
         {ONE_TIME_NOTICE_REASONS.includes(reason) && (
           <p className="lf-notice">
-            <span className="material-symbols-rounded" aria-hidden="true">
-              info
-            </span>
+            <LfIcon name="info" />
             <span>{ONE_TIME_NOTICE}</span>
           </p>
         )}
