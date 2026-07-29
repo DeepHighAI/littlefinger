@@ -393,8 +393,14 @@ Verified 2026-07-26 against current docs and adversarially reviewed. Full detail
    want email" — is wrong.
 2. **The PO chose not to collect email (2026-07-26).** Register `account_email` as **[선택 동의]**
    and turn Supabase's **"Allow users without an email" ON**; the app then never stores or reads it.
-   `User.email` keeps its `string | null` type. Note this covers the *Kakao-provided* email only —
-   the separately typed reminder email on SCR-W03 (`02` §5-3) is a different field and still specced.
+   `User.email` keeps its `string | null` type. **Registering the consent item is not the same as
+   collecting the data** — gotrue always requests the scope, so an unregistered item is KOE205, not
+   privacy; [선택 동의] is what lets the user refuse while login still works.
+   **The separately typed reminder email on SCR-W03 (`02` §5-3) is out of MVP too** (PO,
+   2026-07-29): this product reaches people through KakaoTalk links and the Play Store link, never
+   through email, so `02` §5-3's field, EC-G01 and EC-G03 are not implemented. That also removes any
+   need to write to `users` from the client, which the `users update own` policy would have made
+   dangerous — it permits updating every column, including `email_verified` and `status`.
 3. **`expo-secure-store` cannot hold a Supabase session directly** — it caps values at 2048 bytes
    and a session exceeds that. Use the `LargeSecureStore` pattern: AES-256 key in SecureStore,
    ciphertext in AsyncStorage. Also required: `autoRefreshToken`, `persistSession`, and an

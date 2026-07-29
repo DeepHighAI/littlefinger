@@ -156,7 +156,7 @@ Raised and still unanswered. GAP numbering follows the brief presented on 2026-0
 | # | Item |
 |---|---|
 | G2 | SCR-W03's primary CTA vs EC-I03 (iOS install banner suppressed). Copy exists — EC-I03 `02:1182`. Only the CTA slot is open |
-| G3 | W03's reminder email has no endpoint; the `users update own` policy exposes every column, incl. `email_verified` and `status` |
+| ~~G3~~ | **Closed 2026-07-29** — the reminder email is out of MVP. The PO reaches people through KakaoTalk links and the Play Store link, never email, so `02` §5-3's field, EC-G01 and EC-G03 are not implemented. No client write to `users` is needed, which also retires the `users update own` hazard |
 | G4 | The 거절 / 수정 제안 terminal screen has no SCR-ID, no reference, no copy. Two strings needed |
 | G8 | W03's stamp is missing 확정 라벨 · 증인 서명 현황 · [버전 이력 보기]; version history has no read slug |
 | G9 | `02` contradicts itself on EC-B10's copy (§4-3-4 vs §10). The server already picked §4-3-4 |
