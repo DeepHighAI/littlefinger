@@ -17,7 +17,8 @@ import {
 } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { invitePath, reviewPath, ROUTE } from '../routes.ts';
+import { invitePath, responseCompletePath, RESPONSE_OUTCOME, reviewPath, ROUTE } from '../routes.ts';
+import { ResponseComplete } from './response-complete.tsx';
 import { ScrW02PromiseReview } from './scr-w02-promise-review.tsx';
 import { ScrW03ApprovalComplete } from './scr-w03-approval-complete.tsx';
 
@@ -94,6 +95,17 @@ function renderAt(token = TOKEN): ReturnType<typeof render> {
             </>
           }
         />
+        {/* 거절·수정 제안의 종결 화면. 실물을 태운다 — 넘긴 결과가 실제로 문장이 되는지가
+            검증 대상이다(넘기기만 하고 결과가 안 맞으면 빈 화면이 된다). */}
+        <Route
+          path={ROUTE.responseComplete}
+          element={
+            <>
+              <NavigationTypeProbe />
+              <ResponseComplete />
+            </>
+          }
+        />
         {/* 세션이 없으면 화면은 SCR-W01 로 되돌린다. 실물 대신 자리만 둔다 — 여기서
             검증하는 것은 "어디로 보내는가"이지 랜딩이 무엇을 그리는가가 아니다. */}
         <Route path={ROUTE.invite} element={<span data-testid="landing" />} />
@@ -109,6 +121,19 @@ function lastCall(): [string, RequestInit] {
 
 function callsTo(slug: string): unknown[] {
   return fetchMock.mock.calls.filter(([url]) => String(url).endsWith(slug));
+}
+
+/** 어떤 엔드포인트로 나간 요청들의 `Idempotency-Key` 목록. */
+function keysOf(slug: string): (string | undefined)[] {
+  return (fetchMock.mock.calls as [string, RequestInit][])
+    .filter(([url]) => String(url).endsWith(slug))
+    .map(([, init]) => (init.headers as Record<string, string>)['Idempotency-Key']);
+}
+
+/** 수정 제안 의견 입력. 미리보기가 그려진 뒤에만 존재한다. */
+async function typeAmend(value: string): Promise<void> {
+  const field = await screen.findByLabelText('수정 제안 의견');
+  fireEvent.change(field, { target: { value } });
 }
 
 beforeEach(() => {
@@ -291,7 +316,7 @@ describe('SCR-W02 약속 검토', () => {
     fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
     fireEvent.click(screen.getByRole('button', { name: '네, 승인합니다' }));
 
-    expect((await screen.findByTestId('approve-error')).textContent).toBe(
+    expect((await screen.findByTestId('action-error')).textContent).toBe(
       '처리 중 문제가 발생했습니다. 다시 시도해 주세요.',
     );
     expect(screen.queryByTestId('no-result')).toBeNull();
@@ -313,7 +338,7 @@ describe('SCR-W02 약속 검토', () => {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
       fireEvent.click(screen.getByRole('button', { name: '네, 승인합니다' }));
-      await screen.findByTestId('approve-error');
+      await screen.findByTestId('action-error');
     }
 
     const keys = (fetchMock.mock.calls as [string, RequestInit][])
@@ -512,20 +537,294 @@ describe('SCR-W02 약속 검토', () => {
     expect(screen.queryByTestId('witness-notice')).toBeNull();
   });
 
-  it('거절·수정 제안은 자리만 있고 아직 연결되지 않았다', async () => {
-    // 미해결 항목 G4 — 셋이 도착할 종결 화면에 SCR-ID 도 문구도 없다. 눌려서 아무 일도
-    // 일어나지 않는 것보다, 눌리지 않는 것이 정직하다.
+  it('거절은 사유 없이도 보낸다 — §5-3 에서 선택이다', async () => {
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        String(url).endsWith(ENDPOINT.promiseDecline)
+          ? fakeResponse(200, { promise_id: APPROVED.promise_id, status: 'DECLINED' })
+          : fakeResponse(200, PREVIEW),
+      ),
+    );
+    renderAt();
+
+    const decline = (await screen.findByRole('button', {
+      name: '거절하기',
+    })) as HTMLButtonElement;
+    // 의견 칸이 비어 있어도 거절은 잠기지 않는다. 잠그면 상대가 거절할 방법이 사라진다.
+    expect(decline.disabled).toBe(false);
+    fireEvent.click(decline);
+
+    expect((await screen.findByTestId('outcome-message')).textContent).toBe(
+      '거절했어요. 작성자에게 알려드릴게요.',
+    );
+
+    const [url, init] = lastCall();
+    // 엔드포인트가 바뀌면 여기서 깨진다 — 슬러그는 멱등 캐시의 일부이기도 하다.
+    expect(url).toBe(`${SUPABASE_URL}/functions/v1/${ENDPOINT.promiseDecline}`);
+    expect(callsTo(ENDPOINT.promiseAmend)).toHaveLength(0);
+    // 사유가 없으면 키 자체를 싣지 않는다. 빈 문자열을 보내면 RPC 가 정규화 뒤 nullif 로
+    // 지우기는 하지만, "적지 않았다"를 "빈 값을 적었다"로 바꿔 보낼 이유가 없다.
+    expect(JSON.parse(String(init.body))).toEqual({ token: TOKEN });
+    const headers = init.headers as Record<string, string>;
+    expect(headers['Idempotency-Key']).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+    expect(headers['Authorization']).toBe(`Bearer ${ACCESS_TOKEN}`);
+  });
+
+  it('수정 제안은 의견을 실어 보낸다', async () => {
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        String(url).endsWith(ENDPOINT.promiseAmend)
+          ? fakeResponse(200, { promise_id: APPROVED.promise_id, status: 'DRAFT' })
+          : fakeResponse(200, PREVIEW),
+      ),
+    );
+    renderAt();
+
+    await typeAmend('종료일을 한 주만 미뤄 주세요');
+    fireEvent.click(screen.getByRole('button', { name: '수정 제안' }));
+
+    expect((await screen.findByTestId('outcome-message')).textContent).toBe(
+      '수정 제안을 보냈어요. 작성자가 내용을 고쳐 다시 보내면 알림을 받게 돼요.',
+    );
+
+    const [url, init] = lastCall();
+    expect(url).toBe(`${SUPABASE_URL}/functions/v1/${ENDPOINT.promiseAmend}`);
+    expect(callsTo(ENDPOINT.promiseDecline)).toHaveLength(0);
+    expect(JSON.parse(String(init.body))).toEqual({
+      token: TOKEN,
+      comment: '종료일을 한 주만 미뤄 주세요',
+    });
+  });
+
+  it('종결 화면으로는 replace 로 넘어간다', async () => {
+    // 초대는 이미 USED 다. push 로 넘기면 뒤로가기가 이미 끝난 액션을 다시 권한다(EC-B02).
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        String(url).endsWith(ENDPOINT.promiseDecline)
+          ? fakeResponse(200, { status: 'DECLINED' })
+          : fakeResponse(200, PREVIEW),
+      ),
+    );
+    renderAt();
+    fireEvent.click(await screen.findByRole('button', { name: '거절하기' }));
+
+    expect((await screen.findByTestId('nav-type')).textContent).toBe('REPLACE');
+  });
+
+  it.each([
+    [4, true],
+    [5, false],
+    [300, false],
+    [301, true],
+  ])('§5-3 — 의견 %i자에서 수정 제안은 blocked=%s 다', async (length, blocked) => {
+    fetchMock.mockResolvedValue(fakeResponse(200, PREVIEW));
+    renderAt();
+
+    await typeAmend('가'.repeat(length));
+    const amend = screen.getByRole('button', { name: '수정 제안' }) as HTMLButtonElement;
+    expect(amend.disabled).toBe(blocked);
+
+    fireEvent.click(amend);
+    if (blocked) {
+      // 비활성인데도 보내지는 일이 없어야 한다 — 서버가 막아 주더라도 그때는 이미 초대가
+      // 소모될 수 있는 자리다. 대기열을 비운 뒤에 센다.
+      await act(async () => {});
+      expect(callsTo(ENDPOINT.promiseAmend)).toHaveLength(0);
+    } else {
+      await waitFor(() => expect(callsTo(ENDPOINT.promiseAmend)).toHaveLength(1));
+    }
+  });
+
+  it('의견이 비면 §5-3 문구로 이유를 말한다', async () => {
+    // 이름 없는 빈 상자만 두면 [수정 제안]이 왜 안 눌리는지 알 길이 없다.
     fetchMock.mockResolvedValue(fakeResponse(200, PREVIEW));
     renderAt();
     await screen.findByRole('heading', { level: 1 });
 
-    for (const name of ['수정 제안', '거절하기']) {
-      const button = screen.getByRole('button', { name }) as HTMLButtonElement;
-      expect(button.disabled).toBe(true);
-      fireEvent.click(button);
+    expect(screen.getByLabelText('수정 제안 의견')).toBeTruthy();
+    expect(screen.getByTestId('amend-hint').textContent).toBe(
+      '어떤 부분을 바꾸고 싶은지 알려주세요.',
+    );
+
+    await typeAmend('종료일을 미뤄 주세요');
+    expect(screen.queryByTestId('amend-hint')).toBeNull();
+  });
+
+  it('EC-B10 — 승인이 잠겨도 [종료일 변경 요청하기]는 실제로 나간다', async () => {
+    // 종료일이 지난 약속의 **유일한** 출구다. 여기가 막히면 약속은 초대가 만료될 때까지
+    // PENDING 에 갇힌다.
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        String(url).endsWith(ENDPOINT.promiseAmend)
+          ? fakeResponse(200, { status: 'DRAFT' })
+          : fakeResponse(200, { ...PREVIEW, end_date: kstDatePlus(-1) }),
+      ),
+    );
+    renderAt();
+
+    expect(
+      ((await screen.findByRole('button', { name: '승인하기' })) as HTMLButtonElement).disabled,
+    ).toBe(true);
+
+    await typeAmend('종료일을 다음 달로 바꿔 주세요');
+    fireEvent.click(screen.getByRole('button', { name: '종료일 변경 요청하기' }));
+
+    expect((await screen.findByTestId('outcome-message')).textContent).toBe(
+      '수정 제안을 보냈어요. 작성자가 내용을 고쳐 다시 보내면 알림을 받게 돼요.',
+    );
+    expect(String(lastCall()[0])).toBe(`${SUPABASE_URL}/functions/v1/${ENDPOINT.promiseAmend}`);
+  });
+
+  it('§7-3.6 — 액션마다 다른 키를, 재시도에는 같은 키를 쓴다', async () => {
+    // `lf_idempotency_begin` 은 키를 (사용자, 엔드포인트)에 묶는다. 셋이 한 키를 나눠 쓰면
+    // 두 번째 액션이 E_FORBIDDEN 으로 튕긴다. 반대로 클릭마다 새로 만들면 두 번 눌린
+    // 요청이 서버에 둘로 도착한다.
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        String(url).endsWith(ENDPOINT.invitePreview)
+          ? fakeResponse(200, PREVIEW)
+          : fakeResponse(ERROR_HTTP_STATUS.E_STATE_CONFLICT, {
+              code: 'E_STATE_CONFLICT',
+              message: 'x',
+            }),
+      ),
+    );
+    renderAt();
+
+    await typeAmend('종료일을 미뤄 주세요');
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      fireEvent.click(screen.getByRole('button', { name: '수정 제안' }));
+      await screen.findByTestId('action-error');
+      fireEvent.click(screen.getByRole('button', { name: '거절하기' }));
+      await screen.findByTestId('action-error');
     }
-    expect(callsTo(ENDPOINT.promiseDecline)).toHaveLength(0);
+
+    const amendKeys = keysOf(ENDPOINT.promiseAmend);
+    const declineKeys = keysOf(ENDPOINT.promiseDecline);
+    expect(amendKeys).toEqual([amendKeys[0], amendKeys[0]]);
+    expect(declineKeys).toEqual([declineKeys[0], declineKeys[0]]);
+    expect(amendKeys[0]).not.toBe(declineKeys[0]);
+  });
+
+  it('거절·수정 제안의 실패도 승인과 같은 자리로 간다', async () => {
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        String(url).endsWith(ENDPOINT.promiseDecline)
+          ? fakeResponse(ERROR_HTTP_STATUS.E_INVITE_USED, { code: 'E_INVITE_USED', message: 'x' })
+          : fakeResponse(200, PREVIEW),
+      ),
+    );
+    renderAt();
+    fireEvent.click(await screen.findByRole('button', { name: '거절하기' }));
+
+    // 링크가 죽은 코드는 SCR-W06 이다. 종결 화면으로 보내면 하지도 않은 거절을 했다고 한다.
+    expect((await screen.findByTestId('reason')).textContent).toBe('이미 사용된 초대입니다.');
+    expect(screen.queryByTestId('outcome-message')).toBeNull();
+  });
+
+  it('수정 제안 중 세션이 끊기면 SCR-W01 로 되돌린다', async () => {
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        String(url).endsWith(ENDPOINT.promiseAmend)
+          ? fakeResponse(ERROR_HTTP_STATUS.E_AUTH_REQUIRED, {
+              code: 'E_AUTH_REQUIRED',
+              message: 'x',
+            })
+          : fakeResponse(200, PREVIEW),
+      ),
+    );
+    renderAt();
+
+    await typeAmend('종료일을 미뤄 주세요');
+    fireEvent.click(screen.getByRole('button', { name: '수정 제안' }));
+
+    expect(await screen.findByTestId('landing')).toBeTruthy();
+    expect(screen.queryByTestId('outcome-message')).toBeNull();
+  });
+
+  it('E_VALIDATION 은 서버가 실은 §5-3 문구를 그대로 띄운다', async () => {
+    // 길이는 서버가 최종 판정이다(§2-3). 정규화 뒤 길이가 화면과 갈릴 수 있고, 그때
+    // 사용자가 받아야 하는 문장은 서버의 것이다.
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        String(url).endsWith(ENDPOINT.promiseAmend)
+          ? fakeResponse(ERROR_HTTP_STATUS.E_VALIDATION, {
+              code: 'E_VALIDATION',
+              field: 'amend_suggestion',
+              message: '어떤 부분을 바꾸고 싶은지 알려주세요.',
+            })
+          : fakeResponse(200, PREVIEW),
+      ),
+    );
+    renderAt();
+
+    await typeAmend('종료일을 미뤄 주세요');
+    fireEvent.click(screen.getByRole('button', { name: '수정 제안' }));
+
+    expect((await screen.findByTestId('action-error')).textContent).toBe(
+      '어떤 부분을 바꾸고 싶은지 알려주세요.',
+    );
+    // 실패했으면 화면에 남아 다시 시도할 수 있어야 한다.
+    expect(screen.getByRole('button', { name: '수정 제안' })).toBeTruthy();
+  });
+
+  it('한 액션이 나가는 동안 나머지 둘도 잠긴다', async () => {
+    // 세 버튼은 같은 1회용 토큰을 두고 겨룬다. 하나가 날아가는 동안 다른 하나가 나가면
+    // 서버는 서로 다른 멱등 키를 단 두 전이 요청을 받고, 늦게 도착한 쪽은 이미 끝난
+    // 약속에 대고 실패한다 — 사용자가 무엇을 했는지 화면이 답할 수 없는 상태가 된다.
+    let releaseDecline: (value: Response) => void = () => {};
+    fetchMock.mockImplementation((url: string) =>
+      String(url).endsWith(ENDPOINT.promiseDecline)
+        ? new Promise<Response>((resolve) => (releaseDecline = resolve))
+        : Promise.resolve(fakeResponse(200, PREVIEW)),
+    );
+    renderAt();
+
+    // 의견을 먼저 채운다. 그래야 [수정 제안]이 잠긴 이유가 길이가 아니라 진행 중인
+    // 요청 하나로 좁혀진다.
+    await typeAmend('종료일을 미뤄 주세요');
+    const decline = screen.getByRole('button', { name: '거절하기' }) as HTMLButtonElement;
+    fireEvent.click(decline);
+
+    await waitFor(() => expect(decline.disabled).toBe(true));
+    const amend = screen.getByRole('button', { name: '수정 제안' }) as HTMLButtonElement;
+    const approve = screen.getByRole('button', { name: '승인하기' }) as HTMLButtonElement;
+    expect(amend.disabled).toBe(true);
+    expect(approve.disabled).toBe(true);
+
+    // 눌러도 나가지 않아야 한다. 손가락이 두 번 닿는 것은 이 화면에서 흔한 일이다.
+    fireEvent.click(decline);
+    fireEvent.click(amend);
+    fireEvent.click(approve);
+    await act(async () => {});
+    expect(callsTo(ENDPOINT.promiseDecline)).toHaveLength(1);
     expect(callsTo(ENDPOINT.promiseAmend)).toHaveLength(0);
+    // 승인은 시트가 열리는 것부터가 시작이다.
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    releaseDecline(fakeResponse(200, { status: 'DECLINED' }));
+    expect((await screen.findByTestId('outcome-message')).textContent).toBe(
+      '거절했어요. 작성자에게 알려드릴게요.',
+    );
+  });
+
+  it('§2-3 코드 없는 401 은 EC-C02 가 아니라 로그인이다', async () => {
+    // 만료된 JWT 는 함수에 닿지 않는다 — 게이트웨이가 §2-3 어휘가 아닌 본문과 함께 401 로
+    // 끊는다. EC-C02 로 뭉개면 세션이 죽은 사람이 "서버 문제"를 보고 같은 화면에서 계속
+    // 다시 시도하게 된다. 이 화면에는 로그인 버튼이 없으므로 나갈 길이 없다.
+    fetchMock.mockResolvedValue(fakeResponse(401, { message: 'Invalid JWT' }));
+    renderAt();
+
+    expect(await screen.findByTestId('landing')).toBeTruthy();
+    expect(screen.queryByTestId('retry-message')).toBeNull();
+  });
+
+  it('종결 경로도 초대 경로 아래에 있다', () => {
+    expect(responseCompletePath(TOKEN, RESPONSE_OUTCOME.declined)).toBe(
+      `${invitePath(TOKEN)}/responded/declined`,
+    );
   });
 
   it('광고 슬롯이 없다', async () => {

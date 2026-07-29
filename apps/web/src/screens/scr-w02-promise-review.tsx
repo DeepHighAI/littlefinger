@@ -1,6 +1,7 @@
 import {
   ddayFrom,
   ENDPOINT,
+  ERROR_HTTP_STATUS,
   formatDday,
   formatKstDate,
   IDEMPOTENCY_KEY_HEADER,
@@ -8,9 +9,12 @@ import {
   KST_MARK,
   PARTICIPANT_ROLE_LABEL,
   PROMISE_CATEGORY_LABEL,
+  validateAmendSuggestion,
   WITNESS_MAX,
   type InvitePreviewResponse,
   type InviteTokenRequest,
+  type PromiseAmendRequest,
+  type PromiseDeclineRequest,
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
@@ -24,7 +28,13 @@ import {
   type ApiFailure,
 } from '../lib/api-failure.ts';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
-import { approvalCompletePath, invitePath } from '../routes.ts';
+import {
+  approvalCompletePath,
+  invitePath,
+  responseCompletePath,
+  RESPONSE_OUTCOME,
+  type ResponseOutcome,
+} from '../routes.ts';
 import { PinkyBadge } from './scr-w01-invite-landing.tsx';
 import { parseApproveResponse } from './scr-w03-approval-complete.tsx';
 import {
@@ -78,6 +88,25 @@ const END_DATE_PASSED_CTA = '종료일 변경 요청하기';
 // 같은 사실을 말하는 이 문장을 쓴다. 상한은 정책 상수에서 만든다.
 const WITNESS_NOTICE = `확정 후 증인을 초대할 수 있어요(최대 ${WITNESS_MAX}명)`;
 
+/**
+ * 수정 제안 의견 입력(§4-3-4 필수 · 5~300자).
+ *
+ * 라벨은 `02` §5-3 의 필드명이고, 레퍼런스 HTML 도 같은 문자열을 `lf-sr-only` 로 달아 뒀다.
+ * **여기서는 보이게 단다** — 레퍼런스는 자리표시자에 "(선택)"이라 적어 두고 라벨을 숨겼는데,
+ * §4-3-4 는 이 필드를 필수로 정한다. 틀린 자리표시자를 그대로 쓸 수 없고 고쳐 쓸 문구도
+ * 승인받지 않았으므로, 자리표시자를 빼고 라벨을 드러내는 쪽을 택했다. 이름 없는 빈 상자가
+ * [수정 제안]이 눌리지 않는 이유를 설명해 줄 수는 없다.
+ */
+const AMEND_FIELD_LABEL = '수정 제안 의견';
+const AMEND_FIELD_ID = 'w02-amend-note';
+const AMEND_HINT_ID = 'w02-amend-hint';
+
+/** 상태를 바꾸는 세 액션. `Idempotency-Key` 는 이 셋마다 따로 만든다(아래 주석). */
+type ActionEndpoint =
+  | typeof ENDPOINT.promiseApprove
+  | typeof ENDPOINT.promiseDecline
+  | typeof ENDPOINT.promiseAmend;
+
 type Phase =
   | { kind: 'LOADING' }
   | { kind: 'READY'; preview: InvitePreviewResponse }
@@ -90,8 +119,8 @@ type Phase =
   /** SCR-W06 으로 보낼 수 없는 실패. 링크가 죽었다는 뜻이 아닌 것들이다. */
   | { kind: 'RETRY'; message: string };
 
-/** 승인 실패 중 화면을 유지한 채 알려야 하는 것. `action` 은 EC-B10 의 출구다. */
-interface ApproveError {
+/** 액션 실패 중 화면을 유지한 채 알려야 하는 것. `endDatePassed` 는 EC-B10 의 출구다. */
+interface ActionError {
   message: string;
   endDatePassed: boolean;
 }
@@ -176,6 +205,7 @@ async function callFunction(
   slug: (typeof ENDPOINT)[keyof typeof ENDPOINT],
   token: string,
   extraHeaders: Record<string, string>,
+  extraBody: Record<string, unknown> = {},
   signal?: AbortSignal,
 ): Promise<CallResult> {
   // 클라이언트를 못 만드는 것은 로그인 문제가 아니라 배포 설정 문제다(`VITE_*` 누락).
@@ -211,7 +241,7 @@ async function callFunction(
       },
       // 토큰은 본문으로만 보낸다. 쿼리스트링에 실으면 프록시·히스토리·액세스 로그에
       // 원문이 남아 "원본 토큰 미저장"(§13)이 DB 밖에서 깨진다.
-      body: JSON.stringify({ token } satisfies InviteTokenRequest),
+      body: JSON.stringify({ ...({ token } satisfies InviteTokenRequest), ...extraBody }),
       ...(signal ? { signal } : {}),
     });
   } catch {
@@ -225,7 +255,16 @@ async function callFunction(
     return { body: null, failure: NO_RESPONSE };
   }
 
-  return response.ok ? { body, failure: null } : { body: null, failure: readFailure(body) };
+  if (response.ok) return { body, failure: null };
+
+  const failure = readFailure(body);
+  // 만료된 JWT 는 함수에 닿지도 못한다 — 게이트웨이가 401 로 끊고, 그 본문에는 §2-3 코드가
+  // 없다. 그대로 두면 "서버에 문제가 생겼다"(EC-C02)로 보고되는데, 서버는 멀쩡하고 다시
+  // 눌러도 같은 답만 돌아온다. 401 은 인증에 대한 답이므로 로그인할 수 있는 자리로 돌린다.
+  if (failure.code === null && response.status === ERROR_HTTP_STATUS.E_AUTH_REQUIRED) {
+    return { body: null, failure: { code: 'E_AUTH_REQUIRED', message: null, action: null } };
+  }
+  return { body: null, failure };
 }
 
 export function ScrW02PromiseReview(): React.JSX.Element {
@@ -233,15 +272,25 @@ export function ScrW02PromiseReview(): React.JSX.Element {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>({ kind: 'LOADING' });
   const [confirming, setConfirming] = useState(false);
-  const [approving, setApproving] = useState(false);
-  const [approveError, setApproveError] = useState<ApproveError | null>(null);
+  /** 진행 중인 액션. 셋 중 하나가 날아가는 동안 나머지도 잠근다. */
+  const [pending, setPending] = useState<ActionEndpoint | null>(null);
+  const [actionError, setActionError] = useState<ActionError | null>(null);
+  const [amendComment, setAmendComment] = useState('');
   const [avatarFailed, setAvatarFailed] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   /**
-   * `Idempotency-Key` 는 화면당 하나다(§7-3.6). 클릭마다 새로 만들면 두 번 눌린 승인이
-   * 서버에 두 요청으로 도착하고, 멱등 캐시가 잡아 줄 근거가 사라진다.
+   * `Idempotency-Key` 는 화면당 하나이되 **엔드포인트마다** 하나다(§7-3.6).
+   *
+   * 클릭마다 새로 만들면 두 번 눌린 액션이 서버에 두 요청으로 도착해 멱등 캐시가 잡아 줄
+   * 근거가 사라진다 — 그래서 렌더가 아니라 화면 진입 때 한 번 만든다. 셋이 **같은** 키를
+   * 나눠 쓰지 않는 이유는 `lf_idempotency_begin` 이 키를 (사용자, 엔드포인트)에 묶어
+   * 두기 때문이다: 한 키가 다른 엔드포인트로 다시 오면 그 함수는 `E_FORBIDDEN` 을 던진다.
    */
-  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [idempotencyKeys] = useState<Record<ActionEndpoint, string>>(() => ({
+    [ENDPOINT.promiseApprove]: crypto.randomUUID(),
+    [ENDPOINT.promiseDecline]: crypto.randomUUID(),
+    [ENDPOINT.promiseAmend]: crypto.randomUUID(),
+  }));
 
   useEffect(() => {
     if (token === undefined) {
@@ -249,7 +298,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
       return;
     }
     const controller = new AbortController();
-    void callFunction(ENDPOINT.invitePreview, token, {}, controller.signal).then((result) => {
+    void callFunction(ENDPOINT.invitePreview, token, {}, {}, controller.signal).then((result) => {
       if (controller.signal.aborted) return;
       if (result.failure !== null) {
         setPhase(phaseForFailure(result.failure));
@@ -305,14 +354,37 @@ export function ScrW02PromiseReview(): React.JSX.Element {
     };
   }, [confirming]);
 
+  /**
+   * 승인·거절·수정 제안이 **같은 순서로** 겪는 실패 처리. 셋이 같은 토큰에 대한 3택이라
+   * 서버 쪽 판정 순서도 같다(`_shared/transition.ts`) — 화면에서 갈라 놓으면 같은 코드에
+   * 액션마다 다른 답이 나온다.
+   */
+  const applyFailure = useCallback((failure: ApiFailure): void => {
+    if (failure.code !== null && isLinkUnavailableReason(failure.code)) {
+      setPhase({ kind: 'UNAVAILABLE', reason: failure.code });
+      return;
+    }
+    if (failure.code === 'E_AUTH_REQUIRED') {
+      // 검토하는 동안 세션이 끊긴 경우. 여기 남겨 두면 다시 로그인할 방법이 없다.
+      setPhase({ kind: 'SIGNED_OUT' });
+      return;
+    }
+    // 나머지(E_STATE_CONFLICT · E_DUPLICATE_ROLE · E_VALIDATION …)는 §2-3 문구를 그대로
+    // 띄우고 화면을 유지한다. 이 코드들 전용 화면은 명세에 없고, 지어내지 않는다.
+    setActionError({
+      message: messageForFailure(failure),
+      endDatePassed: failure.action === 'AMEND_SUGGEST',
+    });
+  }, []);
+
   const handleApprove = useCallback(async (): Promise<void> => {
     if (token === undefined) return;
-    setApproving(true);
+    setPending(ENDPOINT.promiseApprove);
     setConfirming(false);
-    setApproveError(null);
+    setActionError(null);
 
     const result = await callFunction(ENDPOINT.promiseApprove, token, {
-      [IDEMPOTENCY_KEY_HEADER]: idempotencyKey,
+      [IDEMPOTENCY_KEY_HEADER]: idempotencyKeys[ENDPOINT.promiseApprove],
     });
 
     if (result.failure === null) {
@@ -326,28 +398,49 @@ export function ScrW02PromiseReview(): React.JSX.Element {
         navigate(approvalCompletePath(token), { state: approved, replace: true });
         return;
       }
-      setApproving(false);
-      setApproveError({ message: messageForFailure(NO_RESPONSE), endDatePassed: false });
+      setPending(null);
+      setActionError({ message: messageForFailure(NO_RESPONSE), endDatePassed: false });
       return;
     }
 
-    setApproving(false);
-    if (result.failure.code !== null && isLinkUnavailableReason(result.failure.code)) {
-      setPhase({ kind: 'UNAVAILABLE', reason: result.failure.code });
-      return;
-    }
-    if (result.failure.code === 'E_AUTH_REQUIRED') {
-      // 검토하는 동안 세션이 끊긴 경우. 여기 남겨 두면 다시 로그인할 방법이 없다.
-      setPhase({ kind: 'SIGNED_OUT' });
-      return;
-    }
-    // 나머지(E_STATE_CONFLICT · E_DUPLICATE_ROLE · E_VALIDATION …)는 §2-3 문구를 그대로
-    // 띄우고 화면을 유지한다. 이 코드들 전용 화면은 명세에 없고, 지어내지 않는다.
-    setApproveError({
-      message: messageForFailure(result.failure),
-      endDatePassed: result.failure.action === 'AMEND_SUGGEST',
-    });
-  }, [idempotencyKey, navigate, token]);
+    setPending(null);
+    applyFailure(result.failure);
+  }, [applyFailure, idempotencyKeys, navigate, token]);
+
+  /**
+   * 거절(T-04)과 수정 제안(T-05). 승인과 달리 응답 payload 를 읽지 않는다 — 종결 화면이
+   * 그리는 것은 승인된 문장 하나뿐이고, 결과는 경로에 담겨 간다.
+   */
+  const handleRespond = useCallback(
+    async (
+      slug: typeof ENDPOINT.promiseDecline | typeof ENDPOINT.promiseAmend,
+      // 토큰은 `callFunction` 이 붙인다. 여기 오는 것은 §5-3 의 추가 필드뿐이다.
+      body: Omit<PromiseDeclineRequest, 'token'> | Omit<PromiseAmendRequest, 'token'>,
+      outcome: ResponseOutcome,
+    ): Promise<void> => {
+      if (token === undefined) return;
+      setPending(slug);
+      setActionError(null);
+
+      const result = await callFunction(
+        slug,
+        token,
+        { [IDEMPOTENCY_KEY_HEADER]: idempotencyKeys[slug] },
+        body,
+      );
+
+      if (result.failure === null) {
+        // 초대는 이 순간 USED 다(§4-3-1 "1회용"). `replace` 가 아니면 뒤로가기가 소모된
+        // 토큰의 검토 화면으로 돌아가, 이미 끝난 액션을 다시 권하게 된다(EC-B02).
+        navigate(responseCompletePath(token, outcome), { replace: true });
+        return;
+      }
+
+      setPending(null);
+      applyFailure(result.failure);
+    },
+    [applyFailure, idempotencyKeys, navigate, token],
+  );
 
   if (phase.kind === 'UNAVAILABLE') {
     return <ScrW06LinkExpired reason={phase.reason} />;
@@ -395,7 +488,23 @@ export function ScrW02PromiseReview(): React.JSX.Element {
   // 준다(그래야 EC-B10 의 출구를 그릴 수 있다). 규칙은 서버와 같다:
   // `end_date < 오늘(KST)`. 최종 판정은 언제나 승인 트랜잭션이다.
   const dday = ddayFrom(preview.end_date, new Date());
-  const endDatePassed = dday < 0 || approveError?.endDatePassed === true;
+  const endDatePassed = dday < 0 || actionError?.endDatePassed === true;
+
+  // 5~300자는 `packages/shared` 의 §5-3 규칙 그대로다. 화면에서 다시 세면 정규화 순서가
+  // 갈리고(§2-3), 서버가 통과시키는 입력을 화면이 막거나 그 반대가 된다.
+  const amend = validateAmendSuggestion(amendComment);
+  // 하한 미달 문구는 §5-3 원문이다. 상한 초과에는 문구가 없어서(`message === null`)
+  // 버튼 비활성만으로 답한다 — 지어내지 않는다.
+  const amendHint = amend.valid ? null : amend.message;
+  const amendBlocked = !amend.valid || pending !== null;
+
+  const suggestAmend = (): void => {
+    void handleRespond(
+      ENDPOINT.promiseAmend,
+      { comment: amendComment },
+      RESPONSE_OUTCOME.amendSuggested,
+    );
+  };
 
   return (
     // 레퍼런스의 lf-device / lf-device__viewport / lf-browserbar 는 옮기지 않는다 —
@@ -485,35 +594,60 @@ export function ScrW02PromiseReview(): React.JSX.Element {
         )}
 
         <LfDisclaimer />
+
+        {/* 수정 제안 의견. 레퍼런스와 같이 본문 끝, 액션 블록 **밖**에 둔다 — 액션 블록은
+            화면 하단에 고정돼 있어서, 여기에 입력창을 넣으면 버튼들이 통째로 밀린다. */}
+        <div className="lf-field">
+          <label className="lf-field__label" htmlFor={AMEND_FIELD_ID}>
+            {AMEND_FIELD_LABEL}
+          </label>
+          <textarea
+            id={AMEND_FIELD_ID}
+            className="lf-dashed lf-dashed--field"
+            rows={2}
+            value={amendComment}
+            onChange={(event) => setAmendComment(event.target.value)}
+            {...(amendHint === null ? {} : { 'aria-describedby': AMEND_HINT_ID })}
+          />
+          {amendHint !== null && (
+            <p className="lf-field__hint" id={AMEND_HINT_ID} data-testid="amend-hint">
+              {amendHint}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="lf-screen__actions lf-screen__actions--web">
         {endDatePassed && (
           <p className="lf-body--secondary" role="alert" data-testid="end-date-passed">
-            {approveError?.endDatePassed === true ? approveError.message : END_DATE_PASSED_MESSAGE}
+            {actionError?.endDatePassed === true ? actionError.message : END_DATE_PASSED_MESSAGE}
           </p>
         )}
-        {!endDatePassed && approveError !== null && (
-          <p className="lf-body--secondary" role="alert" data-testid="approve-error">
-            {approveError.message}
+        {!endDatePassed && actionError !== null && (
+          <p className="lf-body--secondary" role="alert" data-testid="action-error">
+            {actionError.message}
           </p>
         )}
 
         <button
           className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block"
           type="button"
-          disabled={endDatePassed || approving}
+          disabled={endDatePassed || pending !== null}
           onClick={() => setConfirming(true)}
         >
           {APPROVE_CTA}
         </button>
 
-        {/* 거절 · 수정 제안 · [종료일 변경 요청하기]는 **아직 연결하지 않는다.**
-            셋이 도착할 종결 화면은 SCR-ID 도 레퍼런스도 문구도 없다(미해결 항목 G4).
-            서버(`promise-decline` · `promise-amend`)는 이미 살아 있으므로 남은 것은 그 화면의
-            문구 두 개뿐이고, 그것은 지어낼 수 없다(CLAUDE.md §1-5). */}
+        {/* EC-B10 의 유일한 출구. §4-3-4 가 "= 수정 제안 처리"라고 못박았으므로 [수정 제안]과
+            **같은 함수를 같은 조건으로** 부른다 — 승인이 잠긴 상태에서 이것까지 막히면 약속이
+            초대 만료까지 PENDING 에 갇힌다. */}
         {endDatePassed && (
-          <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" disabled>
+          <button
+            className="lf-btn lf-btn--outlined lf-btn--block"
+            type="button"
+            disabled={amendBlocked}
+            onClick={suggestAmend}
+          >
             {END_DATE_PASSED_CTA}
           </button>
         )}
@@ -521,14 +655,22 @@ export function ScrW02PromiseReview(): React.JSX.Element {
           <button
             className="lf-btn lf-btn--outlined lf-btn--compact lf-btn--grow"
             type="button"
-            disabled
+            disabled={amendBlocked}
+            onClick={suggestAmend}
           >
             {AMEND_CTA}
           </button>
+          {/* 거절 사유는 §5-3 에서 **선택**이다(S-4 · O-D2 기본안). 그래서 입력을 기다리지
+              않고 바로 보낸다 — 레퍼런스에 사유 입력칸이 없고, 승인이 주 CTA 인 화면에
+              거절 전용 입력칸을 새로 만드는 것은 문구·배치 모두 승인받지 않은 결정이다
+              (**PO 확인 필요**). 본문에 `reason` 을 싣지 않으면 RPC 가 NULL 로 마무리한다. */}
           <button
             className="lf-btn lf-btn--text lf-btn--compact lf-btn--grow"
             type="button"
-            disabled
+            disabled={pending !== null}
+            onClick={() => {
+              void handleRespond(ENDPOINT.promiseDecline, {}, RESPONSE_OUTCOME.declined);
+            }}
           >
             {DECLINE_CTA}
           </button>
