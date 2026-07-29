@@ -75,8 +75,11 @@ describe('SCR-W06 링크 무효·만료 안내', () => {
   });
 
   it('광고 슬롯이 없다', () => {
-    // CLAUDE.md §8-1 — 수락 웹 전체에 광고가 없다.
+    // CLAUDE.md §8-1 — 수락 웹 전체에 광고가 없다. 유일한 슬롯은 SCR-A02 하단뿐이다.
+    //
+    // `[class*="ad"]` 로 쓰면 안 된다. 부분 문자열이라 `lf-pinky-b**ad**ge` 와
+    // `lf-he**ad**line` 이 걸린다 — 실제로 SCR-W01 에서 광고 2개로 잡혔다.
     const { container } = render(<ScrW06LinkExpired reason="E_BLOCKED" />);
-    expect(container.querySelector('[class*="ad"]')).toBeNull();
+    expect(container.querySelector('[class*="lf-ad"]')).toBeNull();
   });
 });
