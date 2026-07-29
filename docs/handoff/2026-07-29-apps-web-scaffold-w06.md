@@ -60,10 +60,10 @@ That is a text-extraction artifact, **not** a missing font — check `document.f
 Run in this session, at the final commit:
 
 ```
-npm test          → Test Files 24 passed (24) / Tests 885 passed (885)
+npm test          → Test Files 24 passed (24) / Tests 886 passed (886)
                     + jest-expo: Test Suites 4 passed, Tests 137 passed
 npm run typecheck → exit 0 (5 projects — apps/web joined)
-npm run build:web → ✓ built, index.js 233.91 kB (gzip 75.12 kB), index.css 31.14 kB (gzip 5.69 kB)
+npm run build:web → ✓ built, index.js 234.48 kB (gzip 75.51 kB), index.css 35.69 kB (gzip 6.47 kB)
 npm run check:agents → AGENTS.md 는 CLAUDE.md 와 동기화되어 있다.
 ```
 
@@ -114,8 +114,32 @@ Raised and still unanswered. GAP numbering follows the brief presented on 2026-0
 
 | # | Item |
 |---|---|
-| ④ | **G6 as I specified it is not executable.** Inline SVG needs real Material Symbols path geometry, which is not in the repo and cannot be written from memory. The executable options that satisfy `04` §5-3's self-host requirement are `npm i material-symbols` (full set, several hundred KB) or a subset build. **Today the web still loads Material Symbols and Roboto Mono from the Google Fonts `@import` at `tokens.css:9`** — a CDN dependency against the 3-second budget. Removing that line is the one deliberate deviation from "copy verbatim", and it should be made once, after every screen is ported, not piecemeal |
+| ~~④~~ | ~~G6~~ **Closed 2026-07-29** (PO: `material-symbols` npm package, CDN import removed). See "Icons" below |
 | ⑤ | SCR-W06's title (`이 링크는 더 쓸 수 없어요`) and the 1회용 notice come from the design reference, not from `02`. They are not contradicted by the spec, but they are not spec-sourced either |
+
+## Icons — settled, and why the obvious way fails
+
+`commit 12be8ba`. **Do not try to subset Material Symbols by ligature name.** Every icon name is
+spelled from `a-z` and `_`, so retaining those letters makes harfbuzz close over `liga` and keep
+every ligature they can form — the whole ~3,000-icon set. Measured: 5220 KB → 4655 KB, 11%.
+
+Resolving the names to their PUA codepoints first removes the problem, because a codepoint is not
+the input to any ligature and the closure has nowhere to spread: **5220 KB → 39.9 KB for 34 icons.**
+`tools/subset-icon-font.js` resolves names through the font's own GSUB (fontkit `layout()`), writes
+the subset and a generated `apps/web/src/components/icon-codepoints.ts`, and **throws** rather than
+skipping a name it cannot resolve. Re-run it only when the icon list changes.
+
+Consequence for every screen: **icons go through `LfIcon`, never a raw span** — the markup carries a
+codepoint, not a readable name. `<LfIcon name="link_off" />`. This matches what CLAUDE.md §5-4
+already requires of the app side.
+
+`apps/web/src/styles/tokens.css` now differs from `design-reference` in **exactly one place** — the
+Google Fonts `@import` at the original line 9 is gone, replaced by a comment saying where its two
+passengers went (`styles/icons.css`, `@fontsource/roboto-mono`). Every other line is identical, so
+the diff-against-original check still works.
+
+Verified in the browser: `performance.getEntriesByType('resource')` shows **zero** non-localhost
+requests, and `link_off` (U+E16F) renders at 42 px.
 
 ## The exact next step
 
