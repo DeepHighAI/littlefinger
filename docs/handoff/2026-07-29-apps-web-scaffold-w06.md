@@ -24,26 +24,22 @@ answered **401 `E_AUTH_REQUIRED`** on a token that is provably valid:
 | Probe | Result |
 |---|---|
 | `GET /auth/v1/user` with that token + the anon key as `apikey` | **200**, user `46f418c0-fc89-4db3-9947-1f7f6c54c068` |
-| The user access token's JWT header | **`alg: ES256`** (asymmetric) |
-| The `anon` key in `.env` | **`alg: HS256`** (legacy symmetric) |
+| The same token through `promise-create` | **401 `E_AUTH_REQUIRED`** |
 
 So the token is fine and the failure is inside the function. `authenticate` is one line —
 `admin.auth.getUser(jwt)` at `supabase/functions/_shared/runtime.ts:62` — and it lives in `_shared`,
 which means **all five `verify_jwt = true` functions are affected**: create, invite, preview,
 approve, decline/amend. Right now nothing that requires a login works against the live project.
 
-The likely cause is the two key generations sitting side by side: the project has moved to asymmetric
-JWT signing keys (ES256) while the keys in `.env` — and probably `SUPABASE_SERVICE_ROLE_KEY` in the
-function secrets — are still the legacy HS256 generation. CLAUDE.md §9 records "기존 `anon public`
-JWT (2026-07-26 PO 확인)", which may simply be out of date.
+**The cause is unknown.** Code and secrets have both been checked and are fine — do not spend the
+next session there. In particular the first diagnosis written here, an ES256/HS256 key-generation
+mismatch between the project's JWT signing key and the keys in `.env` / the function secrets, was
+**wrong and is ruled out**. The narrowing that does hold: the `rpc` path works, so
+`SUPABASE_SERVICE_ROLE_KEY` and the admin client reach Postgres correctly. Only `auth.getUser` fails.
 
-**Diagnose in the Dashboard before changing code** — Project Settings → API Keys / JWT Keys:
-1. Is the JWT signing key now ES256 (a "Current key" under JWT Keys)?
-2. Which generation are the API keys — legacy JWTs, or `sb_publishable_…` / `sb_secret_…`?
-3. Which generation is the function secret `SUPABASE_SERVICE_ROLE_KEY`?
-
-The fix is either upgrading the functions' supabase-js to one that verifies via JWKS, or aligning the
-key generations. **Either way it is one file — `_shared/runtime.ts` — and it unblocks all five.**
+**The next step is to observe it, not to theorise.** Line 63 discards the reason —
+`if (error !== null || data.user === null) throw new ApiError('E_AUTH_REQUIRED')` — so the real
+message from `getUser` has never been seen. Log it, redeploy, call again, and read what it says.
 
 **Why 987 passing tests and a clean deploy check missed it:** PGlite never issues a real JWT, and the
 post-deploy probes only asserted *rejection* paths (401 without auth, `E_AUTH_REQUIRED` for the anon
