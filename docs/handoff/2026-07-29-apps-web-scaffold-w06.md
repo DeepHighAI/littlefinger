@@ -8,9 +8,50 @@ and the acceptance web now runs SCR-W01 → W02 → W03.** The two environment b
 opened with — the missing `VITE_` env lines and the wrong Supabase CLI account — were cleared by the
 PO on 2026-07-29 and are kept below as history, because both cost a session's worth of confusion.
 
+**G4 is closed** (`8d3ea01`) — but see the LIVE BREAKAGE section directly below before doing anything else.
+
 **G4 is closed** (`8d3ea01`): the PO approved both sentences on 2026-07-29, and 거절 · 수정 제안 ·
 [종료일 변경 요청하기] are wired to their live endpoints. A partner can decline, and an EC-B10 promise
 is no longer trapped in PENDING. **Nothing blocks the flow now except the Kakao Dashboard setup.**
+
+## LIVE BREAKAGE — every authenticated Edge Function is failing (found 2026-07-29, unfixed)
+
+**Read this first. It is the only thing that matters right now.**
+
+A real Kakao session was obtained for the first time and used to call `promise-create`. The function
+answered **401 `E_AUTH_REQUIRED`** on a token that is provably valid:
+
+| Probe | Result |
+|---|---|
+| `GET /auth/v1/user` with that token + the anon key as `apikey` | **200**, user `46f418c0-fc89-4db3-9947-1f7f6c54c068` |
+| The user access token's JWT header | **`alg: ES256`** (asymmetric) |
+| The `anon` key in `.env` | **`alg: HS256`** (legacy symmetric) |
+
+So the token is fine and the failure is inside the function. `authenticate` is one line —
+`admin.auth.getUser(jwt)` at `supabase/functions/_shared/runtime.ts:62` — and it lives in `_shared`,
+which means **all five `verify_jwt = true` functions are affected**: create, invite, preview,
+approve, decline/amend. Right now nothing that requires a login works against the live project.
+
+The likely cause is the two key generations sitting side by side: the project has moved to asymmetric
+JWT signing keys (ES256) while the keys in `.env` — and probably `SUPABASE_SERVICE_ROLE_KEY` in the
+function secrets — are still the legacy HS256 generation. CLAUDE.md §9 records "기존 `anon public`
+JWT (2026-07-26 PO 확인)", which may simply be out of date.
+
+**Diagnose in the Dashboard before changing code** — Project Settings → API Keys / JWT Keys:
+1. Is the JWT signing key now ES256 (a "Current key" under JWT Keys)?
+2. Which generation are the API keys — legacy JWTs, or `sb_publishable_…` / `sb_secret_…`?
+3. Which generation is the function secret `SUPABASE_SERVICE_ROLE_KEY`?
+
+The fix is either upgrading the functions' supabase-js to one that verifies via JWKS, or aligning the
+key generations. **Either way it is one file — `_shared/runtime.ts` — and it unblocks all five.**
+
+**Why 987 passing tests and a clean deploy check missed it:** PGlite never issues a real JWT, and the
+post-deploy probes only asserted *rejection* paths (401 without auth, `E_AUTH_REQUIRED` for the anon
+JWT, 42501 for the direct RPC). Nothing had ever presented a **valid user token** until now. The
+invite link could not be issued, but the failure it would have hit is now found instead.
+
+A live session is in the browser tab and was valid for ~58 minutes from the check, so the probe above
+can be repeated without logging in again.
 
 ## Goal of the session
 
@@ -302,8 +343,13 @@ the mutation back.
 
 ## The exact next step
 
-**Configure Kakao in the Supabase Dashboard.** It is now the only thing standing between this code
-and a real end-to-end walk: provider keys, both redirect allowlists (§6-1 — Kakao takes only
+**Kakao is configured and verified working (2026-07-29)** — consent screen, callback and session all
+confirmed, and the account was created with no email, proving "Allow users without an email". Note
+Kakao needs **all three** consent items registered (`account_email`, `profile_image`,
+`profile_nickname`); registering only the first still gives KOE205, naming the missing two.
+`profile_nickname` is currently [선택 동의] but `nickname` is typed non-null — a user who refuses it
+breaks SCR-W01 and W02. **The next step is now the LIVE BREAKAGE above, not this.** For reference, the
+setup that was needed: provider keys, both redirect allowlists (§6-1 — Kakao takes only
 `https://<ref>.supabase.co/auth/v1/callback`; the app deep link and web origins go in Supabase's own
 list), and a 비즈 앱 with `account_email` registered as [선택 동의]. Without that last one Kakao
 answers **KOE205** before the consent screen renders, regardless of this product not collecting email.
