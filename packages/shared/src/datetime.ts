@@ -45,6 +45,44 @@ export function ddayFrom(endDate: IsoDate, now: Date): number {
   return Math.round((parseIsoDateAsUtcMidnight(endDate) - today) / DAY_MS);
 }
 
+/**
+ * 요일 라벨. 인덱스는 `Date.getUTCDay()` 와 같은 순서(일=0)다.
+ * KST 로 민 시각에서 읽으므로 기기 타임존과 무관하다.
+ */
+const WEEKDAY_LABEL = ['일', '월', '화', '수', '목', '금', '토'] as const;
+
+/**
+ * 종료일 표시 — `2026-08-11 (화)`.
+ *
+ * `YYYY-MM-DD` 는 이미 KST 기준 날짜라(§2-2) 시각 개념이 없다. 그래서 UTC 자정으로 읽고
+ * `getUTCDay()` 로 요일을 뽑는다 — `new Date('2026-08-11')` 을 로컬로 읽으면 서쪽
+ * 타임존에서 하루 전 요일이 나온다(EC-F09).
+ */
+export function formatKstDate(date: IsoDate): string {
+  const day = new Date(parseIsoDateAsUtcMidnight(date)).getUTCDay();
+  return `${date} (${WEEKDAY_LABEL[day] ?? ''})`;
+}
+
+/**
+ * EC-F09 가 요구하는 `(KST)` 고정 표기. 포맷터가 붙이지 않고 **화면이** 붙인다 —
+ * 문장마다 자리가 다르기 때문이다("… (KST) 확정"). 다만 문자열 자체는 여기 하나뿐이어야
+ * 한다. 화면마다 따로 적으면 같은 규칙이 화면마다 다른 모양으로 나간다.
+ */
+export const KST_MARK = ' (KST)';
+
+/**
+ * 확정 시각·승인 시각 표시 — `2026-07-12 21:04`, KST (§4-3-6·§4-4-1).
+ *
+ * `(KST)` 는 붙이지 않는다 — `KST_MARK` 를 화면이 붙인다.
+ */
+export function formatKstDateTime(instant: Date): string {
+  const kst = shiftToKst(instant);
+  return (
+    `${kst.getUTCFullYear()}-${pad2(kst.getUTCMonth() + 1)}-${pad2(kst.getUTCDate())}` +
+    ` ${pad2(kst.getUTCHours())}:${pad2(kst.getUTCMinutes())}`
+  );
+}
+
 /** 표시 형식. 당일 `D-Day`, 남았으면 `D-n`, 지났으면 `D+n` (§6-4) */
 export function formatDday(dday: number): string {
   if (dday === 0) return 'D-Day';

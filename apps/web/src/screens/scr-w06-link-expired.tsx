@@ -29,6 +29,16 @@ const REASON_BODY: Record<LinkUnavailableReason, string> = {
   E_NOT_FOUND: '초대 링크를 찾을 수 없습니다.',
 };
 
+/**
+ * 이 화면이 답할 수 있는 코드. 나머지 §2-3 코드는 링크가 죽었다는 뜻이 아니라서
+ * 여기로 보내면 거짓말이 된다(`E_RATE_LIMIT` 은 잠시 후 열린다).
+ */
+const LINK_UNAVAILABLE_REASONS = Object.keys(REASON_BODY) as readonly LinkUnavailableReason[];
+
+export function isLinkUnavailableReason(code: string): code is LinkUnavailableReason {
+  return (LINK_UNAVAILABLE_REASONS as readonly string[]).includes(code);
+}
+
 const SCREEN_TITLE = '이 링크는 더 쓸 수 없어요';
 const ONE_TIME_NOTICE = '초대 링크는 1회용이에요';
 

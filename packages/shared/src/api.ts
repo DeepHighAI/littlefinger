@@ -182,6 +182,39 @@ export interface InviteResolveResponse {
   target_role: Extract<ParticipantRole, 'PARTNER' | 'WITNESS'>;
 }
 
+/**
+ * 승인 응답 (§4-3-5, T-03). SCR-W03 이 그리는 것 전부가 여기 있다.
+ *
+ * **이 payload 는 한 번만 존재한다.** 승인과 함께 초대는 `USED` 가 되므로 같은 토큰으로는
+ * 다시 받을 수 없고, 확정 기록을 계정으로 다시 읽는 경로(SCR-W04)는 아직 없다. 화면은
+ * 이 응답을 라우터 state 로 넘겨 받는다.
+ *
+ * `approvals` 는 **2행 고정**이다 — 작성자의 승인 시각은 초대 발송 시각이고(§4-3-6),
+ * 상대방의 승인 시각은 지금이다. 두 시각을 모두 표시하는 것이 명세의 요구다.
+ */
+export interface PromiseApproveResponse {
+  promise_id: string;
+  status: 'ACTIVE';
+  activated_at: IsoDateTime;
+  creator_id: string;
+  title: string;
+  partner: {
+    user_id: string;
+    nickname: string;
+    profile_image_url: string | null;
+  };
+  version_no: number;
+  /** 사람이 읽는 확정 기록 지문. 예: `A3F9-77C2-01`. */
+  fingerprint: string;
+  approvals: readonly PromiseApprovalLog[];
+}
+
+export interface PromiseApprovalLog {
+  role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>;
+  nickname: string;
+  acted_at: IsoDateTime;
+}
+
 export interface PromiseDeclineRequest extends InviteTokenRequest {
   /** §5-3. 선택, 0~200자. */
   reason?: string;

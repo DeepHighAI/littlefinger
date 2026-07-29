@@ -1,18 +1,20 @@
 import {
   ENDPOINT,
-  ERROR_CODES,
-  ERROR_MESSAGE,
-  type ErrorCode,
   type InviteResolveResponse,
   type InviteTokenRequest,
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 
 import { LfIcon } from '../components/LfIcon.tsx';
+import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
-import { invitePath } from '../routes.ts';
-import { ScrW06LinkExpired, type LinkUnavailableReason } from './scr-w06-link-expired.tsx';
+import { invitePath, reviewPath } from '../routes.ts';
+import {
+  isLinkUnavailableReason,
+  ScrW06LinkExpired,
+  type LinkUnavailableReason,
+} from './scr-w06-link-expired.tsx';
 
 /**
  * SCR-W01 초대 랜딩 — 02 §4-3-3. **로그인 전** 화면이다.
@@ -37,27 +39,15 @@ const SERVICE_INTRO_LINES = ['리틀핑거는 둘이 합의한 약속을 기록�
 const KAKAO_CTA = '카카오 로그인하고 내용 보기';
 const CTA_CAPTION = '앱 설치 없이 3분이면 끝나요';
 
-/**
- * EC-C02 가 지정한 원문. 서버의 `INTERNAL_ERROR` 와 같은 문장이지만 그쪽은
- * `supabase/functions/_shared` 에 있고, 수락 웹은 Edge Function 코드를 import 하지 않는다.
- * 네트워크가 끊겨 응답 자체가 없을 때도 이 문구를 쓴다 — 그 경우 코드가 없다.
- */
-const INTERNAL_MESSAGE = '처리 중 문제가 발생했습니다. 다시 시도해 주세요.';
-
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
 const MINUTES_PER_HOUR = 60;
 
-const W06_REASONS: readonly LinkUnavailableReason[] = [
-  'E_INVITE_EXPIRED',
-  'E_INVITE_USED',
-  'E_INVITE_REVOKED',
-  'E_BLOCKED',
-  'E_NOT_FOUND',
-];
-
-/** 화면이 실제로 그리는 셋. `target_role` 은 받되 그리지 않는다(§4-3-3). */
-type InviteContent = Pick<InviteResolveResponse, 'creator_nickname' | 'title' | 'expires_at'>;
+/** 화면이 실제로 그리는 셋 + 라우팅에만 쓰는 역할. 역할은 그리지 않는다(§4-3-3). */
+type InviteContent = Pick<InviteResolveResponse, 'creator_nickname' | 'title' | 'expires_at'> & {
+  /** 모르는 값이면 `null`. 랜딩은 역할이 늘어난다고 죽으면 안 된다. */
+  target_role: string | null;
+};
 
 type Phase =
   | { kind: 'LOADING' }
@@ -66,27 +56,29 @@ type Phase =
   /** SCR-W06 으로 보낼 수 없는 실패. 사용자가 다시 시도할 수 있는 것들이다. */
   | { kind: 'RETRY'; message: string };
 
-function isW06Reason(code: string): code is LinkUnavailableReason {
-  return (W06_REASONS as readonly string[]).includes(code);
-}
-
-function isErrorCode(code: string): code is ErrorCode {
-  return (ERROR_CODES as readonly string[]).includes(code);
-}
-
 /**
  * 200 이라도 형태까지 보장되지는 않는다. 어긋난 채 그리면 크래시 없이 "님이 약속을 보냈어요"와
  * 사라진 카운트다운(`Date.parse(undefined)` = NaN)이 나와, 신뢰가 전부인 화면이 조용히 망가진다.
- * 역할이 늘어난다고 랜딩이 죽으면 안 되므로 그리지 않는 `target_role` 은 보지 않는다.
+ *
+ * `target_role` 은 없거나 모르는 값이어도 실패로 보지 않는다 — 그리지 않는 값이고,
+ * 역할이 하나 늘었다고 랜딩이 열리지 않으면 그쪽이 더 나쁘다.
  */
-function isInviteContent(body: unknown): body is InviteContent {
-  if (typeof body !== 'object' || body === null) return false;
-  const { creator_nickname, title, expires_at } = body as Record<string, unknown>;
-  return (
-    typeof creator_nickname === 'string' &&
-    typeof title === 'string' &&
-    typeof expires_at === 'string'
-  );
+function parseInviteContent(body: unknown): InviteContent | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const { creator_nickname, title, expires_at, target_role } = body as Record<string, unknown>;
+  if (
+    typeof creator_nickname !== 'string' ||
+    typeof title !== 'string' ||
+    typeof expires_at !== 'string'
+  ) {
+    return null;
+  }
+  return {
+    creator_nickname,
+    title,
+    expires_at,
+    target_role: typeof target_role === 'string' ? target_role : null,
+  };
 }
 
 /**
@@ -108,12 +100,11 @@ export function formatRemaining(ms: number): string {
  * 다섯은 SCR-W06 이 사유별 문구를 갖고 있다. `E_RATE_LIMIT` 은 명세 어디에도 화면이 없어서
  * (SCR-W 목록에 없다) §2-3 의 문구만 띄우고, 그 밖의 코드와 응답 없음은 EC-C02 로 떨어진다.
  */
-function phaseForFailure(code: string | null): Phase {
-  if (code !== null && isW06Reason(code)) {
-    return { kind: 'UNAVAILABLE', reason: code };
+function phaseForFailure(failure: ApiFailure): Phase {
+  if (failure.code !== null && isLinkUnavailableReason(failure.code)) {
+    return { kind: 'UNAVAILABLE', reason: failure.code };
   }
-  const message = code !== null && isErrorCode(code) ? ERROR_MESSAGE[code] : null;
-  return { kind: 'RETRY', message: message ?? INTERNAL_MESSAGE };
+  return { kind: 'RETRY', message: messageForFailure(failure) };
 }
 
 async function resolveInvite(token: string, signal: AbortSignal): Promise<Phase> {
@@ -132,25 +123,22 @@ async function resolveInvite(token: string, signal: AbortSignal): Promise<Phase>
     });
   } catch {
     // 네트워크 실패. 코드가 없다.
-    return phaseForFailure(null);
+    return phaseForFailure(NO_RESPONSE);
   }
 
   let body: unknown;
   try {
     body = await response.json();
   } catch {
-    return phaseForFailure(null);
+    return phaseForFailure(NO_RESPONSE);
   }
 
   if (!response.ok) {
-    const code =
-      typeof body === 'object' && body !== null && typeof (body as { code?: unknown }).code === 'string'
-        ? ((body as { code: string }).code)
-        : null;
-    return phaseForFailure(code);
+    return phaseForFailure(readFailure(body));
   }
 
-  return isInviteContent(body) ? { kind: 'READY', invite: body } : phaseForFailure(null);
+  const invite = parseInviteContent(body);
+  return invite === null ? phaseForFailure(NO_RESPONSE) : { kind: 'READY', invite };
 }
 
 export function ScrW01InviteLanding(): React.JSX.Element {
@@ -159,6 +147,34 @@ export function ScrW01InviteLanding(): React.JSX.Element {
   const [now, setNow] = useState(() => Date.now());
   const [signingIn, setSigningIn] = useState(false);
   const [signInFailed, setSignInFailed] = useState(false);
+  /** `null` 은 아직 모른다는 뜻이다. 모르는 채로 랜딩을 그리면 W02 로 넘어갈 때 한 번 번쩍인다. */
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // **`invite-resolve` 와 나란히 돈다.** 세션 조회는 네트워크를 타지 않고(저장소를 읽는다),
+    // 로그인한 사람이든 아니든 역할을 알아야 갈 곳이 정해지므로 resolve 는 어차피 필요하다 —
+    // `invite-preview` 는 `target_role` 을 돌려주지 않고, 증인 토큰으로 부르면 E_FORBIDDEN 이라
+    // 그 코드에는 화면도 문구도 없다. 그래서 이 화면이 resolve 를 내고, SCR-W02 가 preview 를
+    // 낸다. 한 사람이 같은 정보를 두 번 받는 일은 없다.
+    let alive = true;
+    const settle = (value: boolean): void => {
+      if (alive) setSignedIn(value);
+    };
+    try {
+      // `detectSessionInUrl` 이 켜져 있어서, 이 promise 는 OAuth 리다이렉트가 조각(fragment)에
+      // 실어 온 세션의 파싱까지 기다린 뒤 답한다. 먼저 읽으면 로그인 직후가 언제나 비로그인이다.
+      void getSupabase()
+        .auth.getSession()
+        .then(({ data }) => settle(data.session !== null))
+        .catch(() => settle(false));
+    } catch {
+      // 환경 변수가 없으면 클라이언트를 만들 수조차 없다. 로그인하지 않은 것과 같이 다룬다.
+      settle(false);
+    }
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (token === undefined) {
@@ -224,7 +240,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
     );
   }
 
-  if (phase.kind === 'LOADING') {
+  if (phase.kind === 'LOADING' || signedIn === null) {
     // 로딩 문구는 명세에도 레퍼런스에도 없다. 없는 문구를 지어내는 대신 브랜드 마크만
     // 두고 상태는 `role="status"` 로만 알린다(PO 확인 필요).
     return (
@@ -237,6 +253,16 @@ export function ScrW01InviteLanding(): React.JSX.Element {
       </div>
     );
   }
+
+  // 로그인은 `redirectTo` 로 이 화면에 되돌아온다(§4-3-3 이 OAuth `state` 에 요구한 복귀).
+  // 여기서 갈라 주지 않으면 로그인한 사람이 같은 랜딩을 영원히 다시 본다.
+  if (signedIn && phase.invite.target_role === 'PARTNER') {
+    // `replace` 다. 뒤로가기가 이 랜딩으로 돌아오면 다시 여기로 튕겨 무한 왕복이 된다.
+    return <Navigate to={reviewPath(token ?? '')} replace />;
+  }
+
+  // 증인은 SCR-W05 로 가야 하지만 그 화면이 없고, **증인용 문구가 명세 어디에도 없다**
+  // (EC-D05 는 노출 범위만 정한다). 지어내지 않고 랜딩에 남긴다 — PO 확인 필요.
 
   const remainingMs = Date.parse(phase.invite.expires_at) - now;
 
@@ -300,8 +326,12 @@ export function ScrW01InviteLanding(): React.JSX.Element {
   );
 }
 
-/** 브랜드 마크. 레퍼런스의 path 를 그대로 옮긴다 — 형태가 바뀌면 원본 대조가 무의미해진다. */
-function PinkyBadge(): React.JSX.Element {
+/**
+ * 브랜드 마크. 레퍼런스의 path 를 그대로 옮긴다 — 형태가 바뀌면 원본 대조가 무의미해진다.
+ * SCR-W02 의 로딩도 이것을 쓴다. 같은 흐름의 두 화면 중 하나만 흰 화면이면 로딩이
+ * 아니라 끊긴 것처럼 보인다.
+ */
+export function PinkyBadge(): React.JSX.Element {
   return (
     <div className="lf-pinky-badge">
       <svg className="lf-pinky lf-pinky--xl" viewBox="0 0 120 120" role="img" aria-label="새끼손가락 걸기">

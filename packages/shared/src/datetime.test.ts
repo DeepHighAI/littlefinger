@@ -5,6 +5,8 @@ import {
   checkingStartsAt,
   ddayFrom,
   formatDday,
+  formatKstDate,
+  formatKstDateTime,
   isImminent,
   isQuietHours,
   toKstDate,
@@ -134,5 +136,51 @@ describe('isQuietHours', () => {
 
   test('자정 넘어서도 조용한 시간이다', () => {
     expect(isQuietHours(new Date('2026-07-25T16:00:00Z'))).toBe(true); // KST 익일 01:00
+  });
+});
+
+describe('formatKstDate', () => {
+  test('종료일에 요일을 붙인다', () => {
+    // 2026-08-11 은 화요일. 레퍼런스 HTML 의 "2026-08-11 (화)" 와 같은 형식이다.
+    expect(formatKstDate('2026-08-11')).toBe('2026-08-11 (화)');
+  });
+
+  test('일요일도 맞는다', () => {
+    expect(formatKstDate('2026-08-09')).toBe('2026-08-09 (일)');
+  });
+
+  test('YYYY-MM-DD 는 이미 KST 날짜라 기기 타임존을 타지 않는다', () => {
+    // **타임존을 실제로 옮겨 놓고 본다.** 개발 기계가 Asia/Seoul 이면 UTC 자정 값에서
+    // `getDay()` 와 `getUTCDay()` 가 같은 답을 내서, 로컬 파싱으로 바꿔도 이 단언이
+    // 통과한다 — 그러면 EC-F09 를 지키는 것이 아니라 기계 설정에 기대는 것이 된다.
+    // UTC 서쪽에서만 하루가 밀린다.
+    const original = process.env['TZ'];
+    process.env['TZ'] = 'America/Los_Angeles';
+    try {
+      expect(formatKstDate('2026-01-01')).toBe('2026-01-01 (목)');
+      expect(formatKstDate('2026-08-11')).toBe('2026-08-11 (화)');
+    } finally {
+      if (original === undefined) delete process.env['TZ'];
+      else process.env['TZ'] = original;
+    }
+  });
+});
+
+describe('formatKstDateTime', () => {
+  test('UTC 를 KST 로 밀어 분까지 적는다', () => {
+    expect(formatKstDateTime(new Date('2026-07-12T12:04:33.500Z'))).toBe('2026-07-12 21:04');
+  });
+
+  test('KST 로 날짜가 넘어가는 구간', () => {
+    // 15:00Z = 익일 00:00 KST. UTC 날짜를 그대로 쓰면 하루가 밀린다.
+    expect(formatKstDateTime(new Date('2026-07-12T15:00:00Z'))).toBe('2026-07-13 00:00');
+  });
+
+  test('한 자리 수는 0 으로 채운다', () => {
+    expect(formatKstDateTime(new Date('2026-01-05T00:09:00Z'))).toBe('2026-01-05 09:09');
+  });
+
+  test('(KST) 는 붙이지 않는다 — 자리는 화면이 정한다', () => {
+    expect(formatKstDateTime(new Date('2026-07-12T12:04:00Z'))).not.toContain('KST');
   });
 });

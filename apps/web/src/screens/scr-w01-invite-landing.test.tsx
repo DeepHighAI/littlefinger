@@ -8,13 +8,16 @@ import { invitePath, ROUTE } from '../routes.ts';
 import { formatRemaining, ScrW01InviteLanding } from './scr-w01-invite-landing.tsx';
 
 // vi.mock 은 끌어올려지므로 mock 함수도 vi.hoisted 로 만들어야 참조가 성립한다.
-const { signInWithOAuth } = vi.hoisted(() => ({ signInWithOAuth: vi.fn() }));
+const { signInWithOAuth, getSession } = vi.hoisted(() => ({
+  signInWithOAuth: vi.fn(),
+  getSession: vi.fn(),
+}));
 
 // 카카오 프로바이더는 아직 대시보드에 없어서 실서비스에서도 실패한다. 여기서는
 // `functionUrl` 은 진짜를 쓰고 인증만 바꿔 끼운다 — 함수 주소 조립이 검증 대상이다.
 vi.mock('../lib/supabase.ts', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../lib/supabase.ts')>()),
-  getSupabase: () => ({ auth: { signInWithOAuth } }),
+  getSupabase: () => ({ auth: { signInWithOAuth, getSession } }),
 }));
 
 const SUPABASE_URL = 'https://test-project.supabase.co';
@@ -61,6 +64,9 @@ beforeEach(() => {
   fetchMock.mockReset();
   signInWithOAuth.mockReset();
   signInWithOAuth.mockResolvedValue({ data: {}, error: null });
+  getSession.mockReset();
+  // 기본은 비로그인이다 — 이 화면의 본래 자리(§4-3-3).
+  getSession.mockResolvedValue({ data: { session: null } });
 });
 
 // Testing Library 의 자동 cleanup 은 전역 afterEach 가 있을 때만 등록된다. 이 저장소는
@@ -278,6 +284,79 @@ describe('SCR-W01 초대 랜딩', () => {
     await screen.findByRole('heading');
     // `[class*="ad"]` 로 찾으면 lf-pinky-b**ad**ge 가 걸린다. 광고가 실제로 타는 형태만 본다.
     expect(container.querySelector('ins, iframe, .lf-ad')).toBeNull();
+  });
+});
+
+describe('SCR-W01 로그인 후 분기', () => {
+  /** 리다이렉트가 실제로 일어났는지 보려면 도착지가 있어야 한다. */
+  function renderWithReview(): void {
+    render(
+      <MemoryRouter initialEntries={[invitePath(TOKEN)]}>
+        <Routes>
+          <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
+          <Route path={ROUTE.review} element={<div data-testid="w02" />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  }
+
+  it('세션이 있는 상대방은 SCR-W02 로 넘어간다', async () => {
+    // 이 분기가 없으면 로그인이 `redirectTo` 로 이 화면에 되돌려 놓고, 사용자는 같은
+    // 랜딩을 영원히 다시 본다.
+    getSession.mockResolvedValue({ data: { session: { access_token: 'jwt' } } });
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+    renderWithReview();
+
+    expect(await screen.findByTestId('w02')).toBeTruthy();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('세션이 없으면 랜딩에 그대로 있다', async () => {
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+    renderWithReview();
+
+    expect((await screen.findByRole('heading')).textContent).toBe('지우님이 약속을 보냈어요');
+    expect(screen.queryByTestId('w02')).toBeNull();
+  });
+
+  it('증인은 세션이 있어도 랜딩에 남는다', async () => {
+    // SCR-W05 가 없고 **증인용 문구가 명세 어디에도 없다**(EC-D05 는 노출 범위만 정한다).
+    // `invite-preview` 는 증인 토큰에 E_FORBIDDEN 을 내므로 넘겨서도 안 된다.
+    getSession.mockResolvedValue({ data: { session: { access_token: 'jwt' } } });
+    fetchMock.mockResolvedValue(fakeResponse(200, { ...INVITE, target_role: 'WITNESS' }));
+    renderWithReview();
+
+    await screen.findByRole('heading');
+    expect(screen.queryByTestId('w02')).toBeNull();
+  });
+
+  it('세션을 아직 모르는 동안에는 랜딩을 그리지 않는다', async () => {
+    // 먼저 그렸다가 넘기면 화면이 한 번 번쩍인다. 링크를 누른 직후 3초 목표의 화면이다.
+    getSession.mockReturnValue(new Promise(() => {}));
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+    renderWithReview();
+
+    expect(await screen.findByTestId('loading')).toBeTruthy();
+    expect(screen.queryByRole('heading')).toBeNull();
+  });
+
+  it('세션 조회가 실패해도 랜딩은 열린다', async () => {
+    getSession.mockRejectedValue(new Error('storage unavailable'));
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+    renderWithReview();
+
+    expect(await screen.findByRole('heading')).toBeTruthy();
+  });
+
+  it('링크가 죽었으면 세션이 있어도 SCR-W06 이다', async () => {
+    getSession.mockResolvedValue({ data: { session: { access_token: 'jwt' } } });
+    fetchMock.mockResolvedValue(
+      fakeResponse(ERROR_HTTP_STATUS.E_INVITE_USED, { code: 'E_INVITE_USED', message: 'x' }),
+    );
+    renderWithReview();
+
+    expect((await screen.findByTestId('reason')).textContent).toBe('이미 사용된 초대입니다.');
+    expect(screen.queryByTestId('w02')).toBeNull();
   });
 });
 
