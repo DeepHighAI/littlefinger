@@ -6,6 +6,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["design-reference/serve.js"],
       "port": 4173
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--workspace=@littlefinger/web"],
+      "port": 5173
     }
   ]
 }

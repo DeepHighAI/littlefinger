@@ -1,0 +1,29 @@
+{
+  "name": "@littlefinger/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "수락 웹 — SCR-W01..W06. 카카오톡 링크로 열리는 상대방·증인의 화면.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "~19.2.2",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "jsdom": "^29.1.1",
+    "vite": "^8.1.5"
+  },
+  "dependencies": {
+    "@littlefinger/shared": "*",
+    "@supabase/supabase-js": "^2.110.8",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2"
+  }
+}

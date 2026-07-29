@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // 루트는 `lib: ["ES2022"]` 만 준다. 여기서만 DOM 을 얹는다 — packages/shared 는
+    // 플랫폼 API 를 몰라야 하고, supabase/functions 는 Deno 라 DOM 이 아니다.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    // 전역 타입 자동 포함을 끈다. 루트 node_modules 에는 @types/jest 처럼 이 앱과
+    // 무관한 것들이 깔려 있고, 그것들이 전역에 섞이면 없는 API 가 있는 것처럼 보인다.
+    // `vite/client` 는 src/vite-env.d.ts 의 삼중 슬래시 참조로 들어온다 — 그 경로는
+    // `types: []` 의 영향을 받지 않는다.
+    "types": [],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}
