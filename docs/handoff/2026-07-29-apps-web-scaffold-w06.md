@@ -3,10 +3,16 @@
 Date: 2026-07-29. Follows `2026-07-27-b1-7-t01-t02.md`, whose recommended next step (option 1,
 `apps/web`) the PO chose.
 
-Status: **ten commits landed, all verification green, and `invite-preview` is deployed and verified
-against the live project. Nothing is blocked.** The two blockers this document opened with — the
-missing `VITE_` env lines and the wrong Supabase CLI account — were both cleared by the PO on
-2026-07-29 and are recorded below as history, because both cost a session's worth of confusion.
+Status: **twelve commits landed, all verification green, `invite-preview` deployed and verified live,
+and the acceptance web now runs SCR-W01 → W02 → W03.** The two environment blockers this document
+opened with — the missing `VITE_` env lines and the wrong Supabase CLI account — were cleared by the
+PO on 2026-07-29 and are kept below as history, because both cost a session's worth of confusion.
+
+**One thing blocks the flow, and it is two sentences of copy: G4.** 거절, 수정 제안 and
+[종료일 변경 요청하기] all render `disabled`, so **a partner currently has no way to decline**, and a
+promise caught by EC-B10 stays stuck in PENDING until the invite expires — 수정 제안 is its only
+exit. `promise-decline` and `promise-amend` are already live; only the terminal screen's wording is
+missing.
 
 ## Goal of the session
 
@@ -27,6 +33,8 @@ never run outside PGlite, and only a working acceptance web can drive it.
 | `d176fe6` | **SCR-W01** — invite landing, `invite-resolve`, Kakao CTA, failure routing into W06 |
 | `cc373bd` | handoff — SCR-W01 and the env blocker |
 | `d4f02d2` | fix: the ad-slot assertion matched `lf-headline` by substring |
+| `1271b4d` | handoff — the `invite-preview` deploy |
+| `3566a47` | **W01 session branch · SCR-W02 · thin SCR-W03** — `LfDisclaimer`, `api-failure.ts`, `PromiseApproveResponse`, `formatKstDateTime`, routes `/i/:token/review` and `/i/:token/done` |
 
 ## Decisions made
 
@@ -68,10 +76,10 @@ That is a text-extraction artifact, **not** a missing font — check `document.f
 Run in this session, at the final commit:
 
 ```
-npm test          → Test Files 25 passed (25) / Tests 911 passed (911)
+npm test          → Test Files 27 passed (27) / Tests 966 passed (966)
                     + jest-expo: Test Suites 4 passed, Tests 137 passed
 npm run typecheck → exit 0 (5 projects — apps/web joined)
-npm run build:web → ✓ built, index.js 242.08 kB (gzip 78.16 kB)
+npm run build:web → ✓ built, index.js 460.73 kB (gzip 134.44 kB) — see the W02/W03 section on this growth
 npm run check:agents → AGENTS.md 는 CLAUDE.md 와 동기화되어 있다.
 ```
 
@@ -221,27 +229,58 @@ there is nothing to branch to yet. When SCR-W02 exists, the mount effect should 
 or SCR-W05 when `target_role === 'WITNESS'`. **Until that lands the flow is an infinite landing**,
 and it is the first thing to fix.
 
+## SCR-W02 · SCR-W03 (2026-07-29)
+
+`commit 3566a47`. W01 now resolves the invite and reads the session together; a PARTNER with a
+session is handed to `/i/:token/review`. **A witness stays on W01** — SCR-W05 does not exist and no
+witness copy exists anywhere, so there is nowhere honest to send them.
+
+W02 renders §4-3-4 from the live `invite-preview`, gates 승인 behind the 오수락 방지 confirmation
+sheet (F-03), and applies §4-3-4's EC-B10 wording when the end date has passed. `LfDisclaimer` takes
+**no props** and renders the constant — §8-2's four places, of which the web owns two.
+
+W03 is deliberately thin: stamp, KST confirmation time, both approval rows with full dates (§4-3-6 +
+EC-F09), fingerprint, disclaimer. **Absent on purpose**, each with a comment naming its blocker: the
+reminder-email card (G3), [버전 이력 보기] (G8), the app-install CTA (G2/G11).
+
+### Verified, and not
+
+`npm test` 966 passed (27 files) + jest-expo 137 · `typecheck` exit 0 · `build:web` ok.
+
+**Browser: the session guard is confirmed** — entering `/i/:token/review` without a session bounces
+back to W01. **The READY states of W02 and W03 have never been seen in a browser.** Faking a session
+in `localStorage` does not survive supabase-js's own client, so it falls to EC-C02. They are covered
+by 32 tests and by the implementing agent's own render check, but nobody has verified them by eye at
+360×800. That becomes a one-minute check the moment Kakao login works.
+
+**The bundle grew 234 kB → 460 kB (gzip 134 kB)** when W02 started using the session — supabase-js's
+auth code entered the graph. Against the 3-second budget this deserves a look before launch.
+
+## PO 확인 필요 — added 2026-07-29 (W02/W03)
+
+| # | Item |
+|---|---|
+| **G4 — escalated** | Not a nicety any more. 거절 · 수정 제안 · [종료일 변경 요청하기] are all `disabled`, so **the partner cannot decline at all**, and an EC-B10 promise is trapped in PENDING until the invite expires. Two strings unblock it. Drafts offered to the PO, **not approved**: DECLINED → "거절했어요. 작성자에게 알려드릴게요." · 수정 제안 → "수정 제안을 보냈어요. 작성자가 내용을 고쳐 다시 보내면 알림을 받게 돼요." §4-3-4's required 의견 입력 textarea (5–300자) is blocked behind the same gap |
+| ⑪ | **Reloading or directly opening W03 shows a blank screen.** The approve response exists once (the invite becomes USED) and there is no re-read path — that is SCR-W04, which does not exist. No copy describes the situation, so it was left empty |
+| ⑫ | §4-3-4's 증인 사용 예정 여부 has no copy of its own. `witness_enabled=true` shows §4-2-1's line; `false` shows nothing. Confirm whether the false case needs wording |
+| ⑬ | §4-4-4 item 3's 재접근 안내 is omitted on W03 — the copy exists in `02`, but with no SCR-W04 it would promise a route that does not exist |
+| ⑭ | `.lf-avatar` has no `object-fit`, so a non-square profile image stretches. Fixing it means editing the frozen stylesheet. An `onError` initial fallback is in place |
+| ⑮ | W02's headline and field labels come from the reference HTML, not `02` — same class as items ⑤ and ⑩ |
+| ⑯ | W02's loading state wraps zero characters in `role="status"` — same as W01's item ⑦ |
+| ⑰ | **W02's RETRY screen has nothing to press, and `E_AUTH_REQUIRED` lands there.** The user is told to log in again with no way to do it; unlike W01, no CTA slot is specified for this screen |
+
 ## The exact next step
 
-**SCR-W02 (약속 검토), against `invite-preview`.** The server side is built and committed
-(`601f362`, ADR 0004) and needs only the deploy above. The screen is the conversion screen the whole
-milestone exists for.
+1. **Get G4's two strings.** Everything else on this list is smaller than the fact that a partner
+   cannot say no.
+2. **Configure Kakao in the Supabase Dashboard** — provider keys, both redirect allowlists (§6-1),
+   and a 비즈 앱 with `account_email` as [선택 동의]. Without that last one Kakao answers **KOE205**
+   before the consent screen renders, regardless of this product not collecting email. This is what
+   turns the whole flow real, and it closes the last verification debt: **`promise-approve`'s happy
+   path has still only ever run in PGlite.**
+3. Then walk it end to end: `promise-invite` issues a token → paste the link → Kakao login →
+   W02 → 승인 → W03. That exercises `content_hash`, the NT-01 notification and the reminder
+   schedule, none of which has run outside PGlite.
+4. After that, SCR-W04 (참여자 열람) — it is what items ⑪ and ⑬ are both waiting on.
 
-**`invite-preview` is deployed and verified live** (see the table above), so nothing blocks this.
-
-Order of work:
-
-1. Branch SCR-W01 on session presence so login lands on W02 (see above). Until this exists the flow
-   is an infinite landing.
-2. Build SCR-W02 from `design-reference/screens/web/scr-w02-promise-review.html` against
-   `InvitePreviewResponse`. `LEGAL_DISCLAIMER` belongs on this screen (CLAUDE.md §8-2) — render the
-   constant through `LfDisclaimer`, which does **not** take text as a prop.
-3. Its 거절 / 수정 제안 actions land on a screen that does not exist and has no copy — **item G4**.
-   Get those two strings before wiring the actions, or the buttons have nowhere to go.
-
-Then the real prize, and the one piece of verification debt still outstanding: **`promise-approve`'s
-happy path has still only ever run in PGlite.** Closing it needs a real Kakao login, which needs the
-Dashboard side configured — provider keys, the two separate redirect allowlists (`§6-1`), and a 비즈 앱
-with `account_email` registered as [선택 동의]. Without that last one Kakao rejects the authorize
-request with **KOE205** before the consent screen renders, regardless of the fact that this product
-does not collect email.
+Check the bundle size (above) before launch, not after.
