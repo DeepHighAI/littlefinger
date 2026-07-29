@@ -1,11 +1,12 @@
-# Handoff — apps/web scaffold + SCR-W01 + SCR-W06, and the blocked deploy
+# Handoff — apps/web (scaffold · SCR-W01 · SCR-W06) and the invite-preview deploy
 
 Date: 2026-07-29. Follows `2026-07-27-b1-7-t01-t02.md`, whose recommended next step (option 1,
 `apps/web`) the PO chose.
 
-Status: **seven commits landed, all local verification green. Two things are blocked and neither is
-a code problem: the Supabase CLI is logged in as the wrong account, and the root `.env` has no
-`VITE_` lines, which is why SCR-W01's happy path has never rendered in a browser.**
+Status: **ten commits landed, all verification green, and `invite-preview` is deployed and verified
+against the live project. Nothing is blocked.** The two blockers this document opened with — the
+missing `VITE_` env lines and the wrong Supabase CLI account — were both cleared by the PO on
+2026-07-29 and are recorded below as history, because both cost a session's worth of confusion.
 
 ## Goal of the session
 
@@ -22,8 +23,10 @@ never run outside PGlite, and only a working acceptance web can drive it.
 | `984d78e` | **`apps/web` scaffold** — Vite + React + React Router, styles/font copied, `/i/:token` route, `_redirects` |
 | `b44ddb5` | **SCR-W06** — the link-unavailable screen, reason-specific copy |
 | `12be8ba` | **the icon font** — self-hosted 40 KB subset, `LfIcon`, Google CDN import removed |
-| `e720862` | this handoff |
+| `e720862` | handoff — the icon-font decision |
 | `d176fe6` | **SCR-W01** — invite landing, `invite-resolve`, Kakao CTA, failure routing into W06 |
+| `cc373bd` | handoff — SCR-W01 and the env blocker |
+| `d4f02d2` | fix: the ad-slot assertion matched `lf-headline` by substring |
 
 ## Decisions made
 
@@ -80,42 +83,63 @@ RETRY state correctly (`role="alert"`, `refresh` glyph U+E5D5, EC-C02 copy); **c
 **zero non-localhost requests**; Pretendard and the Material Symbols subset both `loaded` and
 self-hosted; `.lf-screen` fills 360×800 at `rgb(255,248,248)`.
 
-**SCR-W01's READY path has never rendered in a browser.** With no `VITE_SUPABASE_URL`,
-`functionUrl()` throws *before* `fetch` — measured `fetchCalls: 0` — so every load lands on RETRY.
-That is correct behaviour, not a bug, but it means the happy path is covered only by its 22 tests.
-Fix the env (below) and it is a one-minute check.
+**Verified against the live project**, after the deploy:
 
-**Never run live**: everything on the Supabase project. See below.
+| Check | Result |
+|---|---|
+| Migration recorded remotely | `"local":"20260727000010","remote":"20260727000010"` |
+| `invite-preview`, no auth | **401** — the point is that it is not 500; a 500 means the function failed to boot, i.e. a secret did not resolve |
+| `invite-preview`, anon JWT | `{"code":"E_AUTH_REQUIRED","message":"다시 로그인해 주세요."}` |
+| `lf_invite_preview` called directly with the anon key | `{"code":"42501","message":"permission denied for function lf_invite_preview"}` |
 
-## Blocked — two things, both needing the PO
+That last row is the one worth keeping. It proves the **three-way revoke works on real Postgres**, not
+just in PGlite — with `from public` alone the function would simply have run.
 
-**1. The root `.env` has no `VITE_` lines.** It holds `SUPABASE_URL` and `SUPABASE_ANON_KEY`; the web
-needs `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (`.env.example:16-17`). Vite only exposes the
-`VITE_` prefix, so without them the acceptance web cannot build a function URL and **every screen
-falls to EC-C02** — a symptom indistinguishable from the Edge Function being down. Not written for
-the PO because it is their secrets file; the anon key is public by design (RLS is the protection),
-so the two lines are safe to add. **Cloudflare Pages needs the same two as build env vars.**
+SCR-W01 was also driven end to end against the live server: `/i/<bogus-token>` produced two real
+requests (the 5 ms one is StrictMode's first effect being aborted), the server answered **404
+`E_NOT_FOUND`**, and the screen routed to SCR-W06. Browser → live Edge Function → error code → screen
+had never been exercised before this.
 
-`vite.config.ts` already carries `envDir: '../../'` — without it Vite searched only `apps/web` and
-the values would have stayed empty even after the PO added them.
+The READY state renders correctly at 360×800 (countdown ticking, headline, preview card, Kakao CTA at
+320×52 dp, no disclaimer — §8-2 does not list W01), verified with a stubbed response because a real
+READY needs a valid token, which needs a promise, which needs login.
 
-**2. The deploy could not run — the Supabase CLI is authenticated as the wrong account.**
+## Two environment traps, both cleared — keep the diagnosis
+
+Neither was a code problem, and both presented as something else entirely.
+
+**1. `VITE_` env lines (cleared 2026-07-29).** The root `.env` held `SUPABASE_URL` and
+`SUPABASE_ANON_KEY`, but **Vite only exposes variables with the `VITE_` prefix**, so the web could
+not build a function URL and every screen fell to EC-C02 — a symptom indistinguishable from the Edge
+Function being down. Worse, `functionUrl()` throws *before* `fetch`, so nothing appeared in the
+network panel either; the tell was `fetchCalls: 0`.
+
+The values are the ones already in the file, just prefixed:
 
 ```
-npx supabase migration list → 403 "Your account does not have the necessary privileges"
+grep -E '^(SUPABASE_URL|SUPABASE_ANON_KEY)=' .env | sed 's/^/VITE_/' >> .env
 ```
 
-`supabase/.temp/project-ref` is `vepnrrmxvsytguocicfe` (littlefinger, org `aseszttxkxpfzenmbylx`),
-but `supabase projects list` succeeds and returns only `muuudarddkvevwdpefvy` and
-`jamhkucluhiibqpjsiov`, both in org `hddilaqjdxaprrcebqet`. The account that pushed migrations
-0001–0009 is not the account logged in now. `SUPABASE_ACCESS_TOKEN` is unset.
+`vite.config.ts` carries `envDir: '../../'` because the single `.env` lives at the repo root and Vite
+otherwise searches only `apps/web` — without it the values stay empty even once they exist.
+**Cloudflare Pages needs the same two as build env vars.**
 
-Pending deploy: migration `20260727000010_invite_preview.sql` and the `invite-preview` function.
-Once the PO re-authenticates (`npx supabase login`, or an access token in the environment):
+**2. The Supabase CLI was authenticated as the wrong account (cleared 2026-07-29).** Every command
+returned `403 "Your account does not have the necessary privileges"`, which reads like a permissions
+bug on the project. It was not: `supabase orgs list` returned exactly one org,
+`hddilaqjdxaprrcebqet` (DeepHighAI), while littlefinger lives in `aseszttxkxpfzenmbylx`. **`orgs list`
+is the fastest way to diagnose this** — `projects list` succeeds and simply omits what you cannot see,
+which looks like the project is missing rather than invisible.
 
-```
-npx supabase db push && npx supabase functions deploy invite-preview --use-api
-```
+Two things made re-login harder than it should have been, both worth knowing:
+
+- **`supabase login` silently reuses whatever account the browser is already signed into.** Running it
+  again changes nothing unless you sign out of supabase.com first, or use a private window.
+- **`--no-browser` asks for an 8-character hex device code shown on the login page — not a personal
+  access token.** A pasted `sbp_…` token fails with
+  `device_code: must match pattern /^[0-9A-Fa-f]+$/`. A PAT is used by exporting
+  `SUPABASE_ACCESS_TOKEN`, never through the login prompt. (A token was pasted into a terminal during
+  this session and has been revoked.)
 
 ## PO 확인 필요
 
@@ -203,17 +227,21 @@ and it is the first thing to fix.
 (`601f362`, ADR 0004) and needs only the deploy above. The screen is the conversion screen the whole
 milestone exists for.
 
+**`invite-preview` is deployed and verified live** (see the table above), so nothing blocks this.
+
 Order of work:
 
-1. **PO: add the two `VITE_` lines and run `supabase login`.** Everything below is verifiable only
-   after that, and W01's happy path becomes checkable in a browser the same minute.
-2. Branch SCR-W01 on session presence so login lands on W02 (see above).
-3. Build SCR-W02 from `design-reference/screens/web/scr-w02-promise-review.html` against
+1. Branch SCR-W01 on session presence so login lands on W02 (see above). Until this exists the flow
+   is an infinite landing.
+2. Build SCR-W02 from `design-reference/screens/web/scr-w02-promise-review.html` against
    `InvitePreviewResponse`. `LEGAL_DISCLAIMER` belongs on this screen (CLAUDE.md §8-2) — render the
    constant through `LfDisclaimer`, which does **not** take text as a prop.
-4. Its 거절 / 수정 제안 actions land on a screen that does not exist and has no copy — **item G4**.
+3. Its 거절 / 수정 제안 actions land on a screen that does not exist and has no copy — **item G4**.
    Get those two strings before wiring the actions, or the buttons have nowhere to go.
 
-Then the real prize: a token issued by `promise-invite` pasted into a browser, walked through Kakao
-login to approval — which exercises `promise-approve`, `content_hash`, the NT-01 notification and the
-reminder schedule, none of which has ever run outside PGlite.
+Then the real prize, and the one piece of verification debt still outstanding: **`promise-approve`'s
+happy path has still only ever run in PGlite.** Closing it needs a real Kakao login, which needs the
+Dashboard side configured — provider keys, the two separate redirect allowlists (`§6-1`), and a 비즈 앱
+with `account_email` registered as [선택 동의]. Without that last one Kakao rejects the authorize
+request with **KOE205** before the consent screen renders, regardless of the fact that this product
+does not collect email.
