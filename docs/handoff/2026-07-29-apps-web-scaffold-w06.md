@@ -3,16 +3,14 @@
 Date: 2026-07-29. Follows `2026-07-27-b1-7-t01-t02.md`, whose recommended next step (option 1,
 `apps/web`) the PO chose.
 
-Status: **twelve commits landed, all verification green, `invite-preview` deployed and verified live,
+Status: **fourteen commits landed, all verification green, `invite-preview` deployed and verified live,
 and the acceptance web now runs SCR-W01 → W02 → W03.** The two environment blockers this document
 opened with — the missing `VITE_` env lines and the wrong Supabase CLI account — were cleared by the
 PO on 2026-07-29 and are kept below as history, because both cost a session's worth of confusion.
 
-**One thing blocks the flow, and it is two sentences of copy: G4.** 거절, 수정 제안 and
-[종료일 변경 요청하기] all render `disabled`, so **a partner currently has no way to decline**, and a
-promise caught by EC-B10 stays stuck in PENDING until the invite expires — 수정 제안 is its only
-exit. `promise-decline` and `promise-amend` are already live; only the terminal screen's wording is
-missing.
+**G4 is closed** (`8d3ea01`): the PO approved both sentences on 2026-07-29, and 거절 · 수정 제안 ·
+[종료일 변경 요청하기] are wired to their live endpoints. A partner can decline, and an EC-B10 promise
+is no longer trapped in PENDING. **Nothing blocks the flow now except the Kakao Dashboard setup.**
 
 ## Goal of the session
 
@@ -34,6 +32,8 @@ never run outside PGlite, and only a working acceptance web can drive it.
 | `cc373bd` | handoff — SCR-W01 and the env blocker |
 | `d4f02d2` | fix: the ad-slot assertion matched `lf-headline` by substring |
 | `1271b4d` | handoff — the `invite-preview` deploy |
+| `8fe2e29` | handoff — SCR-W02 and SCR-W03 |
+| `8d3ea01` | **G4 closed** — 거절 · 수정 제안 wired, `response-complete.tsx`, per-endpoint idempotency keys |
 | `3566a47` | **W01 session branch · SCR-W02 · thin SCR-W03** — `LfDisclaimer`, `api-failure.ts`, `PromiseApproveResponse`, `formatKstDateTime`, routes `/i/:token/review` and `/i/:token/done` |
 
 ## Decisions made
@@ -76,10 +76,10 @@ That is a text-extraction artifact, **not** a missing font — check `document.f
 Run in this session, at the final commit:
 
 ```
-npm test          → Test Files 27 passed (27) / Tests 966 passed (966)
+npm test          → Test Files 28 passed (28) / Tests 987 passed (987)
                     + jest-expo: Test Suites 4 passed, Tests 137 passed
 npm run typecheck → exit 0 (5 projects — apps/web joined)
-npm run build:web → ✓ built, index.js 460.73 kB (gzip 134.44 kB) — see the W02/W03 section on this growth
+npm run build:web → ✓ built, index.js 463.66 kB (gzip 135.49 kB) — see the W02/W03 section on this growth
 npm run check:agents → AGENTS.md 는 CLAUDE.md 와 동기화되어 있다.
 ```
 
@@ -260,7 +260,7 @@ auth code entered the graph. Against the 3-second budget this deserves a look be
 
 | # | Item |
 |---|---|
-| **G4 — escalated** | Not a nicety any more. 거절 · 수정 제안 · [종료일 변경 요청하기] are all `disabled`, so **the partner cannot decline at all**, and an EC-B10 promise is trapped in PENDING until the invite expires. Two strings unblock it. Drafts offered to the PO, **not approved**: DECLINED → "거절했어요. 작성자에게 알려드릴게요." · 수정 제안 → "수정 제안을 보냈어요. 작성자가 내용을 고쳐 다시 보내면 알림을 받게 돼요." §4-3-4's required 의견 입력 textarea (5–300자) is blocked behind the same gap |
+| ~~G4~~ | **Closed 2026-07-29** (`8d3ea01`) — the PO approved both sentences and the three actions are wired. See the G4 section below. |
 | ⑪ | **Reloading or directly opening W03 shows a blank screen.** The approve response exists once (the invite becomes USED) and there is no re-read path — that is SCR-W04, which does not exist. No copy describes the situation, so it was left empty |
 | ⑫ | §4-3-4's 증인 사용 예정 여부 has no copy of its own. `witness_enabled=true` shows §4-2-1's line; `false` shows nothing. Confirm whether the false case needs wording |
 | ⑬ | §4-4-4 item 3's 재접근 안내 is omitted on W03 — the copy exists in `02`, but with no SCR-W04 it would promise a route that does not exist |
@@ -269,18 +269,53 @@ auth code entered the graph. Against the 3-second budget this deserves a look be
 | ⑯ | W02's loading state wraps zero characters in `role="status"` — same as W01's item ⑦ |
 | ⑰ | **W02's RETRY screen has nothing to press, and `E_AUTH_REQUIRED` lands there.** The user is told to log in again with no way to do it; unlike W01, no CTA slot is specified for this screen |
 
+## G4 — closed, and what it left open
+
+`commit 8d3ea01`. The PO approved both sentences on 2026-07-29; they are rendered **verbatim** and
+were diffed codepoint by codepoint by two reviewers. 거절 → `promise-decline`, 수정 제안 →
+`promise-amend`, and **[종료일 변경 요청하기] runs the same function under the same conditions as
+[수정 제안]** — §4-3-4 makes them one path, and it is the only exit a lapsed promise has.
+
+Two things worth not rediscovering:
+
+- **One `Idempotency-Key` per screen is wrong.** `lf_idempotency_begin` binds a key to
+  (user, endpoint) and raises `E_FORBIDDEN` on a mismatch (`20260726000004_idempotency.sql:94`), so
+  three actions sharing one key means the **second one is refused**. Keys are per endpoint, minted
+  once on screen entry — not per render, which would defeat the mechanism entirely.
+- **The outcome rides the URL, not router state.** State dies on reload, and by then the invite is
+  consumed, so a refresh would strand the user on a blank screen for a promise they can no longer
+  reach. That is exactly W03's item 11; this screen does not repeat it.
+
+A review finding worth the whole pass: deleting the in-flight lock on all three buttons left **48
+tests passing**, and double submission reproduced by hand. Covered now, and re-verified by putting
+the mutation back.
+
+## PO 확인 필요 — added 2026-07-29 (G4)
+
+| # | Item |
+|---|---|
+| G4-a | **The decline reason is never sent, so it will be NULL forever.** §4-3-4 specifies 사유 입력 (optional, 0-200자), §5-3 defines `decline_reason`, and `promise-decline/handler.ts` already accepts it — only the screen omits it. Needs a label and a placement decision on a screen whose primary CTA is 승인 |
+| G4-b | **Nothing on screen explains why [종료일 변경 요청하기] is greyed out.** It unlocks at 5 characters of 의견, but the textarea sits at the end of the body while the button is pinned to the action bar. The screen says "작성자에게 종료일 변경을 요청해 주세요" and then appears to lock the means without reason. One sentence fixes it |
+| G4-c | **Over 300 characters of 의견 has no message.** §5-3 supplies only the lower-bound wording, so a user past the limit sees a disabled button and no reason |
+| G4-d | **The terminal screen has no SCR-ID.** Neither `02` nor the 디자인요청서 assigns one, so the file is named for its function (`response-complete.tsx`, `/i/:token/responded/:outcome`). When a number is assigned, file and route move together (CLAUDE.md §5-4) |
+| G4-e | **The 의견 label was made visible.** The reference uses an `lf-sr-only` label plus a placeholder ending in "(선택)", but §4-3-4 makes the field **required**, so that placeholder could not be used as written. This is a visible difference from the reference and will surface in any visual diff |
+
 ## The exact next step
 
-1. **Get G4's two strings.** Everything else on this list is smaller than the fact that a partner
-   cannot say no.
-2. **Configure Kakao in the Supabase Dashboard** — provider keys, both redirect allowlists (§6-1),
-   and a 비즈 앱 with `account_email` as [선택 동의]. Without that last one Kakao answers **KOE205**
-   before the consent screen renders, regardless of this product not collecting email. This is what
-   turns the whole flow real, and it closes the last verification debt: **`promise-approve`'s happy
-   path has still only ever run in PGlite.**
-3. Then walk it end to end: `promise-invite` issues a token → paste the link → Kakao login →
-   W02 → 승인 → W03. That exercises `content_hash`, the NT-01 notification and the reminder
-   schedule, none of which has run outside PGlite.
-4. After that, SCR-W04 (참여자 열람) — it is what items ⑪ and ⑬ are both waiting on.
+**Configure Kakao in the Supabase Dashboard.** It is now the only thing standing between this code
+and a real end-to-end walk: provider keys, both redirect allowlists (§6-1 — Kakao takes only
+`https://<ref>.supabase.co/auth/v1/callback`; the app deep link and web origins go in Supabase's own
+list), and a 비즈 앱 with `account_email` registered as [선택 동의]. Without that last one Kakao
+answers **KOE205** before the consent screen renders, regardless of this product not collecting email.
 
-Check the bundle size (above) before launch, not after.
+Then walk it: `promise-invite` issues a token → open the link → Kakao login → W02 → 승인 → W03.
+That closes the **last piece of verification debt — `promise-approve`'s happy path has still only
+ever run in PGlite** — and exercises `content_hash`, the NT-01 notification and the reminder schedule
+along with it. It also takes 60 seconds to confirm the one thing nobody has seen by eye: **the READY
+states of W02 and W03**, which no amount of stubbing has been able to reach.
+
+After that, **SCR-W04 (참여자 열람)** — items 11, 13 and the terminal screen's missing CTA all wait
+on it.
+
+Check the bundle before launch: it grew 234 kB → 464 kB (gzip 135 kB) once supabase-js's auth code
+entered the graph, against a 3-second budget.
