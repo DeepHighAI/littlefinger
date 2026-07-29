@@ -2,15 +2,29 @@
 import { ENDPOINT, LEGAL_DISCLAIMER } from '@littlefinger/shared';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './App.tsx';
 import { invitePath, ROUTE } from './routes.ts';
 
+// SCR-W01 은 마운트하자마자 invite-resolve 를 부른다. 이 파일은 라우팅만 보므로 응답은
+// 영원히 오지 않게 두고, **요청에 실린 토큰**으로 경로 → 화면 연결을 확인한다.
+const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
+
 // Testing Library 의 자동 cleanup 은 전역 `afterEach` 가 있을 때만 등록된다. 이 저장소는
 // vitest `globals` 를 켜지 않으므로 직접 부른다 — 없으면 렌더가 쌓여 두 번째 테스트부터
 // "getByTestId 가 여러 개를 찾았다"로 깨진다.
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
+
+beforeEach(() => {
+  vi.stubEnv('VITE_SUPABASE_URL', 'https://test-project.supabase.co');
+  vi.stubGlobal('fetch', fetchMock);
+  fetchMock.mockClear();
+});
 
 function renderAt(path: string): void {
   render(
@@ -20,10 +34,17 @@ function renderAt(path: string): void {
   );
 }
 
+/** SCR-W01 이 방금 보낸 요청에서 토큰을 꺼낸다. */
+function sentToken(): unknown {
+  const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+  return (JSON.parse(String(init.body)) as { token: unknown }).token;
+}
+
 describe('App 라우팅', () => {
-  it('초대 경로가 토큰을 뽑아낸다', () => {
+  it('초대 경로가 토큰을 뽑아 SCR-W01 로 넘긴다', () => {
     renderAt('/i/abc123');
-    expect(screen.getByTestId('invite-token').textContent).toBe('abc123');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(sentToken()).toBe('abc123');
   });
 
   it('URL-safe Base64 토큰의 - 와 _ 가 살아남는다', () => {
@@ -31,12 +52,14 @@ describe('App 라우팅', () => {
     // 해시가 달라지고, 증상은 E_NOT_FOUND 하나뿐이라 원인을 좁힐 단서가 없다.
     const token = 'a-b_c-d_e';
     renderAt(invitePath(token));
-    expect(screen.getByTestId('invite-token').textContent).toBe(token);
+    expect(sentToken()).toBe(token);
   });
 
   it('모르는 경로는 SCR-W06 으로 떨어진다', () => {
     renderAt('/nope');
     expect(screen.getByTestId('reason').textContent).toBe('초대 링크를 찾을 수 없습니다.');
+    // 토큰이 없으니 함수를 부를 일도 없다.
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('packages/shared 를 웹에서 그대로 읽는다', () => {

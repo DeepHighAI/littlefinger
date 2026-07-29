@@ -11,7 +11,13 @@
  */
 
 import type { ErrorCode } from './errors.ts';
-import type { IsoDate, Keeper, PromiseCategory } from './promise.ts';
+import type {
+  IsoDate,
+  IsoDateTime,
+  Keeper,
+  ParticipantRole,
+  PromiseCategory,
+} from './promise.ts';
 
 /** 상태 변경 요청이 반드시 달고 오는 헤더 (§7-3.6). 값은 UUID 다. */
 export const IDEMPOTENCY_KEY_HEADER = 'Idempotency-Key';
@@ -150,6 +156,30 @@ export interface InvitePreviewResponse {
     nickname: string;
     profile_image_url: string | null;
   };
+}
+
+/**
+ * SCR-W01 초대 랜딩 (§4-3-3). 로그인 **전** 화면이라, 서비스에서 인증 없이 나가는
+ * 유일한 약속 정보다.
+ *
+ * **담지 않는 것이 이 타입의 본질이다.** 본문·보상·벌칙·종료일·카테고리·지킬 사람·
+ * 증인 여부·프로필 이미지가 전부 빠져 있고, 그것들은 로그인 후 `InvitePreviewResponse`
+ * 로만 나간다. 카톡으로 퍼진 링크는 의도한 상대가 아닌 사람도 연다는 전제다
+ * (§4-3-3 "링크 유출 대비").
+ *
+ * `target_role` 은 §4-3-3 이 열거하지 않았지만 온다. §4-5-2 가 증인 링크에도 같은
+ * 1회용·72시간 규칙을 주므로 증인도 이 화면에 도착하고, 역할을 모르면 로그인 후
+ * SCR-W02 로 갈지 SCR-W05 로 갈지 정할 수 없다. 라우팅 정보일 뿐 약속 내용이 아니다.
+ *
+ * 실패 응답에는 이 payload 가 **존재하지 않는다** — RPC 가 raise 로만 실패를 알리므로
+ * 만료·사용됨·무효화 어느 쪽도 작성자 이름이나 제목을 싣지 않는다(EC-B01·B03·B11).
+ */
+export interface InviteResolveResponse {
+  creator_nickname: string;
+  title: string;
+  /** 초대 발급 + `INVITE_TTL_HOURS`. SCR-W01 만료 카운트다운의 기준점이다. */
+  expires_at: IsoDateTime;
+  target_role: Extract<ParticipantRole, 'PARTNER' | 'WITNESS'>;
 }
 
 export interface PromiseDeclineRequest extends InviteTokenRequest {
