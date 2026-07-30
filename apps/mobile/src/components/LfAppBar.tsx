@@ -7,6 +7,7 @@ import { LfText } from './LfText';
 export interface LfAppBarProps extends Omit<ViewProps, 'style' | 'children'> {
   title: string;
   brand?: boolean;
+  leading?: React.ReactNode;
   action?: React.ReactNode;
 }
 
@@ -27,11 +28,13 @@ const styles = StyleSheet.create({
 export function LfAppBar({
   title,
   brand = false,
+  leading,
   action,
   ...rest
 }: LfAppBarProps): React.JSX.Element {
   return (
     <View {...rest} style={styles.container}>
+      {leading}
       {brand && <LfPinky size="sm" />}
       <View style={styles.title}>
         <LfText variant="subtitle">{title}</LfText>

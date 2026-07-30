@@ -7,11 +7,18 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { AppState } from 'react-native';
 
+import { LargeSecureStore } from './large-secure-store.ts';
 import { createMobileSupabaseRuntime } from './supabase.ts';
 
 function randomEncryptionKey(): Uint8Array {
   return globalThis.crypto.getRandomValues(new Uint8Array(32));
 }
+
+const encryptedStorage = new LargeSecureStore({
+  asyncStorage: AsyncStorage,
+  randomBytes: randomEncryptionKey,
+  secureStore: SecureStore,
+});
 
 const runtime = createMobileSupabaseRuntime({
   anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
@@ -29,4 +36,8 @@ export function getMobileSupabaseClient(): SupabaseClient {
 
 export function getMobileFunctionUrl(slug: Endpoint): string {
   return runtime.functionUrl(slug);
+}
+
+export function getMobileEncryptedStorage(): LargeSecureStore {
+  return encryptedStorage;
 }
