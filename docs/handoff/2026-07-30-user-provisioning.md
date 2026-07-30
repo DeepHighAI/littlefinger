@@ -3,10 +3,32 @@
 Date: 2026-07-30. Follows `2026-07-29-apps-web-scaffold-w06.md`, whose `## LIVE BREAKAGE` section was
 rewritten in `fac4af6` with the diagnosis below.
 
-Status: **diagnosed and closed as a mystery, not yet fixed.** Nothing is broken in code — the seven
-Edge Functions, `authenticate`, `getUser`, the keys and RLS are all healthy. What is missing is one
-row per user. The design for writing it is decided (PO, 2026-07-30) and specified here; **no
-implementation has started.**
+Status: **fixed, applied, and verified live.** Migration `20260730000011` is applied
+(`local = remote`), commit `4b9fd98`, and the whole chain ran outside PGlite for the first time. The
+live 401 is closed and so is the last piece of verification debt — `promise-approve`'s happy path.
+
+| Live probe | Result |
+|---|---|
+| anonymous signup → trigger | `public.users` row: `kakao_id=pending:…`, `nickname=사용자`, `primary_surface=null`, `status=ACTIVE` |
+| `promise-create` | **200** DRAFT — the call that had been 401 |
+| `promise-invite` | **200** PENDING, real token issued, `resend_count=0` |
+| `invite-preview` | **200**, full promise content, read by a *second* anonymous user |
+| `promise-approve` | **200** ACTIVE, `version_no=1`, fingerprint **`AF3B-064D-01`** |
+| approvals | CREATOR and PARTNER both logged |
+| idempotency | same `Idempotency-Key` → identical fingerprint (cached) |
+| one-time token | reuse by a third user → **410 `E_INVITE_USED`** |
+| RLS | non-participant reading `approvals` → empty result (§9) |
+| three-way revoke | `lf_user_provision` as anon → **`42501 permission denied for function`** |
+
+`content_hash` and the 기록 지문 are therefore confirmed to be generated server-side on real
+Postgres, not just in the harness.
+
+**What is still missing:** the client has no way to *call* the correction. `lf_user_provision` exists
+but nothing reaches it, which is why the walk above left `kakao_id` at `pending:…` and
+`primary_surface` at NULL. That is the next step.
+
+Anonymous sign-ins were on for this walk. **Ask the PO to confirm they are OFF** before going quiet —
+`external_anonymous_users_enabled` in `GET /auth/v1/settings` reads `null` when off.
 
 ## The diagnosis, settled
 
@@ -116,23 +138,58 @@ Two consequences for the trigger, both already satisfied by writing placeholders
   trigger fires.** The trigger must not read either one. The correcting call runs after login, when
   both exist.
 
+## What landed (commit `4b9fd98`)
+
+`supabase/migrations/20260730000011_user_provisioning.sql` — the nullable change, `lf_user_stub()` +
+its trigger, the backfill, `lf_user_provision()` + the three-way revoke. Plus
+`supabase/tests/user-provisioning.test.ts` (19 tests) and the harness changes below.
+
+Two harness facts a cold session will otherwise trip on:
+
+- `supabase/tests/harness.ts` had to grow `auth.users.raw_user_meta_data` and the whole
+  `auth.identities` table. Without them the migration references tables the harness does not have and
+  **all 987 tests collapse** — the harness fakes only what it needs, so every future migration that
+  touches `auth` has to extend it first.
+- `createUser` now upserts. The trigger gets to `public.users` first, so its old plain INSERT died on
+  the primary key.
+
+The tests were mutation-checked: dropping the first-write-wins `coalesce` and the `where u.status =
+'ACTIVE'` guard kills exactly the three tests that assert them.
+
 ## The exact next step
 
-Write one migration containing: the `alter column primary_surface drop not null`, the trigger function
-+ trigger, `lf_user_provision` with its three-way revoke. Then `packages/shared` types + `ENDPOINT`
-slug, the `user-provision` function, `config.toml` block, and PGlite tests — the harness needs to
-insert `auth.users` rows carrying `raw_user_meta_data`, which `createUser` currently does not do
-(`insert into auth.users default values`).
+**`user-provision` Edge Function** — the only thing between `lf_user_provision` and a correct row.
 
-Test what actually broke this time: that the trigger **never raises** on absent metadata, that the row
-appears without any client call, that provision corrects once, and that a second provision does not
-move `primary_surface`.
+1. `packages/shared/src/api.ts` — the request type and a `userProvision` entry in `ENDPOINT`. The
+   request carries **`nickname` and `profile_image_url` only**; `surface` comes from the `Origin`
+   header in the shell and `kakao_id` is read by the RPC (see above). Contracts first (§5-2).
+2. `supabase/functions/user-provision/` — `handler.ts` pure + `index.ts` one line (§5-6). No
+   notification: §8-1 has no NT-* event for signup.
+3. `supabase/config.toml` — `[functions.user-provision] verify_jwt = true`.
+4. Call sites, once per login and idempotent: web after `detectSessionInUrl` picks the session up on
+   SCR-W01; app after `setSession`.
 
-Then apply, deploy, and verify end-to-end. **Verification needs a real user token.** Anonymous
-sign-ins were enabled briefly for the diagnosis and are OFF again (confirmed 2026-07-30) — either turn
-them on again for the walk, or use a Kakao login. Once provisioning works, step 2 (`promise-approve`'s
-happy path, still only ever run in PGlite) can be walked with **two anonymous users** instead of two
-Kakao accounts — no PII, and it closes the last verification debt.
+Then re-walk with anonymous sign-ins on and confirm `kakao_id` becomes the real 회원번호 and
+`primary_surface` lands as `WEB` from the acceptance web.
+
+**One thing was verified only indirectly.** `approvals.surface` is derived from the presence of the
+`Origin` header, and the approve walk did send `Origin: https://littlefinger.pages.dev` — but the
+response body carries only `role`, `acted_at` and `nickname`, so the stored value was never read back.
+Check the PARTNER row in Table Editor → `approvals` reads `WEB`.
+
+## PO 확인 필요
+
+**The `nickname` placeholder is `'사용자'`, and that is my invention, not a spec value.** `02` gives no
+wording for it. It matters because Kakao's `profile_nickname` is [선택 동의] (§6-1): a user who refuses
+it keeps the placeholder as their permanent display name in every screen that shows a participant.
+
+## Test data left in the live project
+
+Five anonymous users, one ACTIVE promise (`ccb5fe32-b1e7-445b-b1af-cfa3f01764cb`, fingerprint
+`AF3B-064D-01`), one USED invitation, two approvals, an NT-01 notification and its reminder schedule.
+Deleting the anonymous `auth.users` rows cascades to `public.users` but **not** to `promises`, whose
+`creator_id` FK will block the delete. Recommend leaving it: it is the only real ACTIVE promise in
+existence and SCR-A05 and SCR-W04 will both want one to build against.
 
 ## Incidental findings
 

@@ -14,9 +14,12 @@ PO on 2026-07-29 and are kept below as history, because both cost a session's wo
 [종료일 변경 요청하기] are wired to their live endpoints. A partner can decline, and an EC-B10 promise
 is no longer trapped in PENDING. **Nothing blocks the flow now except the Kakao Dashboard setup.**
 
-## LIVE BREAKAGE — diagnosed 2026-07-30. It was never `auth.getUser`.
+## ~~LIVE BREAKAGE~~ — CLOSED 2026-07-30 (`4b9fd98`). It was never `auth.getUser`.
 
-**Read this first. It is the only thing that matters right now.**
+**Start from [`2026-07-30-user-provisioning.md`](2026-07-30-user-provisioning.md) instead.** The fix is
+applied and verified live: migration `20260730000011` provisions `public.users`, and
+create → invite → preview → approve all ran outside PGlite for the first time (fingerprint
+`AF3B-064D-01`). The rest of this section is kept as the diagnosis record.
 
 Every authenticated Edge Function answers **401 `E_AUTH_REQUIRED`** on a provably valid token. The
 cause is now known, and it is not authentication:
