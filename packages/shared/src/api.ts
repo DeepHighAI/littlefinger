@@ -92,6 +92,11 @@ export interface PromiseCreateRequest {
   send?: boolean;
 }
 
+/** 이미 존재하는 DRAFT의 v1과 조회 캐시를 함께 덮어쓴다(§4-2-2.4). */
+export interface PromiseDraftUpdateRequest extends PromiseCreateRequest {
+  promise_id: string;
+}
+
 /** 이미 있는 DRAFT 를 보내거나(§4-2-1) PENDING 인 약속의 초대를 다시 보낸다(§4-3-2). */
 export interface PromiseInviteRequest {
   promise_id: string;
@@ -129,6 +134,20 @@ export interface PromiseInviteResponse {
   /** 공유 문구용. §4-3-2 는 제목과 링크만 담으라고 한다. */
   title: string;
   token?: string;
+}
+
+/** DRAFT 저장 또는 같은 트랜잭션에서 T-02까지 마친 응답. */
+export type PromiseDraftUpdateResponse = PromiseDraftResponse | PromiseInviteResponse;
+
+/** SCR-A04에서 현재 PARTNER 초대만 무효화한다. 약속 취소와는 별개다. */
+export interface InviteRevokeRequest {
+  promise_id: string;
+}
+
+export interface InviteRevokeResponse {
+  promise_id: string;
+  status: 'PENDING';
+  invitation_status: 'REVOKED';
 }
 
 /** 요청 본문 — 초대 토큰 하나로 시작하는 다섯 함수의 공통 부분 */
@@ -271,7 +290,9 @@ export interface DeviceTokenRegisterRequest {
  */
 export const ENDPOINT = {
   promiseCreate: 'promise-create',
+  promiseDraftUpdate: 'promise-draft-update',
   promiseInvite: 'promise-invite',
+  inviteRevoke: 'invite-revoke',
   inviteResolve: 'invite-resolve',
   invitePreview: 'invite-preview',
   promiseApprove: 'promise-approve',
