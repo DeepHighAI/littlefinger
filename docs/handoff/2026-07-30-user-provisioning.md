@@ -59,9 +59,17 @@ instruction — it follows from 최초, but say so if it is ever questioned.)
 
 ### RPC + Edge Function
 
-`lf_user_provision(p_user_id, p_surface, p_kakao_id, p_nickname, p_profile_image_url)`:
+`lf_user_provision(p_user_id, p_surface, p_nickname, p_profile_image_url)`:
 
 - fills the placeholders; sets `primary_surface` only when it is currently NULL
+- **`kakao_id` is not a parameter.** The function reads it itself:
+  ```sql
+  select i.provider_id into v_kakao_id
+  from auth.identities i
+  where i.user_id = p_user_id and i.provider = 'kakao';
+  ```
+  It runs as `service_role`, so the `auth` schema is readable. See "Where the Kakao 회원번호 lives"
+  below for why it must not come from the client or from `user_metadata`.
 - `security definer`, and the **three-way revoke** — `revoke all … from public, anon, authenticated`
   then `grant execute … to service_role`. `from public` alone leaves it callable with the anon key.
 
@@ -73,10 +81,40 @@ no NT-* event for signup).
 Client call sites: web — after `detectSessionInUrl` picks the session up on SCR-W01; app — after
 `setSession`. Both call it once per login; it must be idempotent.
 
-**Unverified:** where Kakao's 회원번호 actually lands in `auth.users`. It is expected at
-`raw_user_meta_data->>'provider_id'` (also `sub`), but no real Kakao row has been inspected. Confirm
-before writing the correcting call, or `kakao_id` will stay `pending:…` forever with no symptom until
-EC-A05's account-identity rule needs it.
+### Where the Kakao 회원번호 lives (verified 2026-07-30 against gotrue source)
+
+`internal/api/provider/kakao.go` sets both fields to the numeric Kakao id:
+
+```go
+Subject:    strconv.Itoa(u.ID),
+ProviderId: strconv.Itoa(u.ID),
+```
+
+`external.go` turns the claims into a map with `identityData = structs.Map(userData.Metadata)` and
+writes it to **both** `identities.identity_data` and, via `user.UpdateUserMetaData(tx, identityData)`,
+`users.raw_user_meta_data`. The `Claims` struct carries matching `json:` **and** `structs:` tags, so
+the keys are snake_case — `structs.Map` reads the `structs` tag, not the `json` one, and it would have
+produced `Subject`/`ProviderId` if only `json` tags existed.
+
+So the value is in three places. **Use `auth.identities.provider_id`**, a real NOT NULL column whose
+documented contents are "the user's account ID with that provider":
+
+| Location | Verdict |
+|---|---|
+| `auth.identities.provider_id` | **Use this.** No client API writes it |
+| `auth.identities.identity_data->>'sub'` | Same value, also not client-writable. A JSON read for no gain |
+| `auth.users.raw_user_meta_data->>'sub'` | **Do not use.** This is `user_metadata`, and `updateUser({data})` lets the user overwrite it — they could claim someone else's 회원번호, which EC-A05 uses as the account-identity key |
+| `…->>'provider_id'` | Same, and gotrue marks the `ProviderId` claim **deprecated** |
+
+Two consequences for the trigger, both already satisfied by writing placeholders only:
+
+- The claims use `omitempty`, so a user who refuses `profile_nickname` ([선택 동의], §6-1) produces a
+  metadata map with **no `name` key at all** — absent, not empty string. `coalesce` on a missing JSON
+  key works; do not test for `''`.
+- `raw_user_meta_data` is written by an `UpdateUserMetaData` **UPDATE**, and `auth.identities` is
+  created after the user row, so **neither is reliably present when an `after insert on auth.users`
+  trigger fires.** The trigger must not read either one. The correcting call runs after login, when
+  both exist.
 
 ## The exact next step
 
