@@ -65,7 +65,8 @@ export type ApiValidationField =
   | 'amend_suggestion'
   | 'idempotency_key'
   | 'nickname'
-  | 'profile_image_url';
+  | 'profile_image_url'
+  | 'expo_push_token';
 
 export type ApiErrorAction = 'AMEND_SUGGEST';
 
@@ -256,6 +257,11 @@ export interface UserProvisionRequest {
   profile_image_url?: string;
 }
 
+/** 앱 로그인 뒤 Expo Push Service 토큰 등록(§4-1-3.5). 플랫폼은 Android로 서버가 고정한다. */
+export interface DeviceTokenRegisterRequest {
+  expo_push_token: string;
+}
+
 /**
  * Edge Function 슬러그. `04` §7-3 의 이름을 그대로 쓴다.
  *
@@ -272,6 +278,7 @@ export const ENDPOINT = {
   promiseDecline: 'promise-decline',
   promiseAmend: 'promise-amend',
   userProvision: 'user-provision',
+  deviceTokenRegister: 'device-token-register',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];
