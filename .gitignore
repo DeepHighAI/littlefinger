@@ -2,6 +2,7 @@
 .playwright-mcp/
 *.png
 !design-reference/**/*.png
+!apps/mobile/assets/images/*.png
 
 # 빌드·테스트 산출물
 dist/
