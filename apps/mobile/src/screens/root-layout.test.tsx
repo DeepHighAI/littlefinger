@@ -3,7 +3,7 @@ import { act, render } from '@testing-library/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 
 import type { MobileSessionGateEvents } from '../lib/session-gate.ts';
-import RootLayout from './_layout';
+import RootLayout from '../app/_layout';
 
 const SESSION = {
   access_token: 'access-token',
