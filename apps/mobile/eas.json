@@ -2,8 +2,11 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "environment": "development"
     },
-    "production": {}
+    "production": {
+      "environment": "production"
+    }
   }
 }
