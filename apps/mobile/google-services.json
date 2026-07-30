@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "962724020443",
+    "project_id": "littlefinger-app-philwoo",
+    "storage_bucket": "littlefinger-app-philwoo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:962724020443:android:9062f46e7b529fbde08cfe",
+        "android_client_info": {
+          "package_name": "com.littlefinger.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAfXJHdvDS7JbJT4KhmtD5iAUL9Jv2kcI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -31,6 +31,10 @@ ios/
 *.jks
 *.keystore
 
+# 공개 클라이언트 설정과 달리 Firebase 서버 자격 증명은 절대 커밋하지 않는다.
+**/*-firebase-adminsdk-*.json
+**/firebase-service-account*.json
+
 # Pretendard 원본 배포판(67MB). 앱이 쓰는 4종은 apps/mobile/assets/fonts/ 에 있다.
 # 배포판 전체를 저장소에 두면 모든 클론이 그 비용을 영구히 낸다.
 /fonts/
