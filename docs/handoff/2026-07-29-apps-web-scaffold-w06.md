@@ -14,40 +14,52 @@ PO on 2026-07-29 and are kept below as history, because both cost a session's wo
 [종료일 변경 요청하기] are wired to their live endpoints. A partner can decline, and an EC-B10 promise
 is no longer trapped in PENDING. **Nothing blocks the flow now except the Kakao Dashboard setup.**
 
-## LIVE BREAKAGE — every authenticated Edge Function is failing (found 2026-07-29, unfixed)
+## LIVE BREAKAGE — diagnosed 2026-07-30. It was never `auth.getUser`.
 
 **Read this first. It is the only thing that matters right now.**
 
-A real Kakao session was obtained for the first time and used to call `promise-create`. The function
-answered **401 `E_AUTH_REQUIRED`** on a token that is provably valid:
+Every authenticated Edge Function answers **401 `E_AUTH_REQUIRED`** on a provably valid token. The
+cause is now known, and it is not authentication:
 
-| Probe | Result |
-|---|---|
-| `GET /auth/v1/user` with that token + the anon key as `apikey` | **200**, user `46f418c0-fc89-4db3-9947-1f7f6c54c068` |
-| The same token through `promise-create` | **401 `E_AUTH_REQUIRED`** |
+> **Nothing in production ever creates a `public.users` row.** `lf_assert_actor`
+> (`20260727000009_promise_create_invite.sql:92-96`) does `select status … where id = p_user_id` and
+> raises `E_AUTH_REQUIRED` when `not found`. There is no trigger on `auth.users`, no INSERT policy on
+> `public.users`, and the only `insert into public.users` in the whole repo is
+> `supabase/tests/harness.ts:137` — the PGlite harness.
 
-So the token is fine and the failure is inside the function. `authenticate` is one line —
-`admin.auth.getUser(jwt)` at `supabase/functions/_shared/runtime.ts:62` — and it lives in `_shared`,
-which means **all five `verify_jwt = true` functions are affected**: create, invite, preview,
-approve, decline/amend. Right now nothing that requires a login works against the live project.
+So every logged-in user, Kakao or not, is refused by the actor guard. `authenticate` was innocent the
+whole time.
 
-**The cause is unknown.** Code and secrets have both been checked and are fine — do not spend the
-next session there. In particular the first diagnosis written here, an ES256/HS256 key-generation
-mismatch between the project's JWT signing key and the keys in `.env` / the function secrets, was
-**wrong and is ruled out**. The narrowing that does hold: the `rpc` path works, so
-`SUPABASE_SERVICE_ROLE_KEY` and the admin client reach Postgres correctly. Only `auth.getUser` fails.
+**How it was settled** (all empirical, 2026-07-30, with a real ES256 user token from an anonymous
+sign-in — the PO enabled anonymous sign-ins briefly for this and turned them back off):
 
-**The next step is to observe it, not to theorise.** Line 63 discards the reason —
-`if (error !== null || data.user === null) throw new ApiError('E_AUTH_REQUIRED')` — so the real
-message from `getUser` has never been seen. Log it, redeploy, call again, and read what it says.
+| Probe | Result | What it proves |
+|---|---|---|
+| `promise-create`, non-UUID `Idempotency-Key` | `E_VALIDATION` 422 | **`authenticate` passes.** It runs *before* `idempotencyKeyOf` (`handler.ts:60-61`), so this is a one-bit auth probe |
+| `promise-create`, everything valid | `E_AUTH_REQUIRED` 401 | The only wall left is `lf_assert_actor` (`lf_promise_create:463`) |
+| `getUser` inside the function, anon key **and** service_role key | **200** both | `getUser` is fine with either key generation |
+| Anonymous token's JWT header vs the project JWKS | `ES256`, same `kid` | **ES256 is not the problem** — positive evidence, not just the PO's word |
+| `invite-resolve` with a junk token | `E_NOT_FOUND` 404 | service_role and the admin client reach Postgres correctly |
 
-**Why 987 passing tests and a clean deploy check missed it:** PGlite never issues a real JWT, and the
-post-deploy probes only asserted *rejection* paths (401 without auth, `E_AUTH_REQUIRED` for the anon
-JWT, 42501 for the direct RPC). Nothing had ever presented a **valid user token** until now. The
-invite link could not be issued, but the failure it would have hit is now found instead.
+**Two earlier diagnoses in this section were wrong.** First an ES256/HS256 key-generation mismatch;
+then "unknown `getUser` failure — log it". Both are dead. The reason the same symptom survived two
+diagnoses is worth keeping:
 
-A live session is in the browser tab and was valid for ~58 minutes from the check, so the probe above
-can be repeated without logging in again.
+- **`E_AUTH_REQUIRED` has two raisers** — `authenticate` and `lf_assert_actor` — and the HTTP response
+  is byte-identical either way.
+- **`failureResponse` logs only *unmapped* codes.** A known code raised by an RPC returns silently, so
+  log silence does not mean the RPC was never reached. The `getUser` logging added in `5680259` would
+  never have fired here.
+- **987 PGlite tests pass because the harness provisions the row production never does.** That is the
+  precise shape of the hole, and it will hide every future actor-guard regression the same way.
+
+Incidental finding, worth knowing before it bites: the keys Supabase injects into Edge Functions are
+**new-format** — `SUPABASE_ANON_KEY` is `sb_publishable_…` (46 chars) and `SUPABASE_SERVICE_ROLE_KEY`
+is `sb_secret_…` (41 chars) — while `.env` still ships the legacy anon JWT (208 chars, `eyJ…`). Both
+work today; CLAUDE.md §9's "기존 `anon public` JWT" is describing the client side only.
+
+**The fix is a user-provisioning path, and it is a design decision, not a typo.** See "The exact next
+step".
 
 ## Goal of the session
 
@@ -338,6 +350,28 @@ the mutation back.
 | G4-e | **The 의견 label was made visible.** The reference uses an `lf-sr-only` label plus a placeholder ending in "(선택)", but §4-3-4 makes the field **required**, so that placeholder could not be used as written. This is a visible difference from the reference and will surface in any visual diff |
 
 ## The exact next step
+
+**Build the user-provisioning path.** `public.users` has no writer. Until it has one, every
+authenticated call fails and nothing downstream of login can be verified. `02` §6-2 defines the table
+and `primary_surface` is the **signup** surface, so provisioning has to happen at first login and has
+to know which surface the user arrived on — which means the choice below is not free:
+
+| Option | Shape | Cost |
+|---|---|---|
+| A | `after insert on auth.users` trigger → `insert into public.users` | One migration, no client change, works for every provider. But the trigger cannot know the surface, and `nickname` has to come out of `raw_user_meta_data` |
+| B | A `lf_user_provision` RPC behind a new `user-provision` Edge Function, called once after login | Surface comes from the `Origin` header the same way `approvals.surface` already does (§5-6). One more function and one more client call on the login path |
+| C | Provision lazily inside `lf_assert_actor` | Smallest diff, worst place — the guard would stop being a guard, and a `stable` function cannot INSERT |
+
+C is out on the `stable` grounds alone (`lf_assert_actor` is `stable`, and so is `lf_invite_preview`
+which calls it — Postgres rejects INSERT inside both). **A vs B is a PO decision**, and it turns on
+whether `primary_surface` must be accurate for the first user cohort. `nickname` is typed non-null
+and Kakao's `profile_nickname` is [선택 동의] (see below), so whichever option is chosen needs an
+answer for the user who refuses it.
+
+Note the fix is **not** urgent-in-code: `authenticate`, `getUser`, the keys, RLS and all seven
+functions are healthy. What is missing is one row per user.
+
+
 
 **Kakao is configured and verified working (2026-07-29)** — consent screen, callback and session all
 confirmed, and the account was created with no email, proving "Allow users without an email". Note
