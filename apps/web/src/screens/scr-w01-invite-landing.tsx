@@ -38,6 +38,8 @@ const PREVIEW_HINT = '자세한 내용은 로그인 후 볼 수 있어요';
 const SERVICE_INTRO_LINES = ['리틀핑거는 둘이 합의한 약속을 기록하고', '지키게 돕는 서비스예요'];
 const KAKAO_CTA = '카카오 로그인하고 내용 보기';
 const CTA_CAPTION = '앱 설치 없이 3분이면 끝나요';
+const KAKAO_SILENT_ATTEMPT_KEY = 'lf:kakao-silent-attempted';
+const KAKAOTALK_USER_AGENT = /KAKAOTALK/iu;
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
@@ -197,7 +199,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
     return () => clearInterval(timer);
   }, [phase.kind]);
 
-  const handleKakaoLogin = useCallback(async (): Promise<void> => {
+  const handleKakaoLogin = useCallback(async (prompt?: 'none'): Promise<void> => {
     setSigningIn(true);
     setSignInFailed(false);
     try {
@@ -210,6 +212,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
           // 로그인 자체가 깨진다. 같은 초대 URL 로 돌아오면 토큰은 경로에 그대로 있고,
           // 명세가 `state` 에 요구한 것(로그인 후 이 초대로 복귀)은 그대로 성립한다.
           redirectTo: `${window.location.origin}${invitePath(token ?? '')}`,
+          ...(prompt === undefined ? {} : { queryParams: { prompt } }),
         },
       });
       if (error) throw error;
@@ -220,6 +223,23 @@ export function ScrW01InviteLanding(): React.JSX.Element {
       setSignInFailed(true);
     }
   }, [token]);
+
+  useEffect(() => {
+    if (
+      phase.kind !== 'READY' ||
+      signedIn !== false ||
+      phase.invite.target_role !== 'PARTNER' ||
+      !KAKAOTALK_USER_AGENT.test(window.navigator.userAgent) ||
+      window.sessionStorage.getItem(KAKAO_SILENT_ATTEMPT_KEY) === '1'
+    ) {
+      return;
+    }
+
+    // 리다이렉트가 실패로 돌아와도 다시 prompt=none 으로 튕기지 않게 탭에서 한 번만 한다.
+    // 초대 토큰은 저장하지 않는다 — 원문 토큰을 브라우저 저장소에 복제할 이유가 없다.
+    window.sessionStorage.setItem(KAKAO_SILENT_ATTEMPT_KEY, '1');
+    void handleKakaoLogin('none');
+  }, [handleKakaoLogin, phase, signedIn]);
 
   if (phase.kind === 'UNAVAILABLE') {
     return <ScrW06LinkExpired reason={phase.reason} />;

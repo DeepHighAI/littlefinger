@@ -256,6 +256,39 @@ describe('SCR-W01 초대 랜딩', () => {
     expect(new URL(redirectTo).pathname).toBe(invitePath(TOKEN));
   });
 
+  it('카카오톡 인앱 브라우저는 prompt=none 실패 뒤 수동 CTA 로 돌아온다', async () => {
+    // 자동 시도가 빠지면 카카오톡에 이미 로그인한 상대도 버튼을 한 번 더 눌러야 한다.
+    // 실패 뒤 signingIn 이 풀리지 않으면 일반 로그인으로 폴백할 방법도 사라진다.
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
+      'Mozilla/5.0 KAKAOTALK 11.4.0',
+    );
+    signInWithOAuth.mockResolvedValue({
+      data: {},
+      error: new Error('silent login unavailable'),
+    });
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+
+    renderAt();
+
+    const button = await screen.findByRole('button');
+    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
+    expect(signInWithOAuth).toHaveBeenNthCalledWith(1, {
+      provider: 'kakao',
+      options: {
+        redirectTo: `${window.location.origin}${invitePath(TOKEN)}`,
+        queryParams: { prompt: 'none' },
+      },
+    });
+    expect((button as HTMLButtonElement).disabled).toBe(false);
+
+    fireEvent.click(button);
+    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(2));
+    expect(signInWithOAuth).toHaveBeenNthCalledWith(2, {
+      provider: 'kakao',
+      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}` },
+    });
+  });
+
   it('로그인이 실패해도 CTA 는 남고 안내만 바뀐다', async () => {
     // 카카오 프로바이더가 아직 대시보드에 없어서 오늘은 이 경로가 실제로 돈다.
     signInWithOAuth.mockResolvedValue({ data: {}, error: new Error('provider not enabled') });

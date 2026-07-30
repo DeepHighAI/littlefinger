@@ -54,6 +54,9 @@ export const QUIET_HOURS_KST = { startHour: 21, endHour: 8 } as const;
 export const ACCESS_TOKEN_TTL_MIN = 30;
 export const REFRESH_TOKEN_TTL_DAYS = 30;
 
+/** 카카오 OAuth 세션 교환 실패 재시도 간격(EC-A02). 최초 호출 뒤 세 번 재시도한다. */
+export const AUTH_SESSION_RETRY_DELAYS_MS: readonly number[] = [1000, 2000, 4000];
+
 /** 약속 지킴율을 %로 보여주기 위한 최소 표본. 미만이면 "집계 중"으로 표시한다(S-2). */
 export const TRUST_MIN_SAMPLE = 3;
 

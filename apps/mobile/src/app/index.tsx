@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react';
+import * as Linking from 'expo-linking';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -5,7 +7,10 @@ import { LfButton } from '../components/LfButton';
 import { LfNotice } from '../components/LfNotice';
 import { LfPinky } from '../components/LfPinky';
 import { LfStack } from '../components/LfStack';
-import { LfText } from '../components/LfText';
+import {
+  completeKakaoSignIn,
+  signInWithKakao,
+} from '../lib/kakao-auth-native.ts';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, line, space, type, weight } from '../theme/tokens';
 
@@ -29,6 +34,9 @@ const WORDMARK_LINE = 38;
 const WORDMARK_TRACKING = -0.5;
 const SUBTITLE_SIZE = 15;
 const ACTIONS_BOTTOM = 28;
+const KAKAO_LOGIN_CANCELED_LABEL = '로그인을 취소했습니다. 다시 시도해 주세요.';
+const KAKAO_LOGIN_ERROR_LABEL =
+  '지금 카카오 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -73,10 +81,59 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: brandFontFamily(weight.regular),
   },
+  authMessage: {
+    fontSize: type.caption,
+    lineHeight: line.micro,
+    color: colors.error,
+    textAlign: 'center',
+    fontFamily: brandFontFamily(weight.medium),
+  },
   termsLink: { textDecorationLine: 'underline' },
 });
 
 export default function LoginScreen(): React.JSX.Element {
+  const callbackUrl = Linking.useLinkingURL();
+  const handledCallbackUrl = useRef<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (
+      callbackUrl === null ||
+      !callbackUrl.startsWith('littlefinger://auth-callback') ||
+      handledCallbackUrl.current === callbackUrl
+    ) {
+      return;
+    }
+
+    handledCallbackUrl.current = callbackUrl;
+    // 버튼에서 연 브라우저의 콜백은 대기 중인 signInWithKakao가 처리한다.
+    if (signingIn) return;
+
+    setSigningIn(true);
+    setAuthMessage(null);
+    void completeKakaoSignIn(callbackUrl)
+      .catch(() => {
+        setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
+      })
+      .finally(() => {
+        setSigningIn(false);
+      });
+  }, [callbackUrl, signingIn]);
+
+  async function handleKakaoLogin(): Promise<void> {
+    setSigningIn(true);
+    setAuthMessage(null);
+    try {
+      const result = await signInWithKakao();
+      if (result === 'CANCELED') setAuthMessage(KAKAO_LOGIN_CANCELED_LABEL);
+    } catch {
+      setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
+    } finally {
+      setSigningIn(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.body}>
@@ -99,7 +156,19 @@ export default function LoginScreen(): React.JSX.Element {
 
       <View style={styles.actions}>
         <LfStack gap={6}>
-          <LfButton variant="kakao" size="cta" block label="카카오로 시작하기" />
+          <LfButton
+            variant="kakao"
+            size="cta"
+            block
+            label="카카오로 시작하기"
+            disabled={signingIn}
+            onPress={() => void handleKakaoLogin()}
+          />
+          {authMessage !== null && (
+            <Text accessibilityRole="alert" style={styles.authMessage}>
+              {authMessage}
+            </Text>
+          )}
           <Text style={styles.terms}>
             시작하면 <Text style={styles.termsLink}>이용약관</Text>과{' '}
             <Text style={styles.termsLink}>개인정보 처리방침</Text>에 동의하게 돼요
