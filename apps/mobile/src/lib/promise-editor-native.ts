@@ -6,10 +6,17 @@ import {
   toKstDate,
   type PromiseInviteResponse,
 } from '@littlefinger/shared';
-import * as Crypto from 'expo-crypto';
 
 import { PromiseDraftRepository } from './draft-autosave.ts';
-import { MobileApiError, callMobileFunction } from './mobile-api.ts';
+import {
+  ensureInviteToken,
+  InviteRepository,
+} from './invite-flow.ts';
+import {
+  callMobileFunctionNative,
+  currentMobileUserId,
+} from './mobile-api-native.ts';
+import { MobileApiError } from './mobile-api.ts';
 import {
   EMPTY_PROMISE_DRAFT,
   type PromiseDraftFields,
@@ -17,23 +24,11 @@ import {
 import { submitPromiseDraft } from './promise-editor-api.ts';
 import {
   getMobileEncryptedStorage,
-  getMobileFunctionUrl,
   getMobileSupabaseClient,
 } from './supabase-native.ts';
 
 const KST_TIME_ZONE = 'Asia/Seoul';
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-async function currentUserId(): Promise<string> {
-  const { data, error } = await getMobileSupabaseClient().auth.getSession();
-  if (error !== null || data.session === null) {
-    throw new MobileApiError(
-      'E_AUTH_REQUIRED',
-      ERROR_MESSAGE.E_AUTH_REQUIRED ?? '다시 로그인해 주세요.',
-    );
-  }
-  return data.session.user.id;
-}
 
 function repository(): PromiseDraftRepository {
   return new PromiseDraftRepository(getMobileEncryptedStorage());
@@ -55,7 +50,7 @@ function asDraft(row: Record<string, unknown>): PromiseDraftFields {
 export async function loadEditorDraft(
   promiseId: string | null,
 ): Promise<PromiseDraftFields> {
-  const userId = await currentUserId();
+  const userId = await currentMobileUserId();
   const local = await repository().load(userId, promiseId);
   if (local !== null) return local;
   if (promiseId === null) return EMPTY_PROMISE_DRAFT;
@@ -80,35 +75,18 @@ export async function saveEditorLocalDraft(
   promiseId: string | null,
   draft: PromiseDraftFields,
 ): Promise<void> {
-  await repository().save(await currentUserId(), promiseId, draft);
+  await repository().save(await currentMobileUserId(), promiseId, draft);
 }
 
 export async function clearEditorLocalDraft(promiseId: string | null): Promise<void> {
-  await repository().remove(await currentUserId(), promiseId);
+  await repository().remove(await currentMobileUserId(), promiseId);
 }
 
-async function callNative<T>(
-  endpoint: Parameters<typeof getMobileFunctionUrl>[0],
-  body: unknown,
-  options: { idempotent?: boolean },
-): Promise<T> {
-  return await callMobileFunction<T>(endpoint, body, options, {
-    fetch: async (url, init) => await fetch(url, init),
-    functionUrl: getMobileFunctionUrl,
-    getAccessToken: async () => {
-      const { data, error } = await getMobileSupabaseClient().auth.getSession();
-      if (error !== null) return null;
-      return data.session?.access_token ?? null;
-    },
-    randomUuid: () => Crypto.randomUUID(),
-  });
-}
-
-async function saveInvite(response: PromiseInviteResponse): Promise<void> {
-  const userId = await currentUserId();
-  await getMobileEncryptedStorage().setItem(
-    `lf.invite.${userId}.${response.promise_id}`,
-    JSON.stringify(response),
+async function issueInvite(promiseId: string): Promise<PromiseInviteResponse> {
+  return await callMobileFunctionNative(
+    ENDPOINT.promiseInvite,
+    { promise_id: promiseId },
+    { idempotent: true },
   );
 }
 
@@ -117,17 +95,17 @@ export async function submitEditorDraft(
   promiseId: string | null,
   send: boolean,
 ) {
-  let response = await submitPromiseDraft(draft, promiseId, send, { call: callNative });
+  const response = await submitPromiseDraft(draft, promiseId, send, {
+    call: callMobileFunctionNative,
+  });
 
   if (response.status === 'PENDING') {
-    if (response.token === undefined) {
-      response = await callNative<PromiseInviteResponse>(
-        ENDPOINT.promiseInvite,
-        { promise_id: response.promise_id },
-        { idempotent: true },
-      );
-    }
-    await saveInvite(response);
+    const invite = await ensureInviteToken(response, issueInvite);
+    await new InviteRepository(getMobileEncryptedStorage()).save(
+      await currentMobileUserId(),
+      invite,
+    );
+    return invite;
   }
   return response;
 }

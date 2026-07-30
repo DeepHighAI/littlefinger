@@ -45,6 +45,7 @@ export default function RootLayout(): React.JSX.Element {
         <Stack.Protected guard={session !== null}>
           <Stack.Screen name="home" />
           <Stack.Screen name="promise/edit" />
+          <Stack.Screen name="invite" />
         </Stack.Protected>
       </Stack>
     </MobileAuthGateContext.Provider>
