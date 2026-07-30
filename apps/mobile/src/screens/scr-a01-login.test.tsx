@@ -1,24 +1,15 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
-import * as Linking from 'expo-linking';
 
-import {
-  completeKakaoSignIn,
-  signInWithKakao,
-} from '../lib/kakao-auth-native.ts';
+import { signInWithKakao } from '../lib/kakao-auth-native.ts';
+import { MobileAuthGateContext } from '../lib/mobile-auth-gate.ts';
 import { colors } from '../theme/tokens';
 import LoginScreen from '../app/index';
 
 jest.mock('../lib/kakao-auth-native.ts', () => ({
-  completeKakaoSignIn: jest.fn(),
   signInWithKakao: jest.fn(),
 }));
-jest.mock('expo-linking', () => ({
-  useLinkingURL: jest.fn(),
-}));
 
-const completeKakaoSignInMock = jest.mocked(completeKakaoSignIn);
 const signInWithKakaoMock = jest.mocked(signInWithKakao);
-const useLinkingURLMock = jest.mocked(Linking.useLinkingURL);
 
 /**
  * SCR-A01 로그인 — 04 §10 M0-3.
@@ -28,12 +19,8 @@ const useLinkingURLMock = jest.mocked(Linking.useLinkingURL);
  */
 describe('SCR-A01 로그인', () => {
   beforeEach(() => {
-    completeKakaoSignInMock.mockReset();
-    completeKakaoSignInMock.mockResolvedValue('SIGNED_IN');
     signInWithKakaoMock.mockReset();
     signInWithKakaoMock.mockResolvedValue('SIGNED_IN');
-    useLinkingURLMock.mockReset();
-    useLinkingURLMock.mockReturnValue(null);
   });
 
   test('브랜드 워드마크를 보여준다', async () => {
@@ -98,20 +85,18 @@ describe('SCR-A01 로그인', () => {
   });
 
   test('콜드 스타트 OAuth 딥링크 실패도 EC-A02 안내를 보여준다', async () => {
-    // 브라우저가 앱 프로세스를 새로 띄우면 버튼 handler의 대기 promise가 없으므로
-    // Linking 진입점에서 같은 세션 교환을 수행해야 한다.
-    const callbackUrl =
-      'littlefinger://auth-callback#access_token=access-token&refresh_token=refresh-token';
-    useLinkingURLMock.mockReturnValue(callbackUrl);
-    completeKakaoSignInMock.mockRejectedValue(new Error('callback details'));
-    const view = await render(<LoginScreen />);
+    // 딥링크 교환은 루트 게이트가 맡고, 화면에는 실패 여부만 내려준다.
+    const view = await render(
+      <MobileAuthGateContext.Provider value={{ callbackFailed: true }}>
+        <LoginScreen />
+      </MobileAuthGateContext.Provider>,
+    );
 
     expect(
       await view.findByText(
         '지금 카카오 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.',
       ),
     ).toBeTruthy();
-    expect(completeKakaoSignInMock).toHaveBeenCalledWith(callbackUrl);
   });
 
   test('약관 동의 안내를 보여준다', async () => {

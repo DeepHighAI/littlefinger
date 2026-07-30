@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-import * as Linking from 'expo-linking';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,9 +7,9 @@ import { LfNotice } from '../components/LfNotice';
 import { LfPinky } from '../components/LfPinky';
 import { LfStack } from '../components/LfStack';
 import {
-  completeKakaoSignIn,
   signInWithKakao,
 } from '../lib/kakao-auth-native.ts';
+import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, line, space, type, weight } from '../theme/tokens';
 
@@ -92,34 +91,13 @@ const styles = StyleSheet.create({
 });
 
 export default function LoginScreen(): React.JSX.Element {
-  const callbackUrl = Linking.useLinkingURL();
-  const handledCallbackUrl = useRef<string | null>(null);
+  const { callbackFailed } = useMobileAuthGate();
   const [signingIn, setSigningIn] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (
-      callbackUrl === null ||
-      !callbackUrl.startsWith('littlefinger://auth-callback') ||
-      handledCallbackUrl.current === callbackUrl
-    ) {
-      return;
-    }
-
-    handledCallbackUrl.current = callbackUrl;
-    // 버튼에서 연 브라우저의 콜백은 대기 중인 signInWithKakao가 처리한다.
-    if (signingIn) return;
-
-    setSigningIn(true);
-    setAuthMessage(null);
-    void completeKakaoSignIn(callbackUrl)
-      .catch(() => {
-        setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
-      })
-      .finally(() => {
-        setSigningIn(false);
-      });
-  }, [callbackUrl, signingIn]);
+    if (callbackFailed) setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
+  }, [callbackFailed]);
 
   async function handleKakaoLogin(): Promise<void> {
     setSigningIn(true);

@@ -28,10 +28,23 @@
         }
       ],
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ce837ab0-f156-4daf-8e60-1b64c2e2b0f0"
+      }
+    },
+    "owner": "philwoo"
   }
 }
