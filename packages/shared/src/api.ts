@@ -44,7 +44,12 @@ export interface ApiErrorBody {
   action?: ApiErrorAction;
 }
 
-/** §5 의 코드 키. 껍데기가 실제로 돌려줄 수 있는 것만 적는다. */
+/**
+ * §5 의 코드 키. 껍데기가 실제로 돌려줄 수 있는 것만 적는다.
+ *
+ * `nickname`·`profile_image_url` 만 §5 밖이다 — 사용자 입력이 아니라 카카오 프로필에서
+ * 온 값이라 §5 에 없고, user-provision 껍데기의 형태 판정만 이 이름을 쓴다.
+ */
 export type ApiValidationField =
   | 'token'
   | 'title'
@@ -58,7 +63,9 @@ export type ApiValidationField =
   | 'promise_id'
   | 'decline_reason'
   | 'amend_suggestion'
-  | 'idempotency_key';
+  | 'idempotency_key'
+  | 'nickname'
+  | 'profile_image_url';
 
 export type ApiErrorAction = 'AMEND_SUGGEST';
 
@@ -226,6 +233,30 @@ export interface PromiseAmendRequest extends InviteTokenRequest {
 }
 
 /**
+ * 로그인 직후 `public.users` 행 보정 (02 §165, 핸드오프 2026-07-30).
+ *
+ * 트리거(`lf_user_stub`)는 로그인을 지키기 위해 대진값만 쓴다 — `after insert on auth.users`
+ * 시점에는 `auth.identities` 도 `raw_user_meta_data` 도 아직 없기 때문이다. 이 호출이
+ * 로그인 뒤에 진짜 값을 채운다. 로그인마다 한 번 부르고, RPC 가 멱등이라(먼저 쓴 값이
+ * 이긴다) 중복 호출은 무해하다.
+ *
+ * **여기 없는 두 값이 이 타입의 본질이다.**
+ * - `kakao_id` — RPC 가 `auth.identities.provider_id` 에서 직접 읽는다. 클라이언트가
+ *   보내게 두면 남의 회원번호를 주장할 수 있고, EC-A05 가 계정 동일성 판정에 쓰는 값이다.
+ * - `surface` — 껍데기가 `Origin` 헤더의 유무로 판정한다. `approvals.surface` 와 같은 규칙.
+ *
+ * 두 필드 모두 선택이다. 카카오 profile_nickname 은 [선택 동의]라(§6-1) 거부한 사용자의
+ * metadata 에는 키가 **아예 없다** — 그때는 보내지 않고, 서버가 대진값을 유지한다.
+ *
+ * 성공 응답은 **204, 본문 없음**이다. RPC 가 `returns void` 라 실을 payload 가 없고,
+ * 이 파일의 봉투 원칙(성공은 RPC payload 를 그대로)에서 "없음"의 정직한 표현은 204 다.
+ */
+export interface UserProvisionRequest {
+  nickname?: string;
+  profile_image_url?: string;
+}
+
+/**
  * Edge Function 슬러그. `04` §7-3 의 이름을 그대로 쓴다.
  *
  * `lf_idempotency_begin` 이 이 문자열을 (키, 사용자, 엔드포인트) 쌍의 일부로 저장하므로
@@ -240,6 +271,7 @@ export const ENDPOINT = {
   promiseApprove: 'promise-approve',
   promiseDecline: 'promise-decline',
   promiseAmend: 'promise-amend',
+  userProvision: 'user-provision',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];

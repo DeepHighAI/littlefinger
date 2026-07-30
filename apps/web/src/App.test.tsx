@@ -11,6 +11,15 @@ import { invitePath, ROUTE } from './routes.ts';
 // 영원히 오지 않게 두고, **요청에 실린 토큰**으로 경로 → 화면 연결을 확인한다.
 const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
 
+// 로그인 감시는 별도 모듈이 테스트한다(lib/user-provision.test.ts). 여기서는 App 이
+// 그것을 **걸고 푸는지**만 본다.
+const { watchSignInProvision, unwatch } = vi.hoisted(() => {
+  const unwatch = vi.fn();
+  return { watchSignInProvision: vi.fn(() => unwatch), unwatch };
+});
+
+vi.mock('./lib/user-provision.ts', () => ({ watchSignInProvision }));
+
 // Testing Library 의 자동 cleanup 은 전역 `afterEach` 가 있을 때만 등록된다. 이 저장소는
 // vitest `globals` 를 켜지 않으므로 직접 부른다 — 없으면 렌더가 쌓여 두 번째 테스트부터
 // "getByTestId 가 여러 개를 찾았다"로 깨진다.
@@ -24,6 +33,8 @@ beforeEach(() => {
   vi.stubEnv('VITE_SUPABASE_URL', 'https://test-project.supabase.co');
   vi.stubGlobal('fetch', fetchMock);
   fetchMock.mockClear();
+  watchSignInProvision.mockClear();
+  unwatch.mockClear();
 });
 
 function renderAt(path: string): void {
@@ -67,6 +78,20 @@ describe('App 라우팅', () => {
     // 도메인 계약·라벨·정책 상수가 통째로 사라진다.
     expect(ENDPOINT.invitePreview).toBe('invite-preview');
     expect(LEGAL_DISCLAIMER.length).toBeGreaterThan(0);
+  });
+
+  it('마운트 시 로그인 감시를 걸고 언마운트 시 푼다', () => {
+    // OAuth 리다이렉트는 어느 화면으로든 돌아올 수 있다(지금은 SCR-W01 뿐이지만).
+    // 감시가 화면이 아니라 App 에 있어야 화면이 늘어도 보정 호출이 빠지지 않는다.
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/nope']}>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(watchSignInProvision).toHaveBeenCalledTimes(1);
+    expect(unwatch).not.toHaveBeenCalled();
+    unmount();
+    expect(unwatch).toHaveBeenCalledTimes(1);
   });
 
   it('경로표가 초대 링크 형태를 고정한다', () => {

@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { watchSignInProvision } from './lib/user-provision.ts';
 import { ROUTE } from './routes.ts';
 import { ResponseComplete } from './screens/response-complete.tsx';
 import { ScrW01InviteLanding } from './screens/scr-w01-invite-landing.tsx';
@@ -16,6 +18,10 @@ function AuthCallbackPlaceholder(): React.JSX.Element {
 
 
 export function App(): React.JSX.Element {
+  // 화면이 아니라 App 이 건다 — OAuth 리다이렉트가 돌아오는 화면이 늘어도(지금은 SCR-W01
+  // 뿐이다) 로그인 직후의 users 행 보정이 빠지지 않는다.
+  useEffect(() => watchSignInProvision(), []);
+
   return (
     <Routes>
       <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />

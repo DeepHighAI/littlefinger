@@ -33,6 +33,15 @@ export function jsonResponse(body: unknown, status: number): Response {
 }
 
 /**
+ * `returns void` 인 RPC 의 성공. 실을 payload 가 없으므로 204 다 — `{}` 를 지어내면
+ * 클라이언트가 없는 봉투를 파싱하기 시작한다. CORS 헤더는 그대로 필요하다: 브라우저는
+ * 헤더가 없는 응답을 성공이라도 읽지 못하게 막는다.
+ */
+export function noContentResponse(): Response {
+  return new Response(null, { status: 204, headers: { ...CORS_HEADERS } });
+}
+
+/**
  * 실패 응답. 아는 코드가 아니면 **내부 오류로 뭉갠다**.
  *
  * 모르는 예외를 그대로 내보내면 Postgres 가 붙인 테이블·컬럼·값이 응답에 실린다. 그 한 줄이
