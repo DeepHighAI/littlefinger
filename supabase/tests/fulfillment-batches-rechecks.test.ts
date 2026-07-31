@@ -18,7 +18,7 @@ const REOPEN_SQL = `select public.lf_fulfillment_reopen(
   $1::uuid, $2::uuid, $3::uuid, $4::public.surface) as payload`;
 const MIGRATION_PATH = join(
   __dirname,
-  '../migrations/20260731050213_harden_fulfillment_privacy_and_lifecycle.sql',
+  '../migrations/20260731052537_harden_fulfillment_privacy_and_lifecycle.sql',
 );
 
 let db: TestDb;
