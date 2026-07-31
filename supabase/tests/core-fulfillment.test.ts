@@ -413,6 +413,37 @@ describe('두 응답의 트랜잭션 판정', () => {
 });
 
 describe('신뢰 프로필 재계산', () => {
+  test('집계 전에 사용자별 transaction advisory lock을 획득한다', async () => {
+    const actor = await createUser(db, `trust-lock-${randomUUID().slice(0, 8)}`);
+    const row = await one<{ locked: boolean }>(
+      `with expected as (
+         select pg_catalog.hashtextextended(
+                  'lf_trust_profile:' || $1::uuid::text, 0
+                ) as lock_key
+       ),
+       recomputed as materialized (
+         select public.lf_recompute_trust_profile($1::uuid) as payload
+       )
+       select exists (
+                select 1
+                  from pg_catalog.pg_locks locks
+                  cross join expected
+                 where locks.locktype = 'advisory'
+                   and locks.pid = pg_backend_pid()
+                   and locks.granted
+                   and locks.objsubid = 1
+                   and locks.classid::bigint =
+                       ((expected.lock_key >> 32) & 4294967295::bigint)
+                   and locks.objid::bigint =
+                       (expected.lock_key & 4294967295::bigint)
+              ) as locked
+         from recomputed`,
+      [actor],
+    );
+
+    expect(row.locked).toBe(true);
+  });
+
   test('keeper 역할과 BOTH를 적용하고 최소 표본·분쟁·미확정 건수를 분리한다', async () => {
     const actor = await createUser(db, `trust-${randomUUID().slice(0, 8)}`);
     const other = await createUser(db, `trust-other-${randomUUID().slice(0, 8)}`);
