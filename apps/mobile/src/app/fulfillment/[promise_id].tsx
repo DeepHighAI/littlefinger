@@ -216,6 +216,15 @@ function checksByRole(
   return checks;
 }
 
+function submissionsByRole(
+  detail: PromiseFulfillmentDetailResponse,
+): Record<Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>, boolean> {
+  return {
+    CREATOR: detail.creator_has_submitted,
+    PARTNER: detail.partner_has_submitted,
+  };
+}
+
 function RoundHistory({ round }: { round: FulfillmentRoundView }): React.JSX.Element {
   return (
     <LfStack gap={4}>
@@ -413,6 +422,9 @@ export default function FulfillmentScreen(): React.JSX.Element {
   const canAnswer = isChecking && detail.my_check === null;
   const showForm = canAnswer || editing;
   const currentChecks = checksByRole(detail.my_check, detail.partner_check);
+  const currentSubmissions = submissionsByRole(detail);
+  const counterpartRole = detail.my_role === 'CREATOR' ? 'PARTNER' : 'CREATOR';
+  const counterpartHasSubmitted = currentSubmissions[counterpartRole];
   const isUnresolved = detail.status === 'UNRESOLVED';
   const isResult = ['COMPLETED', 'BROKEN', 'DISPUTED', 'UNRESOLVED'].includes(
     detail.status,
@@ -492,7 +504,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
                 </LfText>
               </View>
             </LfField>
-            {canAnswer && detail.partner_has_submitted && (
+            {canAnswer && counterpartHasSubmitted && (
               <LfCard variant="container">
                 <LfText align="center">{SCR_A06_LABEL.counterpartFirst}</LfText>
               </LfCard>
@@ -507,7 +519,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
             </LfCard>
             <ClaimCard check={detail.my_check} />
             {detail.my_check.revised_at === null &&
-            !detail.partner_has_submitted ? (
+            !counterpartHasSubmitted ? (
               <LfButton
                 label={SCR_A06_LABEL.revise}
                 variant="outlined"
@@ -542,9 +554,9 @@ export default function FulfillmentScreen(): React.JSX.Element {
             {isUnresolved
               ? CLAIM_ROLES.map((role) => (
                   <LfText key={role}>
-                    {currentChecks[role] === null
-                      ? SCR_A06_LABEL.responseMissing(role)
-                      : SCR_A06_LABEL.responseDone(role)}
+                    {currentSubmissions[role]
+                      ? SCR_A06_LABEL.responseDone(role)
+                      : SCR_A06_LABEL.responseMissing(role)}
                   </LfText>
                 ))
               : CLAIM_ROLES.map((role) =>

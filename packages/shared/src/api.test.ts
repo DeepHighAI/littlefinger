@@ -68,7 +68,9 @@ const detailResponse: PromiseFulfillmentDetailResponse = {
     nickname: '상대방',
     profile_image_url: null,
   },
+  my_role: 'CREATOR',
   my_check: null,
+  creator_has_submitted: false,
   partner_has_submitted: true,
   partner_check: null,
   history: [round],
@@ -124,7 +126,12 @@ describe('F-07 공개 API 계약', () => {
       validationFields,
     }).toMatchObject({
       summary: { needs_response: true, waiting_for_partner: false },
-      detailResponse: { partner_has_submitted: true, partner_check: null },
+      detailResponse: {
+        my_role: 'CREATOR',
+        creator_has_submitted: false,
+        partner_has_submitted: true,
+        partner_check: null,
+      },
       submitResponse: { waiting_for_partner: true, actor_nickname: '작성자' },
       reopenResponse: {
         status: 'CHECKING',

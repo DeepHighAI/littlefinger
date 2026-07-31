@@ -179,6 +179,15 @@ function checksByRole(
   };
 }
 
+function submissionsByRole(
+  detail: PromiseFulfillmentDetailResponse,
+): Record<Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>, boolean> {
+  return {
+    CREATOR: detail.creator_has_submitted,
+    PARTNER: detail.partner_has_submitted,
+  };
+}
+
 function statusChipClass(status: PromiseFulfillmentDetailResponse['status']): string {
   if (status === 'CHECKING') return 'lf-chip--urgent';
   if (status === 'COMPLETED') return 'lf-chip--done';
@@ -310,6 +319,9 @@ function PromiseCard({
   const { detail, summary } = view;
   const currentDraft = draft ?? { answer: null, comment: '', revising: false };
   const currentChecks = checksByRole(detail);
+  const currentSubmissions = submissionsByRole(detail);
+  const counterpartRole = detail.my_role === 'CREATOR' ? 'PARTNER' : 'CREATOR';
+  const counterpartHasSubmitted = currentSubmissions[counterpartRole];
 
   return (
     <li>
@@ -340,7 +352,7 @@ function PromiseCard({
             <div className="lf-info-banner lf-stack lf-gap-1 lf-mt-4">
               <p>{MY_RESPONSE_PENDING}</p>
               <p>
-                {detail.partner_has_submitted
+                {counterpartHasSubmitted
                   ? COUNTERPART_SUBMITTED
                   : COUNTERPART_RESPONSE_PENDING}
               </p>
@@ -359,9 +371,9 @@ function PromiseCard({
             <p className="lf-body--secondary">
               내 응답: {ANSWER_LABEL[detail.my_check.answer]}
             </p>
-            {!detail.partner_has_submitted && <p className="lf-caption">{WAITING_COPY}</p>}
+            {!counterpartHasSubmitted && <p className="lf-caption">{WAITING_COPY}</p>}
             {!currentDraft.revising &&
-              !detail.partner_has_submitted &&
+              !counterpartHasSubmitted &&
               detail.my_check.revised_at === null && (
                 <button
                   className="lf-btn lf-btn--tonal lf-btn--block"
@@ -424,7 +436,7 @@ function PromiseCard({
               <div className="lf-claim" key={role}>
                 <p className="lf-claim__answer">
                   {PARTICIPANT_ROLE_LABEL[role]}{' '}
-                  {currentChecks[role] === null ? '미응답' : '응답 완료'}
+                  {currentSubmissions[role] ? '응답 완료' : '미응답'}
                 </p>
               </div>
             ))}

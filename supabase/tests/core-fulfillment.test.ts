@@ -107,6 +107,26 @@ async function insertCheck(
   );
 }
 
+async function insertCheckSchedules(fixture: Fixture, roundNo = 1): Promise<void> {
+  await db.asAdmin(
+    `insert into public.reminder_schedules (
+       promise_id, user_id, kind, fire_at, check_round_no
+     )
+     select $1,
+            participant.user_id,
+            schedule.kind::public.reminder_kind,
+            now() + interval '1 hour',
+            $2
+       from (
+         values ($3::uuid), ($4::uuid)
+       ) as participant(user_id)
+       cross join (
+         values ('CHECK_REQ'), ('CHECK_R1'), ('CHECK_R2')
+       ) as schedule(kind)`,
+    [fixture.promiseId, roundNo, fixture.creatorId, fixture.partnerId],
+  );
+}
+
 beforeAll(async () => {
   db = await createTestDb();
 }, 60_000);
@@ -216,13 +236,17 @@ describe('이행 상세 읽기', () => {
 
     const before = await one<{
       payload: {
+        my_role: string;
         my_check: null;
+        creator_has_submitted: boolean;
         partner_has_submitted: boolean;
         partner_check: null;
       };
     }>(DETAIL_SQL, [fixture.creatorId, fixture.promiseId]);
     expect(before.payload).toMatchObject({
+      my_role: 'CREATOR',
       my_check: null,
+      creator_has_submitted: false,
       partner_has_submitted: true,
       partner_check: null,
     });
@@ -238,6 +262,33 @@ describe('이행 상세 읽기', () => {
     expect(after.payload.partner_check).toMatchObject({
       answer: 'NOT_KEPT',
       comment: '상대 의견',
+    });
+  });
+
+  test('UNRESOLVED 제출 사실은 작성자·상대방 어느 관점에서도 역할별로 같다', async () => {
+    const fixture = await seedChecking({ status: 'UNRESOLVED' });
+    await insertCheck(fixture, fixture.creatorId, 'KEPT');
+
+    const creator = await one<{
+      payload: Record<string, unknown>;
+    }>(DETAIL_SQL, [fixture.creatorId, fixture.promiseId]);
+    const partner = await one<{
+      payload: Record<string, unknown>;
+    }>(DETAIL_SQL, [fixture.partnerId, fixture.promiseId]);
+
+    expect(creator.payload).toMatchObject({
+      my_role: 'CREATOR',
+      creator_has_submitted: true,
+      partner_has_submitted: false,
+      my_check: expect.objectContaining({ role: 'CREATOR' }),
+      partner_check: null,
+    });
+    expect(partner.payload).toMatchObject({
+      my_role: 'PARTNER',
+      creator_has_submitted: true,
+      partner_has_submitted: false,
+      my_check: null,
+      partner_check: null,
     });
   });
 
@@ -302,6 +353,7 @@ describe('이행 응답 제출과 정정', () => {
 
   test('첫 제출·같은 키 재생·명시적 1회 정정만 허용한다', async () => {
     const fixture = await seedChecking();
+    await insertCheckSchedules(fixture);
     const key = randomUUID();
     const first = await submit(fixture, fixture.creatorId, 'KEPT', {
       key,
@@ -324,6 +376,22 @@ describe('이행 응답 제출과 정정', () => {
         { user_id: fixture.partnerId, role: 'PARTNER' },
       ]),
     });
+    const schedulesAfterFirst = await db.asAdmin(
+      `select user_id, status, count(*)::int as count
+         from public.reminder_schedules
+        where promise_id = $1
+          and check_round_no = 1
+          and kind in ('CHECK_REQ', 'CHECK_R1', 'CHECK_R2')
+        group by user_id, status
+        order by user_id`,
+      [fixture.promiseId],
+    );
+    expect(schedulesAfterFirst.rows).toEqual(
+      [
+        { user_id: fixture.creatorId, status: 'CANCELED', count: 3 },
+        { user_id: fixture.partnerId, status: 'PENDING', count: 3 },
+      ].sort((left, right) => left.user_id.localeCompare(right.user_id)),
+    );
     expect(await submit(fixture, fixture.creatorId, 'KEPT', { key, comment: '다른 내용' })).toEqual(
       first,
     );
@@ -373,11 +441,7 @@ describe('두 응답의 트랜잭션 판정', () => {
     '%s + %s는 %s로 한 번만 전이하고 완료 지표 증가량은 %s다',
     async (creatorAnswer, partnerAnswer, expectedStatus, expectedMetricDelta) => {
       const fixture = await seedChecking();
-      await db.asAdmin(
-        `insert into public.reminder_schedules (promise_id, user_id, kind, fire_at)
-         values ($1, $2, 'CHECK_R1', now() + interval '1 hour')`,
-        [fixture.promiseId, fixture.creatorId],
-      );
+      await insertCheckSchedules(fixture);
       const before = await one<{ count: number }>(
         `select coalesce(sum(completed_count), 0)::int as count from public.daily_metrics`,
       );
@@ -410,7 +474,7 @@ describe('두 응답의 트랜잭션 판정', () => {
       expect(row.checks).toBe(2);
       expect(row.metric - before.count).toBe(expectedMetricDelta);
       expect(row.closed_at === null).toBe(expectedStatus === 'DISPUTED');
-      expect(row.pending_reminders).toBe(expectedStatus === 'DISPUTED' ? 1 : 0);
+      expect(row.pending_reminders).toBe(0);
       expect(row.profiles).toBe(2);
       expect(responses.map((response) => response.status)).toContain(expectedStatus);
     },

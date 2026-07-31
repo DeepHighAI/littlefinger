@@ -83,7 +83,9 @@ function detail(
     check_round_no: 1,
     creator: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null },
     partner: { user_id: PARTNER_ID, nickname: '민준', profile_image_url: null },
+    my_role: 'PARTNER',
     my_check: null,
+    creator_has_submitted: false,
     partner_has_submitted: false,
     partner_check: null,
     history: [],
@@ -265,7 +267,7 @@ describe('SCR-W04 참여 약속', () => {
       [summary()],
       {
         [PROMISE_A]: detail({
-          partner_has_submitted: true,
+          creator_has_submitted: true,
           partner_check: null,
         }),
       },
@@ -674,7 +676,7 @@ describe('SCR-W04 참여 약속', () => {
         [PROMISE_A]: detail({
           status: 'UNRESOLVED',
           my_check: check('PARTNER', 'KEPT'),
-          partner_has_submitted: false,
+          partner_has_submitted: true,
         }),
       },
     );
@@ -683,6 +685,27 @@ describe('SCR-W04 참여 약속', () => {
     expect(await screen.findByText('작성자 미응답')).toBeTruthy();
     expect(screen.getByText('상대방 응답 완료')).toBeTruthy();
     expect(screen.queryByText(/잘못|책임|귀책/u)).toBeNull();
+  });
+
+  it('UNRESOLVED 미응답 상대방에게 숨긴 작성자 답변 대신 제출 사실을 보여준다', async () => {
+    installServer(
+      [summary({ status: 'UNRESOLVED', needs_response: false, check_deadline_at: null })],
+      {
+        [PROMISE_A]: detail({
+          status: 'UNRESOLVED',
+          my_role: 'PARTNER',
+          my_check: null,
+          creator_has_submitted: true,
+          partner_has_submitted: false,
+          partner_check: null,
+        }),
+      },
+    );
+    renderAt();
+
+    expect(await screen.findByText('작성자 응답 완료')).toBeTruthy();
+    expect(screen.getByText('상대방 미응답')).toBeTruthy();
+    expect(screen.queryByText('작성자 의견')).toBeNull();
   });
 
   it('COMPLETED와 BROKEN은 양측 주장을 같은 구조로 보여준다', async () => {

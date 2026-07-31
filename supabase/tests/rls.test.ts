@@ -312,6 +312,54 @@ describe('append-only — 감사 로그는 고치거나 지울 수 없다', () =
   });
 });
 
+describe('fulfillment_checks — 답변 원문은 Edge RPC만 읽는다', () => {
+  test('참여자도 테이블을 직접 SELECT할 수 없다', async () => {
+    const promiseId = await createPromise(db, {
+      creatorId: creator,
+      partnerId: partner,
+      status: 'CHECKING',
+    });
+    await db.asAdmin(
+      `insert into public.fulfillment_checks
+         (promise_id, version_id, user_id, answer, comment, surface)
+       select p.id, pv.id, $2, 'KEPT', '숨겨야 하는 답변', 'APP'
+         from public.promises p
+         join public.promise_versions pv
+           on pv.promise_id = p.id and pv.version_no = 1
+        where p.id = $1`,
+      [promiseId, partner],
+    );
+
+    await expect(
+      db.asUser(
+        creator,
+        `select answer, comment
+           from public.fulfillment_checks
+          where promise_id = $1`,
+        [promiseId],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
+  });
+
+  test('anon/authenticated SELECT 권한은 없고 service_role만 유지한다', async () => {
+    const { rows } = await db.asAdmin(
+      `select has_table_privilege('anon', 'public.fulfillment_checks', 'SELECT') as anon,
+              has_table_privilege(
+                'authenticated', 'public.fulfillment_checks', 'SELECT'
+              ) as authenticated,
+              has_table_privilege(
+                'service_role', 'public.fulfillment_checks', 'SELECT'
+              ) as service_role`,
+    );
+
+    expect(rows[0]).toEqual({
+      anon: false,
+      authenticated: false,
+      service_role: true,
+    });
+  });
+});
+
 describe('개인 데이터는 본인만', () => {
   test('알림함은 자기 것만 보인다', async () => {
     await db.asAdmin(

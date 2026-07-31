@@ -343,8 +343,14 @@ export interface PromiseFulfillmentDetailResponse {
     nickname: string;
     profile_image_url: string | null;
   };
+  /** 현재 호출자의 확정 역할. 역할별 제출 사실을 호출자 관점과 혼동하지 않게 한다. */
+  my_role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>;
   my_check: FulfillmentCheckView | null;
+  /** 현재 라운드 작성자 제출 여부. 답변·의견 공개 여부와 무관한 사실이다. */
+  creator_has_submitted: boolean;
+  /** 현재 라운드 상대방 제출 여부. 답변·의견 공개 여부와 무관한 사실이다. */
   partner_has_submitted: boolean;
+  /** 현재 호출자의 반대편 응답. 호출자가 미제출이면 내용 보호를 위해 null이다. */
   partner_check: FulfillmentCheckView | null;
   history: readonly FulfillmentRoundView[];
 }

@@ -109,13 +109,15 @@ const AUTH_SHIM = `
   -- 여기서 재현하지 않으면 로컬에서만 안전해 보인다.
   alter default privileges in schema public
     grant all on functions to anon, authenticated, service_role;
+  alter default privileges in schema public
+    grant all on tables to anon, authenticated, service_role;
+  alter default privileges in schema public
+    grant all on sequences to anon, authenticated, service_role;
 `;
 
-/** Supabase 는 public 스키마의 새 테이블에 대해 이 권한을 기본으로 준다. RLS 가 실제 관문이다. */
+/** 스키마 사용 권한은 객체 기본 권한과 별개다. */
 const GRANTS = `
   grant usage on schema public to anon, authenticated, service_role;
-  grant all on all tables in schema public to anon, authenticated, service_role;
-  grant all on all sequences in schema public to anon, authenticated, service_role;
   grant usage on schema auth to anon, authenticated, service_role;
   grant select on auth.users to anon, authenticated, service_role;
   grant select on auth.identities to anon, authenticated, service_role;

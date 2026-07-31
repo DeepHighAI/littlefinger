@@ -4,6 +4,10 @@ import { join } from 'node:path';
 
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
+import {
+  CHECK_DEADLINE_DAYS,
+  REMINDER_SEND_HOUR_KST,
+} from '../../packages/shared/src/config.ts';
 import { createPromise, createTestDb, createUser, type TestDb } from './harness.ts';
 
 const ENTER_SQL =
@@ -14,7 +18,7 @@ const REOPEN_SQL = `select public.lf_fulfillment_reopen(
   $1::uuid, $2::uuid, $3::uuid, $4::public.surface) as payload`;
 const MIGRATION_PATH = join(
   __dirname,
-  '../migrations/20260731000003_fulfillment_batches_rechecks.sql',
+  '../migrations/20260731050213_harden_fulfillment_privacy_and_lifecycle.sql',
 );
 
 let db: TestDb;
@@ -104,6 +108,155 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await db.close();
+});
+
+describe('F-07 SQL 원격 정책값', () => {
+  test('spec 기본행과 단일 accessor가 shared 기본값과 같다', async () => {
+    const row = await one<{
+      deadline_config: number;
+      hour_config: number;
+      deadline_value: number;
+      hour_value: number;
+    }>(
+      `select (select value #>> '{}' from public.app_configs
+                where key = 'check_deadline_days')::int as deadline_config,
+              (select value #>> '{}' from public.app_configs
+                where key = 'reminder_send_hour_kst')::int as hour_config,
+              public.lf_policy_config_int('check_deadline_days') as deadline_value,
+              public.lf_policy_config_int('reminder_send_hour_kst') as hour_value`,
+    );
+
+    expect(row).toEqual({
+      deadline_config: CHECK_DEADLINE_DAYS,
+      hour_config: REMINDER_SEND_HOUR_KST,
+      deadline_value: CHECK_DEADLINE_DAYS,
+      hour_value: REMINDER_SEND_HOUR_KST,
+    });
+  });
+
+  test('잘못된 원격값은 안전한 spec 기본값으로 돌아간다', async () => {
+    await db.asAdmin(
+      `update public.app_configs
+          set value = case key
+                        when 'check_deadline_days' then '"seven"'::jsonb
+                        else '24'::jsonb
+                      end
+        where key in ('check_deadline_days', 'reminder_send_hour_kst')`,
+    );
+    try {
+      const row = await one<{ deadline: number; hour: number }>(
+        `select public.lf_policy_config_int('check_deadline_days') as deadline,
+                public.lf_policy_config_int('reminder_send_hour_kst') as hour`,
+      );
+      expect(row).toEqual({
+        deadline: CHECK_DEADLINE_DAYS,
+        hour: REMINDER_SEND_HOUR_KST,
+      });
+    } finally {
+      await db.asAdmin(
+        `update public.app_configs
+            set value = case key
+                          when 'check_deadline_days' then $1::int::text::jsonb
+                          else $2::int::text::jsonb
+                        end
+          where key in ('check_deadline_days', 'reminder_send_hour_kst')`,
+        [CHECK_DEADLINE_DAYS, REMINDER_SEND_HOUR_KST],
+      );
+    }
+  });
+
+  test('J-02와 재확인은 원격 기한·KST 발송 시각을 같은 accessor에서 읽는다', async () => {
+    await db.asAdmin(
+      `update public.app_configs
+          set value = case key
+                        when 'check_deadline_days' then '3'::jsonb
+                        else '12'::jsonb
+                      end
+        where key in ('check_deadline_days', 'reminder_send_hour_kst')`,
+    );
+    try {
+      const entering = await seedPromise({ endDate: '2026-07-20' });
+      await one(ENTER_SQL, ['2026-07-21T15:01:00Z']);
+      const entered = await one<{
+        checking_started_at: Date;
+        check_deadline_at: Date;
+        fire_hours: number[];
+      }>(
+        `select p.checking_started_at,
+                p.check_deadline_at,
+                array(
+                  select distinct extract(
+                    hour from rs.fire_at at time zone 'Asia/Seoul'
+                  )::int
+                    from public.reminder_schedules rs
+                   where rs.promise_id = p.id
+                   order by 1
+                ) as fire_hours
+           from public.promises p
+          where p.id = $1`,
+        [entering.promiseId],
+      );
+      expect(
+        entered.check_deadline_at.getTime() - entered.checking_started_at.getTime(),
+      ).toBe(3 * 24 * 60 * 60 * 1000);
+      expect(entered.fire_hours).toEqual([12]);
+
+      const reopening = await seedPromise({ status: 'DISPUTED', roundNo: 1 });
+      const reopened = await one<{
+        payload: { check_deadline_at: string };
+        expected_deadline: Date;
+      }>(
+        `select payload,
+                now() + interval '3 days' as expected_deadline
+           from public.lf_fulfillment_reopen(
+             $1::uuid, $2::uuid, $3::uuid, 'APP'
+           ) payload`,
+        [randomUUID(), reopening.creatorId, reopening.promiseId],
+      );
+      expect(new Date(reopened.payload.check_deadline_at).toISOString()).toBe(
+        reopened.expected_deadline.toISOString(),
+      );
+      const reopenHours = await one<{ fire_hours: number[] }>(
+        `select array(
+                  select distinct extract(
+                    hour from fire_at at time zone 'Asia/Seoul'
+                  )::int
+                    from public.reminder_schedules
+                   where promise_id = $1 and status = 'PENDING'
+                   order by 1
+                ) as fire_hours`,
+        [reopening.promiseId],
+      );
+      expect(reopenHours.fire_hours).toEqual([12]);
+    } finally {
+      await db.asAdmin(
+        `update public.app_configs
+            set value = case key
+                          when 'check_deadline_days' then $1::int::text::jsonb
+                          else $2::int::text::jsonb
+                        end
+          where key in ('check_deadline_days', 'reminder_send_hour_kst')`,
+        [CHECK_DEADLINE_DAYS, REMINDER_SEND_HOUR_KST],
+      );
+    }
+  });
+});
+
+describe('J-02/J-03 잠금 정책', () => {
+  test.each([
+    'lf_promises_enter_checking',
+    'lf_promises_close_due_checks',
+  ])('%s는 대상 행을 건너뛰지 않고 blocking FOR UPDATE로 직렬화한다', async (fn) => {
+    const row = await one<{ definition: string }>(
+      `select pg_get_functiondef(oid) as definition
+         from pg_proc
+        where pronamespace = 'public'::regnamespace
+          and proname = $1`,
+      [fn],
+    );
+    expect(row.definition.toLowerCase()).toContain('for update');
+    expect(row.definition.toLowerCase()).not.toContain('skip locked');
+  });
 });
 
 describe('J-02 종료일 다음 KST 자정 CHECKING 전이', () => {
@@ -438,6 +591,10 @@ describe('DISPUTED 재확인 라운드', () => {
     await insertCheck(fixture, fixture.creatorId, 1, 'KEPT');
     await insertCheck(fixture, fixture.partnerId, 1, 'NOT_KEPT');
     await db.asAdmin(
+      `select public.lf_recompute_promise_trust_profiles($1::uuid)`,
+      [fixture.promiseId],
+    );
+    await db.asAdmin(
       `update public.promises set closed_at = now() - interval '1 day' where id = $1`,
       [fixture.promiseId],
     );
@@ -481,6 +638,11 @@ describe('DISPUTED 재확인 라운드', () => {
       canceled: number;
       closed_at: Date | null;
       lock_version: number;
+      profiles: Array<{
+        user_id: string;
+        disputed_count: number;
+        active_count: number;
+      }>;
     }>(
       `select p.status, p.check_round_no, p.check_deadline_at, p.closed_at, p.lock_version,
               (select count(*)::int from public.fulfillment_checks
@@ -488,9 +650,19 @@ describe('DISPUTED 재확인 라운드', () => {
               (select count(*)::int from public.reminder_schedules
                 where promise_id = p.id and status = 'PENDING') as pending,
               (select count(*)::int from public.reminder_schedules
-                where promise_id = p.id and status = 'CANCELED') as canceled
+                where promise_id = p.id and status = 'CANCELED') as canceled,
+              (select jsonb_agg(
+                        jsonb_build_object(
+                          'user_id', tp.user_id,
+                          'disputed_count', tp.disputed_count,
+                          'active_count', tp.active_count
+                        )
+                        order by tp.user_id
+                      )
+                 from public.trust_profiles tp
+                where tp.user_id in ($2, $3)) as profiles
          from public.promises p where p.id = $1`,
-      [fixture.promiseId],
+      [fixture.promiseId, fixture.creatorId, fixture.partnerId],
     );
 
     expect(first.payload).toMatchObject({
@@ -513,6 +685,15 @@ describe('DISPUTED 재확인 라운드', () => {
       closed_at: null,
       lock_version: 1,
     });
+    expect(stored.profiles).toEqual(
+      [fixture.creatorId, fixture.partnerId]
+        .sort()
+        .map((userId) => ({
+          user_id: userId,
+          disputed_count: 0,
+          active_count: 1,
+        })),
+    );
     expect(stored.check_deadline_at.toISOString()).toBe(first.expected_deadline.toISOString());
 
     const scheduleTimes = await db.asAdmin(

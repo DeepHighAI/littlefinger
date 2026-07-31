@@ -85,7 +85,9 @@ function makeDetail(
       nickname: '민준',
       profile_image_url: null,
     },
+    my_role: 'CREATOR',
     my_check: null,
+    creator_has_submitted: false,
     partner_has_submitted: false,
     partner_check: null,
     history: [],
@@ -498,6 +500,7 @@ describe('SCR-A06 이행 확인', () => {
       makeDetail({
         status: 'UNRESOLVED',
         my_check: creatorCheck,
+        creator_has_submitted: true,
       }),
     );
 
@@ -507,6 +510,26 @@ describe('SCR-A06 이행 확인', () => {
     expect(view.getByText('작성자 응답 완료')).toBeTruthy();
     expect(view.getByText('상대방 미응답')).toBeTruthy();
     expect(view.queryByText(/잘못|책임|탓/u)).toBeNull();
+  });
+
+  test('UNRESOLVED 미응답 상대방 관점에서도 작성자의 제출 사실을 정확히 표시한다', async () => {
+    loadDetailMock.mockResolvedValue(
+      makeDetail({
+        status: 'UNRESOLVED',
+        my_role: 'PARTNER',
+        my_check: null,
+        creator_has_submitted: true,
+        partner_has_submitted: false,
+        partner_check: null,
+      }),
+    );
+
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    expect(view.getByText('작성자 응답 완료')).toBeTruthy();
+    expect(view.getByText('상대방 미응답')).toBeTruthy();
+    expect(view.queryByText('아침마다 함께 달렸어요')).toBeNull();
   });
 
   test('기기 시간대와 무관한 KST 종료일·응답 시각과 과거 라운드를 표시한다', async () => {
