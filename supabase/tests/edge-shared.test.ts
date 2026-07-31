@@ -10,6 +10,7 @@ import { failureResponse } from '../functions/_shared/http.ts';
 import {
   asTransitionPayload,
   buildTransitionNotification,
+  notificationFanoutArgs,
 } from '../functions/_shared/notify.ts';
 import {
   clientIp,
@@ -365,6 +366,37 @@ describe('알림 조립 (§8-1 NT-01~03)', () => {
         idempotencyKey: KEY,
       }),
     );
+    expect(row.push_dedupe_key).toBe(
+      transitionDedupeKey({
+        promiseId: 'p-1',
+        event: 'NT-01',
+        userId: 'c-1',
+        channel: 'PUSH',
+        idempotencyKey: KEY,
+      }),
+    );
+    expect(row.push_dedupe_key).not.toBe(row.dedupe_key);
+  });
+
+  test('런타임 fanout 인자는 채널별 dedupe와 논리 알림 내용을 RPC 계약에 맞춘다', () => {
+    const row = buildTransitionNotification({
+      event: 'NT-01',
+      payload: PAYLOAD,
+      idempotencyKey: KEY,
+      now: NOW,
+    });
+
+    expect(notificationFanoutArgs(row)).toEqual({
+      p_user_id: 'c-1',
+      p_promise_id: 'p-1',
+      p_type: 'NT-01',
+      p_title: '민준님이 손가락 걸었어요! 약속 성립',
+      p_body: '매일 걷기',
+      p_deeplink: 'SCR-A05',
+      p_inapp_dedupe_key: `p-1:NT-01:c-1:INAPP:${KEY}`,
+      p_push_dedupe_key: `p-1:NT-01:c-1:PUSH:${KEY}`,
+      p_now: NOW.toISOString(),
+    });
   });
 
   test('같은 날 두 번째 수정 제안이 살아남는다 — 날짜 키였다면 사라진다', () => {

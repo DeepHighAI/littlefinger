@@ -121,6 +121,14 @@ function notificationRow(input: {
       roundNo: input.roundNo,
       idempotencyKey: input.idempotencyKey,
     }),
+    push_dedupe_key: fulfillmentDedupeKey({
+      promiseId: input.promiseId,
+      event: input.event,
+      userId: input.recipient.user_id,
+      channel: 'PUSH',
+      roundNo: input.roundNo,
+      idempotencyKey: input.idempotencyKey,
+    }),
   };
 }
 

@@ -18,7 +18,13 @@ export type NotificationEvent =
   | 'NT-01'
   | 'NT-02'
   | 'NT-03'
+  | 'NT-04'
+  | 'NT-05'
+  | 'NT-06'
+  | 'NT-07'
+  | 'NT-08'
   | 'NT-09'
+  | 'NT-10'
   | 'NT-11'
   | 'NT-12'
   | 'NT-13'
@@ -44,7 +50,13 @@ export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: str
   'NT-01': (n) => `${n}님이 손가락 걸었어요! 약속 성립`,
   'NT-02': (n) => `${n}님이 거절했어요`,
   'NT-03': (n) => `${n}님이 수정을 제안했어요`,
+  'NT-04': () => '초대가 곧 만료돼요',
+  'NT-05': () => '초대가 만료됐어요. 다시 보낼 수 있어요',
+  'NT-06': (n) => `약속까지 ${n}일 남았어요`,
+  'NT-07': () => '오늘이 약속 종료일이에요',
+  'NT-08': () => '약속이 지켜졌나요?',
   'NT-09': (n) => `${n}님이 이행 확인을 보냈어요`,
+  'NT-10': (n) => `이행 확인이 ${n}일 남았어요`,
   'NT-11': () => '약속을 지켰어요!',
   'NT-12': () => '약속이 불이행으로 기록됐어요',
   'NT-13': () => '두 분의 확인이 서로 달라요',
@@ -64,13 +76,50 @@ export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, string> = {
   'NT-02': 'SCR-A05',
   // 수정 제안은 약속이 DRAFT 로 돌아간 뒤라, 갈 곳은 상세가 아니라 재작성 화면이다.
   'NT-03': 'SCR-A03',
+  'NT-04': 'SCR-A04',
+  'NT-05': 'SCR-A04',
+  'NT-06': 'SCR-A05',
+  'NT-07': 'SCR-A05',
+  'NT-08': 'SCR-A06',
   'NT-09': 'SCR-A06',
+  'NT-10': 'SCR-A06',
   'NT-11': 'SCR-A05',
   'NT-12': 'SCR-A05',
   'NT-13': 'SCR-A05',
   'NT-14': 'SCR-A05',
   'NT-19': 'SCR-A06',
 };
+
+export interface PushNotificationData {
+  notification_id: string;
+  deeplink: string;
+  promise_id: string;
+}
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+
+const PUSH_DEEPLINKS = new Set<string>(Object.values(NOTIFICATION_DEEPLINK));
+
+/** 외부 푸시 payload 는 임의 URL이나 잘못된 식별자를 앱 라우터로 넘기기 전에 거른다. */
+export function asPushNotificationData(value: unknown): PushNotificationData | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const row = value as Record<string, unknown>;
+  if (
+    typeof row['notification_id'] !== 'string' ||
+    !UUID_PATTERN.test(row['notification_id']) ||
+    typeof row['promise_id'] !== 'string' ||
+    !UUID_PATTERN.test(row['promise_id']) ||
+    typeof row['deeplink'] !== 'string' ||
+    !PUSH_DEEPLINKS.has(row['deeplink'])
+  ) {
+    return null;
+  }
+  return {
+    notification_id: row['notification_id'],
+    deeplink: row['deeplink'],
+    promise_id: row['promise_id'],
+  };
+}
 
 /**
  * `notifications.dedupe_key` 조립 (§6-2 · EC-G04, PO 결정 2026-07-26).

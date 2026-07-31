@@ -34,6 +34,7 @@ export interface NotificationRow {
   status: 'SENT';
   sent_at: string;
   dedupe_key: string;
+  push_dedupe_key: string;
 }
 
 /**
@@ -73,6 +74,28 @@ export function buildTransitionNotification(input: {
       channel,
       idempotencyKey: input.idempotencyKey,
     }),
+    push_dedupe_key: transitionDedupeKey({
+      promiseId: payload.promise_id,
+      event,
+      userId: payload.creator_id,
+      channel: 'PUSH',
+      idempotencyKey: input.idempotencyKey,
+    }),
+  };
+}
+
+/** 런타임이 직접 테이블을 쓰지 않고 내부 fanout RPC에 넘길 인자만 조립한다. */
+export function notificationFanoutArgs(row: NotificationRow): Record<string, unknown> {
+  return {
+    p_user_id: row.user_id,
+    p_promise_id: row.promise_id,
+    p_type: row.type,
+    p_title: row.title,
+    p_body: row.body,
+    p_deeplink: row.deeplink,
+    p_inapp_dedupe_key: row.dedupe_key,
+    p_push_dedupe_key: row.push_dedupe_key,
+    p_now: row.sent_at,
   };
 }
 

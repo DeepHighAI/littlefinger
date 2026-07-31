@@ -8,7 +8,7 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 import type { Deps, Logger, Secrets } from './deps.ts';
 import { ApiError } from './errors.ts';
-import type { NotificationRow } from './notify.ts';
+import { notificationFanoutArgs, type NotificationRow } from './notify.ts';
 
 /** 없으면 부팅에서 죽는다. 시크릿 누락은 런타임에 조용히 틀린 해시를 만드는 것보다 낫다. */
 export function requireEnv(name: string): string {
@@ -74,11 +74,7 @@ export function createDeps(): Deps {
     },
 
     insertNotification: async (row: NotificationRow) => {
-      // 같은 `dedupe_key` 는 조용히 넘긴다. 껍데기가 재시도되면 RPC 는 캐시된 payload 를
-      // 그대로 돌려주므로 같은 키가 다시 조립되는데, 그건 오류가 아니라 정상 경로다.
-      const { error } = await admin
-        .from('notifications')
-        .upsert(row, { onConflict: 'dedupe_key', ignoreDuplicates: true });
+      const { error } = await admin.rpc('lf_notification_fanout', notificationFanoutArgs(row));
       if (error !== null) throw new Error(error.message);
     },
 

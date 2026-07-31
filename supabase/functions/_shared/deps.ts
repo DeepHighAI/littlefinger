@@ -35,7 +35,7 @@ export interface Deps {
    */
   authenticate: (authorization: string | null) => Promise<string>;
 
-  /** 커밋 뒤 알림 삽입. 같은 `dedupe_key` 는 조용히 무시한다. */
+  /** 커밋 뒤 논리 알림 fanout. 같은 채널별 `dedupe_key` 는 조용히 무시한다. */
   insertNotification: (row: NotificationRow) => Promise<void>;
 
   secrets: Secrets;
