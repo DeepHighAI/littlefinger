@@ -20,12 +20,18 @@ export const ROUTE = {
    * 근거가 어디에도 없다(SCR-W03 이 실제로 그렇다).
    */
   responseComplete: '/i/:token/responded/:outcome',
+  /** SCR-W04 계정 기반 참여 약속 목록·응답. 초대 토큰 없이 복원된다. */
+  promises: '/promises',
   /** 카카오 로그인이 돌아오는 자리. Supabase 리다이렉트 허용목록에 등록된 경로다. */
   authCallback: '/auth/callback',
 } as const;
 
 export function invitePath(token: string): string {
   return `/i/${encodeURIComponent(token)}`;
+}
+
+export function promisesPath(): string {
+  return ROUTE.promises;
 }
 
 // 검토·완료는 초대 경로 **아래**에 둔다. 로그인은 `/i/{token}` 으로만 돌아오므로(§4-3-3)

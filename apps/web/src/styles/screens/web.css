@@ -189,3 +189,26 @@
 .lf-mt-1 { margin-top: var(--lf-space-1); }
 .lf-mt-3 { margin-top: var(--lf-space-3); }
 .lf-mt-4 { margin-top: var(--lf-space-4); }
+
+/* -------------------------------------------------------------
+   SCR-W04 — 서버 상태 기반 참여 약속 목록
+   ------------------------------------------------------------- */
+.lf-fulfillment-question {
+  font-weight: var(--lf-weight-bold);
+}
+
+.lf-claim__comment {
+  margin-top: var(--lf-space-2);
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  color: var(--lf-color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.lf-history {
+  padding-top: var(--lf-space-4);
+}
+
+.lf-field__hint--error {
+  color: var(--lf-color-error);
+}

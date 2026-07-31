@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './App.tsx';
-import { invitePath, ROUTE } from './routes.ts';
+import { invitePath, promisesPath, ROUTE } from './routes.ts';
 
 // SCR-W01 은 마운트하자마자 invite-resolve 를 부른다. 이 파일은 라우팅만 보므로 응답은
 // 영원히 오지 않게 두고, **요청에 실린 토큰**으로 경로 → 화면 연결을 확인한다.
@@ -52,6 +52,13 @@ function sentToken(): unknown {
 }
 
 describe('App 라우팅', () => {
+  it('계정 기반 참여 약속 경로를 직접 연다', async () => {
+    renderAt(promisesPath());
+    expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe(
+      '참여 중인 약속',
+    );
+  });
+
   it('초대 경로가 토큰을 뽑아 SCR-W01 로 넘긴다', () => {
     renderAt('/i/abc123');
     expect(fetchMock).toHaveBeenCalledTimes(1);

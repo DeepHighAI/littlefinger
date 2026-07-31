@@ -9,6 +9,7 @@ import { Navigate, useParams } from 'react-router-dom';
 import { LfIcon } from '../components/LfIcon.tsx';
 import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
+import { signInWithKakao } from '../lib/web-auth.ts';
 import { invitePath, reviewPath } from '../routes.ts';
 import {
   isLinkUnavailableReason,
@@ -203,19 +204,9 @@ export function ScrW01InviteLanding(): React.JSX.Element {
     setSigningIn(true);
     setSignInFailed(false);
     try {
-      const { error } = await getSupabase().auth.signInWithOAuth({
-        provider: 'kakao',
-        options: {
-          // **토큰은 `redirectTo` 에 실어 되돌아온다.** §2-2·§4-3-3 은 OAuth `state` 에
-          // 담으라고 적었지만 그 자리는 쓸 수 없다 — supabase-js 가 PKCE 검증용으로
-          // `state` 를 직접 만들고 콜백에서 자기 값과 대조하므로, 우리가 끼워 넣으면
-          // 로그인 자체가 깨진다. 같은 초대 URL 로 돌아오면 토큰은 경로에 그대로 있고,
-          // 명세가 `state` 에 요구한 것(로그인 후 이 초대로 복귀)은 그대로 성립한다.
-          redirectTo: `${window.location.origin}${invitePath(token ?? '')}`,
-          ...(prompt === undefined ? {} : { queryParams: { prompt } }),
-        },
-      });
-      if (error) throw error;
+      // **토큰은 복귀 경로에 남는다.** OAuth `state` 는 supabase-js 가 PKCE 검증에 쓰므로
+      // 호출자가 끼워 넣을 수 없다. 계정 재접근과 같은 헬퍼를 쓰되 복귀 경로만 다르다.
+      await signInWithKakao(invitePath(token ?? ''), prompt);
     } catch {
       // 로그인 실패로 화면을 갈아치우지 않는다. 여기서 사용자가 할 수 있는 일은
       // 다시 누르는 것뿐인데, 화면을 바꾸면 그 버튼이 사라진다.

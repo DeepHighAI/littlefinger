@@ -5,10 +5,11 @@ import {
   type PromiseApprovalLog,
   type PromiseApproveResponse,
 } from '@littlefinger/shared';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { LfDisclaimer } from '../components/LfDisclaimer.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
+import { promisesPath } from '../routes.ts';
 
 /**
  * SCR-W03 승인 완료 — 02 §4-4-3 · §4-4-4.
@@ -27,6 +28,19 @@ const STAMP_LABEL = '확정된 약속';
 const CONFIRMED_SUFFIX = ' 확정';
 const APPROVAL_SUFFIX = ' 승인 ';
 const FINGERPRINT_LABEL = '기록 지문';
+const REVISIT_COPY = '이 약속은 카카오 로그인으로 언제든 다시 볼 수 있어요';
+const REVISIT_CTA = '참여 중인 약속 보기';
+
+function RevisitCard(): React.JSX.Element {
+  return (
+    <div className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-center">
+      <p className="lf-body--secondary">{REVISIT_COPY}</p>
+      <Link className="lf-btn lf-btn--tonal lf-btn--block" to={promisesPath()}>
+        {REVISIT_CTA}
+      </Link>
+    </div>
+  );
+}
 
 function parseApprovalLog(value: unknown): PromiseApprovalLog | null {
   if (typeof value !== 'object' || value === null) return null;
@@ -63,10 +77,15 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
   const result = parseApproveResponse(state);
 
   if (result === null) {
-    // 이 경로를 직접 열거나 새로고침하면 state 가 없다. 확정 기록을 다시 읽을 경로가 없고
-    // 이 상황을 설명하는 문구도 명세에 없어서, 지어내는 대신 아무것도 말하지 않는다.
-    // **PO 확인 필요** — SCR-W04(계정 기반 재조회)와 함께 풀려야 한다.
-    return <div className="lf-screen" data-testid="no-result" />;
+    // 승인 응답은 라우터 state 라 새로고침하면 사라진다. 확정 스탬프를 재구성하지는
+    // 못하지만 계정 기반 SCR-W04는 서버에서 다시 읽으므로 이 출구는 항상 유효하다.
+    return (
+      <div className="lf-screen" data-testid="no-result">
+        <div className="lf-screen__body lf-screen__body--web lf-screen__body--centered">
+          <RevisitCard />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -109,6 +128,7 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
         </div>
 
         <LfDisclaimer />
+        <RevisitCard />
 
         {/* 여기서 **일부러 빼는 것** — 문구나 경로가 없어서지 잊어서가 아니다.
             · 리마인드 이메일 카드(§4-4-4 2항) — 미해결 항목 **G3**. 저장할 엔드포인트가 없고,
@@ -116,11 +136,6 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
             · [버전 이력 보기](§4-4-3) — 미해결 항목 **G8**. 버전 이력을 읽는 슬러그가 없다.
             · 앱 설치 유도 배너(§4-4-4 4항) — 미해결 항목 **G2/G11**. Play 스토어 URL 이 없고,
               EC-I03 은 iOS 에서 이 배너를 아예 띄우지 말라고 한다.
-            · **재접근 안내(§4-4-4 3항)** — 이것만은 문구가 명세에 있다("이 약속은 카카오
-              로그인으로 언제든 다시 볼 수 있어요" + 북마크 안내). 그런데 그 문장이 참이려면
-              계정 기반 재조회(SCR-W04)가 있어야 하고 그 화면이 없다. 지금 넣으면 확정
-              화면이 지키지 못할 약속을 하는 셈이라 뺐다 — **PO 확인 필요**, SCR-W04 와 함께
-              풀려야 한다.
             · 주 CTA [앱에서 계속하기](보조: [웹으로 볼게요], 디자인요청서 §5-2) — 둘 다 갈 곳이
               없다. 앞은 Play 스토어 URL(G11), 뒤는 SCR-W04 다. **PO 확인 필요**.
             증인 서명 현황(§4-4-3)도 없다 — 확정 직후에는 증인이 존재하지 않는다(F-05 는 M3). */}

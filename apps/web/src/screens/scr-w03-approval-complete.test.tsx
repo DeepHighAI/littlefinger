@@ -4,7 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { approvalCompletePath, invitePath, ROUTE } from '../routes.ts';
+import { approvalCompletePath, invitePath, promisesPath, ROUTE } from '../routes.ts';
 import { ScrW03ApprovalComplete } from './scr-w03-approval-complete.tsx';
 
 const TOKEN = 'a-b_c-d_e';
@@ -71,6 +71,16 @@ describe('SCR-W03 승인 완료', () => {
     expect(container.querySelector('.lf-disclaimer')?.textContent).toBe(LEGAL_DISCLAIMER);
   });
 
+  it('계정 기반 재접근 안내와 참여 약속 링크가 있다', () => {
+    renderWith(RESULT);
+    expect(
+      screen.getByText('이 약속은 카카오 로그인으로 언제든 다시 볼 수 있어요'),
+    ).toBeTruthy();
+    const link = screen.getByRole('link', { name: '참여 중인 약속 보기' });
+    expect(link.getAttribute('href')).toBe(promisesPath());
+    expect(screen.getByTestId('fingerprint').textContent).toBe('A3F9-77C2-01');
+  });
+
   it('아직 없는 것은 그리지 않는다', () => {
     // 리마인드 이메일(G3) · [버전 이력 보기](G8) · 앱 설치 배너(G2/G11). 문구나 경로가
     // 없어서 뺀 것들이라, 누군가 "일단 넣어 두자"고 되돌리면 여기서 걸린다.
@@ -80,12 +90,12 @@ describe('SCR-W03 승인 완료', () => {
     expect(container.querySelector('.lf-app-hint')).toBeNull();
   });
 
-  it('state 가 없으면 아무 말도 하지 않는다', () => {
-    // 새로고침·직접 방문. 확정 기록을 다시 읽을 경로(SCR-W04)가 없고 이 상황의 문구도
-    // 명세에 없다 — 지어내는 대신 비운다(PO 확인 필요).
+  it('state 가 없어도 계정 기반 재접근 출구는 남는다', () => {
+    // 새로고침으로 일회성 승인 payload는 사라져도 SCR-W04는 서버 상태로 복원한다.
     renderWith(undefined);
     expect(screen.getByTestId('no-result')).toBeTruthy();
     expect(screen.queryByTestId('fingerprint')).toBeNull();
+    expect(screen.getByRole('link', { name: '참여 중인 약속 보기' })).toBeTruthy();
   });
 
   it('승인 로그가 한 행뿐이면 확정 화면을 그리지 않는다', () => {
