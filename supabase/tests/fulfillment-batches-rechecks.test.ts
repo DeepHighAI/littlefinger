@@ -110,6 +110,44 @@ afterAll(async () => {
   await db.close();
 });
 
+describe('F-07 SQL 함수 보안 경계', () => {
+  test('모든 이행 확인 함수가 역할별 search_path를 상속하지 않는다', async () => {
+    const functionNames = [
+      'lf_cancel_actor_check_reminders',
+      'lf_cancel_terminal_check_reminders',
+      'lf_fulfillment_reopen',
+      'lf_fulfillment_submit',
+      'lf_participant_promise_list',
+      'lf_policy_config_int',
+      'lf_promise_fulfillment_detail',
+      'lf_promises_close_due_checks',
+      'lf_promises_enter_checking',
+      'lf_recompute_promise_trust_profiles',
+      'lf_recompute_trust_profile',
+      'lf_reminder_send_hour_kst',
+      'lf_trust_min_sample',
+    ];
+    const result = await db.asAdmin(
+      `select proname, proconfig
+         from pg_proc p
+         join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and proname = any($1::text[])
+        order by proname`,
+      [functionNames],
+    );
+    const rows = result.rows as {
+      proname: string;
+      proconfig: string[] | null;
+    }[];
+
+    expect(rows).toHaveLength(functionNames.length);
+    for (const row of rows) {
+      expect(row.proconfig ?? []).toContain('search_path=public, pg_temp');
+    }
+  });
+});
+
 describe('F-07 SQL 원격 정책값', () => {
   test('spec 기본행과 단일 accessor가 shared 기본값과 같다', async () => {
     const row = await one<{
