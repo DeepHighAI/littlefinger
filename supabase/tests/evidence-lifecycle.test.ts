@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { readdir, readFile } from 'node:fs/promises';
 
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
@@ -571,6 +572,33 @@ describe('보존 기한과 J-08 정리', () => {
     });
     expect(String(jobs.rows[0]?.['command'])).toContain('net.http_post');
     expect(String(jobs.rows[0]?.['command'])).toContain('vault.decrypted_secrets');
+  });
+});
+
+describe('J-08 배포 전제', () => {
+  test('pg_net을 활성화한 뒤 증빙 정리 잡을 다시 등록한다', async () => {
+    const migrations = new URL('../migrations/', import.meta.url);
+    const names = (await readdir(migrations)).filter((name) =>
+      name.endsWith('_enable_evidence_purge_pg_net.sql'),
+    );
+
+    expect(names).toHaveLength(1);
+    const sql = await readFile(new URL(names[0] as string, migrations), 'utf8');
+    expect(sql).toMatch(/create extension if not exists pg_net/iu);
+    expect(sql).toContain('public.lf_schedule_evidence_purge()');
+  });
+
+  test('pg_net을 extensions 스키마에 재설치하고 잡을 복원한다', async () => {
+    const migrations = new URL('../migrations/', import.meta.url);
+    const names = (await readdir(migrations)).filter((name) =>
+      name.endsWith('_relocate_pg_net_extension.sql'),
+    );
+
+    expect(names).toHaveLength(1);
+    const sql = await readFile(new URL(names[0] as string, migrations), 'utf8');
+    expect(sql).toMatch(/drop extension if exists pg_net/iu);
+    expect(sql).toMatch(/create extension pg_net\s+with\s+schema extensions/iu);
+    expect(sql).toContain('public.lf_schedule_evidence_purge()');
   });
 });
 
