@@ -8,11 +8,14 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  discardFulfillmentEvidence,
   FulfillmentApiError,
   getPromiseFulfillmentDetail,
   listParticipantPromises,
   reopenFulfillment,
+  signFulfillmentEvidence,
   submitFulfillment,
+  uploadFulfillmentEvidence,
 } from './fulfillment-api.ts';
 
 const ACCESS_TOKEN = 'stored-session-jwt';
@@ -121,6 +124,86 @@ describe('이행 확인 웹 API 클라이언트', () => {
 
     expect(submitHeaders[IDEMPOTENCY_KEY_HEADER]).toBe(submitKey);
     expect(reopenHeaders[IDEMPOTENCY_KEY_HEADER]).toBe(reopenKey);
+  });
+
+  it('증빙 파일은 브라우저가 multipart boundary를 만들고 사진별 멱등 키를 보낸다', async () => {
+    fetchMock.mockResolvedValue(
+      response(200, {
+        upload_id: 'upload-1',
+        status: 'READY',
+        mime: 'image/jpeg',
+        bytes: 100,
+        width: 10,
+        height: 10,
+      }),
+    );
+    const file = new File(['jpeg'], 'proof.jpg', { type: 'image/jpeg' });
+
+    await uploadFulfillmentEvidence(
+      ACCESS_TOKEN,
+      PROMISE_ID,
+      1,
+      file,
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    );
+
+    const [url, init] = lastRequest();
+    const headers = init.headers as Record<string, string>;
+    expect(url).toBe(`${SUPABASE_URL}/functions/v1/${ENDPOINT.evidenceUpload}`);
+    expect(headers).toEqual({
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      [IDEMPOTENCY_KEY_HEADER]: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    });
+    expect(headers['Content-Type']).toBeUndefined();
+    expect(init.body).toBeInstanceOf(FormData);
+    const form = init.body as FormData;
+    expect(form.get('promise_id')).toBe(PROMISE_ID);
+    expect(form.get('round_no')).toBe('1');
+    expect(form.get('file')).toBe(file);
+  });
+
+  it('증빙 폐기는 멱등 JSON이고 서명 URL은 조회 요청이다', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        response(200, { upload_id: 'upload-1', status: 'DISCARDED' }),
+      )
+      .mockResolvedValueOnce(
+        response(200, {
+          evidence_id: 'evidence-1',
+          variant: 'THUMBNAIL',
+          signed_url: 'https://storage.example/evidence-1',
+          expires_at: '2026-07-31T01:10:00.000Z',
+        }),
+      );
+
+    await discardFulfillmentEvidence(
+      ACCESS_TOKEN,
+      'upload-1',
+      'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    );
+    const discard = lastRequest();
+    await signFulfillmentEvidence(ACCESS_TOKEN, 'evidence-1', 'THUMBNAIL');
+    const sign = lastRequest();
+
+    expect(discard[0]).toBe(
+      `${SUPABASE_URL}/functions/v1/${ENDPOINT.evidenceDiscard}`,
+    );
+    expect(JSON.parse(String(discard[1].body))).toEqual({
+      upload_id: 'upload-1',
+    });
+    expect(
+      (discard[1].headers as Record<string, string>)[IDEMPOTENCY_KEY_HEADER],
+    ).toBe('dddddddd-dddd-4ddd-8ddd-dddddddddddd');
+    expect(sign[0]).toBe(
+      `${SUPABASE_URL}/functions/v1/${ENDPOINT.evidenceSignUrl}`,
+    );
+    expect(JSON.parse(String(sign[1].body))).toEqual({
+      evidence_id: 'evidence-1',
+      variant: 'THUMBNAIL',
+    });
+    expect(
+      (sign[1].headers as Record<string, string>)[IDEMPOTENCY_KEY_HEADER],
+    ).toBeUndefined();
   });
 
   it('알려진 API 오류는 코드와 서버 필드 문구를 보존한다', async () => {

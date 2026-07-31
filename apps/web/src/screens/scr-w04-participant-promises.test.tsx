@@ -35,6 +35,9 @@ vi.mock('../lib/supabase.ts', async (importOriginal) => {
 });
 
 const fetchMock = vi.fn();
+const createObjectUrlMock = vi.fn();
+const revokeObjectUrlMock = vi.fn();
+const openWindowMock = vi.fn();
 
 function summary(
   patch: Partial<ParticipantPromiseSummary> = {},
@@ -63,6 +66,20 @@ function check(role: 'CREATOR' | 'PARTNER', answer: 'KEPT' | 'NOT_KEPT', revised
     revised_at: revised ? '2026-07-31T03:00:00.000Z' : null,
     round_no: 1,
     evidences: [],
+  };
+}
+
+function evidence(
+  evidenceId: string,
+  availability: 'AVAILABLE' | 'BLINDED' | 'EXPIRED' = 'AVAILABLE',
+) {
+  return {
+    evidence_id: evidenceId,
+    mime: 'image/jpeg' as const,
+    bytes: 100,
+    width: 100,
+    height: 50,
+    availability,
   };
 }
 
@@ -120,7 +137,10 @@ function installServer(
 ): void {
   fetchMock.mockImplementation((url: string, init: RequestInit) => {
     const endpoint = endpointOf(url);
-    const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+    const body =
+      init.body instanceof FormData
+        ? Object.fromEntries(init.body.entries())
+        : (JSON.parse(String(init.body)) as Record<string, unknown>);
     if (endpoint === ENDPOINT.participantPromiseList) return Promise.resolve(response(200, list));
     if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
       return Promise.resolve(response(200, details[String(body['promise_id'])]));
@@ -152,6 +172,37 @@ function installServer(
         }),
       );
     }
+    if (endpoint === ENDPOINT.evidenceUpload) {
+      const file = body['file'] as File;
+      return Promise.resolve(
+        response(200, {
+          upload_id: `upload-${file.name}`,
+          status: 'READY',
+          mime: 'image/jpeg',
+          bytes: file.size,
+          width: 100,
+          height: 50,
+        }),
+      );
+    }
+    if (endpoint === ENDPOINT.evidenceDiscard) {
+      return Promise.resolve(
+        response(200, {
+          upload_id: body['upload_id'],
+          status: 'DISCARDED',
+        }),
+      );
+    }
+    if (endpoint === ENDPOINT.evidenceSignUrl) {
+      return Promise.resolve(
+        response(200, {
+          evidence_id: body['evidence_id'],
+          variant: body['variant'],
+          signed_url: `https://storage.example/${String(body['evidence_id'])}/${String(body['variant'])}`,
+          expires_at: '2026-08-12T01:10:00Z',
+        }),
+      );
+    }
     return Promise.resolve(response(500, {}));
   });
 }
@@ -172,6 +223,25 @@ beforeEach(() => {
   fetchMock.mockReset();
   getSession.mockReset();
   signInWithOAuth.mockReset();
+  createObjectUrlMock.mockReset();
+  revokeObjectUrlMock.mockReset();
+  openWindowMock.mockReset();
+  createObjectUrlMock.mockImplementation(
+    (file: File) => `blob:${file.name}`,
+  );
+  Object.defineProperty(URL, 'createObjectURL', {
+    configurable: true,
+    value: createObjectUrlMock,
+  });
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    configurable: true,
+    value: revokeObjectUrlMock,
+  });
+  Object.defineProperty(window, 'open', {
+    configurable: true,
+    value: openWindowMock,
+  });
+  sessionStorage.clear();
   getSession.mockResolvedValue({
     data: { session: { access_token: ACCESS_TOKEN, user: { id: PARTNER_ID } } },
   });
@@ -180,6 +250,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  sessionStorage.clear();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
@@ -575,6 +646,226 @@ describe('SCR-W04 참여 약속', () => {
         revise: true,
       },
     ]);
+  });
+
+  it('다중 파일을 검증·선업로드하고 성공한 upload_id만 세션 초안과 제출에 보낸다', async () => {
+    installServer([summary()], { [PROMISE_A]: detail() });
+    renderAt();
+    fireEvent.click(await screen.findByRole('button', { name: '지켰어요' }));
+
+    const first = new File(['first'], 'first.jpg', { type: 'image/jpeg' });
+    const second = new File(['second'], 'second.webp', { type: 'image/webp' });
+    const invalid = new File(['text'], 'note.txt', { type: 'text/plain' });
+    const tooLarge = new File(
+      [new Uint8Array(5 * 1024 * 1024 + 1)],
+      'large.png',
+      { type: 'image/png' },
+    );
+    fireEvent.change(screen.getByLabelText('증빙 사진 선택'), {
+      target: { files: [first, second, invalid, tooLarge] },
+    });
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.filter(
+          ([url]) => endpointOf(url) === ENDPOINT.evidenceUpload,
+        ),
+      ).toHaveLength(2);
+    });
+    expect(screen.getByText('JPEG, PNG, WEBP, HEIC 사진만 올릴 수 있어요.')).toBeTruthy();
+    expect(screen.getByText('사진은 장당 5MB까지 올릴 수 있어요.')).toBeTruthy();
+    expect(screen.getAllByText('업로드 완료')).toHaveLength(2);
+
+    const storageKey = `lf.fulfillment-evidence-draft.${PARTNER_ID}.${PROMISE_A}.1`;
+    expect(JSON.parse(sessionStorage.getItem(storageKey) ?? 'null')).toEqual({
+      answer: 'KEPT',
+      comment: '',
+      evidence_upload_ids: ['upload-first.jpg', 'upload-second.webp'],
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(
+          ([url]) => endpointOf(url) === ENDPOINT.fulfillmentSubmit,
+        ),
+      ).toBe(true),
+    );
+    const submitCall = fetchMock.mock.calls.find(
+      ([url]) => endpointOf(url) === ENDPOINT.fulfillmentSubmit,
+    ) as [string, RequestInit];
+    expect(JSON.parse(String(submitCall[1].body))).toMatchObject({
+      evidence_upload_ids: ['upload-first.jpg', 'upload-second.webp'],
+    });
+    expect(sessionStorage.getItem(storageKey)).toBeNull();
+  });
+
+  it('부분 실패 뒤 같은 업로드 키로 재시도하고 READY 제거·unmount에서 object URL을 정리한다', async () => {
+    installServer([summary()], { [PROMISE_A]: detail() });
+    const server = fetchMock.getMockImplementation();
+    let uploadAttempts = 0;
+    fetchMock.mockImplementation((url: string, init: RequestInit) => {
+      if (endpointOf(url) === ENDPOINT.evidenceUpload) {
+        uploadAttempts += 1;
+        if (uploadAttempts === 1) return Promise.reject(new TypeError('network'));
+      }
+      return server?.(url, init);
+    });
+    const view = renderAt();
+    await screen.findByText('매일 함께 걷기');
+
+    const file = new File(['retry'], 'retry.heic', { type: 'image/heic' });
+    fireEvent.change(screen.getByLabelText('증빙 사진 선택'), {
+      target: { files: [file] },
+    });
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+    await screen.findByText('업로드 완료');
+
+    const uploadKeys = mutationKeys(ENDPOINT.evidenceUpload);
+    expect(uploadKeys).toHaveLength(2);
+    expect(uploadKeys[1]).toBe(uploadKeys[0]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'retry.heic 삭제' }));
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(
+          ([url]) => endpointOf(url) === ENDPOINT.evidenceDiscard,
+        ),
+      ).toBe(true),
+    );
+    expect(revokeObjectUrlMock).toHaveBeenCalledWith('blob:retry.heic');
+
+    const remaining = new File(['remaining'], 'remaining.jpg', {
+      type: 'image/jpeg',
+    });
+    fireEvent.change(screen.getByLabelText('증빙 사진 선택'), {
+      target: { files: [remaining] },
+    });
+    await screen.findByAltText('remaining.jpg 미리보기');
+    view.unmount();
+    expect(revokeObjectUrlMock).toHaveBeenCalledWith('blob:remaining.jpg');
+  });
+
+  it('sessionStorage 초안은 파일 원문·서명 URL 없이 답변·의견·READY upload_id만 복원한다', async () => {
+    const storageKey = `lf.fulfillment-evidence-draft.${PARTNER_ID}.${PROMISE_A}.1`;
+    sessionStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        answer: 'NOT_KEPT',
+        comment: '새로고침 뒤 복원',
+        evidence_upload_ids: ['upload-restored'],
+      }),
+    );
+    installServer([summary()], { [PROMISE_A]: detail() });
+    renderAt();
+
+    expect(
+      (await screen.findByRole('button', { name: '안 지켜졌어요' })).getAttribute(
+        'aria-pressed',
+      ),
+    ).toBe('true');
+    expect((screen.getByLabelText('한 줄 의견') as HTMLTextAreaElement).value).toBe(
+      '새로고침 뒤 복원',
+    );
+    expect(screen.getByText('업로드 완료')).toBeTruthy();
+    expect(sessionStorage.getItem(storageKey)).not.toContain('blob:');
+    expect(sessionStorage.getItem(storageKey)).not.toContain('https://');
+  });
+
+  it('정정은 기존 증빙 유지·제거와 새 업로드를 결합한다', async () => {
+    const mine = {
+      ...check('PARTNER', 'KEPT'),
+      evidences: [evidence('evidence-1'), evidence('evidence-2')],
+    };
+    installServer([summary({ needs_response: false })], {
+      [PROMISE_A]: detail({
+        my_check: mine,
+        partner_has_submitted: true,
+      }),
+    });
+    renderAt();
+
+    fireEvent.click(await screen.findByRole('button', { name: '응답 수정' }));
+    fireEvent.click(screen.getByRole('button', { name: 'evidence-1 삭제' }));
+    fireEvent.change(screen.getByLabelText('증빙 사진 선택'), {
+      target: {
+        files: [new File(['new'], 'new.png', { type: 'image/png' })],
+      },
+    });
+    await screen.findByText('업로드 완료');
+    fireEvent.click(screen.getByRole('button', { name: '수정 제출' }));
+
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(
+          ([url]) => endpointOf(url) === ENDPOINT.fulfillmentSubmit,
+        ),
+      ).toBe(true),
+    );
+    const submitCall = fetchMock.mock.calls.find(
+      ([url]) => endpointOf(url) === ENDPOINT.fulfillmentSubmit,
+    ) as [string, RequestInit];
+    expect(JSON.parse(String(submitCall[1].body))).toMatchObject({
+      revise: true,
+      retained_evidence_ids: ['evidence-2'],
+      evidence_upload_ids: ['upload-new.png'],
+    });
+  });
+
+  it('결과와 과거 라운드는 10분 서명 URL·블라인드·만료 증빙을 함께 보여준다', async () => {
+    const creator = {
+      ...check('CREATOR', 'KEPT'),
+      evidences: [
+        evidence('evidence-available'),
+        evidence('evidence-blinded', 'BLINDED'),
+        evidence('evidence-expired', 'EXPIRED'),
+      ],
+    };
+    const partner = check('PARTNER', 'KEPT');
+    installServer(
+      [summary({ status: 'COMPLETED', needs_response: false, check_deadline_at: null })],
+      {
+        [PROMISE_A]: detail({
+          status: 'COMPLETED',
+          my_check: partner,
+          partner_has_submitted: true,
+          partner_check: creator,
+          history: [
+            {
+              round_no: 1,
+              creator_check: creator,
+              partner_check: partner,
+            },
+          ],
+        }),
+      },
+    );
+    renderAt();
+
+    const [image] = await screen.findAllByAltText('evidence-available 증빙');
+    if (image === undefined) throw new Error('증빙 이미지가 없다.');
+    expect(screen.getAllByText('신고 접수로 가려진 이미지입니다')).toHaveLength(2);
+    expect(screen.getAllByText('보관 기간이 만료된 증빙입니다')).toHaveLength(2);
+    fireEvent.error(image);
+    fireEvent.click(
+      screen.getAllByRole('button', {
+        name: 'evidence-available 증빙 열기',
+      })[0] as HTMLElement,
+    );
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.filter(
+          ([url]) => endpointOf(url) === ENDPOINT.evidenceSignUrl,
+        ).length,
+      ).toBeGreaterThanOrEqual(3),
+    );
+    await waitFor(() =>
+      expect(openWindowMock).toHaveBeenCalledWith(
+        'https://storage.example/evidence-available/FULL',
+        '_blank',
+        'noopener,noreferrer',
+      ),
+    );
   });
 
   it('DISPUTED는 양측을 같은 구조로, 중립 문구와 기록 및 재확인 액션으로 그린다', async () => {

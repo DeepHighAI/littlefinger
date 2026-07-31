@@ -2,6 +2,10 @@ import {
   ENDPOINT,
   ERROR_HTTP_STATUS,
   IDEMPOTENCY_KEY_HEADER,
+  type EvidenceDiscardRequest,
+  type EvidenceSignUrlRequest,
+  type EvidenceSignUrlResponse,
+  type EvidenceUploadResponse,
   type FulfillmentReopenRequest,
   type FulfillmentReopenResponse,
   type FulfillmentSubmitRequest,
@@ -37,13 +41,14 @@ export class FulfillmentApiError extends Error {
 async function callFulfillment<T>(
   slug: (typeof ENDPOINT)[keyof typeof ENDPOINT],
   accessToken: string,
-  body: object,
+  body: object | FormData,
   options: { idempotencyKey?: string; signal?: AbortSignal },
 ): Promise<T> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     Authorization: `Bearer ${accessToken}`,
   };
+  const isMultipart = body instanceof FormData;
+  if (!isMultipart) headers['Content-Type'] = 'application/json';
   if (options.idempotencyKey !== undefined) {
     headers[IDEMPOTENCY_KEY_HEADER] = options.idempotencyKey;
   }
@@ -53,7 +58,7 @@ async function callFulfillment<T>(
     response = await fetch(functionUrl(slug), {
       method: 'POST',
       headers,
-      body: JSON.stringify(body),
+      body: isMultipart ? body : JSON.stringify(body),
       ...(options.signal === undefined ? {} : { signal: options.signal }),
     });
   } catch {
@@ -133,5 +138,55 @@ export function reopenFulfillment(
     accessToken,
     request,
     { idempotencyKey },
+  );
+}
+
+export function uploadFulfillmentEvidence(
+  accessToken: string,
+  promiseId: string,
+  roundNo: number,
+  file: File,
+  idempotencyKey: string = crypto.randomUUID(),
+): Promise<EvidenceUploadResponse> {
+  const body = new FormData();
+  body.append('promise_id', promiseId);
+  body.append('round_no', String(roundNo));
+  body.append('file', file);
+  return callFulfillment<EvidenceUploadResponse>(
+    ENDPOINT.evidenceUpload,
+    accessToken,
+    body,
+    { idempotencyKey },
+  );
+}
+
+export function discardFulfillmentEvidence(
+  accessToken: string,
+  uploadId: string,
+  idempotencyKey: string = crypto.randomUUID(),
+): Promise<{ upload_id: string; status: 'DISCARDED' }> {
+  const body: EvidenceDiscardRequest = { upload_id: uploadId };
+  return callFulfillment(
+    ENDPOINT.evidenceDiscard,
+    accessToken,
+    body,
+    { idempotencyKey },
+  );
+}
+
+export function signFulfillmentEvidence(
+  accessToken: string,
+  evidenceId: string,
+  variant: EvidenceSignUrlRequest['variant'],
+): Promise<EvidenceSignUrlResponse> {
+  const body: EvidenceSignUrlRequest = {
+    evidence_id: evidenceId,
+    variant,
+  };
+  return callFulfillment(
+    ENDPOINT.evidenceSignUrl,
+    accessToken,
+    body,
+    {},
   );
 }
