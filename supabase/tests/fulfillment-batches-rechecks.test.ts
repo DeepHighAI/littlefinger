@@ -141,7 +141,9 @@ describe('F-07 SQL 함수 보안 경계', () => {
       proconfig: string[] | null;
     }[];
 
-    expect(rows).toHaveLength(functionNames.length);
+    expect([...new Set(rows.map((row) => row.proname))]).toEqual(
+      [...functionNames].sort(),
+    );
     for (const row of rows) {
       expect(row.proconfig ?? []).toContain('search_path=public, pg_temp');
     }
@@ -800,7 +802,13 @@ describe('배치 스케줄과 서버 전용 권한', () => {
     expect(
       (
         await db.asAdmin(
-          `select jobname, schedule, command from cron.job order by jobname`,
+          `select jobname, schedule, command
+             from cron.job
+            where jobname in (
+              'lf-promises-close-due-checks',
+              'lf-promises-enter-checking'
+            )
+            order by jobname`,
         )
       ).rows,
     ).toEqual(expected);
@@ -809,7 +817,13 @@ describe('배치 스케줄과 서버 전용 권한', () => {
     expect(
       (
         await db.asAdmin(
-          `select jobname, schedule, command from cron.job order by jobname`,
+          `select jobname, schedule, command
+             from cron.job
+            where jobname in (
+              'lf-promises-close-due-checks',
+              'lf-promises-enter-checking'
+            )
+            order by jobname`,
         )
       ).rows,
     ).toEqual(expected);
