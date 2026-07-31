@@ -63,6 +63,7 @@ describe('루트 인증 게이트', () => {
     const view = await render(<RootLayout />);
 
     expect(view.getByText('screen:index')).toBeTruthy();
+    expect(view.getByText('screen:auth-callback')).toBeTruthy();
     expect(mockStartMobileSessionGateNative).toHaveBeenCalledTimes(1);
     expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
   });
@@ -76,6 +77,7 @@ describe('루트 인증 게이트', () => {
     });
 
     expect(view.queryByText('screen:index')).toBeNull();
+    expect(view.queryByText('screen:auth-callback')).toBeNull();
     expect(view.getByText('screen:home')).toBeTruthy();
     expect(view.getByText('screen:promise/edit')).toBeTruthy();
     expect(view.getByText('screen:invite')).toBeTruthy();

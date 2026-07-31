@@ -41,6 +41,7 @@ export default function RootLayout(): React.JSX.Element {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={session === null}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="auth-callback" />
         </Stack.Protected>
         <Stack.Protected guard={session !== null}>
           <Stack.Screen name="home" />
