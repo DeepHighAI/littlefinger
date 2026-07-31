@@ -4,6 +4,7 @@ import {
   EVIDENCE_MAX_MB,
   KST_MARK,
   codepointLength,
+  evidenceMimeOf,
   formatKstDate,
   formatKstDateTime,
   normalizeInput,
@@ -671,7 +672,14 @@ export default function FulfillmentScreen(): React.JSX.Element {
         messages.add(SCR_A06_LABEL.evidenceSize(EVIDENCE_MAX_MB));
         continue;
       }
-      if (!validateEvidences([{ mime: asset.mime, bytes: asset.bytes }]).valid) {
+      if (
+        !validateEvidences([
+          {
+            mime: evidenceMimeOf(asset.mime, asset.file_name),
+            bytes: asset.bytes,
+          },
+        ]).valid
+      ) {
         messages.add(SCR_A06_LABEL.evidenceType);
         continue;
       }

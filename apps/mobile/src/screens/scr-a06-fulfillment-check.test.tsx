@@ -388,6 +388,40 @@ describe('SCR-A06 이행 확인', () => {
     expect(clearEvidenceDraftMock).toHaveBeenCalledWith('promise-1', 1);
   });
 
+  test('이미지 피커가 MIME을 비워도 HEIC 확장자를 선업로드한다', async () => {
+    const heic = {
+      uri: 'file:///camera.heic',
+      file_name: 'camera.heic',
+      mime: '',
+      bytes: 1024,
+    };
+    pickEvidenceMock.mockResolvedValue({
+      status: 'SELECTED',
+      assets: [heic],
+    });
+    uploadEvidenceMock.mockResolvedValue({
+      upload_id: 'upload-heic',
+      status: 'READY',
+      mime: 'image/jpeg',
+      bytes: 800,
+      width: 100,
+      height: 50,
+    });
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
+    await settle();
+
+    expect(uploadEvidenceMock).toHaveBeenCalledWith(
+      'promise-1',
+      1,
+      heic,
+      '11111111-1111-4111-8111-111111111111',
+    );
+    expect(view.getByText('업로드 완료')).toBeTruthy();
+  });
+
   test('정정은 기존 증빙 유지·제거와 신규 업로드를 함께 제출한다', async () => {
     const evidenceOne = {
       evidence_id: 'evidence-1',

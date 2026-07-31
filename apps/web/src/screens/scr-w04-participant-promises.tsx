@@ -6,6 +6,7 @@ import {
   PARTICIPANT_ROLE_LABEL,
   PROMISE_STATUS_LABEL,
   codepointLength,
+  evidenceMimeOf,
   formatKstDate,
   formatKstDateTime,
   normalizeInput,
@@ -1067,7 +1068,11 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
           messages.add(EVIDENCE_SIZE_COPY);
           continue;
         }
-        if (!validateEvidences([{ mime: file.type, bytes: file.size }]).valid) {
+        if (
+          !validateEvidences([
+            { mime: evidenceMimeOf(file.type, file.name), bytes: file.size },
+          ]).valid
+        ) {
           messages.add(EVIDENCE_TYPE_COPY);
           continue;
         }

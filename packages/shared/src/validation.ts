@@ -186,6 +186,24 @@ const EVIDENCE_ALLOWED_MIME: readonly string[] = [
   'image/heic',
 ];
 
+const EVIDENCE_EXTENSION_MIME: Readonly<Record<string, string>> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  heic: 'image/heic',
+};
+
+export function evidenceMimeOf(mime: string, filename: string): string {
+  const normalized = mime.trim().toLowerCase();
+  if (normalized !== '' && normalized !== 'application/octet-stream') {
+    return normalized;
+  }
+
+  const extension = filename.toLowerCase().split('.').pop() ?? '';
+  return EVIDENCE_EXTENSION_MIME[extension] ?? normalized;
+}
+
 const EVIDENCE_MAX_BYTES = EVIDENCE_MAX_MB * 1024 * 1024;
 
 /**

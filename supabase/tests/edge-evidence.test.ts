@@ -87,11 +87,15 @@ function evidenceSpy(options: {
   return { deps, rpcCalls, uploads, removals, logs };
 }
 
-function uploadRequest(bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xd9])): Request {
+function uploadRequest(
+  bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]),
+  type = 'image/jpeg',
+  name = 'private-name.jpg',
+): Request {
   const form = new FormData();
   form.set('promise_id', PROMISE_ID);
   form.set('round_no', '1');
-  form.set('file', new Blob([bytes], { type: 'image/jpeg' }), 'private-name.jpg');
+  form.set('file', new Blob([bytes], { type }), name);
   return new Request('https://example.test/evidence-upload', {
     method: 'POST',
     headers: {
@@ -145,6 +149,20 @@ describe('evidence-upload Edge handler', () => {
     await expect(response.json()).resolves.toEqual(ready);
     expect(spy.uploads).toEqual([]);
     expect(spy.rpcCalls).toHaveLength(1);
+  });
+
+  test('accepts HEIC filename when multipart MIME is generic', async () => {
+    const spy = evidenceSpy();
+
+    const response = await createEvidenceUploadHandler(spy.deps)(
+      uploadRequest(new Uint8Array([0, 0, 0, 0]), 'application/octet-stream', 'camera.heic'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(spy.rpcCalls.map(({ fn }) => fn)).toEqual([
+      'lf_evidence_upload_reserve',
+      'lf_evidence_upload_complete',
+    ]);
   });
 
   test('removes the full image when thumbnail storage fails and logs no private data', async () => {

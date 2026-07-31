@@ -700,6 +700,26 @@ describe('SCR-W04 참여 약속', () => {
     expect(sessionStorage.getItem(storageKey)).toBeNull();
   });
 
+  it('브라우저가 MIME을 비워도 HEIC 확장자를 선업로드한다', async () => {
+    installServer([summary()], { [PROMISE_A]: detail() });
+    renderAt();
+    await screen.findByText('매일 함께 걷기');
+
+    const file = new File(['heic'], 'camera.heic', { type: '' });
+    fireEvent.change(screen.getByLabelText('증빙 사진 선택'), {
+      target: { files: [file] },
+    });
+
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(
+          ([url]) => endpointOf(url) === ENDPOINT.evidenceUpload,
+        ),
+      ).toBe(true),
+    );
+    expect(await screen.findByText('업로드 완료')).toBeTruthy();
+  });
+
   it('부분 실패 뒤 같은 업로드 키로 재시도하고 READY 제거·unmount에서 object URL을 정리한다', async () => {
     installServer([summary()], { [PROMISE_A]: detail() });
     const server = fetchMock.getMockImplementation();

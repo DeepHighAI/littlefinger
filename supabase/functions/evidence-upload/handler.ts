@@ -1,4 +1,7 @@
-import { validateEvidences } from '../../../packages/shared/src/validation.ts';
+import {
+  evidenceMimeOf,
+  validateEvidences,
+} from '../../../packages/shared/src/validation.ts';
 import {
   EVIDENCE_BUCKET,
   evidenceObjectKeys,
@@ -78,7 +81,11 @@ export function createEvidenceUploadHandler(deps: EvidenceDeps) {
         throw new ApiError('E_VALIDATION', { field: 'evidences' });
       }
 
-      const validation = validateEvidences([{ mime: file.type, bytes: file.size }]);
+      const mime = evidenceMimeOf(
+        file.type,
+        file instanceof File ? file.name : '',
+      );
+      const validation = validateEvidences([{ mime, bytes: file.size }]);
       if (!validation.valid) {
         throw new ApiError('E_VALIDATION', { field: 'evidences' });
       }
@@ -96,7 +103,7 @@ export function createEvidenceUploadHandler(deps: EvidenceDeps) {
 
       const image = await deps.processImage({
         bytes: new Uint8Array(await file.arrayBuffer()),
-        mime: file.type,
+        mime,
       });
       const { fullKey, thumbnailKey } = evidenceObjectKeys(promiseId, reservation.upload_id);
 
