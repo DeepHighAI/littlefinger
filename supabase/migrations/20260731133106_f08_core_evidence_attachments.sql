@@ -1,4 +1,5 @@
 -- F-08 core evidence lifecycle: private pre-upload, transactional binding, and retention.
+-- Filename matches the version assigned by the authenticated Management API deployment.
 
 create type public.evidence_upload_status as enum (
   'PENDING',
