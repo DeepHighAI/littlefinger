@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import FulfillmentScreen from '../app/fulfillment/[promise_id]';
 import {
+  createFulfillmentIdempotencyKey,
   loadFulfillmentDetail,
   reopenFulfillment,
   submitFulfillment,
@@ -25,6 +26,7 @@ jest.mock('expo-router', () => ({
 jest.mock(
   '../lib/fulfillment-native.ts',
   () => ({
+    createFulfillmentIdempotencyKey: jest.fn(),
     loadFulfillmentDetail: jest.fn(),
     reopenFulfillment: jest.fn(),
     submitFulfillment: jest.fn(),
@@ -37,6 +39,7 @@ const back = jest.fn();
 const loadDetailMock = jest.mocked(loadFulfillmentDetail);
 const submitMock = jest.mocked(submitFulfillment);
 const reopenMock = jest.mocked(reopenFulfillment);
+const createKeyMock = jest.mocked(createFulfillmentIdempotencyKey);
 
 const creatorCheck: FulfillmentCheckView = {
   role: 'CREATOR',
@@ -105,6 +108,8 @@ describe('SCR-A06 이행 확인', () => {
     jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
     loadDetailMock.mockReset();
     loadDetailMock.mockResolvedValue(makeDetail());
+    createKeyMock.mockReset();
+    createKeyMock.mockReturnValue('11111111-1111-4111-8111-111111111111');
     submitMock.mockReset();
     submitMock.mockResolvedValue({
       promise_id: 'promise-1',
@@ -226,6 +231,9 @@ describe('SCR-A06 이행 확인', () => {
   });
 
   test('첫 제출 뒤 내 응답을 보존하고 상대 응답 전 한 번만 수정한다', async () => {
+    createKeyMock
+      .mockReturnValueOnce('11111111-1111-4111-8111-111111111111')
+      .mockReturnValueOnce('22222222-2222-4222-8222-222222222222');
     loadDetailMock
       .mockResolvedValueOnce(makeDetail())
       .mockResolvedValueOnce(makeDetail({ my_check: creatorCheck }))
@@ -257,12 +265,16 @@ describe('SCR-A06 이행 확인', () => {
     await fireEvent.press(view.getByRole('button', { name: '수정 제출' }));
     await settle();
 
-    expect(submitMock).toHaveBeenNthCalledWith(2, {
-      promise_id: 'promise-1',
-      answer: 'NOT_KEPT',
-      comment: '수정한 의견',
-      revise: true,
-    });
+    expect(submitMock).toHaveBeenNthCalledWith(
+      2,
+      {
+        promise_id: 'promise-1',
+        answer: 'NOT_KEPT',
+        comment: '수정한 의견',
+        revise: true,
+      },
+      '22222222-2222-4222-8222-222222222222',
+    );
     expect(view.getByText('응답 수정 기회를 사용했어요.')).toBeTruthy();
     expect(view.queryByRole('button', { name: '응답 수정' })).toBeNull();
   });
@@ -319,6 +331,57 @@ describe('SCR-A06 이행 확인', () => {
     expect(loadDetailMock).toHaveBeenCalledTimes(2);
   });
 
+  test('제출 응답 유실 뒤 같은 payload는 같은 키로 재시도하고 변경한 payload는 새 키를 쓴다', async () => {
+    createKeyMock
+      .mockReturnValueOnce('11111111-1111-4111-8111-111111111111')
+      .mockReturnValueOnce('22222222-2222-4222-8222-222222222222');
+    submitMock
+      .mockRejectedValueOnce(new MobileApiError(null, 'network'))
+      .mockRejectedValueOnce(new MobileApiError(null, 'network'))
+      .mockResolvedValueOnce({
+        promise_id: 'promise-1',
+        status: 'CHECKING',
+        round_no: 1,
+        submitted_at: '2026-08-12T01:00:00Z',
+        revised_at: null,
+        waiting_for_partner: true,
+        title: '매주 화·목 아침 러닝 같이 하기',
+        actor_nickname: '서윤',
+        notification_recipients: [],
+      });
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
+    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await settle();
+    await fireEvent.changeText(view.getByLabelText('한 줄 의견'), '새 의견');
+    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await settle();
+
+    expect(submitMock).toHaveBeenNthCalledWith(
+      1,
+      { promise_id: 'promise-1', answer: 'KEPT' },
+      '11111111-1111-4111-8111-111111111111',
+    );
+    expect(submitMock).toHaveBeenNthCalledWith(
+      2,
+      { promise_id: 'promise-1', answer: 'KEPT' },
+      '11111111-1111-4111-8111-111111111111',
+    );
+    expect(submitMock).toHaveBeenNthCalledWith(
+      3,
+      {
+        promise_id: 'promise-1',
+        answer: 'KEPT',
+        comment: '새 의견',
+      },
+      '22222222-2222-4222-8222-222222222222',
+    );
+  });
+
   test('DISPUTED는 양측 주장을 같은 구조로 보여주고 재확인 성공 뒤 새 라운드를 연다', async () => {
     loadDetailMock
       .mockResolvedValueOnce(
@@ -350,7 +413,82 @@ describe('SCR-A06 이행 확인', () => {
       view.getByRole('button', { name: '다시 확인 요청하기' }),
     );
     await settle();
-    expect(reopenMock).toHaveBeenCalledWith('promise-1');
+    expect(reopenMock).toHaveBeenCalledWith(
+      'promise-1',
+      '11111111-1111-4111-8111-111111111111',
+    );
+    expect(loadDetailMock).toHaveBeenCalledTimes(2);
+    expect(view.getByText('약속, 지켜졌나요?')).toBeTruthy();
+  });
+
+  test('재확인 응답 유실 뒤 같은 키로 재시도한다', async () => {
+    loadDetailMock
+      .mockResolvedValueOnce(
+        makeDetail({
+          status: 'DISPUTED',
+          my_check: creatorCheck,
+          partner_has_submitted: true,
+          partner_check: partnerCheck,
+        }),
+      )
+      .mockResolvedValueOnce(makeDetail({ check_round_no: 2 }));
+    reopenMock
+      .mockRejectedValueOnce(new MobileApiError(null, 'network'))
+      .mockResolvedValueOnce({
+        promise_id: 'promise-1',
+        status: 'CHECKING',
+        round_no: 2,
+        check_deadline_at: '2026-08-25T15:00:00Z',
+        title: '매주 화·목 아침 러닝 같이 하기',
+        notification_recipients: [],
+      });
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(
+      view.getByRole('button', { name: '다시 확인 요청하기' }),
+    );
+    await settle();
+    await fireEvent.press(
+      view.getByRole('button', { name: '다시 확인 요청하기' }),
+    );
+    await settle();
+
+    expect(reopenMock).toHaveBeenNthCalledWith(
+      1,
+      'promise-1',
+      '11111111-1111-4111-8111-111111111111',
+    );
+    expect(reopenMock).toHaveBeenNthCalledWith(
+      2,
+      'promise-1',
+      '11111111-1111-4111-8111-111111111111',
+    );
+    expect(createKeyMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('재확인이 이미 커밋된 상태 충돌도 상세를 다시 불러 CHECKING으로 수렴한다', async () => {
+    loadDetailMock
+      .mockResolvedValueOnce(
+        makeDetail({
+          status: 'DISPUTED',
+          my_check: creatorCheck,
+          partner_has_submitted: true,
+          partner_check: partnerCheck,
+        }),
+      )
+      .mockResolvedValueOnce(makeDetail({ check_round_no: 2 }));
+    reopenMock.mockRejectedValue(
+      new MobileApiError('E_STATE_CONFLICT', '현재 상태에서는 처리할 수 없어요.'),
+    );
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(
+      view.getByRole('button', { name: '다시 확인 요청하기' }),
+    );
+    await settle();
+
     expect(loadDetailMock).toHaveBeenCalledTimes(2);
     expect(view.getByText('약속, 지켜졌나요?')).toBeTruthy();
   });

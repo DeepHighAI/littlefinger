@@ -12,7 +12,7 @@ import {
   type PromiseFulfillmentDetailResponse,
 } from '@littlefinger/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -32,6 +32,7 @@ import { LfStack } from '../../components/LfStack';
 import { LfText } from '../../components/LfText';
 import { LfTextarea } from '../../components/LfTextarea';
 import {
+  createFulfillmentIdempotencyKey,
   loadFulfillmentDetail,
   reopenFulfillment,
   submitFulfillment,
@@ -240,26 +241,35 @@ export default function FulfillmentScreen(): React.JSX.Element {
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const submitIdempotencyKey = useRef<string | null>(null);
+  const reopenIdempotencyKey = useRef<string | null>(null);
 
-  const refresh = useCallback(async (): Promise<void> => {
-    if (promiseId === null) {
-      setPhase('not-found');
-      return;
-    }
-    try {
-      const nextDetail = await loadFulfillmentDetail(promiseId);
-      setDetail(nextDetail);
-      setPhase('ready');
-    } catch (error) {
-      setPhase(
-        error instanceof MobileApiError && error.code === 'E_NOT_FOUND'
-          ? 'not-found'
-          : 'error',
-      );
-    }
-  }, [promiseId]);
+  const refresh = useCallback(
+    async (): Promise<PromiseFulfillmentDetailResponse | null> => {
+      if (promiseId === null) {
+        setPhase('not-found');
+        return null;
+      }
+      try {
+        const nextDetail = await loadFulfillmentDetail(promiseId);
+        setDetail(nextDetail);
+        setPhase('ready');
+        return nextDetail;
+      } catch (error) {
+        setPhase(
+          error instanceof MobileApiError && error.code === 'E_NOT_FOUND'
+            ? 'not-found'
+            : 'error',
+        );
+        return null;
+      }
+    },
+    [promiseId],
+  );
 
   useEffect(() => {
+    submitIdempotencyKey.current = null;
+    reopenIdempotencyKey.current = null;
     void refresh();
   }, [refresh]);
 
@@ -268,6 +278,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
 
   function startRevision(): void {
     if (detail?.my_check === null || detail?.my_check === undefined) return;
+    submitIdempotencyKey.current = null;
     setAnswer(detail.my_check.answer);
     setComment(detail.my_check.comment ?? '');
     setEditing(true);
@@ -285,13 +296,20 @@ export default function FulfillmentScreen(): React.JSX.Element {
     }
     setBusy(true);
     setActionMessage(null);
+    const key =
+      submitIdempotencyKey.current ?? createFulfillmentIdempotencyKey();
+    submitIdempotencyKey.current = key;
     try {
-      await submitFulfillment({
-        promise_id: promiseId,
-        answer,
-        ...(comment.length > 0 ? { comment } : {}),
-        ...(editing ? { revise: true } : {}),
-      });
+      await submitFulfillment(
+        {
+          promise_id: promiseId,
+          answer,
+          ...(comment.length > 0 ? { comment } : {}),
+          ...(editing ? { revise: true } : {}),
+        },
+        key,
+      );
+      submitIdempotencyKey.current = null;
       setEditing(false);
       setAnswer(null);
       setComment('');
@@ -303,7 +321,13 @@ export default function FulfillmentScreen(): React.JSX.Element {
             ? SCR_A06_LABEL.beforeChecking
             : SCR_A06_LABEL.alreadyClosed,
         );
-        await refresh();
+        const nextDetail = await refresh();
+        if (
+          nextDetail?.my_check?.answer === answer &&
+          (nextDetail.my_check.comment ?? '') === comment
+        ) {
+          submitIdempotencyKey.current = null;
+        }
       } else {
         setActionMessage(SCR_A06_LABEL.actionError);
       }
@@ -316,11 +340,26 @@ export default function FulfillmentScreen(): React.JSX.Element {
     if (promiseId === null || busy) return;
     setBusy(true);
     setActionMessage(null);
+    const key =
+      reopenIdempotencyKey.current ?? createFulfillmentIdempotencyKey();
+    reopenIdempotencyKey.current = key;
+    const previousRound = detail?.check_round_no ?? 0;
     try {
-      await reopenFulfillment(promiseId);
+      await reopenFulfillment(promiseId, key);
+      reopenIdempotencyKey.current = null;
       await refresh();
-    } catch {
-      setActionMessage(SCR_A06_LABEL.actionError);
+    } catch (error) {
+      if (error instanceof MobileApiError && error.code === 'E_STATE_CONFLICT') {
+        const nextDetail = await refresh();
+        if (
+          nextDetail?.status === 'CHECKING' &&
+          nextDetail.check_round_no > previousRound
+        ) {
+          reopenIdempotencyKey.current = null;
+        }
+      } else {
+        setActionMessage(SCR_A06_LABEL.actionError);
+      }
     } finally {
       setBusy(false);
     }
@@ -421,7 +460,10 @@ export default function FulfillmentScreen(): React.JSX.Element {
                   key={value}
                   answer={value}
                   selected={answer === value}
-                  onPress={() => setAnswer(value)}
+                  onPress={() => {
+                    if (answer !== value) submitIdempotencyKey.current = null;
+                    setAnswer(value);
+                  }}
                 />
               ))}
             </LfStack>
@@ -438,7 +480,11 @@ export default function FulfillmentScreen(): React.JSX.Element {
                 accessibilityLabel={SCR_A06_LABEL.comment}
                 placeholder={SCR_A06_LABEL.commentPlaceholder}
                 value={comment}
-                onChangeText={(value) => setComment(normalizeInput(value))}
+                onChangeText={(value) => {
+                  const normalized = normalizeInput(value);
+                  if (comment !== normalized) submitIdempotencyKey.current = null;
+                  setComment(normalized);
+                }}
               />
               <View style={styles.counter}>
                 <LfText variant="caption">

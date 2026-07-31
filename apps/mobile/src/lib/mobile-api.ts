@@ -24,6 +24,7 @@ export interface MobileApiDeps {
 
 export interface MobileApiOptions {
   idempotent?: boolean;
+  idempotencyKey?: string;
 }
 
 export class MobileApiError extends Error {
@@ -66,7 +67,9 @@ export async function callMobileFunction<T>(
     Authorization: `Bearer ${accessToken}`,
     'Content-Type': 'application/json',
   };
-  if (options.idempotent === true) {
+  if (options.idempotencyKey !== undefined) {
+    headers['Idempotency-Key'] = options.idempotencyKey;
+  } else if (options.idempotent === true) {
     headers['Idempotency-Key'] = deps.randomUuid();
   }
 

@@ -37,22 +37,24 @@ export async function loadFulfillmentDetail(
 
 export async function submitFulfillment(
   input: FulfillmentSubmitRequest,
+  idempotencyKey: string,
   deps: FulfillmentApiDeps,
 ): Promise<FulfillmentSubmitResponse> {
   return await deps.call(
     ENDPOINT.fulfillmentSubmit,
     input,
-    { idempotent: true },
+    { idempotent: true, idempotencyKey },
   );
 }
 
 export async function reopenFulfillment(
   promiseId: string,
+  idempotencyKey: string,
   deps: FulfillmentApiDeps,
 ): Promise<FulfillmentReopenResponse> {
   return await deps.call(
     ENDPOINT.fulfillmentReopen,
     { promise_id: promiseId },
-    { idempotent: true },
+    { idempotent: true, idempotencyKey },
   );
 }

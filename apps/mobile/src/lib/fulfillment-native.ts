@@ -4,6 +4,7 @@ import type {
   ParticipantPromiseSummary,
   PromiseFulfillmentDetailResponse,
 } from '@littlefinger/shared';
+import * as Crypto from 'expo-crypto';
 
 import {
   listParticipantPromises as listParticipantPromisesWith,
@@ -29,10 +30,18 @@ export async function loadFulfillmentDetail(
 
 export async function submitFulfillment(
   input: FulfillmentSubmitRequest,
+  idempotencyKey: string,
 ): Promise<FulfillmentSubmitResponse> {
-  return await submitFulfillmentWith(input, deps);
+  return await submitFulfillmentWith(input, idempotencyKey, deps);
 }
 
-export async function reopenFulfillment(promiseId: string) {
-  return await reopenFulfillmentWith(promiseId, deps);
+export async function reopenFulfillment(
+  promiseId: string,
+  idempotencyKey: string,
+) {
+  return await reopenFulfillmentWith(promiseId, idempotencyKey, deps);
+}
+
+export function createFulfillmentIdempotencyKey(): string {
+  return Crypto.randomUUID();
 }

@@ -160,8 +160,16 @@ describe('모바일 이행 확인 API', () => {
         ),
       );
 
-    await submitFulfillment(input, { call });
-    await reopenFulfillment('promise-1', { call });
+    await submitFulfillment(
+      input,
+      '11111111-1111-4111-8111-111111111111',
+      { call },
+    );
+    await reopenFulfillment(
+      'promise-1',
+      '22222222-2222-4222-8222-222222222222',
+      { call },
+    );
 
     expect(mobileDeps.fetch).toHaveBeenNthCalledWith(
       1,
@@ -169,7 +177,7 @@ describe('모바일 이행 확인 API', () => {
       expect.objectContaining({
         body: JSON.stringify(input),
         headers: expect.objectContaining({
-          'Idempotency-Key': '38ae6b47-6ce8-4c9e-adbf-c4dfed61ac7e',
+          'Idempotency-Key': '11111111-1111-4111-8111-111111111111',
         }),
       }),
     );
@@ -179,10 +187,78 @@ describe('모바일 이행 확인 API', () => {
       expect.objectContaining({
         body: JSON.stringify({ promise_id: 'promise-1' }),
         headers: expect.objectContaining({
-          'Idempotency-Key': '38ae6b47-6ce8-4c9e-adbf-c4dfed61ac7e',
+          'Idempotency-Key': '22222222-2222-4222-8222-222222222222',
         }),
       }),
     );
+    expect(mobileDeps.randomUuid).not.toHaveBeenCalled();
+  });
+
+  test('응답이 유실돼도 제출·재확인 재시도는 호출자가 보존한 키를 그대로 쓴다', async () => {
+    const input: FulfillmentSubmitRequest = {
+      promise_id: 'promise-1',
+      answer: 'KEPT',
+    };
+    jest
+      .mocked(mobileDeps.fetch)
+      .mockRejectedValueOnce(new Error('response lost after commit'))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            promise_id: 'promise-1',
+            status: 'CHECKING',
+            round_no: 1,
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockRejectedValueOnce(new Error('response lost after commit'))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            promise_id: 'promise-1',
+            status: 'CHECKING',
+            round_no: 2,
+          }),
+          { status: 200 },
+        ),
+      );
+
+    await expect(
+      submitFulfillment(
+        input,
+        '33333333-3333-4333-8333-333333333333',
+        { call },
+      ),
+    ).rejects.toMatchObject({ code: null });
+    await submitFulfillment(
+      input,
+      '33333333-3333-4333-8333-333333333333',
+      { call },
+    );
+    await expect(
+      reopenFulfillment(
+        'promise-1',
+        '44444444-4444-4444-8444-444444444444',
+        { call },
+      ),
+    ).rejects.toMatchObject({ code: null });
+    await reopenFulfillment(
+      'promise-1',
+      '44444444-4444-4444-8444-444444444444',
+      { call },
+    );
+
+    const headers = jest
+      .mocked(mobileDeps.fetch)
+      .mock.calls.map(([, init]) => init.headers as Record<string, string>);
+    expect(headers.map((value) => value['Idempotency-Key'])).toEqual([
+      '33333333-3333-4333-8333-333333333333',
+      '33333333-3333-4333-8333-333333333333',
+      '44444444-4444-4444-8444-444444444444',
+      '44444444-4444-4444-8444-444444444444',
+    ]);
+    expect(mobileDeps.randomUuid).not.toHaveBeenCalled();
   });
 
   test('화면이 코드별 문구를 결정할 수 있도록 ApiErrorBody 정보를 그대로 보존한다', async () => {
@@ -200,6 +276,7 @@ describe('모바일 이행 확인 API', () => {
     await expect(
       submitFulfillment(
         { promise_id: 'promise-1', answer: 'KEPT' },
+        '55555555-5555-4555-8555-555555555555',
         { call },
       ),
     ).rejects.toMatchObject({
