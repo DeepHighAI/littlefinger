@@ -165,13 +165,15 @@ export interface PromiseConfirmation {
   contentHash: string;
 }
 
-/** 이행 확인 응답. 양측 응답을 비교해 종결 상태가 결정된다(J-01). */
+/** 이행 확인 응답. 양측 응답을 비교해 종결 상태가 결정된다(F-07). */
 export interface FulfillmentResponse {
   userId: string;
+  role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>;
   answer: Answer;
-  respondedAt: IsoDateTime;
-  /** 이행 증빙 사진. 상대·증인에게 공개된다. 최대 EVIDENCE_MAX_COUNT 장. */
-  proofImageUrls: readonly string[];
+  comment: string | null;
+  submittedAt: IsoDateTime;
+  revisedAt: IsoDateTime | null;
+  roundNo: number;
 }
 
 /** 변경·파기 합의 요청 (F-11) */

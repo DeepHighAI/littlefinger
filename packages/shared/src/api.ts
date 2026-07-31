@@ -12,11 +12,13 @@
 
 import type { ErrorCode } from './errors.ts';
 import type {
+  Answer,
   IsoDate,
   IsoDateTime,
   Keeper,
   ParticipantRole,
   PromiseCategory,
+  PromiseStatus,
 } from './promise.ts';
 
 /** 상태 변경 요청이 반드시 달고 오는 헤더 (§7-3.6). 값은 UUID 다. */
@@ -63,6 +65,9 @@ export type ApiValidationField =
   | 'promise_id'
   | 'decline_reason'
   | 'amend_suggestion'
+  | 'answer'
+  | 'comment'
+  | 'revise'
   | 'idempotency_key'
   | 'nickname'
   | 'profile_image_url'
@@ -281,6 +286,94 @@ export interface DeviceTokenRegisterRequest {
   expo_push_token: string;
 }
 
+/** 로그인한 작성자·상대방의 약속 목록 카드. */
+export interface ParticipantPromiseSummary {
+  promise_id: string;
+  title: string;
+  status: PromiseStatus;
+  end_date: IsoDate;
+  keeper: Keeper;
+  updated_at: IsoDateTime;
+  check_deadline_at: IsoDateTime | null;
+  check_round_no: number;
+  needs_response: boolean;
+  waiting_for_partner: boolean;
+}
+
+export interface PromiseFulfillmentDetailRequest {
+  promise_id: string;
+}
+
+/** 한 라운드에서 당사자 한 명이 제출한 주장. */
+export interface FulfillmentCheckView {
+  role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>;
+  answer: Answer;
+  comment: string | null;
+  submitted_at: IsoDateTime;
+  revised_at: IsoDateTime | null;
+  round_no: number;
+}
+
+export interface FulfillmentRoundView {
+  round_no: number;
+  creator_check: FulfillmentCheckView | null;
+  partner_check: FulfillmentCheckView | null;
+}
+
+export interface PromiseFulfillmentDetailResponse {
+  promise_id: string;
+  title: string;
+  body: string;
+  category: PromiseCategory;
+  end_date: IsoDate;
+  keeper: Keeper;
+  reward: string | null;
+  penalty: string | null;
+  status: PromiseStatus;
+  checking_started_at: IsoDateTime | null;
+  check_deadline_at: IsoDateTime | null;
+  check_round_no: number;
+  creator: {
+    user_id: string;
+    nickname: string;
+    profile_image_url: string | null;
+  };
+  partner: {
+    user_id: string;
+    nickname: string;
+    profile_image_url: string | null;
+  };
+  my_check: FulfillmentCheckView | null;
+  partner_has_submitted: boolean;
+  partner_check: FulfillmentCheckView | null;
+  history: readonly FulfillmentRoundView[];
+}
+
+export interface FulfillmentSubmitRequest {
+  promise_id: string;
+  answer: Answer;
+  comment?: string;
+  revise?: boolean;
+}
+
+export interface FulfillmentNotificationRecipient {
+  user_id: string;
+  role: ParticipantRole;
+}
+
+export interface FulfillmentSubmitResponse {
+  promise_id: string;
+  status: Extract<PromiseStatus, 'CHECKING' | 'COMPLETED' | 'BROKEN' | 'DISPUTED'>;
+  round_no: number;
+  submitted_at: IsoDateTime;
+  revised_at: IsoDateTime | null;
+  waiting_for_partner: boolean;
+  /** 알림 템플릿이 쓰는 약속 제목. 다른 참여자의 응답은 담지 않는다. */
+  title: string;
+  /** Task 3가 상태별 수신자를 고르는 데 필요한 최소 식별 정보. */
+  notification_recipients: readonly FulfillmentNotificationRecipient[];
+}
+
 /**
  * Edge Function 슬러그. `04` §7-3 의 이름을 그대로 쓴다.
  *
@@ -300,6 +393,9 @@ export const ENDPOINT = {
   promiseAmend: 'promise-amend',
   userProvision: 'user-provision',
   deviceTokenRegister: 'device-token-register',
+  participantPromiseList: 'participant-promise-list',
+  promiseFulfillmentDetail: 'promise-fulfillment-detail',
+  fulfillmentSubmit: 'fulfillment-submit',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];
