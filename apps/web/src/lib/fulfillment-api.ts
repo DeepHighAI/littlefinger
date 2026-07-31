@@ -38,16 +38,14 @@ async function callFulfillment<T>(
   slug: (typeof ENDPOINT)[keyof typeof ENDPOINT],
   accessToken: string,
   body: object,
-  options: { idempotent: boolean; signal?: AbortSignal },
+  options: { idempotencyKey?: string; signal?: AbortSignal },
 ): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${accessToken}`,
   };
-  if (options.idempotent) {
-    // 화면 수명에 묶지 않는다. 각 사용자 액션이 새 전이 시도이고, 그 네트워크 재시도만
-    // 브라우저가 같은 요청으로 처리한다.
-    headers[IDEMPOTENCY_KEY_HEADER] = crypto.randomUUID();
+  if (options.idempotencyKey !== undefined) {
+    headers[IDEMPOTENCY_KEY_HEADER] = options.idempotencyKey;
   }
 
   let response: Response;
@@ -94,7 +92,7 @@ export function listParticipantPromises(
     ENDPOINT.participantPromiseList,
     accessToken,
     {},
-    { idempotent: false, ...(signal === undefined ? {} : { signal }) },
+    { ...(signal === undefined ? {} : { signal }) },
   );
 }
 
@@ -108,30 +106,32 @@ export function getPromiseFulfillmentDetail(
     ENDPOINT.promiseFulfillmentDetail,
     accessToken,
     body,
-    { idempotent: false, ...(signal === undefined ? {} : { signal }) },
+    { ...(signal === undefined ? {} : { signal }) },
   );
 }
 
 export function submitFulfillment(
   accessToken: string,
   request: FulfillmentSubmitRequest,
+  idempotencyKey: string = crypto.randomUUID(),
 ): Promise<FulfillmentSubmitResponse> {
   return callFulfillment<FulfillmentSubmitResponse>(
     ENDPOINT.fulfillmentSubmit,
     accessToken,
     request,
-    { idempotent: true },
+    { idempotencyKey },
   );
 }
 
 export function reopenFulfillment(
   accessToken: string,
   request: FulfillmentReopenRequest,
+  idempotencyKey: string = crypto.randomUUID(),
 ): Promise<FulfillmentReopenResponse> {
   return callFulfillment<FulfillmentReopenResponse>(
     ENDPOINT.fulfillmentReopen,
     accessToken,
     request,
-    { idempotent: true },
+    { idempotencyKey },
   );
 }

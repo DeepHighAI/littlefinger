@@ -103,6 +103,26 @@ describe('이행 확인 웹 API 클라이언트', () => {
     );
   });
 
+  it('호출자가 보존한 키를 제출·재확인 재시도에 그대로 전달한다', async () => {
+    const submitKey = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const reopenKey = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    fetchMock
+      .mockResolvedValueOnce(response(200, { promise_id: PROMISE_ID, status: 'CHECKING' }))
+      .mockResolvedValueOnce(response(200, { promise_id: PROMISE_ID, status: 'CHECKING' }));
+
+    await submitFulfillment(
+      ACCESS_TOKEN,
+      { promise_id: PROMISE_ID, answer: 'KEPT', comment: '완료했어요' },
+      submitKey,
+    );
+    const submitHeaders = lastRequest()[1].headers as Record<string, string>;
+    await reopenFulfillment(ACCESS_TOKEN, { promise_id: PROMISE_ID }, reopenKey);
+    const reopenHeaders = lastRequest()[1].headers as Record<string, string>;
+
+    expect(submitHeaders[IDEMPOTENCY_KEY_HEADER]).toBe(submitKey);
+    expect(reopenHeaders[IDEMPOTENCY_KEY_HEADER]).toBe(reopenKey);
+  });
+
   it('알려진 API 오류는 코드와 서버 필드 문구를 보존한다', async () => {
     fetchMock.mockResolvedValue(
       response(422, {

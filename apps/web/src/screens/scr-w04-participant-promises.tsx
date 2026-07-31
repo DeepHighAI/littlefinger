@@ -13,7 +13,7 @@ import {
   type ParticipantRole,
   type PromiseFulfillmentDetailResponse,
 } from '@littlefinger/shared';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { LfIcon } from '../components/LfIcon.tsx';
 import {
@@ -67,6 +67,90 @@ interface ResponseDraft {
   answer: Answer | null;
   comment: string;
   revising: boolean;
+}
+
+interface SubmitMutationIntent {
+  kind: 'SUBMIT';
+  identity: string;
+  key: string;
+  promiseId: string;
+  roundNo: number;
+  answer: Answer;
+  comment: string | null;
+  revise: boolean;
+}
+
+interface ReopenMutationIntent {
+  kind: 'REOPEN';
+  identity: string;
+  key: string;
+  promiseId: string;
+  roundNo: number;
+}
+
+type MutationIntent = SubmitMutationIntent | ReopenMutationIntent;
+type MutationIntentWithoutKey =
+  | Omit<SubmitMutationIntent, 'key'>
+  | Omit<ReopenMutationIntent, 'key'>;
+type MutationIntentStore = Record<string, MutationIntent>;
+
+function submitSlot(promiseId: string): string {
+  return `SUBMIT:${promiseId}`;
+}
+
+function reopenSlot(promiseId: string): string {
+  return `REOPEN:${promiseId}`;
+}
+
+function keyForIntent(
+  store: MutationIntentStore,
+  slot: string,
+  intent: MutationIntentWithoutKey,
+): string {
+  const existing = store[slot];
+  if (existing?.identity === intent.identity) return existing.key;
+  const key = crypto.randomUUID();
+  store[slot] = { ...intent, key } as MutationIntent;
+  return key;
+}
+
+/**
+ * 응답 유실 뒤 서버를 다시 읽었을 때 전이가 실제 반영됐는지 판정한다.
+ *
+ * 반영되지 않은 intent는 같은 키로 재시도해야 하므로 남긴다. 상태/라운드/내 응답이 서버
+ * 결과와 맞아 authoritative convergence가 확인된 경우에만 지운다.
+ */
+function reconcileMutationIntents(
+  store: MutationIntentStore,
+  promises: PromiseView[],
+): void {
+  for (const [slot, intent] of Object.entries(store)) {
+    const view = promises.find(({ detail }) => detail.promise_id === intent.promiseId);
+    if (view === undefined) {
+      delete store[slot];
+      continue;
+    }
+    const { detail } = view;
+    if (intent.kind === 'REOPEN') {
+      if (detail.status !== 'DISPUTED' || detail.check_round_no !== intent.roundNo) {
+        delete store[slot];
+      }
+      continue;
+    }
+
+    if (detail.status !== 'CHECKING' || detail.check_round_no !== intent.roundNo) {
+      delete store[slot];
+      continue;
+    }
+    const check = detail.my_check;
+    const applied =
+      check !== null &&
+      check.round_no === intent.roundNo &&
+      check.answer === intent.answer &&
+      check.comment === intent.comment &&
+      (!intent.revise || check.revised_at !== null);
+    if (applied) delete store[slot];
+  }
 }
 
 function orderPromises(rows: ParticipantPromiseSummary[]): ParticipantPromiseSummary[] {
@@ -357,6 +441,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
   const [pendingPromiseId, setPendingPromiseId] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [signInError, setSignInError] = useState(false);
+  const mutationIntents = useRef<MutationIntentStore>({});
 
   const load = useCallback(async (signal?: AbortSignal): Promise<void> => {
     setPhase({ kind: 'LOADING' });
@@ -380,13 +465,15 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         ),
       );
       if (signal?.aborted) return;
+      const promises = summaries.map((summary, index) => ({
+        summary,
+        detail: details[index] as PromiseFulfillmentDetailResponse,
+      }));
+      reconcileMutationIntents(mutationIntents.current, promises);
       setPhase({
         kind: 'READY',
         accessToken: session.access_token,
-        promises: summaries.map((summary, index) => ({
-          summary,
-          detail: details[index] as PromiseFulfillmentDetailResponse,
-        })),
+        promises,
       });
     } catch (raised) {
       if (signal?.aborted) return;
@@ -423,13 +510,33 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
       if (phase.kind !== 'READY' || draft.answer === null) return;
       setPendingPromiseId(view.detail.promise_id);
       const comment = normalizeInput(draft.comment);
+      const request = {
+        promise_id: view.detail.promise_id,
+        answer: draft.answer,
+        ...(comment === '' ? {} : { comment }),
+        ...(draft.revising ? { revise: true } : {}),
+      };
+      const storedComment = comment === '' ? null : comment;
+      const slot = submitSlot(view.detail.promise_id);
+      const identity = JSON.stringify([
+        view.detail.promise_id,
+        view.detail.check_round_no,
+        draft.answer,
+        storedComment,
+        draft.revising,
+      ]);
+      const idempotencyKey = keyForIntent(mutationIntents.current, slot, {
+        kind: 'SUBMIT',
+        identity,
+        promiseId: view.detail.promise_id,
+        roundNo: view.detail.check_round_no,
+        answer: draft.answer,
+        comment: storedComment,
+        revise: draft.revising,
+      });
       try {
-        await submitFulfillment(phase.accessToken, {
-          promise_id: view.detail.promise_id,
-          answer: draft.answer,
-          ...(comment === '' ? {} : { comment }),
-          ...(draft.revising ? { revise: true } : {}),
-        });
+        await submitFulfillment(phase.accessToken, request, idempotencyKey);
+        delete mutationIntents.current[slot];
         setDrafts((current) => {
           const next = { ...current };
           delete next[view.detail.promise_id];
@@ -461,10 +568,24 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
     async (view: PromiseView): Promise<void> => {
       if (phase.kind !== 'READY') return;
       setPendingPromiseId(view.detail.promise_id);
+      const slot = reopenSlot(view.detail.promise_id);
+      const identity = JSON.stringify([
+        view.detail.promise_id,
+        view.detail.check_round_no,
+      ]);
+      const idempotencyKey = keyForIntent(mutationIntents.current, slot, {
+        kind: 'REOPEN',
+        identity,
+        promiseId: view.detail.promise_id,
+        roundNo: view.detail.check_round_no,
+      });
       try {
-        await reopenFulfillment(phase.accessToken, {
-          promise_id: view.detail.promise_id,
-        });
+        await reopenFulfillment(
+          phase.accessToken,
+          { promise_id: view.detail.promise_id },
+          idempotencyKey,
+        );
+        delete mutationIntents.current[slot];
         await load();
       } catch (raised) {
         if (raised instanceof FulfillmentApiError && raised.authExpired) {

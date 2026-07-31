@@ -102,6 +102,15 @@ function endpointOf(url: unknown): string {
   return String(url).split('/').at(-1) ?? '';
 }
 
+function mutationKeys(endpoint: string): string[] {
+  return fetchMock.mock.calls
+    .filter(([url]) => endpointOf(url) === endpoint)
+    .map(([, init]) => {
+      const headers = (init as RequestInit).headers as Record<string, string>;
+      return headers['Idempotency-Key'] ?? '';
+    });
+}
+
 function installServer(
   list: ParticipantPromiseSummary[],
   details: Record<string, PromiseFulfillmentDetailResponse>,
@@ -352,16 +361,38 @@ describe('SCR-W04 참여 약속', () => {
   });
 
   it('상태 충돌이면 목록과 상세를 다시 읽는다', async () => {
-    installServer([summary()], { [PROMISE_A]: detail() });
+    const creator = check('CREATOR', 'KEPT');
+    const partner = check('PARTNER', 'KEPT');
     let submitSeen = false;
     fetchMock.mockImplementation((url: string, init: RequestInit) => {
       const endpoint = endpointOf(url);
-      const body = JSON.parse(String(init.body)) as Record<string, unknown>;
       if (endpoint === ENDPOINT.participantPromiseList) {
-        return Promise.resolve(response(200, [summary()]));
+        return Promise.resolve(
+          response(200, [
+            submitSeen
+              ? summary({
+                  status: 'COMPLETED',
+                  needs_response: false,
+                  check_deadline_at: null,
+                })
+              : summary(),
+          ]),
+        );
       }
       if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
-        return Promise.resolve(response(200, detail()));
+        return Promise.resolve(
+          response(
+            200,
+            submitSeen
+              ? detail({
+                  status: 'COMPLETED',
+                  my_check: partner,
+                  partner_has_submitted: true,
+                  partner_check: creator,
+                })
+              : detail(),
+          ),
+        );
       }
       if (endpoint === ENDPOINT.fulfillmentSubmit) {
         submitSeen = true;
@@ -388,6 +419,159 @@ describe('SCR-W04 참여 약속', () => {
           ),
         ).toHaveLength(2),
     );
+    expect(await screen.findByText('완료')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: '응답 제출' })).toBeNull();
+  });
+
+  it('제출 응답 유실 뒤 같은 intent 재시도는 같은 멱등 키를 쓴다', async () => {
+    let submitAttempts = 0;
+    fetchMock.mockImplementation((url: string, init: RequestInit) => {
+      const endpoint = endpointOf(url);
+      if (endpoint === ENDPOINT.participantPromiseList) {
+        return Promise.resolve(response(200, [summary()]));
+      }
+      if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
+        return Promise.resolve(response(200, detail()));
+      }
+      if (endpoint === ENDPOINT.fulfillmentSubmit) {
+        submitAttempts += 1;
+        return submitAttempts === 1
+          ? Promise.reject(new TypeError('response lost'))
+          : Promise.resolve(
+              response(200, {
+                promise_id: PROMISE_A,
+                status: 'CHECKING',
+                round_no: 1,
+                submitted_at: '2026-07-31T02:00:00.000Z',
+                revised_at: null,
+                waiting_for_partner: true,
+                title: '매일 함께 걷기',
+                actor_nickname: '민준',
+                notification_recipients: [],
+              }),
+            );
+      }
+      return Promise.resolve(response(500, {}));
+    });
+    renderAt();
+
+    await screen.findByRole('button', { name: '지켰어요' });
+    fireEvent.click(screen.getByRole('button', { name: '지켰어요' }));
+    fireEvent.change(screen.getByLabelText('한 줄 의견'), {
+      target: { value: '완료했어요' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+    await screen.findByRole('button', { name: '응답 제출' });
+    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+
+    await waitFor(() => expect(mutationKeys(ENDPOINT.fulfillmentSubmit)).toHaveLength(2));
+    const keys = mutationKeys(ENDPOINT.fulfillmentSubmit);
+    expect(keys[0]).toBe(keys[1]);
+  });
+
+  it.each([
+    [
+      'answer',
+      () => fireEvent.click(screen.getByRole('button', { name: '안 지켜졌어요' })),
+    ],
+    [
+      'comment',
+      () =>
+        fireEvent.change(screen.getByLabelText('한 줄 의견'), {
+          target: { value: '바뀐 의견' },
+        }),
+    ],
+  ])('%s만 바뀐 제출 intent는 새 키를 쓴다', async (_field, changeIntent) => {
+    fetchMock.mockImplementation((url: string) => {
+      const endpoint = endpointOf(url);
+      if (endpoint === ENDPOINT.participantPromiseList) {
+        return Promise.resolve(response(200, [summary()]));
+      }
+      if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
+        return Promise.resolve(response(200, detail()));
+      }
+      if (endpoint === ENDPOINT.fulfillmentSubmit) {
+        return Promise.reject(new TypeError('response lost'));
+      }
+      return Promise.resolve(response(500, {}));
+    });
+    renderAt();
+
+    await screen.findByRole('button', { name: '지켰어요' });
+    fireEvent.click(screen.getByRole('button', { name: '지켰어요' }));
+    fireEvent.change(screen.getByLabelText('한 줄 의견'), {
+      target: { value: '같은 의견' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+    await screen.findByRole('button', { name: '응답 제출' });
+    changeIntent();
+    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+
+    await waitFor(() => expect(mutationKeys(ENDPOINT.fulfillmentSubmit)).toHaveLength(2));
+    const keys = mutationKeys(ENDPOINT.fulfillmentSubmit);
+    expect(keys[0]).not.toBe(keys[1]);
+  });
+
+  it('revise만 바뀐 제출 intent는 새 키를 쓴다', async () => {
+    let detailAfterRetry = false;
+    fetchMock.mockImplementation((url: string) => {
+      const endpoint = endpointOf(url);
+      if (endpoint === ENDPOINT.participantPromiseList) {
+        return Promise.resolve(
+          response(200, [
+            summary({ needs_response: !detailAfterRetry, waiting_for_partner: detailAfterRetry }),
+          ]),
+        );
+      }
+      if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
+        return Promise.resolve(
+          response(
+            200,
+            detailAfterRetry
+              ? detail({
+                  my_check: check('PARTNER', 'KEPT'),
+                  partner_has_submitted: false,
+                })
+              : detail(),
+          ),
+        );
+      }
+      if (endpoint === ENDPOINT.fulfillmentSubmit) {
+        detailAfterRetry = true;
+        return Promise.reject(new TypeError('response lost'));
+      }
+      return Promise.resolve(response(500, {}));
+    });
+    renderAt();
+
+    await screen.findByRole('button', { name: '지켰어요' });
+    fireEvent.click(screen.getByRole('button', { name: '지켰어요' }));
+    fireEvent.change(screen.getByLabelText('한 줄 의견'), {
+      target: { value: '상대방 의견' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+
+    fireEvent.click(await screen.findByRole('button', { name: '응답 수정' }));
+    fireEvent.click(screen.getByRole('button', { name: '수정 제출' }));
+
+    await waitFor(() => expect(mutationKeys(ENDPOINT.fulfillmentSubmit)).toHaveLength(2));
+    const keys = mutationKeys(ENDPOINT.fulfillmentSubmit);
+    expect(keys[0]).not.toBe(keys[1]);
+    const bodies = fetchMock.mock.calls
+      .filter(([url]) => endpointOf(url) === ENDPOINT.fulfillmentSubmit)
+      .map(([, init]) => JSON.parse(String((init as RequestInit).body)));
+    expect(bodies).toEqual([
+      { promise_id: PROMISE_A, answer: 'KEPT', comment: '상대방 의견' },
+      {
+        promise_id: PROMISE_A,
+        answer: 'KEPT',
+        comment: '상대방 의견',
+        revise: true,
+      },
+    ]);
   });
 
   it('DISPUTED는 양측을 같은 구조로, 중립 문구와 기록 및 재확인 액션으로 그린다', async () => {
@@ -423,6 +607,64 @@ describe('SCR-W04 참여 약속', () => {
         fetchMock.mock.calls.some(([url]) => endpointOf(url) === ENDPOINT.fulfillmentReopen),
       ).toBe(true),
     );
+  });
+
+  it('재확인 응답 유실은 같은 round에서 같은 키를 쓰고 round 변경 뒤에는 새 키를 쓴다', async () => {
+    const creator = check('CREATOR', 'KEPT');
+    const partner = check('PARTNER', 'NOT_KEPT');
+    let roundNo = 1;
+    let reopenAttempts = 0;
+    const disputedDetail = (): PromiseFulfillmentDetailResponse =>
+      detail({
+        status: 'DISPUTED',
+        check_round_no: roundNo,
+        my_check: { ...partner, round_no: roundNo },
+        partner_has_submitted: true,
+        partner_check: { ...creator, round_no: roundNo },
+        history: [
+          {
+            round_no: roundNo,
+            creator_check: { ...creator, round_no: roundNo },
+            partner_check: { ...partner, round_no: roundNo },
+          },
+        ],
+      });
+    fetchMock.mockImplementation((url: string) => {
+      const endpoint = endpointOf(url);
+      if (endpoint === ENDPOINT.participantPromiseList) {
+        return Promise.resolve(
+          response(200, [
+            summary({
+              status: 'DISPUTED',
+              check_round_no: roundNo,
+              needs_response: false,
+              check_deadline_at: null,
+            }),
+          ]),
+        );
+      }
+      if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
+        return Promise.resolve(response(200, disputedDetail()));
+      }
+      if (endpoint === ENDPOINT.fulfillmentReopen) {
+        reopenAttempts += 1;
+        if (reopenAttempts === 2) roundNo = 2;
+        return Promise.reject(new TypeError('response lost'));
+      }
+      return Promise.resolve(response(500, {}));
+    });
+    renderAt();
+
+    fireEvent.click(await screen.findByRole('button', { name: '다시 확인 요청하기' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 확인 요청하기' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 확인 요청하기' }));
+
+    await waitFor(() => expect(mutationKeys(ENDPOINT.fulfillmentReopen)).toHaveLength(3));
+    const keys = mutationKeys(ENDPOINT.fulfillmentReopen);
+    expect(keys[0]).toBe(keys[1]);
+    expect(keys[2]).not.toBe(keys[1]);
   });
 
   it('UNRESOLVED는 응답자와 미응답자 사실만 말한다', async () => {
