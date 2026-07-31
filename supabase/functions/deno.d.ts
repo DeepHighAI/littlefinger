@@ -24,3 +24,7 @@ declare namespace Deno {
 declare module 'npm:@supabase/supabase-js@2' {
   export * from '@supabase/supabase-js';
 }
+
+declare module 'npm:@imagemagick/magick-wasm@0.0.39' {
+  export * from '@imagemagick/magick-wasm';
+}

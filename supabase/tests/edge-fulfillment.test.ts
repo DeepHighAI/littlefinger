@@ -264,6 +264,8 @@ describe('fulfillment-submit', () => {
           answer: 'NOT_KEPT',
           comment: ' ᄀ\u0001ᅡ ',
           revise: true,
+          evidence_upload_ids: [PARTNER_ID],
+          retained_evidence_ids: [WITNESS_ID],
         },
         { origin: 'https://littlefinger.pages.dev' },
       ),
@@ -279,6 +281,8 @@ describe('fulfillment-submit', () => {
           p_idempotency_key: KEY,
           p_promise_id: PROMISE_ID,
           p_revise: true,
+          p_evidence_upload_ids: [PARTNER_ID],
+          p_retained_evidence_ids: [WITNESS_ID],
           p_surface: 'WEB',
         },
       },
@@ -292,6 +296,8 @@ describe('fulfillment-submit', () => {
     expect(s.rpcCalls[0]?.args).toMatchObject({
       p_comment: null,
       p_revise: false,
+      p_evidence_upload_ids: [],
+      p_retained_evidence_ids: [],
       p_surface: 'APP',
     });
   });
@@ -305,6 +311,18 @@ describe('fulfillment-submit', () => {
     [{ promise_id: PROMISE_ID, answer: 'KEPT', comment: 1 }, 'comment'],
     [{ promise_id: PROMISE_ID, answer: 'KEPT', revise: null }, 'revise'],
     [{ promise_id: PROMISE_ID, answer: 'KEPT', revise: 'yes' }, 'revise'],
+    [{ promise_id: PROMISE_ID, answer: 'KEPT', evidence_upload_ids: null }, 'evidences'],
+    [{ promise_id: PROMISE_ID, answer: 'KEPT', evidence_upload_ids: ['bad'] }, 'upload_id'],
+    [{ promise_id: PROMISE_ID, answer: 'KEPT', retained_evidence_ids: [1] }, 'evidence_id'],
+    [
+      {
+        promise_id: PROMISE_ID,
+        answer: 'KEPT',
+        evidence_upload_ids: [ACTOR_ID, PARTNER_ID],
+        retained_evidence_ids: [WITNESS_ID, PROMISE_ID],
+      },
+      'evidences',
+    ],
   ] as const)('잘못된 제출 형태 %j는 %s 오류다', async (body, field) => {
     const response = await createFulfillmentSubmitHandler(s.deps)(mutationRequest({ ...body }));
     expect(response.status).toBe(422);

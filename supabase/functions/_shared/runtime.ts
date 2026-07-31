@@ -11,7 +11,7 @@ import { ApiError } from './errors.ts';
 import type { NotificationRow } from './notify.ts';
 
 /** 없으면 부팅에서 죽는다. 시크릿 누락은 런타임에 조용히 틀린 해시를 만드는 것보다 낫다. */
-function requireEnv(name: string): string {
+export function requireEnv(name: string): string {
   const value = Deno.env.get(name);
   if (value === undefined || value.length === 0) {
     throw new Error(`missing required secret: ${name}`);
@@ -36,7 +36,7 @@ function createSecrets(): Secrets {
   };
 }
 
-function createAdminClient(): SupabaseClient {
+export function createAdminClient(): SupabaseClient {
   return createClient(requireEnv('SUPABASE_URL'), requireEnv('SUPABASE_SERVICE_ROLE_KEY'), {
     // 서버 프로세스다. 세션을 들고 있을 이유도, 갱신할 이유도 없다.
     auth: { persistSession: false, autoRefreshToken: false },

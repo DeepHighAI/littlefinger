@@ -1,3 +1,4 @@
+import { EVIDENCE_MAX_COUNT } from '../../../packages/shared/src/config.ts';
 import type { Deps } from '../_shared/deps.ts';
 import { ApiError } from '../_shared/errors.ts';
 import { notifyFulfillmentSubmit } from '../_shared/fulfillment.ts';
@@ -5,6 +6,25 @@ import { corsPreflight, failureResponse, jsonResponse } from '../_shared/http.ts
 import { idempotencyKeyOf, jsonBody, requiredString, surfaceOf } from '../_shared/request.ts';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function evidenceIdsOf(
+  body: Record<string, unknown>,
+  key: 'evidence_upload_ids' | 'retained_evidence_ids',
+): string[] {
+  const value = body[key];
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) {
+    throw new ApiError('E_VALIDATION', { field: 'evidences' });
+  }
+
+  const field = key === 'evidence_upload_ids' ? 'upload_id' : 'evidence_id';
+  for (const id of value) {
+    if (typeof id !== 'string' || !UUID_PATTERN.test(id)) {
+      throw new ApiError('E_VALIDATION', { field });
+    }
+  }
+  return value as string[];
+}
 
 export function createFulfillmentSubmitHandler(deps: Deps) {
   return async function handle(request: Request): Promise<Response> {
@@ -33,6 +53,15 @@ export function createFulfillmentSubmitHandler(deps: Deps) {
       if (revise !== undefined && typeof revise !== 'boolean') {
         throw new ApiError('E_VALIDATION', { field: 'revise' });
       }
+      const evidenceUploadIds = evidenceIdsOf(body, 'evidence_upload_ids');
+      const retainedEvidenceIds = evidenceIdsOf(body, 'retained_evidence_ids');
+      if (
+        evidenceUploadIds.length + retainedEvidenceIds.length > EVIDENCE_MAX_COUNT ||
+        new Set([...evidenceUploadIds, ...retainedEvidenceIds]).size !==
+          evidenceUploadIds.length + retainedEvidenceIds.length
+      ) {
+        throw new ApiError('E_VALIDATION', { field: 'evidences' });
+      }
 
       const payload = await deps.rpc('lf_fulfillment_submit', {
         p_idempotency_key: idempotencyKey,
@@ -41,6 +70,8 @@ export function createFulfillmentSubmitHandler(deps: Deps) {
         p_answer: answer,
         p_comment: comment ?? null,
         p_revise: revise ?? false,
+        p_evidence_upload_ids: evidenceUploadIds,
+        p_retained_evidence_ids: retainedEvidenceIds,
         p_surface: surfaceOf(request),
       });
       try {

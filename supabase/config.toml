@@ -96,6 +96,19 @@ verify_jwt = true
 [functions.fulfillment-reopen]
 verify_jwt = true
 
+[functions.evidence-upload]
+verify_jwt = true
+
+[functions.evidence-discard]
+verify_jwt = true
+
+[functions.evidence-sign-url]
+verify_jwt = true
+
+# J-08가 내부 비밀 헤더로 인증하므로 플랫폼 JWT는 사용하지 않는다.
+[functions.evidence-purge]
+verify_jwt = false
+
 # ============================================================
 # 카카오 프로바이더 블록을 **의도적으로 두지 않는다.**
 #
