@@ -84,6 +84,18 @@ verify_jwt = true
 [functions.invite-revoke]
 verify_jwt = true
 
+[functions.participant-promise-list]
+verify_jwt = true
+
+[functions.promise-fulfillment-detail]
+verify_jwt = true
+
+[functions.fulfillment-submit]
+verify_jwt = true
+
+[functions.fulfillment-reopen]
+verify_jwt = true
+
 # ============================================================
 # 카카오 프로바이더 블록을 **의도적으로 두지 않는다.**
 #

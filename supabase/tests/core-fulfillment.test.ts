@@ -307,6 +307,10 @@ describe('이행 응답 제출과 정정', () => {
       key,
       comment: '첫 의견',
     });
+    const actor = await one<{ nickname: string }>(
+      `select nickname from public.users where id = $1`,
+      [fixture.creatorId],
+    );
     expect(first).toMatchObject({
       promise_id: fixture.promiseId,
       status: 'CHECKING',
@@ -314,6 +318,7 @@ describe('이행 응답 제출과 정정', () => {
       revised_at: null,
       waiting_for_partner: true,
       title: '매일 걷기',
+      actor_nickname: actor.nickname,
       notification_recipients: expect.arrayContaining([
         { user_id: fixture.creatorId, role: 'CREATOR' },
         { user_id: fixture.partnerId, role: 'PARTNER' },

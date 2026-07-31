@@ -89,6 +89,7 @@ const submitResponse: FulfillmentSubmitResponse = {
   revised_at: null,
   waiting_for_partner: true,
   title: '매일 걷기',
+  actor_nickname: '작성자',
   notification_recipients: [
     { user_id: 'creator-id', role: 'CREATOR' },
     { user_id: 'partner-id', role: 'PARTNER' },
@@ -124,7 +125,7 @@ describe('F-07 공개 API 계약', () => {
     }).toMatchObject({
       summary: { needs_response: true, waiting_for_partner: false },
       detailResponse: { partner_has_submitted: true, partner_check: null },
-      submitResponse: { waiting_for_partner: true },
+      submitResponse: { waiting_for_partner: true, actor_nickname: '작성자' },
       reopenResponse: {
         status: 'CHECKING',
         round_no: 2,

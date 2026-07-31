@@ -13,8 +13,22 @@
  * 이쪽은 **어떤 사건이었는지**다. 한 분류에 여러 사건이 들어간다.
  */
 
-/** §8-1 NT 코드 중 현재 발송하는 것 */
-export type NotificationEvent = 'NT-01' | 'NT-02' | 'NT-03';
+/** §8-1 NT 코드 중 현재 계약과 발송 경로가 있는 것 */
+export type NotificationEvent =
+  | 'NT-01'
+  | 'NT-02'
+  | 'NT-03'
+  | 'NT-09'
+  | 'NT-11'
+  | 'NT-12'
+  | 'NT-13'
+  | 'NT-14'
+  | 'NT-19';
+
+export type FulfillmentNotificationEvent = Extract<
+  NotificationEvent,
+  'NT-09' | 'NT-11' | 'NT-12' | 'NT-13' | 'NT-14' | 'NT-19'
+>;
 
 /**
  * 알림 제목. 디자인 레퍼런스의 브랜드 톤을 따른다(PO 결정 2026-07-26).
@@ -30,6 +44,12 @@ export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: str
   'NT-01': (n) => `${n}님이 손가락 걸었어요! 약속 성립`,
   'NT-02': (n) => `${n}님이 거절했어요`,
   'NT-03': (n) => `${n}님이 수정을 제안했어요`,
+  'NT-09': (n) => `${n}님이 이행 확인을 보냈어요`,
+  'NT-11': () => '약속을 지켰어요!',
+  'NT-12': () => '약속이 불이행으로 기록됐어요',
+  'NT-13': () => '두 분의 확인이 서로 달라요',
+  'NT-14': () => '이행 확인 없이 종결됐어요',
+  'NT-19': () => '다시 확인해 달라는 요청이 왔어요',
 };
 
 /**
@@ -44,6 +64,12 @@ export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, string> = {
   'NT-02': 'SCR-A05',
   // 수정 제안은 약속이 DRAFT 로 돌아간 뒤라, 갈 곳은 상세가 아니라 재작성 화면이다.
   'NT-03': 'SCR-A03',
+  'NT-09': 'SCR-A06',
+  'NT-11': 'SCR-A05',
+  'NT-12': 'SCR-A05',
+  'NT-13': 'SCR-A05',
+  'NT-14': 'SCR-A05',
+  'NT-19': 'SCR-A06',
 };
 
 /**
@@ -71,6 +97,25 @@ export function transitionDedupeKey(input: {
   return [input.promiseId, input.event, input.userId, input.channel, input.idempotencyKey].join(
     ':',
   );
+}
+
+/** 즉시 이행 알림은 같은 약속에서도 라운드가 바뀌므로 라운드와 요청 키를 함께 고정한다. */
+export function fulfillmentDedupeKey(input: {
+  promiseId: string;
+  event: FulfillmentNotificationEvent;
+  userId: string;
+  channel: string;
+  roundNo: number;
+  idempotencyKey: string;
+}): string {
+  return [
+    input.promiseId,
+    input.event,
+    input.userId,
+    input.channel,
+    input.roundNo,
+    input.idempotencyKey,
+  ].join(':');
 }
 
 /** 배치 알림용. 날짜는 **KST** 다 — UTC 로 잡으면 00:00~09:00 KST 발송이 전부 전날로 들어간다. */

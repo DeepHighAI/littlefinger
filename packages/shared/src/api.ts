@@ -370,6 +370,8 @@ export interface FulfillmentSubmitResponse {
   waiting_for_partner: boolean;
   /** 알림 템플릿이 쓰는 약속 제목. 다른 참여자의 응답은 담지 않는다. */
   title: string;
+  /** NT-09 제목의 `{상대}`에 쓰는 이번 제출자 닉네임. */
+  actor_nickname: string;
   /** Task 3가 상태별 수신자를 고르는 데 필요한 최소 식별 정보. */
   notification_recipients: readonly FulfillmentNotificationRecipient[];
 }
