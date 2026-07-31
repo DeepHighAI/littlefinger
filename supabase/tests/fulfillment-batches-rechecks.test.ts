@@ -454,6 +454,7 @@ describe('DISPUTED 재확인 라운드', () => {
         status: string;
         round_no: number;
         check_deadline_at: string;
+        title: string;
         notification_recipients: Array<{ user_id: string; role: string }>;
       };
       expected_deadline: Date;
@@ -496,6 +497,7 @@ describe('DISPUTED 재확인 라운드', () => {
       promise_id: fixture.promiseId,
       status: 'CHECKING',
       round_no: 2,
+      title: '매일 걷기',
       notification_recipients: [{ user_id: fixture.partnerId, role: 'PARTNER' }],
     });
     expect(new Date(first.payload.check_deadline_at).toISOString()).toBe(

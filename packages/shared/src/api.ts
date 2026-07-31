@@ -383,6 +383,8 @@ export interface FulfillmentReopenResponse {
   status: 'CHECKING';
   round_no: number;
   check_deadline_at: IsoDateTime;
+  /** NT-19 알림 본문에 쓰는 현재 약속 제목. 추가 조회 없이 전이 payload만 사용한다. */
+  title: string;
   /** NT-19를 받을 반대편 당사자 한 명. 응답 내용은 포함하지 않는다. */
   notification_recipients: readonly FulfillmentNotificationRecipient[];
 }

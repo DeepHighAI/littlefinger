@@ -104,6 +104,7 @@ const reopenResponse: FulfillmentReopenResponse = {
   status: 'CHECKING',
   round_no: 2,
   check_deadline_at: '2026-08-07T00:00:00Z',
+  title: '매일 걷기',
   notification_recipients: [{ user_id: 'partner-id', role: 'PARTNER' }],
 };
 
@@ -127,6 +128,7 @@ describe('F-07 공개 API 계약', () => {
       reopenResponse: {
         status: 'CHECKING',
         round_no: 2,
+        title: '매일 걷기',
         notification_recipients: [{ user_id: 'partner-id', role: 'PARTNER' }],
       },
       validationFields: ['answer', 'comment', 'revise'],
