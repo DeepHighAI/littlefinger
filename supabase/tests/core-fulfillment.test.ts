@@ -413,6 +413,31 @@ describe('두 응답의 트랜잭션 판정', () => {
 });
 
 describe('신뢰 프로필 재계산', () => {
+  test('약속의 양측 프로필은 UUID 오름차순으로 잠금·재계산한다', async () => {
+    const first = await createUser(db, `trust-order-a-${randomUUID().slice(0, 8)}`);
+    const second = await createUser(db, `trust-order-b-${randomUUID().slice(0, 8)}`);
+    const orderedUserIds = [first, second].sort();
+    const partnerId = orderedUserIds[0];
+    const creatorId = orderedUserIds[1];
+    if (partnerId === undefined || creatorId === undefined) {
+      throw new Error('테스트 사용자 두 명이 필요하다');
+    }
+    const promiseId = await createPromise(db, {
+      creatorId,
+      partnerId,
+      status: 'COMPLETED',
+    });
+
+    const row = await one<{ user_ids: string[] }>(
+      `select array_to_json(
+                public.lf_recompute_promise_trust_profiles($1::uuid)
+              ) as user_ids`,
+      [promiseId],
+    );
+
+    expect(row.user_ids).toEqual([partnerId, creatorId]);
+  });
+
   test('집계 전에 사용자별 transaction advisory lock을 획득한다', async () => {
     const actor = await createUser(db, `trust-lock-${randomUUID().slice(0, 8)}`);
     const row = await one<{ locked: boolean }>(
@@ -515,6 +540,7 @@ describe('서버 전용 실행 권한', () => {
     'public.lf_participant_promise_list(uuid)',
     'public.lf_promise_fulfillment_detail(uuid,uuid)',
     'public.lf_recompute_trust_profile(uuid)',
+    'public.lf_recompute_promise_trust_profiles(uuid)',
     'public.lf_fulfillment_submit(uuid,uuid,uuid,public.fulfillment_answer,text,boolean,public.surface)',
   ] as const;
 
