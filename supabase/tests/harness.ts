@@ -69,6 +69,40 @@ const AUTH_SHIM = `
   create role authenticated nologin noinherit;
   create role service_role nologin noinherit bypassrls;
 
+  -- PGlite에는 pg_cron 확장이 없으므로 공개 카탈로그 계약만 재현한다. 마이그레이션은
+  -- 같은 schedule/unschedule 경계를 호출하고 테스트는 실제 cron.job 상태를 검증한다.
+  create schema cron;
+  create table cron.job (
+    jobid bigint generated always as identity primary key,
+    jobname text not null unique,
+    schedule text not null,
+    command text not null
+  );
+
+  create function cron.schedule(p_jobname text, p_schedule text, p_command text)
+  returns bigint
+  language plpgsql
+  as $$
+  declare
+    v_jobid bigint;
+  begin
+    insert into cron.job (jobname, schedule, command)
+    values (p_jobname, p_schedule, p_command)
+    returning jobid into v_jobid;
+    return v_jobid;
+  end;
+  $$;
+
+  create function cron.unschedule(p_jobid bigint)
+  returns boolean
+  language plpgsql
+  as $$
+  begin
+    delete from cron.job where jobid = p_jobid;
+    return found;
+  end;
+  $$;
+
   -- Supabase 는 public 스키마에 이 기본 권한을 걸어 둔다. 그래서 새로 만든 함수는
   -- **아무 것도 안 해도 클라이언트가 부를 수 있다**. 마이그레이션보다 먼저 걸어야
   -- 이후에 생성되는 함수에 적용된다 — 서버 전용 함수의 revoke 가 실제로 필요한지
@@ -90,6 +124,8 @@ const GRANTS = `
 export interface TestDb {
   /** 수퍼유저로 실행한다. RLS 를 우회하므로 **준비 작업에만** 쓴다. */
   asAdmin(sql: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[] }>;
+  /** 여러 DDL 문으로 이뤄진 마이그레이션 재적용처럼 결과 행이 필요 없는 준비 작업. */
+  execAdmin(sql: string): Promise<void>;
   /** 로그인한 사용자로 실행한다. RLS 가 걸린다. */
   asUser<T = Record<string, unknown>>(
     userId: string,
@@ -140,6 +176,9 @@ export async function createTestDb(): Promise<TestDb> {
   return {
     asAdmin: (sql, params) =>
       db.query(sql, params).then((r) => ({ rows: r.rows as Record<string, unknown>[] })),
+    execAdmin: async (sql) => {
+      await db.exec(sql);
+    },
     asUser: (userId, sql, params) => runAs('authenticated', userId, sql, params),
     asAnon: (sql, params) => runAs('anon', null, sql, params),
     close: () => db.close(),

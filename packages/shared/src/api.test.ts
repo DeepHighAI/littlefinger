@@ -4,6 +4,8 @@ import {
   ENDPOINT,
   type ApiValidationField,
   type FulfillmentCheckView,
+  type FulfillmentReopenRequest,
+  type FulfillmentReopenResponse,
   type FulfillmentRoundView,
   type FulfillmentSubmitRequest,
   type FulfillmentSubmitResponse,
@@ -93,6 +95,18 @@ const submitResponse: FulfillmentSubmitResponse = {
   ],
 };
 
+const reopenRequest: FulfillmentReopenRequest = {
+  promise_id: 'promise-id',
+};
+
+const reopenResponse: FulfillmentReopenResponse = {
+  promise_id: 'promise-id',
+  status: 'CHECKING',
+  round_no: 2,
+  check_deadline_at: '2026-08-07T00:00:00Z',
+  notification_recipients: [{ user_id: 'partner-id', role: 'PARTNER' }],
+};
+
 const validationFields: ApiValidationField[] = ['answer', 'comment', 'revise'];
 
 describe('F-07 공개 API 계약', () => {
@@ -103,20 +117,28 @@ describe('F-07 공개 API 계약', () => {
       detailResponse,
       submitRequest,
       submitResponse,
+      reopenRequest,
+      reopenResponse,
       validationFields,
     }).toMatchObject({
       summary: { needs_response: true, waiting_for_partner: false },
       detailResponse: { partner_has_submitted: true, partner_check: null },
       submitResponse: { waiting_for_partner: true },
+      reopenResponse: {
+        status: 'CHECKING',
+        round_no: 2,
+        notification_recipients: [{ user_id: 'partner-id', role: 'PARTNER' }],
+      },
       validationFields: ['answer', 'comment', 'revise'],
     });
   });
 
-  test('세 Edge Function 슬러그가 공개된다', () => {
+  test('네 Edge Function 슬러그가 공개된다', () => {
     expect(ENDPOINT).toMatchObject({
       participantPromiseList: 'participant-promise-list',
       promiseFulfillmentDetail: 'promise-fulfillment-detail',
       fulfillmentSubmit: 'fulfillment-submit',
+      fulfillmentReopen: 'fulfillment-reopen',
     });
   });
 });

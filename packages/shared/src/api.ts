@@ -374,6 +374,19 @@ export interface FulfillmentSubmitResponse {
   notification_recipients: readonly FulfillmentNotificationRecipient[];
 }
 
+export interface FulfillmentReopenRequest {
+  promise_id: string;
+}
+
+export interface FulfillmentReopenResponse {
+  promise_id: string;
+  status: 'CHECKING';
+  round_no: number;
+  check_deadline_at: IsoDateTime;
+  /** NT-19를 받을 반대편 당사자 한 명. 응답 내용은 포함하지 않는다. */
+  notification_recipients: readonly FulfillmentNotificationRecipient[];
+}
+
 /**
  * Edge Function 슬러그. `04` §7-3 의 이름을 그대로 쓴다.
  *
@@ -396,6 +409,7 @@ export const ENDPOINT = {
   participantPromiseList: 'participant-promise-list',
   promiseFulfillmentDetail: 'promise-fulfillment-detail',
   fulfillmentSubmit: 'fulfillment-submit',
+  fulfillmentReopen: 'fulfillment-reopen',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];
