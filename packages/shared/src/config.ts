@@ -89,6 +89,9 @@ export const EVIDENCE_SIGNED_URL_MIN = 10;
 /** 목록에서 "임박"으로 올리는 기준 (02 §6-4: 0 ≤ D ≤ 3 이고 상태 ACTIVE) */
 export const IMMINENT_THRESHOLD_DAYS = 3;
 
+/** 이행 확인 한 줄 의견의 코드포인트 상한 (02 §5-2). */
+export const FULFILLMENT_COMMENT_MAX = 200;
+
 /**
  * `invite-resolve` 요청 빈도 제한 (PO 결정 2026-07-27).
  *

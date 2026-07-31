@@ -47,6 +47,7 @@ export default function RootLayout(): React.JSX.Element {
           <Stack.Screen name="home" />
           <Stack.Screen name="promise/edit" />
           <Stack.Screen name="invite" />
+          <Stack.Screen name="fulfillment/[promise_id]" />
         </Stack.Protected>
       </Stack>
     </MobileAuthGateContext.Provider>

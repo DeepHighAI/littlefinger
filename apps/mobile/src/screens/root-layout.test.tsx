@@ -81,6 +81,7 @@ describe('루트 인증 게이트', () => {
     expect(view.getByText('screen:home')).toBeTruthy();
     expect(view.getByText('screen:promise/edit')).toBeTruthy();
     expect(view.getByText('screen:invite')).toBeTruthy();
+    expect(view.getByText('screen:fulfillment/[promise_id]')).toBeTruthy();
     expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
   });
 

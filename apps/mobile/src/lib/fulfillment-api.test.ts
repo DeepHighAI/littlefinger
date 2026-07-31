@@ -1,0 +1,211 @@
+import {
+  type Endpoint,
+  type FulfillmentCheckView,
+  type FulfillmentSubmitRequest,
+  type ParticipantPromiseSummary,
+  type PromiseFulfillmentDetailResponse,
+} from '@littlefinger/shared';
+
+import {
+  callMobileFunction,
+  type MobileApiDeps,
+  type MobileApiOptions,
+} from './mobile-api.ts';
+import {
+  listParticipantPromises,
+  loadFulfillmentDetail,
+  reopenFulfillment,
+  submitFulfillment,
+} from './fulfillment-api.ts';
+
+const mobileDeps: MobileApiDeps = {
+  fetch: jest.fn(),
+  functionUrl: (endpoint) =>
+    `https://project.supabase.co/functions/v1/${endpoint}`,
+  getAccessToken: jest.fn(),
+  randomUuid: jest.fn(() => '38ae6b47-6ce8-4c9e-adbf-c4dfed61ac7e'),
+};
+
+async function call<T>(
+  endpoint: Endpoint,
+  body: unknown,
+  options: MobileApiOptions,
+): Promise<T> {
+  return await callMobileFunction(endpoint, body, options, mobileDeps);
+}
+
+const summary: ParticipantPromiseSummary = {
+  promise_id: 'promise-1',
+  title: '주 3회 달리기',
+  status: 'CHECKING',
+  end_date: '2026-08-11',
+  keeper: 'BOTH',
+  updated_at: '2026-08-12T00:00:00Z',
+  check_deadline_at: '2026-08-18T15:00:00Z',
+  check_round_no: 1,
+  needs_response: true,
+  waiting_for_partner: false,
+};
+
+const ownCheck: FulfillmentCheckView = {
+  role: 'CREATOR',
+  answer: 'KEPT',
+  comment: '함께 달렸어요',
+  submitted_at: '2026-08-12T01:00:00Z',
+  revised_at: null,
+  round_no: 1,
+};
+
+const detail: PromiseFulfillmentDetailResponse = {
+  promise_id: 'promise-1',
+  title: '주 3회 달리기',
+  body: '매주 세 번 함께 달린다.',
+  category: 'HABIT',
+  end_date: '2026-08-11',
+  keeper: 'BOTH',
+  reward: null,
+  penalty: null,
+  status: 'CHECKING',
+  checking_started_at: '2026-08-11T15:00:00Z',
+  check_deadline_at: '2026-08-18T15:00:00Z',
+  check_round_no: 1,
+  creator: {
+    user_id: 'creator-1',
+    nickname: '서윤',
+    profile_image_url: null,
+  },
+  partner: {
+    user_id: 'partner-1',
+    nickname: '민준',
+    profile_image_url: null,
+  },
+  my_check: ownCheck,
+  partner_has_submitted: false,
+  partner_check: null,
+  history: [],
+};
+
+describe('모바일 이행 확인 API', () => {
+  beforeEach(() => {
+    jest.mocked(mobileDeps.fetch).mockReset();
+    jest.mocked(mobileDeps.getAccessToken).mockReset();
+    jest.mocked(mobileDeps.getAccessToken).mockResolvedValue('access-token');
+    jest.mocked(mobileDeps.randomUuid).mockClear();
+  });
+
+  test('목록과 상세 조회는 멱등 키 없이 정확한 Edge endpoint를 호출한다', async () => {
+    jest
+      .mocked(mobileDeps.fetch)
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([summary]), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(detail), { status: 200 }),
+      );
+
+    await expect(listParticipantPromises({ call })).resolves.toEqual([summary]);
+    await expect(loadFulfillmentDetail('promise-1', { call })).resolves.toEqual(detail);
+
+    expect(mobileDeps.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://project.supabase.co/functions/v1/participant-promise-list',
+      expect.objectContaining({
+        body: '{}',
+        headers: {
+          Authorization: 'Bearer access-token',
+          'Content-Type': 'application/json',
+        },
+      }),
+    );
+    expect(mobileDeps.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://project.supabase.co/functions/v1/promise-fulfillment-detail',
+      expect.objectContaining({
+        body: JSON.stringify({ promise_id: 'promise-1' }),
+        headers: {
+          Authorization: 'Bearer access-token',
+          'Content-Type': 'application/json',
+        },
+      }),
+    );
+  });
+
+  test('제출과 재확인은 상태 변경 endpoint를 멱등 호출한다', async () => {
+    const input: FulfillmentSubmitRequest = {
+      promise_id: 'promise-1',
+      answer: 'NOT_KEPT',
+      comment: '비가 많이 왔어요',
+      revise: true,
+    };
+    jest
+      .mocked(mobileDeps.fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            promise_id: 'promise-1',
+            status: 'CHECKING',
+            round_no: 1,
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            promise_id: 'promise-1',
+            status: 'CHECKING',
+            round_no: 2,
+          }),
+          { status: 200 },
+        ),
+      );
+
+    await submitFulfillment(input, { call });
+    await reopenFulfillment('promise-1', { call });
+
+    expect(mobileDeps.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://project.supabase.co/functions/v1/fulfillment-submit',
+      expect.objectContaining({
+        body: JSON.stringify(input),
+        headers: expect.objectContaining({
+          'Idempotency-Key': '38ae6b47-6ce8-4c9e-adbf-c4dfed61ac7e',
+        }),
+      }),
+    );
+    expect(mobileDeps.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://project.supabase.co/functions/v1/fulfillment-reopen',
+      expect.objectContaining({
+        body: JSON.stringify({ promise_id: 'promise-1' }),
+        headers: expect.objectContaining({
+          'Idempotency-Key': '38ae6b47-6ce8-4c9e-adbf-c4dfed61ac7e',
+        }),
+      }),
+    );
+  });
+
+  test('화면이 코드별 문구를 결정할 수 있도록 ApiErrorBody 정보를 그대로 보존한다', async () => {
+    jest.mocked(mobileDeps.fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: 'E_STATE_CONFLICT',
+          message: '현재 상태에서는 처리할 수 없어요.',
+          field: 'answer',
+        }),
+        { status: 409 },
+      ),
+    );
+
+    await expect(
+      submitFulfillment(
+        { promise_id: 'promise-1', answer: 'KEPT' },
+        { call },
+      ),
+    ).rejects.toMatchObject({
+      code: 'E_STATE_CONFLICT',
+      message: '현재 상태에서는 처리할 수 없어요.',
+      field: 'answer',
+    });
+  });
+});

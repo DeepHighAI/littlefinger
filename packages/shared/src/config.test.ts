@@ -15,6 +15,7 @@ import {
   EVIDENCE_MAX_MB,
   EVIDENCE_RETENTION_DAYS,
   EVIDENCE_SIGNED_URL_MIN,
+  FULFILLMENT_COMMENT_MAX,
   IMMINENT_THRESHOLD_DAYS,
   INVITE_RESEND_MAX,
   INVITE_TTL_HOURS,
@@ -119,5 +120,9 @@ describe('§11-3 표에 이름이 없지만 코드에 박으면 안 되는 값',
   test('임박 기준은 D-3 이내다', () => {
     // 02 §6-4 파생값 "0 ≤ D ≤ 3 이고 상태 ACTIVE"
     expect(IMMINENT_THRESHOLD_DAYS).toBe(3);
+  });
+
+  test('이행 확인 한 줄 의견은 200자까지다', () => {
+    expect(FULFILLMENT_COMMENT_MAX).toBe(200);
   });
 });
