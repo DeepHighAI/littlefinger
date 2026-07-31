@@ -68,6 +68,10 @@ export type ApiValidationField =
   | 'answer'
   | 'comment'
   | 'revise'
+  | 'evidences'
+  | 'upload_id'
+  | 'evidence_id'
+  | 'variant'
   | 'idempotency_key'
   | 'nickname'
   | 'profile_image_url'
@@ -304,6 +308,42 @@ export interface PromiseFulfillmentDetailRequest {
   promise_id: string;
 }
 
+export type EvidenceAvailability = 'AVAILABLE' | 'BLINDED' | 'EXPIRED';
+
+export interface EvidenceView {
+  evidence_id: string;
+  mime: string;
+  bytes: number;
+  width: number;
+  height: number;
+  availability: EvidenceAvailability;
+}
+
+export interface EvidenceUploadResponse {
+  upload_id: string;
+  status: 'READY';
+  mime: 'image/jpeg';
+  bytes: number;
+  width: number;
+  height: number;
+}
+
+export interface EvidenceDiscardRequest {
+  upload_id: string;
+}
+
+export interface EvidenceSignUrlRequest {
+  evidence_id: string;
+  variant: 'THUMBNAIL' | 'FULL';
+}
+
+export interface EvidenceSignUrlResponse {
+  evidence_id: string;
+  variant: 'THUMBNAIL' | 'FULL';
+  signed_url: string;
+  expires_at: IsoDateTime;
+}
+
 /** 한 라운드에서 당사자 한 명이 제출한 주장. */
 export interface FulfillmentCheckView {
   role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>;
@@ -312,6 +352,7 @@ export interface FulfillmentCheckView {
   submitted_at: IsoDateTime;
   revised_at: IsoDateTime | null;
   round_no: number;
+  evidences: readonly EvidenceView[];
 }
 
 export interface FulfillmentRoundView {
@@ -360,6 +401,8 @@ export interface FulfillmentSubmitRequest {
   answer: Answer;
   comment?: string;
   revise?: boolean;
+  evidence_upload_ids?: readonly string[];
+  retained_evidence_ids?: readonly string[];
 }
 
 export interface FulfillmentNotificationRecipient {
@@ -420,6 +463,9 @@ export const ENDPOINT = {
   promiseFulfillmentDetail: 'promise-fulfillment-detail',
   fulfillmentSubmit: 'fulfillment-submit',
   fulfillmentReopen: 'fulfillment-reopen',
+  evidenceUpload: 'evidence-upload',
+  evidenceDiscard: 'evidence-discard',
+  evidenceSignUrl: 'evidence-sign-url',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];

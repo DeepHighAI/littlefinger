@@ -11,10 +11,13 @@ import {
   DRAFT_MAX_CONCURRENT,
   DRAFT_TTL_DAYS,
   END_DATE_MAX_DAYS,
+  EVIDENCE_FULL_MAX_PX,
+  EVIDENCE_JPEG_QUALITY,
   EVIDENCE_MAX_COUNT,
   EVIDENCE_MAX_MB,
   EVIDENCE_RETENTION_DAYS,
   EVIDENCE_SIGNED_URL_MIN,
+  EVIDENCE_THUMB_MAX_PX,
   FULFILLMENT_COMMENT_MAX,
   IMMINENT_THRESHOLD_DAYS,
   INVITE_RESEND_MAX,
@@ -78,9 +81,15 @@ describe('기본안 (PO 미확정 — 원격으로 바뀔 수 있다)', () => {
     expect(TRUST_MIN_SAMPLE).toBe(3);
   });
 
-  test('증빙은 최대 3장, 장당 10MB 다', () => {
+  test('증빙은 최대 3장, 장당 5MB 다', () => {
     expect(EVIDENCE_MAX_COUNT).toBe(3);
-    expect(EVIDENCE_MAX_MB).toBe(10);
+    expect(EVIDENCE_MAX_MB).toBe(5);
+  });
+
+  test('증빙 JPEG 출력은 전체 1920px, 썸네일 320px, 품질 85다', () => {
+    expect(EVIDENCE_FULL_MAX_PX).toBe(1920);
+    expect(EVIDENCE_THUMB_MAX_PX).toBe(320);
+    expect(EVIDENCE_JPEG_QUALITY).toBe(85);
   });
 
   test('DRAFT 동시 보유 20건, 하루 약속 생성 30건이 상한이다', () => {

@@ -54,6 +54,7 @@ const ownCheck: FulfillmentCheckView = {
   submitted_at: '2026-08-12T01:00:00Z',
   revised_at: null,
   round_no: 1,
+  evidences: [],
 };
 
 const detail: PromiseFulfillmentDetailResponse = {

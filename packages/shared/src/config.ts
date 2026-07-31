@@ -61,7 +61,10 @@ export const AUTH_SESSION_RETRY_DELAYS_MS: readonly number[] = [1000, 2000, 4000
 export const TRUST_MIN_SAMPLE = 3;
 
 export const EVIDENCE_MAX_COUNT = 3;
-export const EVIDENCE_MAX_MB = 10;
+export const EVIDENCE_MAX_MB = 5;
+export const EVIDENCE_FULL_MAX_PX = 1920;
+export const EVIDENCE_THUMB_MAX_PX = 320;
+export const EVIDENCE_JPEG_QUALITY = 85;
 
 export const DRAFT_MAX_CONCURRENT = 20;
 export const PROMISE_MAX_PER_DAY = 30;

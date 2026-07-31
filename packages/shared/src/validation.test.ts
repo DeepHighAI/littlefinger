@@ -276,7 +276,7 @@ describe('validateEmail — RFC 5322, 선택', () => {
   });
 });
 
-describe('validateEvidences — 최대 3장, 장당 10MB, 지정 형식만', () => {
+describe('validateEvidences — 최대 3장, 장당 5MB, 지정 형식만', () => {
   const mb = (n: number) => n * 1024 * 1024;
   const jpeg = { mime: 'image/jpeg', bytes: mb(1) };
 
@@ -315,6 +315,6 @@ describe('validateEvidences — 최대 3장, 장당 10MB, 지정 형식만', () 
 
   test('상한 판정에 상수를 쓴다', () => {
     expect(EVIDENCE_MAX_COUNT).toBe(3);
-    expect(EVIDENCE_MAX_MB).toBe(10);
+    expect(EVIDENCE_MAX_MB).toBe(5);
   });
 });

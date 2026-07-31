@@ -48,6 +48,7 @@ const creatorCheck: FulfillmentCheckView = {
   submitted_at: '2026-08-11T16:30:00Z',
   revised_at: null,
   round_no: 1,
+  evidences: [],
 };
 
 const partnerCheck: FulfillmentCheckView = {
@@ -57,6 +58,7 @@ const partnerCheck: FulfillmentCheckView = {
   submitted_at: '2026-08-11T17:30:00Z',
   revised_at: null,
   round_no: 1,
+  evidences: [],
 };
 
 function makeDetail(

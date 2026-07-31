@@ -62,6 +62,7 @@ function check(role: 'CREATOR' | 'PARTNER', answer: 'KEPT' | 'NOT_KEPT', revised
     submitted_at: '2026-07-31T02:00:00.000Z',
     revised_at: revised ? '2026-07-31T03:00:00.000Z' : null,
     round_no: 1,
+    evidences: [],
   };
 }
 
