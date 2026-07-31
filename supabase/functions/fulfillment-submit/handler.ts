@@ -45,10 +45,10 @@ export function createFulfillmentSubmitHandler(deps: Deps) {
       });
       try {
         await notifyFulfillmentSubmit(payload, actor, idempotencyKey, deps);
-      } catch (notificationFailure) {
+      } catch {
         deps.log.error('notification fanout failed', {
           endpoint: 'fulfillment-submit',
-          raised: String(notificationFailure),
+          reason: 'FANOUT_FAILED',
         });
       }
       return jsonResponse(payload, 200);

@@ -55,6 +55,7 @@ function spy(options: {
   rpc?: (fn: string, args: Record<string, unknown>) => Promise<unknown>;
   authenticate?: (authorization: string | null) => Promise<string>;
   failNotificationFor?: string;
+  notificationError?: Error;
   now?: () => Date;
 } = {}): Spy {
   const calls: string[] = [];
@@ -76,7 +77,9 @@ function spy(options: {
       return options.rpc === undefined ? options.payload : await options.rpc(fn, args);
     },
     insertNotification: async (row) => {
-      if (row.user_id === options.failNotificationFor) throw new Error('notification unavailable');
+      if (row.user_id === options.failNotificationFor) {
+        throw options.notificationError ?? new Error('notification unavailable');
+      }
       notifications.push(row);
     },
     secrets: { invitePepper: 'unused', piiSalt: 'unused' },
@@ -404,9 +407,14 @@ describe('fulfillment-submit', () => {
   });
 
   test('알림 한 건 실패는 나머지 fanout과 커밋된 성공 응답을 막지 않는다', async () => {
+    const sensitiveComment = '외부에 나오면 안 되는 이행 의견';
+    const sensitiveDedupe = `${PROMISE_ID}:NT-11:${PARTNER_ID}:INAPP:1:${KEY}`;
     const local = spy({
       payload: { ...SUBMIT_PAYLOAD, status: 'COMPLETED', waiting_for_partner: false },
       failNotificationFor: PARTNER_ID,
+      notificationError: new Error(
+        [sensitiveComment, 'NOT_KEPT', PARTNER_ID, sensitiveDedupe].join('|'),
+      ),
     });
     const response = await createFulfillmentSubmitHandler(local.deps)(
       mutationRequest({ promise_id: PROMISE_ID, answer: 'KEPT' }),
@@ -414,13 +422,22 @@ describe('fulfillment-submit', () => {
     expect(response.status).toBe(200);
     expect(local.notifications.map((row) => row.user_id)).toEqual([ACTOR_ID, WITNESS_ID]);
     expect(local.logs.map((entry) => entry.message)).toContain('notification insert failed');
+    const serialized = JSON.stringify(local.logs);
+    for (const value of [sensitiveComment, 'NOT_KEPT', PARTNER_ID, sensitiveDedupe]) {
+      expect(serialized).not.toContain(value);
+    }
+    expect(local.logs).toContainEqual({
+      message: 'notification insert failed',
+      detail: { event: 'NT-11', reason: 'INSERT_FAILED' },
+    });
   });
 
   test('알림 시각 생성 실패도 커밋된 성공 응답을 막지 않는다', async () => {
+    const sensitive = `${PARTNER_ID}|${KEY}|외부에 나오면 안 되는 의견`;
     const local = spy({
       payload: { ...SUBMIT_PAYLOAD, status: 'COMPLETED', waiting_for_partner: false },
       now: () => {
-        throw new Error('clock unavailable');
+        throw new Error(sensitive);
       },
     });
     const response = await createFulfillmentSubmitHandler(local.deps)(
@@ -428,6 +445,11 @@ describe('fulfillment-submit', () => {
     );
     expect(response.status).toBe(200);
     expect(local.logs.map((entry) => entry.message)).toContain('notification fanout failed');
+    expect(JSON.stringify(local.logs)).not.toContain(sensitive);
+    expect(local.logs).toContainEqual({
+      message: 'notification fanout failed',
+      detail: { endpoint: 'fulfillment-submit', reason: 'FANOUT_FAILED' },
+    });
   });
 
   test('같은 키 재시도는 라운드까지 같은 dedupe key를 다시 만든다', async () => {
@@ -520,10 +542,11 @@ describe('fulfillment-reopen', () => {
   });
 
   test('알림 시각 생성 실패도 재확인 성공 응답을 막지 않는다', async () => {
+    const sensitive = `${PARTNER_ID}|${KEY}|외부에 나오면 안 되는 의견`;
     const s = spy({
       payload: REOPEN_PAYLOAD,
       now: () => {
-        throw new Error('clock unavailable');
+        throw new Error(sensitive);
       },
     });
     const response = await createFulfillmentReopenHandler(s.deps)(
@@ -531,5 +554,10 @@ describe('fulfillment-reopen', () => {
     );
     expect(response.status).toBe(200);
     expect(s.logs.map((entry) => entry.message)).toContain('notification fanout failed');
+    expect(JSON.stringify(s.logs)).not.toContain(sensitive);
+    expect(s.logs).toContainEqual({
+      message: 'notification fanout failed',
+      detail: { endpoint: 'fulfillment-reopen', reason: 'FANOUT_FAILED' },
+    });
   });
 });

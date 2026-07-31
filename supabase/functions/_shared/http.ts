@@ -46,7 +46,8 @@ export function noContentResponse(): Response {
  *
  * 모르는 예외를 그대로 내보내면 Postgres 가 붙인 테이블·컬럼·값이 응답에 실린다. 그 한 줄이
  * §9 의 "비참여자에게 약속의 존재조차 알리지 않는다"를 실패 경로에서만 무너뜨린다.
- * 원문은 로그로만 보낸다.
+ * 원문은 로그에도 보내지 않는다. PostgREST 오류는 요청 값과 행 식별자를 포함할 수 있으므로
+ * 로그에는 고정된 실패 분류만 남긴다.
  */
 /**
  * 함수마다 `E_VALIDATION` 이 뜻하는 것 — RPC 는 필드 이름 없이 raise 하지만, 각 함수가
@@ -65,7 +66,7 @@ export function failureResponse(
 ): Response {
   const code = toErrorCode(raised);
   if (code === null) {
-    options.log('unmapped RPC failure', raised);
+    options.log('unmapped RPC failure', { reason: 'UNMAPPED_ERROR' });
     return jsonResponse(INTERNAL_ERROR, 500);
   }
 

@@ -28,10 +28,10 @@ export function createFulfillmentReopenHandler(deps: Deps) {
       });
       try {
         await notifyFulfillmentReopen(payload, idempotencyKey, deps);
-      } catch (notificationFailure) {
+      } catch {
         deps.log.error('notification fanout failed', {
           endpoint: 'fulfillment-reopen',
-          raised: String(notificationFailure),
+          reason: 'FANOUT_FAILED',
         });
       }
       return jsonResponse(payload, 200);

@@ -132,10 +132,10 @@ async function insertRows(
   for (const row of rows) {
     try {
       await deps.insertNotification(row);
-    } catch (raised) {
+    } catch {
       deps.log.error('notification insert failed', {
         event,
-        raised: String(raised),
+        reason: 'INSERT_FAILED',
       });
     }
   }

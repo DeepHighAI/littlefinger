@@ -208,6 +208,29 @@ describe('에러 매핑 (§2-3)', () => {
     expect(JSON.stringify(body)).not.toContain('promises');
   });
 
+  test('모르는 실패 원문은 logger 인자에도 전달하지 않는다', () => {
+    const sensitive = [
+      '외부에 나오면 안 되는 의견',
+      'NOT_KEPT',
+      '22222222-2222-2222-2222-222222222222',
+      'promise:NT-13:user:INAPP:1:key',
+    ];
+    const logs: { message: string; detail: unknown }[] = [];
+    const response = failureResponse(new Error(sensitive.join('|')), {
+      log: (message, detail) => logs.push({ message, detail }),
+    });
+
+    expect(response.status).toBe(500);
+    const serialized = JSON.stringify(logs);
+    for (const value of sensitive) expect(serialized).not.toContain(value);
+    expect(logs).toEqual([
+      {
+        message: 'unmapped RPC failure',
+        detail: { reason: 'UNMAPPED_ERROR' },
+      },
+    ]);
+  });
+
   test('각 코드가 §2-3 의 HTTP 상태로 나간다', async () => {
     for (const code of ERROR_CODES) {
       const response = failureResponse(new Error(code), { log: NO_LOG.error });
