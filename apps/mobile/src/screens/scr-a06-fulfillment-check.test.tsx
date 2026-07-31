@@ -13,9 +13,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import FulfillmentScreen from '../app/fulfillment/[promise_id]';
 import {
   createFulfillmentIdempotencyKey,
+  clearFulfillmentEvidenceDraft,
+  discardFulfillmentEvidence,
   loadFulfillmentDetail,
+  loadFulfillmentEvidenceDraft,
+  pickFulfillmentEvidence,
   reopenFulfillment,
+  saveFulfillmentEvidenceDraft,
+  signFulfillmentEvidence,
   submitFulfillment,
+  uploadFulfillmentEvidence,
 } from '../lib/fulfillment-native.ts';
 import { MobileApiError } from '../lib/mobile-api.ts';
 
@@ -27,9 +34,16 @@ jest.mock(
   '../lib/fulfillment-native.ts',
   () => ({
     createFulfillmentIdempotencyKey: jest.fn(),
+    clearFulfillmentEvidenceDraft: jest.fn(),
+    discardFulfillmentEvidence: jest.fn(),
     loadFulfillmentDetail: jest.fn(),
+    loadFulfillmentEvidenceDraft: jest.fn(),
+    pickFulfillmentEvidence: jest.fn(),
     reopenFulfillment: jest.fn(),
+    saveFulfillmentEvidenceDraft: jest.fn(),
+    signFulfillmentEvidence: jest.fn(),
     submitFulfillment: jest.fn(),
+    uploadFulfillmentEvidence: jest.fn(),
   }),
   { virtual: true },
 );
@@ -40,6 +54,13 @@ const loadDetailMock = jest.mocked(loadFulfillmentDetail);
 const submitMock = jest.mocked(submitFulfillment);
 const reopenMock = jest.mocked(reopenFulfillment);
 const createKeyMock = jest.mocked(createFulfillmentIdempotencyKey);
+const pickEvidenceMock = jest.mocked(pickFulfillmentEvidence);
+const uploadEvidenceMock = jest.mocked(uploadFulfillmentEvidence);
+const discardEvidenceMock = jest.mocked(discardFulfillmentEvidence);
+const signEvidenceMock = jest.mocked(signFulfillmentEvidence);
+const loadEvidenceDraftMock = jest.mocked(loadFulfillmentEvidenceDraft);
+const saveEvidenceDraftMock = jest.mocked(saveFulfillmentEvidenceDraft);
+const clearEvidenceDraftMock = jest.mocked(clearFulfillmentEvidenceDraft);
 
 const creatorCheck: FulfillmentCheckView = {
   role: 'CREATOR',
@@ -114,6 +135,27 @@ describe('SCR-A06 이행 확인', () => {
     loadDetailMock.mockResolvedValue(makeDetail());
     createKeyMock.mockReset();
     createKeyMock.mockReturnValue('11111111-1111-4111-8111-111111111111');
+    pickEvidenceMock.mockReset();
+    pickEvidenceMock.mockResolvedValue({ status: 'CANCELED', assets: [] });
+    uploadEvidenceMock.mockReset();
+    discardEvidenceMock.mockReset();
+    discardEvidenceMock.mockResolvedValue({
+      upload_id: 'upload-1',
+      status: 'DISCARDED',
+    });
+    signEvidenceMock.mockReset();
+    signEvidenceMock.mockResolvedValue({
+      evidence_id: 'evidence-1',
+      variant: 'THUMBNAIL',
+      signed_url: 'https://storage.example/thumbnail',
+      expires_at: '2026-08-12T01:10:00Z',
+    });
+    loadEvidenceDraftMock.mockReset();
+    loadEvidenceDraftMock.mockResolvedValue(null);
+    saveEvidenceDraftMock.mockReset();
+    saveEvidenceDraftMock.mockResolvedValue();
+    clearEvidenceDraftMock.mockReset();
+    clearEvidenceDraftMock.mockResolvedValue();
     submitMock.mockReset();
     submitMock.mockResolvedValue({
       promise_id: 'promise-1',
@@ -182,7 +224,7 @@ describe('SCR-A06 이행 확인', () => {
     expect(view.queryByText(/promise-1/u)).toBeNull();
   });
 
-  test('답을 선택해야 제출이 활성화되고 화면에는 광고·증빙 영역이 없다', async () => {
+  test('답을 선택해야 제출이 활성화되고 선택 증빙 영역에는 광고가 없다', async () => {
     const view = await render(<FulfillmentScreen />);
     await settle();
 
@@ -193,9 +235,405 @@ describe('SCR-A06 이행 확인', () => {
     expect(
       view.getByRole('button', { name: '제출' }).props.accessibilityState,
     ).toMatchObject({ disabled: false });
-    expect(view.queryByText(/증빙/u)).toBeNull();
+    expect(view.getByText(/증빙 사진/u)).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
-    expect(view.queryByTestId('evidence-picker')).toBeNull();
+    expect(view.getByTestId('evidence-picker')).toBeTruthy();
+  });
+
+  test('사진 권한 거부를 안내하고 업로드를 시작하지 않는다', async () => {
+    pickEvidenceMock.mockResolvedValue({ status: 'DENIED', assets: [] });
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
+    await settle();
+
+    expect(view.getByText('사진을 선택하려면 사진 접근 권한을 허용해 주세요.')).toBeTruthy();
+    expect(uploadEvidenceMock).not.toHaveBeenCalled();
+  });
+
+  test('사진 선택기를 열지 못해도 화면을 유지하고 공통 오류를 안내한다', async () => {
+    pickEvidenceMock.mockRejectedValue(new Error('picker unavailable'));
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
+    await settle();
+
+    expect(
+      view.getByText('요청을 처리하지 못했어요. 다시 시도해 주세요.'),
+    ).toBeTruthy();
+    expect(uploadEvidenceMock).not.toHaveBeenCalled();
+  });
+
+  test('최대 3장을 개별 병렬 선업로드하고 진행 중에는 제출을 막는다', async () => {
+    const assets = [1, 2, 3].map((index) => ({
+      uri: `file:///photo-${index}.jpg`,
+      file_name: `photo-${index}.jpg`,
+      mime: 'image/jpeg',
+      bytes: 1024 * index,
+    }));
+    pickEvidenceMock.mockResolvedValue({ status: 'SELECTED', assets });
+    createKeyMock
+      .mockReturnValueOnce('11111111-1111-4111-8111-111111111111')
+      .mockReturnValueOnce('22222222-2222-4222-8222-222222222222')
+      .mockReturnValueOnce('33333333-3333-4333-8333-333333333333');
+    const resolvers: ((value: {
+      upload_id: string;
+      status: 'READY';
+      mime: 'image/jpeg';
+      bytes: number;
+      width: number;
+      height: number;
+    }) => void)[] = [];
+    uploadEvidenceMock.mockImplementation(
+      async () =>
+        await new Promise((resolve) => {
+          resolvers.push(resolve);
+        }),
+    );
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
+
+    await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
+    await settle();
+
+    expect(uploadEvidenceMock).toHaveBeenCalledTimes(3);
+    expect(
+      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+    ).toMatchObject({ disabled: true });
+    expect(view.queryByRole('button', { name: '사진 추가' })).toBeNull();
+
+    await act(async () => {
+      resolvers.forEach((resolve, index) =>
+        resolve({
+          upload_id: `upload-${index + 1}`,
+          status: 'READY',
+          mime: 'image/jpeg',
+          bytes: 800,
+          width: 100,
+          height: 50,
+        }),
+      );
+      await Promise.resolve();
+    });
+    expect(
+      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+    ).toMatchObject({ disabled: false });
+  });
+
+  test('형식·5MB를 넘는 사진은 거르고 일부 실패 뒤 성공 사진만 제출한다', async () => {
+    pickEvidenceMock.mockResolvedValue({
+      status: 'SELECTED',
+      assets: [
+        {
+          uri: 'file:///ready.jpg',
+          file_name: 'ready.jpg',
+          mime: 'image/jpeg',
+          bytes: 5 * 1024 * 1024,
+        },
+        {
+          uri: 'file:///too-large.png',
+          file_name: 'too-large.png',
+          mime: 'image/png',
+          bytes: 5 * 1024 * 1024 + 1,
+        },
+        {
+          uri: 'file:///failed.webp',
+          file_name: 'failed.webp',
+          mime: 'image/webp',
+          bytes: 1024,
+        },
+      ],
+    });
+    createKeyMock
+      .mockReturnValueOnce('11111111-1111-4111-8111-111111111111')
+      .mockReturnValueOnce('22222222-2222-4222-8222-222222222222')
+      .mockReturnValueOnce('33333333-3333-4333-8333-333333333333');
+    uploadEvidenceMock
+      .mockResolvedValueOnce({
+        upload_id: 'upload-ready',
+        status: 'READY',
+        mime: 'image/jpeg',
+        bytes: 800,
+        width: 100,
+        height: 50,
+      })
+      .mockRejectedValueOnce(new Error('network'));
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
+
+    await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
+    await settle();
+
+    expect(uploadEvidenceMock).toHaveBeenCalledTimes(2);
+    expect(view.getByText('사진은 장당 5MB까지 올릴 수 있어요.')).toBeTruthy();
+    expect(view.getByText('사진 1장을 올리지 못했어요.')).toBeTruthy();
+    expect(
+      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+    ).toMatchObject({ disabled: false });
+
+    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await settle();
+    expect(submitMock).toHaveBeenCalledWith(
+      {
+        promise_id: 'promise-1',
+        answer: 'KEPT',
+        evidence_upload_ids: ['upload-ready'],
+      },
+      '33333333-3333-4333-8333-333333333333',
+    );
+    expect(clearEvidenceDraftMock).toHaveBeenCalledWith('promise-1', 1);
+  });
+
+  test('정정은 기존 증빙 유지·제거와 신규 업로드를 함께 제출한다', async () => {
+    const evidenceOne = {
+      evidence_id: 'evidence-1',
+      mime: 'image/jpeg',
+      bytes: 100,
+      width: 100,
+      height: 50,
+      availability: 'AVAILABLE' as const,
+    };
+    const evidenceTwo = { ...evidenceOne, evidence_id: 'evidence-2' };
+    loadDetailMock.mockResolvedValue(
+      makeDetail({
+        my_check: {
+          ...creatorCheck,
+          evidences: [evidenceOne, evidenceTwo],
+        },
+      }),
+    );
+    signEvidenceMock.mockImplementation(async (evidenceId, variant) => ({
+      evidence_id: evidenceId,
+      variant,
+      signed_url: `https://storage.example/${evidenceId}/${variant}`,
+      expires_at: '2026-08-12T01:10:00Z',
+    }));
+    pickEvidenceMock.mockResolvedValue({
+      status: 'SELECTED',
+      assets: [
+        {
+          uri: 'file:///new.jpg',
+          file_name: 'new.jpg',
+          mime: 'image/jpeg',
+          bytes: 1024,
+        },
+      ],
+    });
+    createKeyMock
+      .mockReturnValueOnce('11111111-1111-4111-8111-111111111111')
+      .mockReturnValueOnce('22222222-2222-4222-8222-222222222222')
+      .mockReturnValueOnce('33333333-3333-4333-8333-333333333333');
+    uploadEvidenceMock.mockResolvedValue({
+      upload_id: 'upload-new',
+      status: 'READY',
+      mime: 'image/jpeg',
+      bytes: 800,
+      width: 100,
+      height: 50,
+    });
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '응답 수정' }));
+    await fireEvent.press(
+      view.getByRole('button', { name: '증빙 evidence-1 삭제' }),
+    );
+    await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '수정 제출' }));
+    await settle();
+
+    expect(submitMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        revise: true,
+        evidence_upload_ids: ['upload-new'],
+        retained_evidence_ids: ['evidence-2'],
+      }),
+      '22222222-2222-4222-8222-222222222222',
+    );
+  });
+
+  test('열람은 10분 서명 URL을 요청하고 블라인드·만료 플레이스홀더를 구분한다', async () => {
+    loadDetailMock.mockResolvedValue(
+      makeDetail({
+        status: 'COMPLETED',
+        my_check: {
+          ...creatorCheck,
+          evidences: [
+            {
+              evidence_id: 'evidence-1',
+              mime: 'image/jpeg',
+              bytes: 100,
+              width: 100,
+              height: 50,
+              availability: 'AVAILABLE',
+            },
+            {
+              evidence_id: 'evidence-2',
+              mime: 'image/jpeg',
+              bytes: 100,
+              width: 100,
+              height: 50,
+              availability: 'BLINDED',
+            },
+            {
+              evidence_id: 'evidence-3',
+              mime: 'image/jpeg',
+              bytes: 100,
+              width: 100,
+              height: 50,
+              availability: 'EXPIRED',
+            },
+          ],
+        },
+      }),
+    );
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    expect(signEvidenceMock).toHaveBeenCalledWith('evidence-1', 'THUMBNAIL');
+    expect(view.getByText('신고 접수로 가려진 이미지입니다')).toBeTruthy();
+    expect(view.getByText('보관 기간이 만료된 증빙입니다')).toBeTruthy();
+    await fireEvent(
+      view.getByTestId('evidence-image-evidence-1'),
+      'error',
+    );
+    await settle();
+    expect(signEvidenceMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('실패한 사진 재시도는 같은 업로드 멱등 키를 쓰고 READY 제거는 폐기 API를 부른다', async () => {
+    pickEvidenceMock.mockResolvedValue({
+      status: 'SELECTED',
+      assets: [
+        {
+          uri: 'file:///retry.jpg',
+          file_name: 'retry.jpg',
+          mime: 'image/jpeg',
+          bytes: 1024,
+        },
+      ],
+    });
+    createKeyMock
+      .mockReturnValueOnce('11111111-1111-4111-8111-111111111111')
+      .mockReturnValueOnce('22222222-2222-4222-8222-222222222222');
+    uploadEvidenceMock
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce({
+        upload_id: 'upload-retry',
+        status: 'READY',
+        mime: 'image/jpeg',
+        bytes: 800,
+        width: 100,
+        height: 50,
+      });
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
+    await settle();
+    await fireEvent.press(
+      view.getByRole('button', { name: '사진 업로드 다시 시도' }),
+    );
+    await settle();
+
+    expect(uploadEvidenceMock.mock.calls.map((call) => call[3])).toEqual([
+      '11111111-1111-4111-8111-111111111111',
+      '11111111-1111-4111-8111-111111111111',
+    ]);
+    await fireEvent.press(
+      view.getByRole('button', {
+        name: '증빙 11111111-1111-4111-8111-111111111111 삭제',
+      }),
+    );
+    await settle();
+    expect(discardEvidenceMock).toHaveBeenCalledWith(
+      'upload-retry',
+      '22222222-2222-4222-8222-222222222222',
+    );
+  });
+
+  test('암호화 초안을 사용자·약속·라운드 기준으로 복원하고 제출 성공 시 지운다', async () => {
+    loadEvidenceDraftMock.mockResolvedValue({
+      answer: 'NOT_KEPT',
+      comment: '복원한 의견',
+      uploads: [
+        {
+          local_id: 'local-restored',
+          upload_id: 'upload-restored',
+          idempotency_key: '11111111-1111-4111-8111-111111111111',
+          uri: 'file:///restored.jpg',
+          mime: 'image/jpeg',
+          bytes: 1024,
+        },
+      ],
+      retained_evidence_ids: [],
+    });
+    createKeyMock.mockReturnValue(
+      '22222222-2222-4222-8222-222222222222',
+    );
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    expect(
+      view.getByRole('button', { name: '안 지켜졌어요' }).props
+        .accessibilityState,
+    ).toMatchObject({ selected: true });
+    expect(view.getByLabelText('한 줄 의견').props.value).toBe('복원한 의견');
+    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await settle();
+    expect(submitMock).toHaveBeenCalledWith(
+      {
+        promise_id: 'promise-1',
+        answer: 'NOT_KEPT',
+        comment: '복원한 의견',
+        evidence_upload_ids: ['upload-restored'],
+      },
+      '22222222-2222-4222-8222-222222222222',
+    );
+    expect(clearEvidenceDraftMock).toHaveBeenCalledWith('promise-1', 1);
+  });
+
+  test('정정 중 저장된 암호화 초안은 새로 열어도 수정 폼으로 복원한다', async () => {
+    const evidence = {
+      evidence_id: 'evidence-1',
+      mime: 'image/jpeg',
+      bytes: 100,
+      width: 100,
+      height: 50,
+      availability: 'AVAILABLE' as const,
+    };
+    loadDetailMock.mockResolvedValue(
+      makeDetail({
+        my_check: {
+          ...creatorCheck,
+          evidences: [evidence],
+        },
+      }),
+    );
+    loadEvidenceDraftMock.mockResolvedValue({
+      answer: 'NOT_KEPT',
+      comment: '정정 중인 의견',
+      uploads: [],
+      retained_evidence_ids: ['evidence-1'],
+    });
+
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    expect(loadEvidenceDraftMock).toHaveBeenCalledWith('promise-1', 1);
+    expect(view.getByRole('button', { name: '수정 제출' })).toBeTruthy();
+    expect(
+      view.getByRole('button', { name: '안 지켜졌어요' }).props
+        .accessibilityState,
+    ).toMatchObject({ selected: true });
+    expect(view.getByLabelText('한 줄 의견').props.value).toBe(
+      '정정 중인 의견',
+    );
   });
 
   test('한 줄 의견은 NFC 정규화 뒤 코드포인트 200자는 허용하고 201자는 막는다', async () => {

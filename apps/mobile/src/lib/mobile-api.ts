@@ -49,12 +49,7 @@ function apiErrorOf(value: unknown): ApiErrorBody | null {
   return candidate as ApiErrorBody;
 }
 
-export async function callMobileFunction<T>(
-  endpoint: Endpoint,
-  body: unknown,
-  options: MobileApiOptions,
-  deps: MobileApiDeps,
-): Promise<T> {
+async function accessTokenOf(deps: MobileApiDeps): Promise<string> {
   const accessToken = await deps.getAccessToken();
   if (accessToken === null) {
     throw new MobileApiError(
@@ -62,24 +57,17 @@ export async function callMobileFunction<T>(
       ERROR_MESSAGE.E_AUTH_REQUIRED ?? UNKNOWN_ERROR_MESSAGE,
     );
   }
+  return accessToken;
+}
 
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${accessToken}`,
-    'Content-Type': 'application/json',
-  };
-  if (options.idempotencyKey !== undefined) {
-    headers['Idempotency-Key'] = options.idempotencyKey;
-  } else if (options.idempotent === true) {
-    headers['Idempotency-Key'] = deps.randomUuid();
-  }
-
+async function readMobileResponse<T>(
+  endpoint: Endpoint,
+  init: RequestInit,
+  deps: MobileApiDeps,
+): Promise<T> {
   let response: FetchResponse;
   try {
-    response = await deps.fetch(deps.functionUrl(endpoint), {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
+    response = await deps.fetch(deps.functionUrl(endpoint), init);
   } catch {
     throw new MobileApiError(null, UNKNOWN_ERROR_MESSAGE);
   }
@@ -98,4 +86,54 @@ export async function callMobileFunction<T>(
     if (error instanceof MobileApiError) throw error;
   }
   throw new MobileApiError(null, UNKNOWN_ERROR_MESSAGE);
+}
+
+export async function callMobileFunction<T>(
+  endpoint: Endpoint,
+  body: unknown,
+  options: MobileApiOptions,
+  deps: MobileApiDeps,
+): Promise<T> {
+  const accessToken = await accessTokenOf(deps);
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
+  };
+  if (options.idempotencyKey !== undefined) {
+    headers['Idempotency-Key'] = options.idempotencyKey;
+  } else if (options.idempotent === true) {
+    headers['Idempotency-Key'] = deps.randomUuid();
+  }
+
+  return await readMobileResponse<T>(
+    endpoint,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    },
+    deps,
+  );
+}
+
+export async function callMobileMultipartFunction<T>(
+  endpoint: Endpoint,
+  body: FormData,
+  idempotencyKey: string,
+  deps: MobileApiDeps,
+): Promise<T> {
+  const accessToken = await accessTokenOf(deps);
+  return await readMobileResponse<T>(
+    endpoint,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        // FormData가 플랫폼별 boundary를 붙이므로 Content-Type은 직접 지정하지 않는다.
+        'Idempotency-Key': idempotencyKey,
+      },
+      body,
+    },
+    deps,
+  );
 }

@@ -1,5 +1,7 @@
 import {
   ENDPOINT,
+  type EvidenceSignUrlRequest,
+  type EvidenceSignUrlResponse,
   type Endpoint,
   type FulfillmentReopenResponse,
   type FulfillmentSubmitRequest,
@@ -13,6 +15,13 @@ import type { MobileApiOptions } from './mobile-api.ts';
 export interface FulfillmentApiDeps {
   call<T>(endpoint: Endpoint, body: unknown, options: MobileApiOptions): Promise<T>;
 }
+
+export interface EvidenceDiscardResponse {
+  upload_id: string;
+  status: 'DISCARDED';
+}
+
+type EvidenceVariant = EvidenceSignUrlRequest['variant'];
 
 export async function listParticipantPromises(
   deps: FulfillmentApiDeps,
@@ -56,5 +65,29 @@ export async function reopenFulfillment(
     ENDPOINT.fulfillmentReopen,
     { promise_id: promiseId },
     { idempotent: true, idempotencyKey },
+  );
+}
+
+export async function discardFulfillmentEvidence(
+  uploadId: string,
+  idempotencyKey: string,
+  deps: FulfillmentApiDeps,
+): Promise<EvidenceDiscardResponse> {
+  return await deps.call(
+    ENDPOINT.evidenceDiscard,
+    { upload_id: uploadId },
+    { idempotent: true, idempotencyKey },
+  );
+}
+
+export async function signFulfillmentEvidence(
+  evidenceId: string,
+  variant: EvidenceVariant,
+  deps: FulfillmentApiDeps,
+): Promise<EvidenceSignUrlResponse> {
+  return await deps.call(
+    ENDPOINT.evidenceSignUrl,
+    { evidence_id: evidenceId, variant },
+    { idempotent: false },
   );
 }

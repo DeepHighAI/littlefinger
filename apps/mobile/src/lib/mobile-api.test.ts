@@ -1,6 +1,10 @@
 import { ENDPOINT } from '@littlefinger/shared';
 
-import { MobileApiError, callMobileFunction } from './mobile-api.ts';
+import {
+  MobileApiError,
+  callMobileFunction,
+  callMobileMultipartFunction,
+} from './mobile-api.ts';
 
 const deps = {
   fetch: jest.fn(),
@@ -57,6 +61,43 @@ describe('모바일 Edge Function API', () => {
       message: '다시 로그인해 주세요.',
     });
     expect(deps.fetch).not.toHaveBeenCalled();
+  });
+
+  test('multipart 업로드는 Content-Type 경계를 직접 지정하지 않고 별도 멱등 키를 보낸다', async () => {
+    deps.fetch.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          upload_id: 'upload-1',
+          status: 'READY',
+          mime: 'image/jpeg',
+          bytes: 4,
+          width: 2,
+          height: 1,
+        }),
+        { status: 200 },
+      ),
+    );
+    const form = new FormData();
+    form.set('promise_id', 'promise-1');
+
+    await callMobileMultipartFunction(
+      ENDPOINT.evidenceUpload,
+      form,
+      '11111111-1111-4111-8111-111111111111',
+      deps,
+    );
+
+    expect(deps.fetch).toHaveBeenCalledWith(
+      'https://project.supabase.co/functions/v1/evidence-upload',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer access-token',
+          'Idempotency-Key': '11111111-1111-4111-8111-111111111111',
+        },
+        body: form,
+      }),
+    );
   });
 
   test('서버의 필드 오류를 보존하고 알 수 없는 실패는 공통 500 문구로 평탄화한다', async () => {

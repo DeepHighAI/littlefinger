@@ -136,6 +136,8 @@ export const size = {
   actionHeight: 48,
   fabHeight: 56,
   tabHeight: 38,
+  /** SCR-A06 승인 레퍼런스의 정사각형 증빙 타일. */
+  evidenceThumb: 84,
 } as const;
 
 /**

@@ -15,6 +15,8 @@ import {
   listParticipantPromises,
   loadFulfillmentDetail,
   reopenFulfillment,
+  discardFulfillmentEvidence,
+  signFulfillmentEvidence,
   submitFulfillment,
 } from './fulfillment-api.ts';
 
@@ -195,6 +197,57 @@ describe('모바일 이행 확인 API', () => {
       }),
     );
     expect(mobileDeps.randomUuid).not.toHaveBeenCalled();
+  });
+
+  test('증빙 폐기와 서명 URL은 각 공개 계약으로 호출한다', async () => {
+    jest
+      .mocked(mobileDeps.fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ upload_id: 'upload-1', status: 'DISCARDED' }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            evidence_id: 'evidence-1',
+            variant: 'THUMBNAIL',
+            signed_url: 'https://storage.example/signed',
+            expires_at: '2026-08-12T01:10:00Z',
+          }),
+          { status: 200 },
+        ),
+      );
+
+    await discardFulfillmentEvidence(
+      'upload-1',
+      '11111111-1111-4111-8111-111111111111',
+      { call },
+    );
+    await signFulfillmentEvidence('evidence-1', 'THUMBNAIL', { call });
+
+    expect(mobileDeps.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://project.supabase.co/functions/v1/evidence-discard',
+      expect.objectContaining({
+        body: JSON.stringify({ upload_id: 'upload-1' }),
+        headers: expect.objectContaining({
+          'Idempotency-Key': '11111111-1111-4111-8111-111111111111',
+        }),
+      }),
+    );
+    expect(mobileDeps.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://project.supabase.co/functions/v1/evidence-sign-url',
+      expect.objectContaining({
+        body: JSON.stringify({
+          evidence_id: 'evidence-1',
+          variant: 'THUMBNAIL',
+        }),
+        headers: expect.not.objectContaining({ 'Idempotency-Key': expect.anything() }),
+      }),
+    );
   });
 
   test('응답이 유실돼도 제출·재확인 재시도는 호출자가 보존한 키를 그대로 쓴다', async () => {
