@@ -1,11 +1,12 @@
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 import { DEVICE_TOKEN_MAX } from '../../packages/shared/src/config.ts';
-import { createTestDb, createUser, type TestDb } from './harness.ts';
+import { createPromise, createTestDb, createUser, type TestDb } from './harness.ts';
 
 let db: TestDb;
 
 interface DeviceTokenRow {
+  id: string;
   user_id: string;
   fcm_token: string;
   last_seen_at: string;
@@ -17,7 +18,7 @@ async function register(userId: string, token: string): Promise<void> {
 
 async function rowsFor(userId: string): Promise<DeviceTokenRow[]> {
   const { rows } = await db.asAdmin(
-    `select user_id, fcm_token, last_seen_at::text
+    `select id, user_id, fcm_token, last_seen_at::text
        from public.device_tokens
       where user_id = $1
       order by last_seen_at desc, fcm_token`,
@@ -60,6 +61,7 @@ describe('lf_device_token_register — 앱 로그인 뒤 Expo 푸시 토큰 등�
   test('같은 토큰을 다시 등록하면 행을 늘리지 않고 last_seen_at을 갱신한다', async () => {
     const userId = await createUser(db, '민준');
     await register(userId, 'ExponentPushToken[same-device]');
+    const before = await rowsFor(userId);
     await db.asAdmin(
       `update public.device_tokens
           set last_seen_at = '2026-07-01T00:00:00Z'
@@ -70,6 +72,7 @@ describe('lf_device_token_register — 앱 로그인 뒤 Expo 푸시 토큰 등�
 
     const rows = await rowsFor(userId);
     expect(rows).toHaveLength(1);
+    expect(rows[0]?.id).toBe(before[0]?.id);
     expect(rows[0]?.last_seen_at).not.toBe('2026-07-01 00:00:00+00');
   });
 
@@ -83,6 +86,36 @@ describe('lf_device_token_register — 앱 로그인 뒤 Expo 푸시 토큰 등�
 
     expect(await rowsFor(first)).toEqual([]);
     expect(await rowsFor(second)).toMatchObject([{ user_id: second, fcm_token: token }]);
+  });
+
+  test('다른 계정으로 토큰을 옮기면 새 ID를 만들고 기존 delivery 연결을 끊는다', async () => {
+    const first = await createUser(db, '이전소유자');
+    const second = await createUser(db, '새소유자');
+    const token = 'ExponentPushToken[delivery-owner-change]';
+    await register(first, token);
+    const oldTokenId = (await rowsFor(first))[0]?.id;
+    const promise = await createPromise(db, { creatorId: first, status: 'ACTIVE' });
+    const fanout = await db.asAdmin(
+      `select public.lf_notification_fanout(
+         $1, $2, 'NT-01', '약속 성립', '소유권 변경', 'SCR-A05',
+         $3, $4, '2026-08-01T03:00:00Z'
+       ) as result`,
+      [first, promise, `${promise}:old:INAPP`, `${promise}:old:PUSH`],
+    );
+    const pushId = String(
+      (fanout.rows[0]?.['result'] as { push_notification_id: string }).push_notification_id,
+    );
+
+    await register(second, token);
+
+    const newToken = (await rowsFor(second))[0];
+    expect(newToken?.id).not.toBe(oldTokenId);
+    expect(await rowsFor(first)).toEqual([]);
+    const delivery = await db.asAdmin(
+      `select device_token_id from public.push_deliveries where notification_id = $1`,
+      [pushId],
+    );
+    expect(delivery.rows).toEqual([{ device_token_id: null }]);
   });
 
   test(`네 번째 기기는 가장 오래된 토큰을 지우고 최신 ${DEVICE_TOKEN_MAX}개만 둔다`, async () => {

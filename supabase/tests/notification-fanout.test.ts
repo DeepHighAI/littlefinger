@@ -86,6 +86,25 @@ afterAll(async () => {
 });
 
 describe('lf_notification_fanout — 논리 알림의 채널·기기 fanout', () => {
+  test('ACTIVE 수신자와 토큰 스냅샷을 변경과 재할당에서 잠근다', async () => {
+    // PGlite는 단일 user/connection이라 실제 두 트랜잭션의 lock wait를 실행할 수 없다.
+    // 운영 Postgres에서 필요한 두 FOR SHARE 경계가 함수에 남아 있는지를 카탈로그로 지킨다.
+    const { rows } = await db.asAdmin(
+      `select pg_get_functiondef(
+         'public.lf_notification_fanout(uuid,uuid,text,text,text,text,text,text,timestamptz)'
+           ::regprocedure
+       ) as definition`,
+    );
+    const definition = String(rows[0]?.['definition']).replace(/\s+/gu, ' ').toLowerCase();
+
+    expect(definition).toMatch(
+      /perform 1 from public\.users u where u\.id = p_user_id and u\.status = 'active' for share;/u,
+    );
+    expect(definition).toMatch(
+      /select dt\.id from public\.device_tokens dt where dt\.user_id = p_user_id order by dt\.id for share/u,
+    );
+  });
+
   test('delivery 상태와 저장 열이 push worker 계약과 정확히 같다', async () => {
     const statuses = await db.asAdmin(
       `select e.enumlabel
@@ -203,6 +222,47 @@ describe('lf_notification_fanout — 논리 알림의 채널·기기 fanout', ()
     expect(second).toEqual(first);
     expect(await notificationRows(promiseId)).toHaveLength(1);
     expect(first.push_notification_id).toBeNull();
+  });
+
+  test('fanout 도중 등록된 토큰은 처음 캡처한 delivery 스냅샷에 들어오지 않는다', async () => {
+    const userId = await createUser(db, '스냅샷');
+    const promiseId = await createPromise(db, { creatorId: userId, status: 'ACTIVE' });
+    await db.execAdmin(`
+      create function public.lf_test_register_token_after_inapp()
+      returns trigger
+      language plpgsql
+      set search_path = ''
+      as $$
+      begin
+        if new.channel = 'INAPP' and new.dedupe_key like '%:snapshot' then
+          insert into public.device_tokens (user_id, fcm_token, platform)
+          values (new.user_id, 'ExponentPushToken[registered-during-fanout]', 'ANDROID');
+        end if;
+        return new;
+      end;
+      $$;
+
+      create trigger lf_test_register_token_after_inapp
+      after insert on public.notifications
+      for each row execute function public.lf_test_register_token_after_inapp();
+    `);
+
+    try {
+      const result = await fanout({ userId, promiseId, suffix: 'snapshot' });
+
+      expect(result).toMatchObject({ push_notification_id: null, delivery_count: 0 });
+      expect(await notificationRows(promiseId)).toHaveLength(1);
+      const registered = await db.asAdmin(
+        `select id from public.device_tokens where user_id = $1`,
+        [userId],
+      );
+      expect(registered.rows).toHaveLength(1);
+    } finally {
+      await db.execAdmin(`
+        drop trigger lf_test_register_token_after_inapp on public.notifications;
+        drop function public.lf_test_register_token_after_inapp();
+      `);
+    }
   });
 
   test('ACTIVE가 아닌 수신자에게는 알림을 만들지 않는다', async () => {
