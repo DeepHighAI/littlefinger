@@ -7,7 +7,7 @@ import {
 import { getMobileEncryptedStorage } from './supabase-native.ts';
 
 export interface AndroidPushNavigationEvents {
-  isAuthenticated(): boolean;
+  areProtectedRoutesReady(): boolean;
   navigate(route: PushRoute): void;
   logError(error: unknown): void;
 }
@@ -30,6 +30,8 @@ const manager = createPushNavigationManager({
   logError: (error) => logError(error),
 });
 
+let responseOwnerGeneration = 0;
+
 async function clearLastResponse(): Promise<void> {
   try {
     await Notifications.clearLastNotificationResponseAsync();
@@ -42,21 +44,23 @@ export function startAndroidPushNavigationNative(
   events: AndroidPushNavigationEvents,
 ): () => void {
   let active = true;
+  const ownerGeneration = ++responseOwnerGeneration;
   logError = events.logError;
+  const isCurrentOwner = (): boolean =>
+    active && ownerGeneration === responseOwnerGeneration;
 
   async function handleResponse(response: Notifications.NotificationResponse): Promise<void> {
+    if (!isCurrentOwner()) return;
     try {
-      if (active) {
-        await manager.handle(
-          response.notification.request.content.data,
-          events.isAuthenticated(),
-          events.navigate,
-        );
-      }
+      await manager.handle(
+        response.notification.request.content.data,
+        events.areProtectedRoutesReady(),
+        events.navigate,
+      );
     } catch (error) {
       events.logError(error);
     } finally {
-      await clearLastResponse();
+      if (isCurrentOwner()) await clearLastResponse();
     }
   }
 
@@ -67,9 +71,9 @@ export function startAndroidPushNavigationNative(
   void (async () => {
     try {
       const response = await Notifications.getLastNotificationResponseAsync();
-      if (response !== null) await handleResponse(response);
+      if (response !== null && isCurrentOwner()) await handleResponse(response);
     } catch (error) {
-      events.logError(error);
+      if (isCurrentOwner()) events.logError(error);
     }
   })();
 

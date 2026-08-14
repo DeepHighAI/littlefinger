@@ -40,7 +40,7 @@ jest.mock(
 
 const { startAndroidPushNavigationNative } = require('./push-navigation-native.ts') as {
   startAndroidPushNavigationNative(events: {
-    isAuthenticated(): boolean;
+    areProtectedRoutesReady(): boolean;
     logError(error: unknown): void;
     navigate(route: PushRoute): void;
   }): () => void;
@@ -75,6 +75,16 @@ async function flushAsyncWork(): Promise<void> {
   await new Promise((resolve) => setImmediate(resolve));
 }
 
+function deferred<T>(): { promise: Promise<T>; resolve(value: T): void } {
+  let resolvePromise!: (value: T) => void;
+  return {
+    promise: new Promise<T>((resolve) => {
+      resolvePromise = resolve;
+    }),
+    resolve: (value) => resolvePromise(value),
+  };
+}
+
 describe('Expo 알림 수신 연결', () => {
   beforeEach(() => {
     responseListener = null;
@@ -103,7 +113,7 @@ describe('Expo 알림 수신 연결', () => {
     );
     const routes: PushRoute[] = [];
     const stop = startAndroidPushNavigationNative({
-      isAuthenticated: () => true,
+      areProtectedRoutesReady: () => true,
       logError: () => undefined,
       navigate: (route) => routes.push(route),
     });
@@ -123,7 +133,7 @@ describe('Expo 알림 수신 연결', () => {
   test('백그라운드·런타임 탭 응답도 같은 수신 경계로 처리한다', async () => {
     const routes: PushRoute[] = [];
     const stop = startAndroidPushNavigationNative({
-      isAuthenticated: () => true,
+      areProtectedRoutesReady: () => true,
       logError: () => undefined,
       navigate: (route) => routes.push(route),
     });
@@ -140,5 +150,39 @@ describe('Expo 알림 수신 연결', () => {
     ]);
     expect(mockClearLastNotificationResponseAsync).toHaveBeenCalledTimes(1);
     stop();
+  });
+
+  test('중단된 cold read는 새 인스턴스가 읽을 네이티브 응답을 지우지 않는다', async () => {
+    const staleRead = deferred<NotificationResponse | null>();
+    const currentRead = deferred<NotificationResponse | null>();
+    mockGetLastNotificationResponseAsync
+      .mockImplementationOnce(() => staleRead.promise)
+      .mockImplementationOnce(() => currentRead.promise);
+    const routes: PushRoute[] = [];
+    const events = {
+      areProtectedRoutesReady: () => true,
+      logError: () => undefined,
+      navigate: (route: PushRoute) => routes.push(route),
+    };
+
+    const stopStale = startAndroidPushNavigationNative(events);
+    stopStale();
+    const stopCurrent = startAndroidPushNavigationNative(events);
+
+    staleRead.resolve(response('55555555-5555-4555-8555-555555555555', 'SCR-A05'));
+    await flushAsyncWork();
+    expect(routes).toEqual([]);
+    expect(mockClearLastNotificationResponseAsync).not.toHaveBeenCalled();
+
+    currentRead.resolve(response('66666666-6666-4666-8666-666666666666', 'SCR-A04'));
+    await flushAsyncWork();
+    expect(routes).toEqual([
+      {
+        pathname: '/invite',
+        params: { promise_id: '22222222-2222-4222-8222-222222222222' },
+      },
+    ]);
+    expect(mockClearLastNotificationResponseAsync).toHaveBeenCalledTimes(1);
+    stopCurrent();
   });
 });

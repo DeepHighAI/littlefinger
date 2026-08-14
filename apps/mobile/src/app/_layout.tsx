@@ -23,7 +23,7 @@ export default function RootLayout(): React.JSX.Element {
   const [session, setSession] = useState<Session | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [callbackFailed, setCallbackFailed] = useState(false);
-  const sessionRef = useRef<Session | null>(null);
+  const authenticatedRoutesReadyRef = useRef(false);
   const routerRef = useRef(router);
   routerRef.current = router;
   const routerReady = typeof rootNavigationState?.key === 'string';
@@ -35,7 +35,7 @@ export default function RootLayout(): React.JSX.Element {
     () =>
       startMobileSessionGateNative({
         onSession: (nextSession) => {
-          sessionRef.current = nextSession;
+          if (nextSession === null) authenticatedRoutesReadyRef.current = false;
           setSession(nextSession);
           if (nextSession !== null) setCallbackFailed(false);
         },
@@ -49,18 +49,24 @@ export default function RootLayout(): React.JSX.Element {
     if (!routerReady) return;
 
     return startAndroidPushNavigationNative({
-      isAuthenticated: () => sessionRef.current !== null,
+      areProtectedRoutesReady: () => authenticatedRoutesReadyRef.current,
       navigate,
       logError: (pushError) => console.error('푸시 알림 처리에 실패했습니다.', pushError),
     });
   }, [navigate, routerReady]);
 
   useEffect(() => {
-    if (session === null || !routerReady) return;
+    const authenticatedRoutesReady = session !== null && routerReady;
+    authenticatedRoutesReadyRef.current = authenticatedRoutesReady;
+    if (!authenticatedRoutesReady) return;
 
     void restoreAndroidPushNavigationNative(navigate).catch((pushError: unknown) => {
       console.error('저장된 푸시 목적지 복구에 실패했습니다.', pushError);
     });
+
+    return () => {
+      authenticatedRoutesReadyRef.current = false;
+    };
   }, [navigate, routerReady, session]);
 
   useEffect(() => {

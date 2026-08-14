@@ -2,6 +2,11 @@ import type { Session } from '@supabase/supabase-js';
 import { act, render } from '@testing-library/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 
+import {
+  createPushNavigationManager,
+  type PushNavigationManager,
+  type PushRoute,
+} from '../lib/push-navigation.ts';
 import type { MobileSessionGateEvents } from '../lib/session-gate.ts';
 import RootLayout from '../app/_layout';
 
@@ -10,11 +15,22 @@ const SESSION = {
   user: { id: 'user-1' },
 } as Session;
 
+interface MockAndroidPushEvents {
+  areProtectedRoutesReady(): boolean;
+  navigate(route: PushRoute): void;
+}
+
 const mockStop = jest.fn();
 const mockPushStop = jest.fn();
 const mockPush = jest.fn();
-const mockRestorePushNavigationNative = jest.fn().mockResolvedValue(undefined);
+const mockEncryptedStorageSet = jest.fn();
+const mockRestorePushNavigationNative = jest.fn(
+  (navigate: (route: PushRoute) => void) => mockPushManager.restore(navigate),
+);
 let mockRootNavigationReady = false;
+let mockStoredPushValue: string | null = null;
+let mockPushManager!: PushNavigationManager;
+let mockAndroidPushEvents: MockAndroidPushEvents | null = null;
 const mockStartMobileSessionGateNative = jest.fn(
   (_events: MobileSessionGateEvents) => mockStop,
 );
@@ -61,9 +77,12 @@ jest.mock(
 jest.mock(
   '../lib/push-navigation-native.ts',
   () => ({
-    restoreAndroidPushNavigationNative: (...args: unknown[]) =>
-      mockRestorePushNavigationNative(...args),
-    startAndroidPushNavigationNative: jest.fn(() => mockPushStop),
+    restoreAndroidPushNavigationNative: (navigate: (route: PushRoute) => void) =>
+      mockRestorePushNavigationNative(navigate),
+    startAndroidPushNavigationNative: jest.fn((events: MockAndroidPushEvents) => {
+      mockAndroidPushEvents = events;
+      return mockPushStop;
+    }),
   }),
   { virtual: true },
 );
@@ -77,11 +96,27 @@ const { startAndroidPushNavigationNative } = jest.requireMock(
 describe('루트 인증 게이트', () => {
   beforeEach(() => {
     capturedEvents = null;
+    mockAndroidPushEvents = null;
     mockRootNavigationReady = false;
+    mockStoredPushValue = null;
+    mockEncryptedStorageSet.mockReset();
+    mockPushManager = createPushNavigationManager({
+      logError: () => undefined,
+      storage: {
+        getItem: async () => mockStoredPushValue,
+        setItem: async (_key, value) => {
+          mockEncryptedStorageSet(value);
+          mockStoredPushValue = value;
+        },
+        removeItem: async () => {
+          mockStoredPushValue = null;
+        },
+      },
+    });
     mockStop.mockReset();
     mockPushStop.mockReset();
     mockPush.mockReset();
-    mockRestorePushNavigationNative.mockReset().mockResolvedValue(undefined);
+    mockRestorePushNavigationNative.mockClear();
     startAndroidPushNavigationNative.mockClear();
     mockStartMobileSessionGateNative.mockClear();
     jest.mocked(SplashScreen.hideAsync).mockClear();
@@ -149,5 +184,47 @@ describe('루트 인증 게이트', () => {
       view.unmount();
     });
     expect(mockPushStop).toHaveBeenCalledTimes(1);
+  });
+
+  test('세션 수신 직후 보호 라우트 커밋 전 푸시는 암호화 저장 후 한 번 복구한다', async () => {
+    mockRootNavigationReady = true;
+    const view = await render(<RootLayout />);
+    const pushEvents = mockAndroidPushEvents;
+    if (pushEvents === null) throw new Error('push listener missing');
+    const data = {
+      notification_id: '77777777-7777-4777-8777-777777777777',
+      deeplink: 'SCR-A06',
+      promise_id: '88888888-8888-4888-8888-888888888888',
+    };
+    let handling!: Promise<void>;
+
+    await act(async () => {
+      capturedEvents?.onSession(SESSION);
+      handling = mockPushManager.handle(
+        data,
+        pushEvents.areProtectedRoutesReady(),
+        pushEvents.navigate,
+      );
+      expect(mockPush).not.toHaveBeenCalled();
+      expect(mockEncryptedStorageSet).toHaveBeenCalledTimes(1);
+      await handling;
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/fulfillment/[promise_id]',
+      params: { promise_id: '88888888-8888-4888-8888-888888888888' },
+    });
+    expect(mockStoredPushValue).toBeNull();
+    expect(mockRestorePushNavigationNative).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      view.rerender(<RootLayout />);
+    });
+    expect(mockPush).toHaveBeenCalledTimes(1);
   });
 });
