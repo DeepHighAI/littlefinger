@@ -143,6 +143,7 @@ describe('lf_notification_fanout — 논리 알림의 채널·기기 fanout', ()
       'last_error_code',
       'created_at',
       'updated_at',
+      'lease_id',
     ]);
   });
 
