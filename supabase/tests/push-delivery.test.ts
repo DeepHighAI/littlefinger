@@ -421,6 +421,31 @@ describe('fenced Expo push delivery RPC', () => {
     expect(statuses.rows.find((row) => row['id'] === pending.notificationId)?.['status']).toBe('QUEUED');
   });
 
+  test('PUSH notification은 허용된 화면과 promise_id가 없으면 새 delivery를 만들 수 없다', async () => {
+    const item = await makeDelivery('payload-constraint');
+
+    await expect(db.asAdmin(
+      `update public.notifications set deeplink = 'https://evil.example' where id = $1`,
+      [item.notificationId],
+    )).rejects.toThrow(/notifications_push_payload_shape/iu);
+    await expect(db.asAdmin(
+      `update public.notifications set promise_id = null where id = $1`,
+      [item.notificationId],
+    )).rejects.toThrow(/notifications_push_payload_shape/iu);
+  });
+
+  test('notification 집계 함수는 UUID 오름차순으로 행 잠금을 획득한다', async () => {
+    const definition = await db.asAdmin(
+      `select pg_get_functiondef(
+         'public.lf_push_refresh_notification_status(uuid[],timestamptz)'::regprocedure
+       ) as definition`,
+    );
+
+    expect(String(definition.rows[0]?.['definition'])).toMatch(
+      /select distinct id[\s\S]*from unnest[\s\S]*order by id/iu,
+    );
+  });
+
   test('내부 RPC와 delivery 테이블은 Data API 역할에서 실행할 수 없다', async () => {
     const userId = await createUser(db, 'push-permission');
     await expect(db.asUser(userId, `select public.lf_push_claim_deliveries(now(), 1, 60)`)).rejects.toThrow(/permission denied/iu);

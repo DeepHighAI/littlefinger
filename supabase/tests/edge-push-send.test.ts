@@ -237,10 +237,130 @@ describe('push-send handler', () => {
     await handler(request());
     expect(recorded.map((result) => [result['outcome'], result['error_code'] ?? null])).toEqual([
       ['delivered', null],
-      ['retry', 'MessageRateExceeded'],
+      ['failed', 'MessageRateExceeded'],
       ['failed', 'DeviceNotRegistered'],
       ['failed', 'ReceiptUnavailable'],
     ]);
+  });
+
+  test('사용 가능한 lease의 잘못된 payload는 실패로 기록하고 같은 claim의 정상 payload는 보낸다', async () => {
+    const malformed: Record<string, unknown> = {
+      ...delivery(1),
+      deeplink: 'https://evil.example',
+    };
+    const recorded: Record<string, unknown>[] = [];
+    const sentBodies: unknown[] = [];
+    const handler = createPushSendHandler(baseDeps({
+      rpc: async (fn, args) => {
+        if (fn === 'lf_push_claim_receipts' || fn === 'lf_notification_outbox_claim') return [];
+        if (fn === 'lf_dispatch_due_reminders') {
+          return { claimed: 0, sent: 0, canceled: 0, deferred: 0 };
+        }
+        if (fn === 'lf_push_claim_deliveries') return [malformed, delivery(2)];
+        if (fn === 'lf_push_record_tickets') {
+          recorded.push(...(args['p_results'] as Record<string, unknown>[]));
+          return { accepted: 2, ignored: 0, ticketed: 1, retried: 0, failed: 1 };
+        }
+        return {};
+      },
+      fetch: async (_url, init) => {
+        sentBodies.push(JSON.parse(String(init?.body)));
+        return new Response(JSON.stringify({ data: [{ status: 'ok', id: 'valid-ticket' }] }), {
+          status: 200,
+        });
+      },
+    }));
+
+    expect((await handler(request())).status).toBe(200);
+    expect(sentBodies).toHaveLength(1);
+    expect(sentBodies[0]).toHaveLength(1);
+    expect(recorded.map((result) => ({
+      delivery_id: result['delivery_id'],
+      outcome: result['outcome'],
+      error_code: result['error_code'] ?? null,
+      attempted: result['attempted'],
+    }))).toEqual([
+      {
+        delivery_id: malformed['id'],
+        outcome: 'failed',
+        error_code: 'PayloadInvalid',
+        attempted: false,
+      },
+      {
+        delivery_id: delivery(2)['id'],
+        outcome: 'ticket',
+        error_code: null,
+        attempted: true,
+      },
+    ]);
+  });
+
+  test.each([
+    ['lf_push_claim_receipts', ['lf_notification_outbox_claim', 'lf_dispatch_due_reminders', 'lf_push_claim_deliveries']],
+    ['lf_push_record_receipts', ['lf_notification_outbox_claim', 'lf_dispatch_due_reminders', 'lf_push_claim_deliveries']],
+    ['lf_notification_outbox_claim', ['lf_dispatch_due_reminders', 'lf_push_claim_deliveries']],
+    ['lf_notification_outbox_record', ['lf_dispatch_due_reminders', 'lf_push_claim_deliveries']],
+    ['lf_dispatch_due_reminders', ['lf_push_claim_deliveries']],
+    ['lf_push_claim_deliveries', []],
+    ['lf_push_record_tickets', []],
+  ] as const)('%s 실패를 격리하고 남은 budget의 뒤 stage를 계속 실행한다', async (failedRpc, laterRpcs) => {
+    const calls: string[] = [];
+    const logs: unknown[] = [];
+    let outboxClaimCount = 0;
+    const receipt = {
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      notification_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      device_token_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      expo_ticket_id: 'receipt-ticket',
+      lease_id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    };
+    const outbox = {
+      id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+      recipient_user_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
+      promise_id: '44444444-4444-4444-8444-444444444444',
+      event: 'NT-07',
+      template_args: { promiseTitle: '민감 약속 제목' },
+      inapp_dedupe_key: 'safe-inapp',
+      push_dedupe_key: 'safe-push',
+      lease_id: '12121212-1212-4121-8121-121212121212',
+    };
+    const handler = createPushSendHandler(baseDeps({
+      rpc: async (fn) => {
+        calls.push(fn);
+        if (fn === failedRpc) throw new Error('sensitive database failure detail');
+        if (fn === 'lf_push_claim_receipts') return [receipt];
+        if (fn === 'lf_push_record_receipts') {
+          return { accepted: 1, delivered: 1, retried: 0, failed: 0 };
+        }
+        if (fn === 'lf_notification_outbox_claim') {
+          outboxClaimCount += 1;
+          return outboxClaimCount === 1 ? [outbox] : [];
+        }
+        if (fn === 'lf_notification_outbox_record') return {};
+        if (fn === 'lf_notification_fanout') return {};
+        if (fn === 'lf_dispatch_due_reminders') {
+          return { claimed: 0, sent: 0, canceled: 0, deferred: 0 };
+        }
+        if (fn === 'lf_push_claim_deliveries') return [delivery(1)];
+        if (fn === 'lf_push_record_tickets') {
+          return { accepted: 1, ticketed: 1, retried: 0, failed: 0 };
+        }
+        return {};
+      },
+      fetch: async (url) => String(url).includes('getReceipts')
+        ? new Response(JSON.stringify({ data: { 'receipt-ticket': { status: 'ok' } } }), { status: 200 })
+        : new Response(JSON.stringify({ data: [{ status: 'ok', id: 'delivery-ticket' }] }), { status: 200 }),
+      log: { error: (message, detail) => logs.push({ message, detail }) },
+    }));
+
+    const response = await handler(request());
+
+    expect(response.status).toBe(200);
+    for (const rpc of laterRpcs) expect(calls).toContain(rpc);
+    const output = `${await response.text()} ${JSON.stringify(logs)}`;
+    expect(output).not.toContain('sensitive database failure detail');
+    expect(output).not.toContain('민감 약속 제목');
+    expect(output).not.toContain('ExponentPushToken');
   });
 
   test('45초 budget에 닿으면 다음 stage를 claim하지 않는다', async () => {

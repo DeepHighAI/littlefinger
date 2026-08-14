@@ -364,7 +364,7 @@ describe('개인 데이터는 본인만', () => {
   test('알림함은 자기 것만 보인다', async () => {
     await db.asAdmin(
       `insert into public.notifications (user_id, type, channel, title, body, dedupe_key)
-       values ($1, 'REMINDER', 'PUSH', '알림', '내용', $2)`,
+       values ($1, 'REMINDER', 'INAPP', '알림', '내용', $2)`,
       [creator, `dedupe-${Date.now()}-${Math.round(performance.now())}`],
     );
 

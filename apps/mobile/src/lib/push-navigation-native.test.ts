@@ -8,10 +8,12 @@ const mockClearLastNotificationResponseAsync = jest.fn().mockResolvedValue(undef
 const mockSubscriptionRemove = jest.fn();
 let responseListener: ((response: NotificationResponse) => void) | null = null;
 let storedValue: string | null = null;
+let storageSetError: Error | null = null;
 
 const mockEncryptedStorage: PushNavigationStorage = {
   getItem: async () => storedValue,
   setItem: async (_key, value) => {
+    if (storageSetError !== null) throw storageSetError;
     storedValue = value;
   },
   removeItem: async () => {
@@ -75,12 +77,15 @@ async function flushAsyncWork(): Promise<void> {
   await new Promise((resolve) => setImmediate(resolve));
 }
 
-function deferred<T>(): { promise: Promise<T>; resolve(value: T): void } {
+function deferred<T>(): { promise: Promise<T>; reject(error: unknown): void; resolve(value: T): void } {
   let resolvePromise!: (value: T) => void;
+  let rejectPromise!: (error: unknown) => void;
   return {
-    promise: new Promise<T>((resolve) => {
+    promise: new Promise<T>((resolve, reject) => {
       resolvePromise = resolve;
+      rejectPromise = reject;
     }),
+    reject: (error) => rejectPromise(error),
     resolve: (value) => resolvePromise(value),
   };
 }
@@ -89,6 +94,7 @@ describe('Expo 알림 수신 연결', () => {
   beforeEach(() => {
     responseListener = null;
     storedValue = null;
+    storageSetError = null;
     mockGetLastNotificationResponseAsync.mockReset().mockResolvedValue(null);
     mockClearLastNotificationResponseAsync.mockClear();
     mockSubscriptionRemove.mockClear();
@@ -150,6 +156,47 @@ describe('Expo 알림 수신 연결', () => {
     ]);
     expect(mockClearLastNotificationResponseAsync).toHaveBeenCalledTimes(1);
     stop();
+  });
+
+  test('로그아웃 상태의 초기 암호화 저장 실패는 네이티브 응답을 지우지 않는다', async () => {
+    storageSetError = new Error('encrypted write failed');
+    const errors: unknown[] = [];
+    const stop = startAndroidPushNavigationNative({
+      areProtectedRoutesReady: () => false,
+      logError: (error) => errors.push(error),
+      navigate: () => undefined,
+    });
+    await flushAsyncWork();
+
+    responseListener?.(response('77777777-7777-4777-8777-777777777777', 'SCR-A04'));
+    await flushAsyncWork();
+
+    expect(errors).toHaveLength(1);
+    expect(mockClearLastNotificationResponseAsync).not.toHaveBeenCalled();
+    stop();
+  });
+
+  test('중단된 listener의 늦은 저장 오류는 stale instance 로그를 남기지 않는다', async () => {
+    const write = deferred<void>();
+    mockEncryptedStorage.setItem = async () => write.promise;
+    const errors: unknown[] = [];
+    const stop = startAndroidPushNavigationNative({
+      areProtectedRoutesReady: () => false,
+      logError: (error) => errors.push(error),
+      navigate: () => undefined,
+    });
+    await flushAsyncWork();
+
+    responseListener?.(response('88888888-8888-4888-8888-888888888888', 'SCR-A04'));
+    stop();
+    write.reject(new Error('late storage failure'));
+    await flushAsyncWork();
+
+    expect(errors).toEqual([]);
+    expect(mockClearLastNotificationResponseAsync).not.toHaveBeenCalled();
+    mockEncryptedStorage.setItem = async (_key, value) => {
+      storedValue = value;
+    };
   });
 
   test('중단된 cold read는 새 인스턴스가 읽을 네이티브 응답을 지우지 않는다', async () => {

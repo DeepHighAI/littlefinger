@@ -20,6 +20,7 @@ export interface PushSendDeps {
 }
 
 interface DeliveryClaim {
+  kind: 'valid';
   id: string;
   notification_id: string;
   promise_id: string;
@@ -28,6 +29,12 @@ interface DeliveryClaim {
   title: string;
   body: string;
   deeplink: NotificationDeeplink;
+  lease_id: string;
+}
+
+interface InvalidDeliveryClaim {
+  kind: 'invalid';
+  id: string;
   lease_id: string;
 }
 
@@ -56,21 +63,25 @@ function rows(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.filter(isRecord) : [];
 }
 
-function deliveryClaims(value: unknown): DeliveryClaim[] {
-  return rows(value).slice(0, 500).flatMap((row) => {
+function deliveryClaims(value: unknown): (DeliveryClaim | InvalidDeliveryClaim)[] {
+  const claims: (DeliveryClaim | InvalidDeliveryClaim)[] = [];
+  for (const row of rows(value).slice(0, 500)) {
+    if (typeof row['id'] !== 'string' || typeof row['lease_id'] !== 'string') continue;
     const data = asPushNotificationData({
       notification_id: row['notification_id'],
       deeplink: row['deeplink'],
       promise_id: row['promise_id'],
     });
     if (
-      typeof row['id'] !== 'string' ||
       data === null ||
-      typeof row['lease_id'] !== 'string' ||
       typeof row['title'] !== 'string' ||
       typeof row['body'] !== 'string'
-    ) return [];
-    return [{
+    ) {
+      claims.push({ kind: 'invalid', id: row['id'], lease_id: row['lease_id'] });
+      continue;
+    }
+    claims.push({
+      kind: 'valid',
       id: row['id'],
       notification_id: data.notification_id,
       promise_id: data.promise_id,
@@ -80,8 +91,9 @@ function deliveryClaims(value: unknown): DeliveryClaim[] {
       body: row['body'],
       deeplink: data.deeplink,
       lease_id: row['lease_id'],
-    }];
-  });
+    });
+  }
+  return claims;
 }
 
 function receiptClaims(value: unknown): ReceiptClaim[] {
@@ -153,10 +165,13 @@ async function expoRequest(
   }
 }
 
-function expoError(item: unknown): { outcome: ExpoOutcome; errorCode: string } {
+function expoError(
+  item: unknown,
+  messageRateOutcome: ExpoOutcome = 'retry',
+): { outcome: ExpoOutcome; errorCode: string } {
   const detail = isRecord(item) && isRecord(item['details']) ? item['details']['error'] : undefined;
   const errorCode = typeof detail === 'string' ? detail : 'ExpoPayloadError';
-  return { outcome: errorCode === 'MessageRateExceeded' ? 'retry' : 'failed', errorCode };
+  return { outcome: errorCode === 'MessageRateExceeded' ? messageRateOutcome : 'failed', errorCode };
 }
 
 function count(result: unknown, key: string): number {
@@ -189,7 +204,7 @@ async function processReceipts(deps: PushSendDeps, counts: StageCounts['receipts
       } else if (receipt['status'] === 'ok') {
         results.push({ delivery_id: row.id, lease_id: row.lease_id, expo_ticket_id: row.expo_ticket_id, outcome: 'delivered' });
       } else {
-        const error = expoError(receipt);
+        const error = expoError(receipt, 'failed');
         results.push({ delivery_id: row.id, lease_id: row.lease_id, expo_ticket_id: row.expo_ticket_id, outcome: error.outcome, error_code: error.errorCode });
       }
     }
@@ -210,13 +225,24 @@ async function processDeliveries(deps: PushSendDeps, counts: StageCounts['delive
 
   for (const batch of chunks(claims, 100)) {
     if (deps.elapsedMs() >= INVOCATION_BUDGET_MS) break;
-    const valid = batch.filter((row) => row.expo_push_token !== null);
-    results.push(...batch.filter((row) => row.expo_push_token === null).map((row) => ({
+    const valid: DeliveryClaim[] = [];
+    for (const row of batch) {
+      if (row.kind === 'invalid') {
+        results.push({
+          delivery_id: row.id, lease_id: row.lease_id, outcome: 'failed',
+          error_code: 'PayloadInvalid', attempted: false,
+        });
+      } else {
+        valid.push(row);
+      }
+    }
+    const sendable = valid.filter((row) => row.expo_push_token !== null);
+    results.push(...valid.filter((row) => row.expo_push_token === null).map((row) => ({
       delivery_id: row.id, lease_id: row.lease_id, outcome: 'failed',
       error_code: 'DeviceTokenUnavailable', attempted: false,
     })));
-    if (valid.length === 0) continue;
-    const request = await expoRequest(deps, EXPO_SEND_URL, valid.map((row) => ({
+    if (sendable.length === 0) continue;
+    const request = await expoRequest(deps, EXPO_SEND_URL, sendable.map((row) => ({
       to: row.expo_push_token, title: row.title, body: row.body,
       data: {
         notification_id: row.notification_id,
@@ -225,7 +251,7 @@ async function processDeliveries(deps: PushSendDeps, counts: StageCounts['delive
       },
     })));
     if (!request.ok) {
-      results.push(...valid.map((row) => ({
+      results.push(...sendable.map((row) => ({
         delivery_id: row.id, lease_id: row.lease_id, outcome: request.failure,
         error_code: request.errorCode, attempted: true,
         device_token_id: row.device_token_id, expo_push_token: row.expo_push_token,
@@ -234,8 +260,8 @@ async function processDeliveries(deps: PushSendDeps, counts: StageCounts['delive
     }
     const parsed = request.body;
     const data = isRecord(parsed) && Array.isArray(parsed['data']) ? parsed['data'] : [];
-    for (let index = 0; index < valid.length; index += 1) {
-      const row = valid[index]!;
+    for (let index = 0; index < sendable.length; index += 1) {
+      const row = sendable[index]!;
       const ticket = data[index];
       if (isRecord(ticket) && ticket['status'] === 'ok' && typeof ticket['id'] === 'string') {
         results.push({ delivery_id: row.id, lease_id: row.lease_id, outcome: 'ticket', expo_ticket_id: ticket['id'], attempted: true });
@@ -271,28 +297,46 @@ export function createPushSendHandler(deps: PushSendDeps) {
       reminders: { claimed: 0, sent: 0, canceled: 0, deferred: 0 },
       deliveries: { claimed: 0, ticketed: 0, retried: 0, failed: 0 },
     };
-    try {
-      if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) await processReceipts(invocationDeps, counts.receipts);
-      if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) {
+    const runStage = async (stage: keyof StageCounts, work: () => Promise<void>): Promise<void> => {
+      try {
+        await work();
+      } catch {
+        deps.log.error('push stage failed', { stage, error_code: 'STAGE_FAILED' });
+      }
+    };
+    if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) {
+      await runStage('receipts', () => processReceipts(invocationDeps, counts.receipts));
+    }
+    if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) {
+      await runStage('outbox', async () => {
         counts.outbox = await processNotificationOutbox({
           rpc: invocationDeps.rpc,
           now: invocationDeps.now,
-          log: { error: () => invocationDeps.log.error('push stage failed', { stage: 'outbox', count: 1 }) },
+          log: {
+            error: () => invocationDeps.log.error(
+              'push stage failed',
+              { stage: 'outbox', error_code: 'STAGE_FAILED' },
+            ),
+          },
         }, {
           limit: 100,
           shouldContinue: () => invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS,
         });
-      }
-      if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) {
-        const reminders = await invocationDeps.rpc('lf_dispatch_due_reminders', { p_now: invocationDeps.now().toISOString(), p_limit: 200 });
+      });
+    }
+    if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) {
+      await runStage('reminders', async () => {
+        const reminders = await invocationDeps.rpc('lf_dispatch_due_reminders', {
+          p_now: invocationDeps.now().toISOString(), p_limit: 200,
+        });
         counts.reminders = {
           claimed: count(reminders, 'claimed'), sent: count(reminders, 'sent'),
           canceled: count(reminders, 'canceled'), deferred: count(reminders, 'deferred'),
         };
-      }
-      if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) await processDeliveries(invocationDeps, counts.deliveries);
-    } catch {
-      deps.log.error('push stage failed', { stage: 'worker', count: 1 });
+      });
+    }
+    if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) {
+      await runStage('deliveries', () => processDeliveries(invocationDeps, counts.deliveries));
     }
     return Response.json(counts);
   };

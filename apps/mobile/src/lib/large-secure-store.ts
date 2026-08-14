@@ -41,12 +41,35 @@ export class LargeSecureStore {
     const encrypted = cipher.encrypt(aesjs.utils.utf8.toBytes(value));
 
     // 세션은 SecureStore 한도를 넘는다. 작은 AES 키만 보안 저장소에 두고 원문은 남기지 않는다.
+    const previousKey = await this.deps.secureStore.getItemAsync(key);
     await this.deps.secureStore.setItemAsync(key, aesjs.utils.hex.fromBytes(encryptionKey));
-    await this.deps.asyncStorage.setItem(key, aesjs.utils.hex.fromBytes(encrypted));
+    try {
+      await this.deps.asyncStorage.setItem(key, aesjs.utils.hex.fromBytes(encrypted));
+    } catch (error) {
+      try {
+        if (previousKey === null) await this.deps.secureStore.deleteItemAsync(key);
+        else await this.deps.secureStore.setItemAsync(key, previousKey);
+      } catch {
+        // 원래 쓰기 실패를 유지한다. 호출자는 같은 값을 다시 저장해 복구한다.
+      }
+      throw error;
+    }
   }
 
   async removeItem(key: string): Promise<void> {
+    const encrypted = await this.deps.asyncStorage.getItem(key);
     await this.deps.asyncStorage.removeItem(key);
-    await this.deps.secureStore.deleteItemAsync(key);
+    try {
+      await this.deps.secureStore.deleteItemAsync(key);
+    } catch (error) {
+      if (encrypted !== null) {
+        try {
+          await this.deps.asyncStorage.setItem(key, encrypted);
+        } catch {
+          // 삭제 실패를 우선 보고한다. 다음 초기 write가 남은 키를 안전하게 교체한다.
+        }
+      }
+      throw error;
+    }
   }
 }

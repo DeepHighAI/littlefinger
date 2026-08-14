@@ -120,4 +120,101 @@ describe('push-send real handler + PGlite', () => {
     });
     expect(httpBodies).toHaveLength(2);
   });
+
+  test('ticket 뒤 receipt MessageRateExceeded는 FAILED로 종결되고 send나 receipt를 다시 호출하지 않는다', async () => {
+    const userId = await createUser(db, '통합푸시종결');
+    const promiseId = await createPromise(db, { creatorId: userId, status: 'ACTIVE' });
+    await db.asAdmin(
+      `insert into public.device_tokens (user_id, fcm_token, platform)
+       values ($1, 'ExponentPushToken[terminal-receipt]', 'ANDROID')`,
+      [userId],
+    );
+    await db.asAdmin(
+      `select public.lf_notification_fanout(
+         $1, $2, 'NT-01', '약속 성립', '매일 걷기', 'SCR-A05',
+         'terminal-inapp', 'terminal-push', '2026-08-15T00:00:00Z'
+       )`,
+      [userId, promiseId],
+    );
+
+    let now = new Date('2026-08-15T00:00:00.000Z');
+    let sendRequests = 0;
+    let receiptRequests = 0;
+    const rpc = async (fn: string, args: Record<string, unknown>): Promise<unknown> => {
+      const signatures: Record<string, { sql: string; params: unknown[] }> = {
+        lf_push_claim_receipts: {
+          sql: `select public.lf_push_claim_receipts($1::timestamptz, $2::int, $3::int) as result`,
+          params: [args['p_now'], args['p_limit'], args['p_lease_seconds']],
+        },
+        lf_push_record_receipts: {
+          sql: `select public.lf_push_record_receipts($1::jsonb, $2::timestamptz) as result`,
+          params: [JSON.stringify(args['p_results']), args['p_now']],
+        },
+        lf_push_claim_deliveries: {
+          sql: `select public.lf_push_claim_deliveries($1::timestamptz, $2::int, $3::int) as result`,
+          params: [args['p_now'], args['p_limit'], args['p_lease_seconds']],
+        },
+        lf_push_record_tickets: {
+          sql: `select public.lf_push_record_tickets($1::jsonb, $2::timestamptz) as result`,
+          params: [JSON.stringify(args['p_results']), args['p_now']],
+        },
+        lf_notification_outbox_claim: {
+          sql: `select public.lf_notification_outbox_claim($1::timestamptz, $2::int, $3::int) as result`,
+          params: [args['p_now'], args['p_limit'], args['p_lease_seconds']],
+        },
+        lf_dispatch_due_reminders: {
+          sql: `select public.lf_dispatch_due_reminders($1::timestamptz, $2::int) as result`,
+          params: [args['p_now'], args['p_limit']],
+        },
+      };
+      const call = signatures[fn];
+      if (call === undefined) throw new Error(`unexpected RPC ${fn}`);
+      const result = await db.asAdmin(call.sql, call.params);
+      return result.rows[0]?.['result'];
+    };
+    const handler = createPushSendHandler({
+      secret: 'integration-secret',
+      rpc,
+      fetch: async (url) => {
+        if (String(url).includes('getReceipts')) {
+          receiptRequests += 1;
+          return new Response(JSON.stringify({ data: {
+            'terminal-ticket': { status: 'error', details: { error: 'MessageRateExceeded' } },
+          } }), { status: 200 });
+        }
+        sendRequests += 1;
+        return new Response(JSON.stringify({ data: [{ status: 'ok', id: 'terminal-ticket' }] }), {
+          status: 200,
+        });
+      },
+      now: () => now,
+      elapsedMs: () => 0,
+      log: { error: () => undefined },
+    });
+    const invoke = () => handler(new Request('https://example.test/functions/v1/push-send', {
+      method: 'POST', headers: { 'x-push-send-secret': 'integration-secret' },
+    }));
+
+    expect((await invoke()).status).toBe(200);
+    now = new Date('2026-08-15T00:15:00.000Z');
+    expect((await invoke()).status).toBe(200);
+    now = new Date('2026-08-15T00:30:00.000Z');
+    expect((await invoke()).status).toBe(200);
+
+    const state = await db.asAdmin(
+      `select d.status::text, d.attempt_count, d.expo_ticket_id, d.last_error_code,
+              n.status::text as notification_status
+         from public.push_deliveries d
+         join public.notifications n on n.id = d.notification_id
+        where n.dedupe_key = 'terminal-push'`,
+    );
+    expect(state.rows).toEqual([{
+      status: 'FAILED',
+      attempt_count: 1,
+      expo_ticket_id: 'terminal-ticket',
+      last_error_code: 'MessageRateExceeded',
+      notification_status: 'FAILED',
+    }]);
+    expect({ receiptRequests, sendRequests }).toEqual({ receiptRequests: 1, sendRequests: 1 });
+  });
 });

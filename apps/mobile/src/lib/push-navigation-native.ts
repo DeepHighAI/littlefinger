@@ -21,7 +21,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-let logError = (error: unknown): void => {
+const logError = (error: unknown): void => {
   console.error('푸시 알림 처리에 실패했습니다.', error);
 };
 
@@ -32,11 +32,11 @@ const manager = createPushNavigationManager({
 
 let responseOwnerGeneration = 0;
 
-async function clearLastResponse(): Promise<void> {
+async function clearLastResponse(reportError: (error: unknown) => void): Promise<void> {
   try {
     await Notifications.clearLastNotificationResponseAsync();
   } catch (error) {
-    logError(error);
+    reportError(error);
   }
 }
 
@@ -45,22 +45,24 @@ export function startAndroidPushNavigationNative(
 ): () => void {
   let active = true;
   const ownerGeneration = ++responseOwnerGeneration;
-  logError = events.logError;
   const isCurrentOwner = (): boolean =>
     active && ownerGeneration === responseOwnerGeneration;
+  const reportError = (error: unknown): void => {
+    if (isCurrentOwner()) events.logError(error);
+  };
 
   async function handleResponse(response: Notifications.NotificationResponse): Promise<void> {
     if (!isCurrentOwner()) return;
     try {
-      await manager.handle(
+      const consumed = await manager.handle(
         response.notification.request.content.data,
         events.areProtectedRoutesReady(),
         events.navigate,
+        reportError,
       );
+      if (consumed && isCurrentOwner()) await clearLastResponse(reportError);
     } catch (error) {
-      events.logError(error);
-    } finally {
-      if (isCurrentOwner()) await clearLastResponse();
+      reportError(error);
     }
   }
 

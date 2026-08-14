@@ -196,7 +196,7 @@ describe('루트 인증 게이트', () => {
       deeplink: 'SCR-A06',
       promise_id: '88888888-8888-4888-8888-888888888888',
     };
-    let handling!: Promise<void>;
+    let handling!: Promise<boolean>;
 
     await act(async () => {
       capturedEvents?.onSession(SESSION);

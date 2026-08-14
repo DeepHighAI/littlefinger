@@ -26,8 +26,12 @@ export interface PushNavigationManager {
     value: unknown,
     authenticated: boolean,
     navigate: (route: PushRoute) => void,
+    reportError?: (error: unknown) => void,
+  ): Promise<boolean>;
+  restore(
+    navigate: (route: PushRoute) => void,
+    reportError?: (error: unknown) => void,
   ): Promise<void>;
-  restore(navigate: (route: PushRoute) => void): Promise<void>;
 }
 
 export const PENDING_PUSH_DESTINATION_KEY = 'littlefinger.pending-push-destination.v1';
@@ -48,9 +52,32 @@ function routeFor(deeplink: NotificationDeeplink, promiseId: string): PushRoute 
   }
 }
 
-function parseStoredDestination(value: string): PushNotificationData | null {
+interface StoredDestination {
+  state: 'PENDING' | 'CONSUMED';
+  data: PushNotificationData;
+}
+
+function serializeStoredDestination(value: StoredDestination): string {
+  return JSON.stringify(value);
+}
+
+function parseStoredDestination(value: string): StoredDestination | null {
   try {
-    return asPushNotificationData(JSON.parse(value) as unknown);
+    const parsed = JSON.parse(value) as unknown;
+    const legacy = asPushNotificationData(parsed);
+    if (legacy !== null) return { state: 'PENDING', data: legacy };
+    if (typeof parsed !== 'object' || parsed === null) return null;
+    const row = parsed as Record<string, unknown>;
+    const fields = Object.keys(row);
+    const data = asPushNotificationData(row['data']);
+    if (
+      fields.length !== 2 ||
+      !fields.includes('state') ||
+      !fields.includes('data') ||
+      (row['state'] !== 'PENDING' && row['state'] !== 'CONSUMED') ||
+      data === null
+    ) return null;
+    return { state: row['state'], data };
   } catch {
     return null;
   }
@@ -61,6 +88,7 @@ export function createPushNavigationManager(
 ): PushNavigationManager {
   const handledNotificationIds = new Set<string>();
   const navigatedNotificationIds = new Set<string>();
+  const activeHandles = new Map<string, Promise<boolean>>();
   let restorationAttempted = false;
   let pendingStorageWrite: Promise<void> | null = null;
 
@@ -68,41 +96,64 @@ export function createPushNavigationManager(
     value: unknown,
     authenticated: boolean,
     navigate: (route: PushRoute) => void,
-  ): Promise<void> {
+    reportError = deps.logError,
+  ): Promise<boolean> {
     const data = asPushNotificationData(value);
+    if (data === null) return true;
     if (
-      data === null ||
       handledNotificationIds.has(data.notification_id) ||
       navigatedNotificationIds.has(data.notification_id)
-    ) return;
+    ) return true;
+    const active = activeHandles.get(data.notification_id);
+    if (active !== undefined) return active;
 
-    handledNotificationIds.add(data.notification_id);
-    if (!authenticated) {
-      restorationAttempted = false;
-      const previousWrite = pendingStorageWrite;
-      const write = (async () => {
-        if (previousWrite !== null) await previousWrite;
+    const operation = (async (): Promise<boolean> => {
+      if (!authenticated) {
+        const previousWrite = pendingStorageWrite;
+        const write = (async () => {
+          if (previousWrite !== null) await previousWrite;
+          await deps.storage.setItem(
+            PENDING_PUSH_DESTINATION_KEY,
+            serializeStoredDestination({ state: 'PENDING', data }),
+          );
+        })();
+        const settledWrite = write.catch(() => undefined);
+        pendingStorageWrite = settledWrite;
         try {
-          await deps.storage.setItem(PENDING_PUSH_DESTINATION_KEY, JSON.stringify(data));
+          await write;
         } catch (error) {
-          deps.logError(error);
+          reportError(error);
+          return false;
+        } finally {
+          if (pendingStorageWrite === settledWrite) pendingStorageWrite = null;
         }
-      })();
-      pendingStorageWrite = write;
-      await write;
-      if (pendingStorageWrite === write) pendingStorageWrite = null;
-      return;
-    }
+        handledNotificationIds.add(data.notification_id);
+        restorationAttempted = false;
+        return true;
+      }
 
-    navigatedNotificationIds.add(data.notification_id);
+      try {
+        navigate(routeFor(data.deeplink, data.promise_id));
+      } catch (error) {
+        reportError(error);
+        return false;
+      }
+      handledNotificationIds.add(data.notification_id);
+      navigatedNotificationIds.add(data.notification_id);
+      return true;
+    })();
+    activeHandles.set(data.notification_id, operation);
     try {
-      navigate(routeFor(data.deeplink, data.promise_id));
-    } catch (error) {
-      deps.logError(error);
+      return await operation;
+    } finally {
+      activeHandles.delete(data.notification_id);
     }
   }
 
-  async function restore(navigate: (route: PushRoute) => void): Promise<void> {
+  async function restore(
+    navigate: (route: PushRoute) => void,
+    reportError = deps.logError,
+  ): Promise<void> {
     if (restorationAttempted) return;
     restorationAttempted = true;
 
@@ -113,26 +164,58 @@ export function createPushNavigationManager(
     try {
       stored = await deps.storage.getItem(PENDING_PUSH_DESTINATION_KEY);
     } catch (error) {
-      deps.logError(error);
+      reportError(error);
+      restorationAttempted = false;
       return;
     }
     if (stored === null) return;
 
-    const data = parseStoredDestination(stored);
-    try {
-      // 삭제를 이동보다 먼저 끝내야 이동 중 종료되어도 같은 목적지를 다시 실행하지 않는다.
-      await deps.storage.removeItem(PENDING_PUSH_DESTINATION_KEY);
-    } catch (error) {
-      deps.logError(error);
+    const destination = parseStoredDestination(stored);
+    if (destination === null || destination.state === 'CONSUMED') {
+      try {
+        await deps.storage.removeItem(PENDING_PUSH_DESTINATION_KEY);
+      } catch (error) {
+        reportError(error);
+        restorationAttempted = false;
+      }
       return;
     }
-    if (data === null || navigatedNotificationIds.has(data.notification_id)) return;
+    const data = destination.data;
+    if (navigatedNotificationIds.has(data.notification_id)) return;
 
-    navigatedNotificationIds.add(data.notification_id);
+    try {
+      // 이동 직전 소비 상태를 내구화해야 종료·cleanup 실패 뒤 같은 화면을 다시 열지 않는다.
+      await deps.storage.setItem(
+        PENDING_PUSH_DESTINATION_KEY,
+        serializeStoredDestination({ state: 'CONSUMED', data }),
+      );
+    } catch (error) {
+      reportError(error);
+      restorationAttempted = false;
+      return;
+    }
+
     try {
       navigate(routeFor(data.deeplink, data.promise_id));
     } catch (error) {
-      deps.logError(error);
+      reportError(error);
+      try {
+        await deps.storage.setItem(
+          PENDING_PUSH_DESTINATION_KEY,
+          serializeStoredDestination({ state: 'PENDING', data }),
+        );
+      } catch (restoreError) {
+        reportError(restoreError);
+      }
+      restorationAttempted = false;
+      return;
+    }
+    navigatedNotificationIds.add(data.notification_id);
+    try {
+      await deps.storage.removeItem(PENDING_PUSH_DESTINATION_KEY);
+    } catch (error) {
+      reportError(error);
+      restorationAttempted = false;
     }
   }
 

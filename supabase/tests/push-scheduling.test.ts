@@ -110,7 +110,66 @@ describe('push-send 스케줄링 배포 계약', () => {
     }]);
   });
 
-  test('Vault 누락이나 nudge 실패가 outbox 기록을 롤백하지 않는다', async () => {
+  test('한 트랜잭션에서 intent 200건을 넣어도 worker nudge는 한 번만 요청한다', async () => {
+    const userId = await createUser(db, 'push-coalesced-nudge');
+    const promiseId = await createPromise(db, { creatorId: userId });
+
+    await db.asAdmin(
+      `insert into public.notification_outbox (
+         recipient_user_id, promise_id, event, template_args,
+         inapp_dedupe_key, push_dedupe_key
+       )
+       select $1::uuid, $2::uuid, 'NT-07', '{"promiseTitle":"알림"}'::jsonb,
+              'coalesced-inapp-' || n, 'coalesced-push-' || n
+         from generate_series(1, 200) n`,
+      [userId, promiseId],
+    );
+
+    const requests = await db.asAdmin(`select count(*)::int as count from net.http_post_requests`);
+    expect(requests.rows).toEqual([{ count: 1 }]);
+  });
+
+  test('push_send_url 누락은 요청 없이 격리되고 outbox intent를 보존한다', async () => {
+    await db.asAdmin(`delete from vault.decrypted_secrets where name = 'push_send_url'`);
+    const userId = await createUser(db, 'push-nudge-url-missing');
+    const promiseId = await createPromise(db, { creatorId: userId });
+
+    const inserted = await db.asAdmin(
+      `select public.lf_notification_outbox_enqueue(
+         $1::uuid, $2::uuid, 'NT-07', $3::jsonb, $4, now()
+       )::text as id`,
+      [userId, promiseId, JSON.stringify({ promiseTitle: '복구' }), randomUUID()],
+    );
+    const row = await db.asAdmin(
+      `select status::text from public.notification_outbox where id = $1::uuid`,
+      [inserted.rows[0]?.['id']],
+    );
+
+    expect(row.rows).toEqual([{ status: 'PENDING' }]);
+    expect((await db.asAdmin(`select * from net.http_post_requests`)).rows).toEqual([]);
+  });
+
+  test('push_send_secret 누락은 요청 없이 격리되고 outbox intent를 보존한다', async () => {
+    await db.asAdmin(`delete from vault.decrypted_secrets where name = 'push_send_secret'`);
+    const userId = await createUser(db, 'push-nudge-secret-missing');
+    const promiseId = await createPromise(db, { creatorId: userId });
+
+    const inserted = await db.asAdmin(
+      `select public.lf_notification_outbox_enqueue(
+         $1::uuid, $2::uuid, 'NT-07', $3::jsonb, $4, now()
+       )::text as id`,
+      [userId, promiseId, JSON.stringify({ promiseTitle: '복구' }), randomUUID()],
+    );
+    const row = await db.asAdmin(
+      `select status::text from public.notification_outbox where id = $1::uuid`,
+      [inserted.rows[0]?.['id']],
+    );
+
+    expect(row.rows).toEqual([{ status: 'PENDING' }]);
+    expect((await db.asAdmin(`select * from net.http_post_requests`)).rows).toEqual([]);
+  });
+
+  test('pg_net nudge 실패가 outbox 기록을 롤백하지 않는다', async () => {
     await db.asAdmin(
       `update vault.decrypted_secrets
           set decrypted_secret = 'fail://push-send'

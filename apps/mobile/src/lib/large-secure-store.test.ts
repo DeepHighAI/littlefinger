@@ -58,4 +58,23 @@ describe('LargeSecureStore', () => {
     expect(asyncValues.has('sb-session')).toBe(false);
     expect(secureValues.has('sb-session')).toBe(false);
   });
+
+  test('SecureStore 삭제 실패 때 암호문을 복원해 다음 cleanup을 재시도할 수 있다', async () => {
+    const { asyncValues, deps, secureValues } = memoryDeps();
+    let deleteAttempts = 0;
+    deps.secureStore.deleteItemAsync = async (key) => {
+      deleteAttempts += 1;
+      if (deleteAttempts === 1) throw new Error('secure cleanup failed');
+      secureValues.delete(key);
+    };
+    const store = new LargeSecureStore(deps);
+    await store.setItem('push-marker', '{"state":"CONSUMED"}');
+
+    await expect(store.removeItem('push-marker')).rejects.toThrow('secure cleanup failed');
+    await expect(store.getItem('push-marker')).resolves.toBe('{"state":"CONSUMED"}');
+    await store.removeItem('push-marker');
+
+    expect(asyncValues.has('push-marker')).toBe(false);
+    expect(secureValues.has('push-marker')).toBe(false);
+  });
 });
