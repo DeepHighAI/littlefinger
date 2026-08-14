@@ -3,7 +3,10 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {
   NOTIFICATION_DEEPLINK,
   NOTIFICATION_TITLE,
+  renderNotificationTemplate,
   scheduledDedupeKey,
+  type NotificationEvent,
+  type NotificationTemplateArgs,
 } from '../../packages/shared/src/notification.ts';
 import { createPromise, createTestDb, createUser, type TestDb } from './harness.ts';
 
@@ -19,7 +22,7 @@ interface DispatchResult {
 interface NotificationRow {
   user_id: string;
   type: string;
-  channel: 'INAPP' | 'PUSH';
+  channel: 'INAPP';
   title: string;
   body: string;
   deeplink: string;
@@ -81,15 +84,32 @@ async function scheduleState(id: string): Promise<{ status: string; fire_at: str
   return rows[0] as { status: string; fire_at: string };
 }
 
-async function notificationsFor(promiseId: string): Promise<NotificationRow[]> {
+async function outboxRowsFor(promiseId: string): Promise<NotificationRow[]> {
   const { rows } = await db.asAdmin(
-    `select user_id, type, channel::text, title, body, deeplink, status::text, dedupe_key
-       from public.notifications
+    `select recipient_user_id as user_id, event as type, template_args,
+            status::text, inapp_dedupe_key as dedupe_key
+       from public.notification_outbox
       where promise_id = $1
-      order by channel, created_at`,
+      order by created_at`,
     [promiseId],
   );
-  return rows as unknown as NotificationRow[];
+  return rows.map((raw) => {
+    const row = raw as {
+      user_id: string;
+      type: NotificationEvent;
+      template_args: NotificationTemplateArgs;
+      status: string;
+      dedupe_key: string;
+    };
+    return {
+      user_id: row.user_id,
+      type: row.type,
+      channel: 'INAPP',
+      ...renderNotificationTemplate(row.type, row.template_args),
+      status: row.status,
+      dedupe_key: row.dedupe_key,
+    };
+  });
 }
 
 /** CHECKING 상태를 J-02 가 만든 모양 그대로 재현한다(종료일 익일 00:00 KST + 7일 기한). */
@@ -152,7 +172,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
 
     expect(result).toMatchObject({ claimed: 0, sent: 0 });
     expect((await scheduleState(rowId)).status).toBe('PENDING');
-    expect(await notificationsFor(promiseId)).toHaveLength(0);
+    expect(await outboxRowsFor(promiseId)).toHaveLength(0);
     await neutralize(rowId);
   });
 
@@ -180,8 +200,8 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
     expect(result).toMatchObject({ claimed: 1, sent: 1, canceled: 0, deferred: 0 });
     expect((await scheduleState(rowId)).status).toBe('SENT');
 
-    const rows = await notificationsFor(promiseId);
-    expect(rows).toHaveLength(2);
+    const rows = await outboxRowsFor(promiseId);
+    expect(rows).toHaveLength(1);
     const inapp = rows.find((r) => r.channel === 'INAPP');
     expect(inapp).toMatchObject({
       user_id: userId,
@@ -189,7 +209,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
       title: NOTIFICATION_TITLE['NT-06']('1'),
       body: '매일 걷기',
       deeplink: NOTIFICATION_DEEPLINK['NT-06'],
-      status: 'SENT',
+      status: 'PENDING',
       dedupe_key: scheduledDedupeKey({
         promiseId,
         event: 'NT-06',
@@ -198,8 +218,6 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
         yyyymmddKst: now.yyyymmdd,
       }),
     });
-    const push = rows.find((r) => r.channel === 'PUSH');
-    expect(push).toMatchObject({ type: 'NT-06', status: 'QUEUED' });
   });
 
   test('DDAY 는 NT-07, 초대 만료 임박은 NT-04로 나간다', async () => {
@@ -230,13 +248,13 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
     const result = await dispatch((await kstAnchor(0, 9)).instant);
 
     expect(result).toMatchObject({ sent: 2 });
-    const dday = (await notificationsFor(ddayPromise)).find((r) => r.channel === 'INAPP');
+    const dday = (await outboxRowsFor(ddayPromise)).find((r) => r.channel === 'INAPP');
     expect(dday).toMatchObject({
       type: 'NT-07',
       title: NOTIFICATION_TITLE['NT-07'](''),
       deeplink: NOTIFICATION_DEEPLINK['NT-07'],
     });
-    const invite = (await notificationsFor(invitePromise)).find((r) => r.channel === 'INAPP');
+    const invite = (await outboxRowsFor(invitePromise)).find((r) => r.channel === 'INAPP');
     expect(invite).toMatchObject({
       type: 'NT-04',
       title: NOTIFICATION_TITLE['NT-04'](''),
@@ -273,7 +291,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
     const result = await dispatch((await kstAnchor(0, 9)).instant);
 
     expect(result).toMatchObject({ sent: 2 });
-    const rows = await notificationsFor(promiseId);
+    const rows = await outboxRowsFor(promiseId);
     const checkReq = rows.find((r) => r.user_id === creatorId && r.channel === 'INAPP');
     expect(checkReq).toMatchObject({
       type: 'NT-08',
@@ -311,7 +329,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
 
     expect(result).toMatchObject({ sent: 0, canceled: 1 });
     expect((await scheduleState(rowId)).status).toBe('CANCELED');
-    expect(await notificationsFor(promiseId)).toHaveLength(0);
+    expect(await outboxRowsFor(promiseId)).toHaveLength(0);
   });
 
   test('토큰 없는 수신자는 INAPP만 만든다', async () => {
@@ -331,7 +349,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
     const result = await dispatch((await kstAnchor(0, 9)).instant);
 
     expect(result).toMatchObject({ sent: 1 });
-    const rows = await notificationsFor(promiseId);
+    const rows = await outboxRowsFor(promiseId);
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ channel: 'INAPP', type: 'NT-06' });
   });
@@ -356,7 +374,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
     const state = await scheduleState(rowId);
     expect(state.status).toBe('PENDING');
     expect(state.fire_at).toBe((await kstAnchor(1, 8)).instant);
-    expect(await notificationsFor(promiseId)).toHaveLength(0);
+    expect(await outboxRowsFor(promiseId)).toHaveLength(0);
     await neutralize(rowId);
   });
 
@@ -404,7 +422,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
 
     expect(first).toMatchObject({ sent: 1 });
     expect(second).toMatchObject({ claimed: 0, sent: 0 });
-    expect(await notificationsFor(promiseId)).toHaveLength(1);
+    expect(await outboxRowsFor(promiseId)).toHaveLength(1);
   });
 
   test('같은 날 도래한 D-7·D-3 은 하루 1회 규칙으로 한 건에 합쳐진다', async () => {
@@ -434,7 +452,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
     expect((await scheduleState(d7)).status).toBe('SENT');
     expect((await scheduleState(d3)).status).toBe('SENT');
     // 두 행 모두 NT-06 이고 dedupe 날짜가 같아 알림은 한 건이다.
-    expect(await notificationsFor(promiseId)).toHaveLength(1);
+    expect(await outboxRowsFor(promiseId)).toHaveLength(1);
   });
 
   test('p_limit 는 fire_at 오름차순으로 자른다', async () => {
@@ -483,7 +501,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
 
     expect(result).toMatchObject({ claimed: 0 });
     expect((await scheduleState(rowId)).status).toBe('PENDING');
-    expect(await notificationsFor(promiseId)).toHaveLength(0);
+    expect(await outboxRowsFor(promiseId)).toHaveLength(0);
   });
 
   test('종결된 약속의 리마인드는 발송 대신 CANCELED 처리한다', async () => {
@@ -504,7 +522,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
 
     expect(result).toMatchObject({ sent: 0, canceled: 1 });
     expect((await scheduleState(rowId)).status).toBe('CANCELED');
-    expect(await notificationsFor(promiseId)).toHaveLength(0);
+    expect(await outboxRowsFor(promiseId)).toHaveLength(0);
   });
 
   test('약속 상태가 리마인드보다 뒤처져 있으면 보류한다 — J-02 지연 중의 CHECK_REQ', async () => {
@@ -558,10 +576,10 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
     expect(result).toMatchObject({ sent: 0, canceled: 1 });
     expect((await scheduleState(withdrawnRow)).status).toBe('CANCELED');
     expect((await scheduleState(suspendedRow)).status).toBe('PENDING');
-    expect(await notificationsFor(promiseId)).toHaveLength(0);
+    expect(await outboxRowsFor(promiseId)).toHaveLength(0);
   });
 
-  test('fanout 이 실패하면 트랜잭션이 함께 풀려 행이 PENDING 으로 남는다', async () => {
+  test('outbox intent 쓰기가 실패하면 트랜잭션이 함께 풀려 행이 PENDING 으로 남는다', async () => {
     const userId = await createUser(db, '실패복구');
     const promiseId = await createPromise(db, {
       creatorId: userId,
@@ -581,7 +599,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
       set search_path = ''
       as $$
       begin
-        if new.type = 'NT-06' then
+        if new.event = 'NT-06' then
           raise exception 'lf_test_forced_failure';
         end if;
         return new;
@@ -589,7 +607,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
       $$;
 
       create trigger lf_test_fail_reminder_insert
-      before insert on public.notifications
+      before insert on public.notification_outbox
       for each row execute function public.lf_test_fail_reminder_insert();
     `);
 
@@ -598,10 +616,10 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
       const message = await messageOf(() => dispatch(now.instant));
       expect(message).toContain('lf_test_forced_failure');
       expect((await scheduleState(rowId)).status).toBe('PENDING');
-      expect(await notificationsFor(promiseId)).toHaveLength(0);
+      expect(await outboxRowsFor(promiseId)).toHaveLength(0);
     } finally {
       await db.execAdmin(`
-        drop trigger lf_test_fail_reminder_insert on public.notifications;
+        drop trigger lf_test_fail_reminder_insert on public.notification_outbox;
         drop function public.lf_test_fail_reminder_insert();
       `);
     }

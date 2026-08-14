@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import type { Deps } from '../functions/_shared/deps.ts';
 import { ApiError } from '../functions/_shared/errors.ts';
-import type { NotificationRow } from '../functions/_shared/notify.ts';
 import { createFulfillmentReopenHandler } from '../functions/fulfillment-reopen/handler.ts';
 import { createFulfillmentSubmitHandler } from '../functions/fulfillment-submit/handler.ts';
 import { createParticipantPromiseListHandler } from '../functions/participant-promise-list/handler.ts';
@@ -46,7 +45,6 @@ interface Spy {
   deps: Deps;
   calls: string[];
   rpcCalls: { fn: string; args: Record<string, unknown> }[];
-  notifications: NotificationRow[];
   logs: { message: string; detail: unknown }[];
 }
 
@@ -54,13 +52,9 @@ function spy(options: {
   payload?: unknown;
   rpc?: (fn: string, args: Record<string, unknown>) => Promise<unknown>;
   authenticate?: (authorization: string | null) => Promise<string>;
-  failNotificationFor?: string;
-  notificationError?: Error;
-  now?: () => Date;
 } = {}): Spy {
   const calls: string[] = [];
   const rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
-  const notifications: NotificationRow[] = [];
   const logs: { message: string; detail: unknown }[] = [];
 
   const deps: Deps = {
@@ -76,18 +70,12 @@ function spy(options: {
       rpcCalls.push({ fn, args });
       return options.rpc === undefined ? options.payload : await options.rpc(fn, args);
     },
-    insertNotification: async (row) => {
-      if (row.user_id === options.failNotificationFor) {
-        throw options.notificationError ?? new Error('notification unavailable');
-      }
-      notifications.push(row);
-    },
     secrets: { invitePepper: 'unused', piiSalt: 'unused' },
     log: { error: (message, detail) => logs.push({ message, detail }) },
-    now: options.now ?? (() => NOW),
+    now: () => NOW,
   };
 
-  return { deps, calls, rpcCalls, notifications, logs };
+  return { deps, calls, rpcCalls, logs };
 }
 
 function request(options: {
@@ -371,114 +359,6 @@ describe('fulfillment-submit', () => {
     expect(await jsonOf(response).then((value) => value['field'])).toBe('comment');
   });
 
-  test('첫 제출은 미응답 상대에게만 NT-09를 남긴다', async () => {
-    await createFulfillmentSubmitHandler(s.deps)(
-      mutationRequest({ promise_id: PROMISE_ID, answer: 'KEPT' }),
-    );
-    expect(s.notifications).toEqual([
-      expect.objectContaining({
-        user_id: PARTNER_ID,
-        promise_id: PROMISE_ID,
-        type: 'NT-09',
-        channel: 'INAPP',
-        status: 'SENT',
-        title: '민준님이 이행 확인을 보냈어요',
-        body: '매일 걷기',
-        deeplink: 'SCR-A06',
-        sent_at: NOW.toISOString(),
-      }),
-    ]);
-  });
-
-  test('정정 응답은 알림을 새로 만들지 않는다', async () => {
-    const local = spy({
-      payload: { ...SUBMIT_PAYLOAD, revised_at: NOW.toISOString() },
-    });
-    await createFulfillmentSubmitHandler(local.deps)(
-      mutationRequest({ promise_id: PROMISE_ID, answer: 'KEPT', revise: true }),
-    );
-    expect(local.notifications).toEqual([]);
-  });
-
-  test.each([
-    ['COMPLETED', 'NT-11', '약속을 지켰어요!'],
-    ['BROKEN', 'NT-12', '약속이 불이행으로 기록됐어요'],
-    ['DISPUTED', 'NT-13', '두 분의 확인이 서로 달라요'],
-  ] as const)('%s 종결은 증인을 포함한 모두에게 %s만 보낸다', async (status, event, title) => {
-    const local = spy({
-      payload: {
-        ...SUBMIT_PAYLOAD,
-        status,
-        waiting_for_partner: false,
-      },
-    });
-    await createFulfillmentSubmitHandler(local.deps)(
-      mutationRequest({ promise_id: PROMISE_ID, answer: 'KEPT' }),
-    );
-    expect(local.notifications.map((row) => row.user_id)).toEqual([
-      ACTOR_ID,
-      PARTNER_ID,
-      WITNESS_ID,
-    ]);
-    expect(local.notifications.every((row) => row.type === event && row.title === title)).toBe(true);
-    expect(local.notifications.some((row) => row.type === 'NT-09')).toBe(false);
-  });
-
-  test('알림 한 건 실패는 나머지 fanout과 커밋된 성공 응답을 막지 않는다', async () => {
-    const sensitiveComment = '외부에 나오면 안 되는 이행 의견';
-    const sensitiveDedupe = `${PROMISE_ID}:NT-11:${PARTNER_ID}:INAPP:1:${KEY}`;
-    const local = spy({
-      payload: { ...SUBMIT_PAYLOAD, status: 'COMPLETED', waiting_for_partner: false },
-      failNotificationFor: PARTNER_ID,
-      notificationError: new Error(
-        [sensitiveComment, 'NOT_KEPT', PARTNER_ID, sensitiveDedupe].join('|'),
-      ),
-    });
-    const response = await createFulfillmentSubmitHandler(local.deps)(
-      mutationRequest({ promise_id: PROMISE_ID, answer: 'KEPT' }),
-    );
-    expect(response.status).toBe(200);
-    expect(local.notifications.map((row) => row.user_id)).toEqual([ACTOR_ID, WITNESS_ID]);
-    expect(local.logs.map((entry) => entry.message)).toContain('notification insert failed');
-    const serialized = JSON.stringify(local.logs);
-    for (const value of [sensitiveComment, 'NOT_KEPT', PARTNER_ID, sensitiveDedupe]) {
-      expect(serialized).not.toContain(value);
-    }
-    expect(local.logs).toContainEqual({
-      message: 'notification insert failed',
-      detail: { event: 'NT-11', reason: 'INSERT_FAILED' },
-    });
-  });
-
-  test('알림 시각 생성 실패도 커밋된 성공 응답을 막지 않는다', async () => {
-    const sensitive = `${PARTNER_ID}|${KEY}|외부에 나오면 안 되는 의견`;
-    const local = spy({
-      payload: { ...SUBMIT_PAYLOAD, status: 'COMPLETED', waiting_for_partner: false },
-      now: () => {
-        throw new Error(sensitive);
-      },
-    });
-    const response = await createFulfillmentSubmitHandler(local.deps)(
-      mutationRequest({ promise_id: PROMISE_ID, answer: 'KEPT' }),
-    );
-    expect(response.status).toBe(200);
-    expect(local.logs.map((entry) => entry.message)).toContain('notification fanout failed');
-    expect(JSON.stringify(local.logs)).not.toContain(sensitive);
-    expect(local.logs).toContainEqual({
-      message: 'notification fanout failed',
-      detail: { endpoint: 'fulfillment-submit', reason: 'FANOUT_FAILED' },
-    });
-  });
-
-  test('같은 키 재시도는 라운드까지 같은 dedupe key를 다시 만든다', async () => {
-    const handler = createFulfillmentSubmitHandler(s.deps);
-    await handler(mutationRequest({ promise_id: PROMISE_ID, answer: 'KEPT' }));
-    await handler(mutationRequest({ promise_id: PROMISE_ID, answer: 'KEPT' }));
-    expect(s.notifications).toHaveLength(2);
-    expect(s.notifications[0]?.dedupe_key).toBe(s.notifications[1]?.dedupe_key);
-    expect(s.notifications[0]?.dedupe_key).toContain(`:1:${KEY}`);
-  });
-
   test('알 수 없는 RPC 실패는 내용 없이 EC-C02 500으로 평탄화한다', async () => {
     const local = spy({ rpc: async () => Promise.reject(new Error('column secret_answer failed')) });
     const response = await createFulfillmentSubmitHandler(local.deps)(
@@ -497,7 +377,7 @@ describe('fulfillment-submit', () => {
 });
 
 describe('fulfillment-reopen', () => {
-  test('Origin에서 WEB을 파생해 재확인 RPC에 정확히 넘기고 반대 당사자에게 NT-19를 보낸다', async () => {
+  test('Origin에서 WEB을 파생해 재확인 RPC에 정확히 넘긴다', async () => {
     const s = spy({ payload: REOPEN_PAYLOAD });
     const response = await createFulfillmentReopenHandler(s.deps)(
       mutationRequest(
@@ -517,15 +397,6 @@ describe('fulfillment-reopen', () => {
         },
       },
     ]);
-    expect(s.notifications).toEqual([
-      expect.objectContaining({
-        user_id: PARTNER_ID,
-        type: 'NT-19',
-        title: '다시 확인해 달라는 요청이 왔어요',
-        body: '매일 걷기',
-        deeplink: 'SCR-A06',
-      }),
-    ]);
   });
 
   test('promise_id와 Idempotency-Key가 모두 필요하다', async () => {
@@ -540,42 +411,4 @@ describe('fulfillment-reopen', () => {
     }
   });
 
-  test('알림 실패와 같은 키 재시도는 성공 응답 및 동일 dedupe key를 보존한다', async () => {
-    const failed = spy({ payload: REOPEN_PAYLOAD, failNotificationFor: PARTNER_ID });
-    expect(
-      (
-        await createFulfillmentReopenHandler(failed.deps)(
-          mutationRequest({ promise_id: PROMISE_ID }),
-        )
-      ).status,
-    ).toBe(200);
-    expect(failed.logs.map((entry) => entry.message)).toContain('notification insert failed');
-
-    const retried = spy({ payload: REOPEN_PAYLOAD });
-    const handler = createFulfillmentReopenHandler(retried.deps);
-    await handler(mutationRequest({ promise_id: PROMISE_ID }));
-    await handler(mutationRequest({ promise_id: PROMISE_ID }));
-    expect(retried.notifications[0]?.dedupe_key).toBe(retried.notifications[1]?.dedupe_key);
-    expect(retried.notifications[0]?.dedupe_key).toContain(`:2:${KEY}`);
-  });
-
-  test('알림 시각 생성 실패도 재확인 성공 응답을 막지 않는다', async () => {
-    const sensitive = `${PARTNER_ID}|${KEY}|외부에 나오면 안 되는 의견`;
-    const s = spy({
-      payload: REOPEN_PAYLOAD,
-      now: () => {
-        throw new Error(sensitive);
-      },
-    });
-    const response = await createFulfillmentReopenHandler(s.deps)(
-      mutationRequest({ promise_id: PROMISE_ID }),
-    );
-    expect(response.status).toBe(200);
-    expect(s.logs.map((entry) => entry.message)).toContain('notification fanout failed');
-    expect(JSON.stringify(s.logs)).not.toContain(sensitive);
-    expect(s.logs).toContainEqual({
-      message: 'notification fanout failed',
-      detail: { endpoint: 'fulfillment-reopen', reason: 'FANOUT_FAILED' },
-    });
-  });
 });

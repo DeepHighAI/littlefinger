@@ -214,15 +214,16 @@ describe('성공 경로 — 열 단계가 실제로 일어난다', () => {
     expect(row.used_at).not.toBeNull();
   });
 
-  test('알림은 만들지 않는다 — 9단계는 트랜잭션 밖이다', async () => {
+  test('NT-01 outbox intent를 승인과 같은 트랜잭션에 남긴다', async () => {
     const f = await seed();
     await approve(f);
 
-    const row = await one<{ n: number }>(
-      `select count(*)::int as n from public.notifications where promise_id = $1`,
+    const row = await one<{ n: number; event: string; body: string }>(
+      `select count(*) over ()::int as n, event, template_args ->> 'promiseTitle' as body
+         from public.notification_outbox where promise_id = $1`,
       [f.promiseId],
     );
-    expect(row.n).toBe(0);
+    expect(row).toMatchObject({ n: 1, event: 'NT-01', body: '매일 걷기' });
   });
 
   test('반환 payload 의 키 집합이 정확히 일치한다', async () => {

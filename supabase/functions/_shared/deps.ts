@@ -5,8 +5,6 @@
 // vitest 가 파일을 import 하는 순간 `ReferenceError: Deno is not defined` 로 죽는다.
 // 그래서 각 함수는 `handler.ts`(순수)와 `index.ts`(`Deno.serve` 한 줄)로 갈라져 있다.
 
-import type { NotificationRow } from './notify.ts';
-
 export interface Logger {
   /** 원문 토큰·IP·User-Agent 는 절대 넘기지 않는다(§13). */
   error: (message: string, detail: unknown) => void;
@@ -34,9 +32,6 @@ export interface Deps {
    * 잘못되면 상태 전이 세 개가 익명에게 열리는데, 그 실수를 코드가 붙들어 줘야 한다.
    */
   authenticate: (authorization: string | null) => Promise<string>;
-
-  /** 커밋 뒤 논리 알림 fanout. 같은 채널별 `dedupe_key` 는 조용히 무시한다. */
-  insertNotification: (row: NotificationRow) => Promise<void>;
 
   secrets: Secrets;
   log: Logger;

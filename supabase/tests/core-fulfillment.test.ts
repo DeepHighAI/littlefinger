@@ -376,6 +376,13 @@ describe('이행 응답 제출과 정정', () => {
         { user_id: fixture.partnerId, role: 'PARTNER' },
       ]),
     });
+    const firstOutbox = await one<{ event: string; recipient_user_id: string }>(
+      `select event, recipient_user_id
+         from public.notification_outbox
+        where promise_id = $1 and event = 'NT-09'`,
+      [fixture.promiseId],
+    );
+    expect(firstOutbox).toEqual({ event: 'NT-09', recipient_user_id: fixture.partnerId });
     const schedulesAfterFirst = await db.asAdmin(
       `select user_id, status, count(*)::int as count
          from public.reminder_schedules
@@ -477,6 +484,18 @@ describe('두 응답의 트랜잭션 판정', () => {
       expect(row.pending_reminders).toBe(0);
       expect(row.profiles).toBe(2);
       expect(responses.map((response) => response.status)).toContain(expectedStatus);
+      const terminalEvent = {
+        COMPLETED: 'NT-11',
+        BROKEN: 'NT-12',
+        DISPUTED: 'NT-13',
+      }[expectedStatus];
+      const terminalOutbox = await one<{ count: number }>(
+        `select count(*)::int as count
+           from public.notification_outbox
+          where promise_id = $1 and event = $2`,
+        [fixture.promiseId, terminalEvent],
+      );
+      expect(terminalOutbox.count).toBe(2);
     },
   );
 });

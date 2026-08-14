@@ -18,7 +18,6 @@ export function createAmendHandler(deps: Deps) {
   return createTransitionHandler(
     {
       rpc: 'lf_promise_amend_suggest',
-      event: 'NT-03',
       validation: AMEND_VALIDATION,
       extraArgs: (body) => ({
         p_comment: requiredString(body, 'comment', 'amend_suggestion'),

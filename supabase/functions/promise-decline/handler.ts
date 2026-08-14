@@ -18,7 +18,6 @@ export function createDeclineHandler(deps: Deps) {
   return createTransitionHandler(
     {
       rpc: 'lf_promise_decline',
-      event: 'NT-02',
       validation: DECLINE_VALIDATION,
       // 선택 필드다. 없으면 NULL 을 넘기고 RPC 가 `nullif(정규화, '')` 로 마무리한다.
       extraArgs: (body) => ({ p_reason: optionalString(body, 'reason', 'decline_reason') }),

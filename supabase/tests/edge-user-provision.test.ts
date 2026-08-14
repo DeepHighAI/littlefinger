@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import type { Deps } from '../functions/_shared/deps.ts';
 import { ApiError } from '../functions/_shared/errors.ts';
-import type { NotificationRow } from '../functions/_shared/notify.ts';
 import { createUserProvisionHandler } from '../functions/user-provision/handler.ts';
 
 /**
@@ -19,7 +18,6 @@ const USER_ID = 'a3bb6a17-6b7e-4bbf-9f0e-2f4c1d1a9e01';
 interface Spy {
   deps: Deps;
   rpcCalls: { fn: string; args: Record<string, unknown> }[];
-  notifications: NotificationRow[];
   logs: string[];
 }
 
@@ -30,7 +28,6 @@ function spy(
   } = {},
 ): Spy {
   const rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
-  const notifications: NotificationRow[] = [];
   const logs: string[] = [];
 
   const deps: Deps = {
@@ -45,15 +42,12 @@ function spy(
         if (authorization === null) throw new ApiError('E_AUTH_REQUIRED');
         return USER_ID;
       }),
-    insertNotification: async (row) => {
-      notifications.push(row);
-    },
     secrets: { invitePepper: 'pep-xyz', piiSalt: 'salt-abc' },
     log: { error: (message) => logs.push(message) },
     now: () => NOW,
   };
 
-  return { deps, rpcCalls, notifications, logs };
+  return { deps, rpcCalls, logs };
 }
 
 function request(options: {
@@ -212,6 +206,6 @@ describe('user-provision — 로그인 뒤 보정 호출', () => {
 
   test('알림을 만들지 않는다 — §8-1 에 가입 NT-* 이벤트가 없다', async () => {
     await createUserProvisionHandler(s.deps)(request({ body: { nickname: '지우' } }));
-    expect(s.notifications).toEqual([]);
+    expect(s.rpcCalls.map((call) => call.fn)).toEqual(['lf_user_provision']);
   });
 });

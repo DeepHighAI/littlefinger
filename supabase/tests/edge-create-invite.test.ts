@@ -4,7 +4,6 @@ import { describe, expect, test } from 'vitest';
 
 import type { Deps } from '../functions/_shared/deps.ts';
 import { ApiError } from '../functions/_shared/errors.ts';
-import type { NotificationRow } from '../functions/_shared/notify.ts';
 import { createPromiseCreateHandler } from '../functions/promise-create/handler.ts';
 import { createPromiseInviteHandler } from '../functions/promise-invite/handler.ts';
 
@@ -33,12 +32,10 @@ const CREATE_BODY = {
 interface Spy {
   deps: Deps;
   rpcCalls: { fn: string; args: Record<string, unknown> }[];
-  notifications: NotificationRow[];
 }
 
 function spy(rpc?: (fn: string, args: Record<string, unknown>) => Promise<unknown>): Spy {
   const rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
-  const notifications: NotificationRow[] = [];
 
   const deps: Deps = {
     rpc: async (fn, args) => {
@@ -59,15 +56,12 @@ function spy(rpc?: (fn: string, args: Record<string, unknown>) => Promise<unknow
       if (authorization === null) throw new ApiError('E_AUTH_REQUIRED');
       return 'u-1';
     },
-    insertNotification: async (row) => {
-      notifications.push(row);
-    },
     secrets: { invitePepper: PEPPER, piiSalt: SALT },
     log: { error: () => {} },
     now: () => NOW,
   };
 
-  return { deps, rpcCalls, notifications };
+  return { deps, rpcCalls };
 }
 
 function request(body: unknown, headers?: Record<string, string>): Request {
@@ -193,7 +187,7 @@ describe('promise-create — T-01 (§4-2-2)', () => {
   test('알림을 만들지 않는다 (§8-1 "초대 발송 자체는 시스템 알림이 아니다")', async () => {
     const s = spy();
     await createPromiseCreateHandler(s.deps)(request({ ...CREATE_BODY, send: true }));
-    expect(s.notifications).toEqual([]);
+    expect(s.rpcCalls.map((call) => call.fn)).toEqual(['lf_promise_create']);
   });
 
   test('로그인하지 않으면 401 이고 RPC 를 부르지 않는다', async () => {
@@ -294,6 +288,6 @@ describe('promise-invite — T-02 (§4-3-1)', () => {
   test('알림을 만들지 않는다', async () => {
     const s = spy();
     await createPromiseInviteHandler(s.deps)(request({ promise_id: PROMISE_ID }));
-    expect(s.notifications).toEqual([]);
+    expect(s.rpcCalls.map((call) => call.fn)).toEqual(['lf_promise_invite']);
   });
 });

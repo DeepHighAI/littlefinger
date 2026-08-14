@@ -1,6 +1,5 @@
 import type { Deps } from '../_shared/deps.ts';
 import { ApiError } from '../_shared/errors.ts';
-import { notifyFulfillmentReopen } from '../_shared/fulfillment.ts';
 import { corsPreflight, failureResponse, jsonResponse } from '../_shared/http.ts';
 import { idempotencyKeyOf, jsonBody, requiredString, surfaceOf } from '../_shared/request.ts';
 
@@ -26,14 +25,6 @@ export function createFulfillmentReopenHandler(deps: Deps) {
         p_promise_id: promiseId,
         p_surface: surfaceOf(request),
       });
-      try {
-        await notifyFulfillmentReopen(payload, idempotencyKey, deps);
-      } catch {
-        deps.log.error('notification fanout failed', {
-          endpoint: 'fulfillment-reopen',
-          reason: 'FANOUT_FAILED',
-        });
-      }
       return jsonResponse(payload, 200);
     } catch (raised) {
       return failureResponse(raised, { log: deps.log.error });

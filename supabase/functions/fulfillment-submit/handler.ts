@@ -1,7 +1,6 @@
 import { EVIDENCE_MAX_COUNT } from '../../../packages/shared/src/config.ts';
 import type { Deps } from '../_shared/deps.ts';
 import { ApiError } from '../_shared/errors.ts';
-import { notifyFulfillmentSubmit } from '../_shared/fulfillment.ts';
 import { corsPreflight, failureResponse, jsonResponse } from '../_shared/http.ts';
 import { idempotencyKeyOf, jsonBody, requiredString, surfaceOf } from '../_shared/request.ts';
 
@@ -74,14 +73,6 @@ export function createFulfillmentSubmitHandler(deps: Deps) {
         p_retained_evidence_ids: retainedEvidenceIds,
         p_surface: surfaceOf(request),
       });
-      try {
-        await notifyFulfillmentSubmit(payload, actor, idempotencyKey, deps);
-      } catch {
-        deps.log.error('notification fanout failed', {
-          endpoint: 'fulfillment-submit',
-          reason: 'FANOUT_FAILED',
-        });
-      }
       return jsonResponse(payload, 200);
     } catch (raised) {
       return failureResponse(raised, {

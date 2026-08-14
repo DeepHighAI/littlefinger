@@ -8,7 +8,6 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 import type { Deps, Logger, Secrets } from './deps.ts';
 import { ApiError } from './errors.ts';
-import { notificationFanoutArgs, type NotificationRow } from './notify.ts';
 
 /** 없으면 부팅에서 죽는다. 시크릿 누락은 런타임에 조용히 틀린 해시를 만드는 것보다 낫다. */
 export function requireEnv(name: string): string {
@@ -71,11 +70,6 @@ export function createDeps(): Deps {
         throw new ApiError('E_AUTH_REQUIRED');
       }
       return data.user.id;
-    },
-
-    insertNotification: async (row: NotificationRow) => {
-      const { error } = await admin.rpc('lf_notification_fanout', notificationFanoutArgs(row));
-      if (error !== null) throw new Error(error.message);
     },
 
     secrets: createSecrets(),

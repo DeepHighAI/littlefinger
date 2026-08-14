@@ -1,6 +1,6 @@
 // promise-approve — 02 §4-3-5, T-03 (PENDING → ACTIVE).
 //
-// 껍데기가 하는 일은 JWT → 검증 → `lf_promise_approve` → 에러 매핑 → NT-01 이 전부다.
+// 껍데기가 하는 일은 JWT → 검증 → `lf_promise_approve` → 에러 매핑이 전부다.
 // 확정 10단계와 `content_hash` 생성은 전부 RPC 안에서 한 트랜잭션으로 돈다(ADR 0003).
 
 import type { Deps } from '../_shared/deps.ts';
@@ -24,7 +24,6 @@ export function createApproveHandler(deps: Deps) {
   return createTransitionHandler(
     {
       rpc: 'lf_promise_approve',
-      event: 'NT-01',
       validation: APPROVE_VALIDATION,
       // 승인은 본문이 토큰뿐이다.
       extraArgs: () => ({}),

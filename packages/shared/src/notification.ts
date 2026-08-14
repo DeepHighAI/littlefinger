@@ -90,6 +90,50 @@ export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, string> = {
   'NT-19': 'SCR-A06',
 };
 
+export interface NotificationTemplateArgs {
+  promiseTitle: string;
+  partnerNickname?: string;
+  days?: number;
+}
+
+export interface RenderedNotificationTemplate {
+  title: string;
+  body: string;
+  deeplink: string;
+}
+
+const NICKNAME_EVENTS = new Set<NotificationEvent>(['NT-01', 'NT-02', 'NT-03', 'NT-09']);
+const DAYS_EVENTS = new Set<NotificationEvent>(['NT-06', 'NT-10']);
+
+/** SQL outbox의 데이터 인자를 검증하고 사용자에게 보일 문구를 한 곳에서 렌더링한다. */
+export function renderNotificationTemplate(
+  event: NotificationEvent,
+  args: NotificationTemplateArgs,
+): RenderedNotificationTemplate {
+  if (typeof args.promiseTitle !== 'string' || args.promiseTitle.length === 0) {
+    throw new Error('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+  }
+
+  let titleArg = '';
+  if (NICKNAME_EVENTS.has(event)) {
+    if (typeof args.partnerNickname !== 'string' || args.partnerNickname.length === 0) {
+      throw new Error('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+    }
+    titleArg = args.partnerNickname;
+  } else if (DAYS_EVENTS.has(event)) {
+    if (!Number.isInteger(args.days) || (args.days ?? 0) < 1) {
+      throw new Error('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+    }
+    titleArg = String(args.days);
+  }
+
+  return {
+    title: NOTIFICATION_TITLE[event](titleArg),
+    body: args.promiseTitle,
+    deeplink: NOTIFICATION_DEEPLINK[event],
+  };
+}
+
 export interface PushNotificationData {
   notification_id: string;
   deeplink: string;

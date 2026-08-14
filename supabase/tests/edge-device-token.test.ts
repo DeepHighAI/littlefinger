@@ -35,7 +35,6 @@ function spy(
         if (authorization === null) throw new ApiError('E_AUTH_REQUIRED');
         return USER_ID;
       },
-      insertNotification: async () => {},
       secrets: { invitePepper: 'pepper', piiSalt: 'salt' },
       log: { error: () => {} },
       now: () => new Date('2026-07-30T00:00:00Z'),

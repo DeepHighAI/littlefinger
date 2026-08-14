@@ -466,9 +466,11 @@ describe('J-03 기한 경과 종결', () => {
         [fixture.promiseId, fixture.creatorId, fixture.partnerId],
       );
       const notifications = await db.asAdmin(
-        `select user_id, type, channel, title, body, deeplink, status, sent_at, dedupe_key
-           from public.notifications
+        `select recipient_user_id as user_id, event as type, template_args,
+                status, inapp_dedupe_key as dedupe_key
+           from public.notification_outbox
           where promise_id = $1
+            and event = 'NT-14'
           order by user_id`,
         [fixture.promiseId],
       );
@@ -494,15 +496,11 @@ describe('J-03 기한 경과 종결', () => {
       for (const row of notifications.rows) {
         expect(row).toMatchObject({
           type: 'NT-14',
-          channel: 'INAPP',
-          title: '이행 확인 없이 종결됐어요',
-          body: '매일 걷기',
-          deeplink: 'SCR-A05',
-          status: 'SENT',
+          template_args: { promiseTitle: '매일 걷기' },
+          status: 'PENDING',
         });
-        expect((row.sent_at as Date).toISOString()).toBe('2026-08-08T00:00:00.000Z');
         expect(String(row.dedupe_key)).toMatch(
-          new RegExp(`^${fixture.promiseId}:NT-14:.*:INAPP:1:20260808$`, 'u'),
+          new RegExp(`^${fixture.promiseId}:NT-14:.*:INAPP:closure:1:UNRESOLVED$`, 'u'),
         );
       }
     },
@@ -542,9 +540,11 @@ describe('J-03 기한 경과 종결', () => {
         [fixture.promiseId, fixture.creatorId, fixture.partnerId],
       );
       const notifications = await db.asAdmin(
-        `select user_id, type, channel, title, body, deeplink, status, dedupe_key
-           from public.notifications
+        `select recipient_user_id as user_id, event as type, template_args,
+                status, inapp_dedupe_key as dedupe_key
+           from public.notification_outbox
           where promise_id = $1
+            and event = 'NT-13'
           order by user_id`,
         [fixture.promiseId],
       );
@@ -562,14 +562,11 @@ describe('J-03 기한 경과 종결', () => {
       for (const row of notifications.rows) {
         expect(row).toMatchObject({
           type: 'NT-13',
-          channel: 'INAPP',
-          title: '두 분의 확인이 서로 달라요',
-          body: '매일 걷기',
-          deeplink: 'SCR-A05',
-          status: 'SENT',
+          template_args: { promiseTitle: '매일 걷기' },
+          status: 'PENDING',
         });
         expect(String(row.dedupe_key)).toMatch(
-          new RegExp(`^${fixture.promiseId}:NT-13:.*:INAPP:2:20260808$`, 'u'),
+          new RegExp(`^${fixture.promiseId}:NT-13:.*:INAPP:closure:2:DISPUTED$`, 'u'),
         );
       }
     },
@@ -590,7 +587,8 @@ describe('J-03 기한 경과 종결', () => {
     );
     const row = await one<{ status: string; notifications: number }>(
       `select p.status,
-              (select count(*)::int from public.notifications where promise_id = p.id)
+              (select count(*)::int from public.notification_outbox
+                where promise_id = p.id and event in ('NT-13', 'NT-14'))
                 as notifications
          from public.promises p where p.id = $1`,
       [fixture.promiseId],
@@ -704,6 +702,16 @@ describe('DISPUTED 재확인 라운드', () => {
          from public.promises p where p.id = $1`,
       [fixture.promiseId, fixture.creatorId, fixture.partnerId],
     );
+    const reopenOutbox = await one<{
+      event: string;
+      recipient_user_id: string;
+      count: number;
+    }>(
+      `select event, recipient_user_id, count(*) over ()::int as count
+         from public.notification_outbox
+        where promise_id = $1 and event = 'NT-19'`,
+      [fixture.promiseId],
+    );
 
     expect(first.payload).toMatchObject({
       promise_id: fixture.promiseId,
@@ -716,6 +724,11 @@ describe('DISPUTED 재확인 라운드', () => {
       first.expected_deadline.toISOString(),
     );
     expect(replay.payload).toEqual(first.payload);
+    expect(reopenOutbox).toEqual({
+      event: 'NT-19',
+      recipient_user_id: fixture.partnerId,
+      count: 1,
+    });
     expect(stored).toMatchObject({
       status: 'CHECKING',
       check_round_no: 2,

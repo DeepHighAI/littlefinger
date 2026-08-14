@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import type { Deps } from '../functions/_shared/deps.ts';
 import { ApiError } from '../functions/_shared/errors.ts';
-import type { NotificationRow } from '../functions/_shared/notify.ts';
 import { createInvitePreviewHandler } from '../functions/invite-preview/handler.ts';
 import { createInviteResolveHandler } from '../functions/invite-resolve/handler.ts';
 import { createAmendHandler } from '../functions/promise-amend/handler.ts';
@@ -16,7 +15,7 @@ import { createDeclineHandler } from '../functions/promise-decline/handler.ts';
  *
  * RPC 안쪽은 `promise-approve.test.ts` 와 `promise-decline-amend.test.ts` 가 PGlite 로 이미
  * 붙들고 있다. 여기서 보는 것은 **껍데기만 아는 것**이다 — 판정 순서, RPC 인자, 에러 매핑,
- * 그리고 커밋 뒤 알림.
+ * 그리고 RPC가 원자적으로 outbox intent를 만드는 동안 껍데기가 추가 fanout을 하지 않는지다.
  */
 
 const PEPPER = 'pep-xyz';
@@ -35,7 +34,6 @@ const PAYLOAD = {
 interface Spy {
   deps: Deps;
   rpcCalls: { fn: string; args: Record<string, unknown> }[];
-  notifications: NotificationRow[];
   logs: string[];
 }
 
@@ -43,11 +41,9 @@ function spy(
   overrides: {
     rpc?: (fn: string, args: Record<string, unknown>) => Promise<unknown>;
     authenticate?: (authorization: string | null) => Promise<string>;
-    insertNotification?: (row: NotificationRow) => Promise<void>;
   } = {},
 ): Spy {
   const rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
-  const notifications: NotificationRow[] = [];
   const logs: string[] = [];
 
   const deps: Deps = {
@@ -61,17 +57,12 @@ function spy(
         if (authorization === null) throw new ApiError('E_AUTH_REQUIRED');
         return 'u-1';
       }),
-    insertNotification:
-      overrides.insertNotification ??
-      (async (row) => {
-        notifications.push(row);
-      }),
     secrets: { invitePepper: PEPPER, piiSalt: SALT },
     log: { error: (message) => logs.push(message) },
     now: () => NOW,
   };
 
-  return { deps, rpcCalls, notifications, logs };
+  return { deps, rpcCalls, logs };
 }
 
 function request(options: {
@@ -107,13 +98,12 @@ async function jsonOf(response: Response): Promise<Record<string, unknown>> {
 }
 
 const TRANSITIONS = [
-  { name: 'promise-approve', create: createApproveHandler, rpc: 'lf_promise_approve', event: 'NT-01' },
-  { name: 'promise-decline', create: createDeclineHandler, rpc: 'lf_promise_decline', event: 'NT-02' },
+  { name: 'promise-approve', create: createApproveHandler, rpc: 'lf_promise_approve' },
+  { name: 'promise-decline', create: createDeclineHandler, rpc: 'lf_promise_decline' },
   {
     name: 'promise-amend',
     create: createAmendHandler,
     rpc: 'lf_promise_amend_suggest',
-    event: 'NT-03',
   },
 ] as const;
 
@@ -215,7 +205,7 @@ describe('invite-resolve — 비로그인 경로 (§4-3-3)', () => {
 
   test('알림을 만들지 않는다', async () => {
     await createInviteResolveHandler(s.deps)(request({ body: { token: TOKEN } }));
-    expect(s.notifications).toHaveLength(0);
+    expect(s.rpcCalls.map((call) => call.fn)).toEqual(['lf_rate_limit_hit', 'lf_invite_resolve']);
   });
 
   test.each(['E_NOT_FOUND', 'E_INVITE_EXPIRED', 'E_INVITE_USED', 'E_INVITE_REVOKED'])(
@@ -335,7 +325,7 @@ describe('invite-preview — 로그인 후 검토 경로 (§4-3-4)', () => {
   test('알림을 만들지 않는다 — 읽기에 대응하는 NT-* 이벤트가 없다', async () => {
     const s = previewSpy();
     await createInvitePreviewHandler(s.deps)(previewRequest());
-    expect(s.notifications).toHaveLength(0);
+    expect(s.rpcCalls.map((call) => call.fn)).toEqual(['lf_invite_preview']);
   });
 
   test('빈도 제한을 세지 않는다 — verify_jwt=true 라 invite-resolve 와 조건이 다르다', async () => {
@@ -413,7 +403,7 @@ describe('invite-preview — 로그인 후 검토 경로 (§4-3-4)', () => {
   });
 });
 
-describe.each(TRANSITIONS)('$name — 상태 전이 껍데기', ({ name, create, rpc, event }) => {
+describe.each(TRANSITIONS)('$name — 상태 전이 껍데기', ({ name, create, rpc }) => {
   let s: Spy;
   beforeEach(() => {
     s = spy();
@@ -479,41 +469,12 @@ describe.each(TRANSITIONS)('$name — 상태 전이 껍데기', ({ name, create,
     expect(s.rpcCalls[0]?.args['p_surface']).toBe('APP');
   });
 
-  test(`성공하면 ${event} 알림 한 행을 작성자에게 남긴다`, async () => {
+  test('성공하면 RPC payload를 그대로 반환하고 추가 fanout RPC를 부르지 않는다', async () => {
     const response = await create(s.deps)(transitionRequest(bodyFor(name)));
 
     expect(response.status).toBe(200);
     expect(await jsonOf(response)).toEqual(PAYLOAD);
-    expect(s.notifications).toHaveLength(1);
-    expect(s.notifications[0]).toMatchObject({
-      type: event,
-      user_id: 'c-1',
-      channel: 'INAPP',
-      status: 'SENT',
-      body: '매일 걷기',
-    });
-  });
-
-  test('알림 삽입이 실패해도 응답은 200 이다 (EC-C02)', async () => {
-    // 전이는 이미 커밋됐다. 여기서 실패로 답하면 확정된 약속에 사용자만 에러를 본다.
-    const failing = spy({
-      insertNotification: async () => {
-        throw new Error('notifications insert failed');
-      },
-    });
-    const response = await create(failing.deps)(transitionRequest(bodyFor(name)));
-
-    expect(response.status).toBe(200);
-    expect(failing.logs).toContain('notification insert failed');
-  });
-
-  test('payload 에 알림 재료가 없으면 로그만 남기고 응답은 그대로다', async () => {
-    const thin = spy({ rpc: async () => ({ promise_id: 'p-1', status: 'ACTIVE' }) });
-    const response = await create(thin.deps)(transitionRequest(bodyFor(name)));
-
-    expect(response.status).toBe(200);
-    expect(thin.notifications).toHaveLength(0);
-    expect(thin.logs).toContain('RPC payload is missing notification fields');
+    expect(s.rpcCalls.map((call) => call.fn)).toEqual([rpc]);
   });
 
   test.each([
@@ -536,17 +497,6 @@ describe.each(TRANSITIONS)('$name — 상태 전이 껍데기', ({ name, create,
 
     expect(response.status).toBe(status);
     expect(await jsonOf(response).then((b) => b['code'])).toBe(code);
-    expect(failing.notifications).toHaveLength(0);
-  });
-
-  test('실패하면 알림을 만들지 않는다', async () => {
-    const failing = spy({
-      rpc: async () => {
-        throw new Error('E_STATE_CONFLICT');
-      },
-    });
-    await create(failing.deps)(transitionRequest(bodyFor(name)));
-    expect(failing.notifications).toHaveLength(0);
   });
 });
 

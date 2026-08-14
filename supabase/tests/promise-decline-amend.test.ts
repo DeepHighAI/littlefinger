@@ -364,6 +364,11 @@ describe('거절 — T-04 (PENDING → DECLINED)', () => {
     // "{상대}님이 약속을 거절했어요" — 껍데기가 두 번째 조회 없이 제목을 만들 수 있어야 한다.
     expect(typeof partner['nickname']).toBe('string');
     expect(Object.keys(partner).sort()).toEqual(['nickname', 'profile_image_url', 'user_id']);
+    const outbox = await one<{ event: string; recipient_user_id: string }>(
+      `select event, recipient_user_id from public.notification_outbox where promise_id = $1`,
+      [f.promiseId],
+    );
+    expect(outbox).toEqual({ event: 'NT-02', recipient_user_id: f.creatorId });
   });
 });
 
@@ -482,6 +487,11 @@ describe('수정 제안 — T-05 (PENDING → DRAFT)', () => {
     expect(payload['comment']).toBe('보상을 바꾸고 싶어요');
     expect(partner['user_id']).toBe(f.partnerId);
     expect(typeof partner['nickname']).toBe('string');
+    const outbox = await one<{ event: string; recipient_user_id: string }>(
+      `select event, recipient_user_id from public.notification_outbox where promise_id = $1`,
+      [f.promiseId],
+    );
+    expect(outbox).toEqual({ event: 'NT-03', recipient_user_id: f.creatorId });
   });
 });
 

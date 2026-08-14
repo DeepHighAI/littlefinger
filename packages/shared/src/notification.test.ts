@@ -5,6 +5,7 @@ import {
   NOTIFICATION_TITLE,
   asPushNotificationData,
   fulfillmentDedupeKey,
+  renderNotificationTemplate,
 } from './notification.ts';
 
 describe('F-06 알림 계약', () => {
@@ -72,5 +73,34 @@ describe('F-06 알림 계약', () => {
     expect(asPushNotificationData({ ...valid, deeplink: 'https://evil.example' })).toBeNull();
     expect(asPushNotificationData({ ...valid, deeplink: 'SCR-A99' })).toBeNull();
     expect(asPushNotificationData({ ...valid, extra: 'ignored' })).toEqual(valid);
+  });
+
+  test('outbox 템플릿 인자를 공유 계약으로 렌더링한다', () => {
+    expect(
+      renderNotificationTemplate('NT-01', {
+        partnerNickname: '민준',
+        promiseTitle: '매일 걷기',
+      }),
+    ).toEqual({
+      title: '민준님이 손가락 걸었어요! 약속 성립',
+      body: '매일 걷기',
+      deeplink: 'SCR-A05',
+    });
+    expect(
+      renderNotificationTemplate('NT-06', { days: 3, promiseTitle: '매일 걷기' }),
+    ).toEqual({
+      title: '약속까지 3일 남았어요',
+      body: '매일 걷기',
+      deeplink: 'SCR-A05',
+    });
+  });
+
+  test('필수 템플릿 인자가 없으면 렌더링하지 않는다', () => {
+    expect(() => renderNotificationTemplate('NT-09', { promiseTitle: '매일 걷기' })).toThrow(
+      'INVALID_NOTIFICATION_TEMPLATE_ARGS',
+    );
+    expect(() =>
+      renderNotificationTemplate('NT-10', { days: 0, promiseTitle: '매일 걷기' }),
+    ).toThrow('INVALID_NOTIFICATION_TEMPLATE_ARGS');
   });
 });
