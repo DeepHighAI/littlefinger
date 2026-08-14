@@ -205,6 +205,48 @@ describe('notification_outbox 내구성 경계', () => {
     expect(row).toEqual({ status: 'FAILED', last_error_code: 'LEASE_EXPIRED' });
   });
 
+  test.each([
+    { attempt: 1, delaySeconds: 60, due: '2026-08-14T00:01:30.000Z' },
+    { attempt: 2, delaySeconds: 300, due: '2026-08-14T00:05:30.000Z' },
+    { attempt: 3, delaySeconds: 900, due: '2026-08-14T00:15:30.000Z' },
+  ])(
+    '$attempt회차 lease 만료는 $delaySeconds초 backoff 뒤에만 다음 attempt를 claim한다',
+    async ({ attempt, due }) => {
+      const userId = await createUser(db, `리스백오프${attempt}`);
+      const promiseId = await createPromise(db, { creatorId: userId });
+      const id = await enqueue({ userId, promiseId, now: '2026-08-14T00:00:00.000Z' });
+      await db.asAdmin(
+        `update public.notification_outbox
+            set status = 'LEASED',
+                attempt_count = $2,
+                lease_id = gen_random_uuid(),
+                lease_expires_at = '2026-08-14T00:00:30Z'
+          where id = $1`,
+        [id, attempt],
+      );
+
+      expect(await claim('2026-08-14T00:00:31.000Z')).toEqual([]);
+      const waiting = await one<{
+        status: string;
+        next_attempt_at: string;
+        last_error_code: string;
+      }>(
+        `select status::text, next_attempt_at::text, last_error_code
+           from public.notification_outbox where id = $1`,
+        [id],
+      );
+      expect(waiting).toMatchObject({
+        status: 'PENDING',
+        last_error_code: 'LEASE_EXPIRED',
+      });
+      expect(Date.parse(waiting.next_attempt_at)).toBe(Date.parse(due));
+      expect(await claim(new Date(Date.parse(due) - 1).toISOString())).toEqual([]);
+      expect(await claim(due)).toEqual([
+        expect.objectContaining({ id, attempt_count: attempt + 1 }),
+      ]);
+    },
+  );
+
   test('승인계열 전이 실패는 outbox intent도 함께 롤백한다', async () => {
     const creatorId = await createUser(db, '원자작성자');
     const partnerId = await createUser(db, '원자상대');
@@ -314,5 +356,20 @@ describe('notification_outbox 내구성 경계', () => {
       ),
     ).rejects.toThrow('permission denied');
     expect(promiseId).toBeTruthy();
+  });
+
+  test('모든 Data API 역할은 outbox SELECT/INSERT/UPDATE/DELETE 권한이 없다', async () => {
+    const roles = ['public', 'anon', 'authenticated', 'service_role'];
+    const privileges = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
+
+    for (const role of roles) {
+      for (const privilege of privileges) {
+        const result = await one<{ allowed: boolean }>(
+          `select has_table_privilege($1, 'public.notification_outbox', $2) as allowed`,
+          [role, privilege],
+        );
+        expect(result.allowed, `${role} must not have ${privilege}`).toBe(false);
+      }
+    }
   });
 });

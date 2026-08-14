@@ -28,8 +28,9 @@ describe('notification outbox TypeScript 소비자', () => {
           return {};
         },
         log: { error: () => {} },
+        now: () => new Date('2026-08-14T00:00:00.000Z'),
       },
-      { now: new Date('2026-08-14T00:00:00.000Z'), limit: 10 },
+      { limit: 1 },
     );
 
     expect(result).toEqual({ claimed: 1, processed: 1, failed: 0 });
@@ -38,7 +39,7 @@ describe('notification outbox TypeScript 소비자', () => {
         fn: 'lf_notification_outbox_claim',
         args: {
           p_now: '2026-08-14T00:00:00.000Z',
-          p_limit: 10,
+          p_limit: 1,
           p_lease_seconds: 60,
         },
       },
@@ -82,8 +83,9 @@ describe('notification outbox TypeScript 소비자', () => {
           return {};
         },
         log: { error: (message) => logs.push(message) },
+        now: () => new Date('2026-08-14T00:00:00.000Z'),
       },
-      { now: new Date('2026-08-14T00:00:00.000Z'), limit: 10 },
+      { limit: 1 },
     );
 
     expect(result).toEqual({ claimed: 1, processed: 0, failed: 1 });
@@ -99,5 +101,75 @@ describe('notification outbox TypeScript 소비자', () => {
       },
     });
     expect(logs).toEqual(['notification outbox processing failed']);
+  });
+
+  test('lease rollover의 stale record는 같은 worker의 다음 intent를 막지 않는다', async () => {
+    const secondRow = {
+      ...OUTBOX_ROW,
+      id: '55555555-5555-4555-8555-555555555555',
+      lease_id: '66666666-6666-4666-8666-666666666666',
+      inapp_dedupe_key: 'second-inapp-key',
+      push_dedupe_key: 'second-push-key',
+    };
+    const rolloverRow = {
+      ...OUTBOX_ROW,
+      lease_id: '77777777-7777-4777-8777-777777777777',
+      attempt_count: 2,
+      lease_expires_at: '2026-08-14T00:03:01.000Z',
+    };
+    let currentMs = Date.parse('2026-08-14T00:00:00.000Z');
+    let claimCount = 0;
+    let releaseFirstFanout: (() => void) | undefined;
+    const firstFanoutBlocked = new Promise<void>((resolve) => {
+      releaseFirstFanout = resolve;
+    });
+    let firstFanoutStarted: (() => void) | undefined;
+    const firstFanoutReady = new Promise<void>((resolve) => {
+      firstFanoutStarted = resolve;
+    });
+    const records: Record<string, unknown>[] = [];
+    let fanoutCount = 0;
+    const deps = {
+      rpc: async (fn: string, args: Record<string, unknown>) => {
+        if (fn === 'lf_notification_outbox_claim') {
+          claimCount += 1;
+          if (claimCount === 1) return [OUTBOX_ROW];
+          if (claimCount === 2) return [rolloverRow];
+          if (claimCount === 3) return [secondRow];
+          return [];
+        }
+        if (fn === 'lf_notification_fanout') {
+          fanoutCount += 1;
+          if (fanoutCount === 1) {
+            firstFanoutStarted?.();
+            await firstFanoutBlocked;
+          }
+          return {};
+        }
+        if (fn === 'lf_notification_outbox_record') {
+          records.push(args);
+          if (args['p_lease_id'] === OUTBOX_ROW.lease_id) throw new Error('E_STATE_CONFLICT');
+          return {};
+        }
+        throw new Error(`unexpected RPC: ${fn}`);
+      },
+      log: { error: () => {} },
+      now: () => new Date(currentMs),
+    };
+
+    const firstWorker = processNotificationOutbox(deps, { limit: 2 });
+    await firstFanoutReady;
+    currentMs = Date.parse('2026-08-14T00:02:01.000Z');
+    const secondWorker = await processNotificationOutbox(deps, { limit: 1 });
+    releaseFirstFanout?.();
+    const firstResult = await firstWorker;
+
+    expect(secondWorker).toEqual({ claimed: 1, processed: 1, failed: 0 });
+    expect(firstResult).toEqual({ claimed: 2, processed: 1, failed: 0 });
+    expect(records.filter((args) => args['p_lease_id'] === OUTBOX_ROW.lease_id)).toEqual([
+      expect.objectContaining({ p_success: true }),
+    ]);
+    expect(records.some((args) => args['p_outbox_id'] === secondRow.id)).toBe(true);
+    expect(claimCount).toBe(3);
   });
 });

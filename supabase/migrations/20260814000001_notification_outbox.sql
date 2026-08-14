@@ -44,8 +44,7 @@ create index notification_outbox_due_idx
   on public.notification_outbox (status, next_attempt_at, created_at);
 
 alter table public.notification_outbox enable row level security;
-revoke all on table public.notification_outbox from public, anon, authenticated;
-grant select, insert, update, delete on table public.notification_outbox to service_role;
+revoke all on table public.notification_outbox from public, anon, authenticated, service_role;
 
 create or replace function public.lf_notification_outbox_enqueue(
   p_user_id uuid,
@@ -134,14 +133,29 @@ begin
      and lease_expires_at <= p_now
      and attempt_count >= 4;
 
+  -- worker crash도 처리 실패와 같은 간격을 거쳐야 재시도 폭주와 lease 소진을 막는다.
+  update public.notification_outbox
+     set status = 'PENDING',
+         next_attempt_at = lease_expires_at + make_interval(
+           secs => case attempt_count
+             when 1 then 60
+             when 2 then 300
+             when 3 then 900
+           end
+         ),
+         lease_id = null,
+         lease_expires_at = null,
+         last_error_code = 'LEASE_EXPIRED',
+         updated_at = p_now
+   where status = 'LEASED'
+     and lease_expires_at <= p_now
+     and attempt_count between 1 and 3;
+
   with candidates as (
     select o.id
       from public.notification_outbox o
-     where (
-       o.status = 'PENDING' and o.next_attempt_at <= p_now
-     ) or (
-       o.status = 'LEASED' and o.lease_expires_at <= p_now
-     )
+     where o.status = 'PENDING'
+       and o.next_attempt_at <= p_now
      order by o.next_attempt_at, o.created_at, o.id
      limit p_limit
      for update skip locked
@@ -328,6 +342,29 @@ grant execute on function public.lf_notification_outbox_record(
 grant execute on function public.lf_notification_outbox_requeue(
   uuid, timestamptz
 ) to service_role;
+
+create or replace function public.lf_notification_outbox_count(
+  p_promise_id uuid,
+  p_event text,
+  p_dedupe_scope text
+)
+returns int
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select count(*)::int
+    from public.notification_outbox o
+   where o.promise_id = p_promise_id
+     and o.event = p_event
+     and right(o.inapp_dedupe_key, length(p_dedupe_scope) + 1) = ':' || p_dedupe_scope;
+$$;
+
+revoke all on function public.lf_notification_outbox_count(uuid, text, text)
+  from public, anon, authenticated;
+grant execute on function public.lf_notification_outbox_count(uuid, text, text)
+  to service_role;
 
 -- 승인 로그는 행위자와 요청 종류를 모두 가진 가장 늦은 원자적 생산 지점이다.
 create or replace function public.lf_approval_notification_outbox()
@@ -729,13 +766,11 @@ begin
 
     perform public.lf_recompute_promise_trust_profiles(v_promise.id);
 
-    select count(*)::int
-      into v_notification_count
-      from public.notification_outbox o
-     where o.promise_id = v_promise.id
-       and o.event = v_event
-       and o.inapp_dedupe_key like '%:closure:' || v_promise.check_round_no::text
-         || ':' || v_status::text;
+    v_notification_count := public.lf_notification_outbox_count(
+      v_promise.id,
+      v_event,
+      concat_ws(':', 'closure', v_promise.check_round_no::text, v_status::text)
+    );
 
     v_transitions := v_transitions || jsonb_build_array(
       jsonb_build_object(

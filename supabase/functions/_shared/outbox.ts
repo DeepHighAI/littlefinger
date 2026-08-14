@@ -3,16 +3,17 @@ import {
   renderNotificationTemplate,
   type NotificationEvent,
   type NotificationTemplateArgs,
+  type RenderedNotificationTemplate,
 } from '../../../packages/shared/src/notification.ts';
 import type { Logger } from './deps.ts';
 
 export interface NotificationOutboxDeps {
   rpc: (fn: string, args: Record<string, unknown>) => Promise<unknown>;
   log: Logger;
+  now: () => Date;
 }
 
 export interface ProcessNotificationOutboxOptions {
-  now: Date;
   limit: number;
 }
 
@@ -67,22 +68,38 @@ export async function processNotificationOutbox(
   deps: NotificationOutboxDeps,
   options: ProcessNotificationOutboxOptions,
 ): Promise<{ claimed: number; processed: number; failed: number }> {
-  const now = options.now.toISOString();
-  const rows = claimedRowsOf(
-    await deps.rpc('lf_notification_outbox_claim', {
-      p_now: now,
-      p_limit: options.limit,
-      p_lease_seconds: 60,
-    }),
-  );
+  let claimed = 0;
   let processed = 0;
   let failed = 0;
 
-  for (const row of rows) {
+  for (let index = 0; index < options.limit; index += 1) {
+    const rows = claimedRowsOf(
+      await deps.rpc('lf_notification_outbox_claim', {
+        p_now: deps.now().toISOString(),
+        p_limit: 1,
+        p_lease_seconds: 60,
+      }),
+    );
+    const row = rows[0];
+    if (row === undefined) break;
+    claimed += 1;
+
     let bodySnapshot: string | null = null;
+    let rendered: RenderedNotificationTemplate;
     try {
-      const rendered = renderNotificationTemplate(row.event, row.template_args);
+      rendered = renderNotificationTemplate(row.event, row.template_args);
       bodySnapshot = rendered.body;
+    } catch {
+      await recordResult(deps, row, false, bodySnapshot, 'TEMPLATE_INVALID');
+      deps.log.error('notification outbox processing failed', {
+        outbox_id: row.id,
+        error_code: 'TEMPLATE_INVALID',
+      });
+      failed += 1;
+      continue;
+    }
+
+    try {
       await deps.rpc('lf_notification_fanout', {
         p_user_id: row.recipient_user_id,
         p_promise_id: row.promise_id,
@@ -92,37 +109,46 @@ export async function processNotificationOutbox(
         p_deeplink: rendered.deeplink,
         p_inapp_dedupe_key: row.inapp_dedupe_key,
         p_push_dedupe_key: row.push_dedupe_key,
-        p_now: now,
+        p_now: deps.now().toISOString(),
       });
-      await deps.rpc('lf_notification_outbox_record', {
-        p_outbox_id: row.id,
-        p_lease_id: row.lease_id,
-        p_success: true,
-        p_body_snapshot: bodySnapshot,
-        p_error_code: null,
-        p_now: now,
-      });
-      processed += 1;
-    } catch (error) {
-      const errorCode =
-        error instanceof Error && error.message === 'INVALID_NOTIFICATION_TEMPLATE_ARGS'
-          ? 'TEMPLATE_INVALID'
-          : 'FANOUT_FAILED';
-      await deps.rpc('lf_notification_outbox_record', {
-        p_outbox_id: row.id,
-        p_lease_id: row.lease_id,
-        p_success: false,
-        p_body_snapshot: bodySnapshot,
-        p_error_code: errorCode,
-        p_now: now,
-      });
+    } catch {
+      await recordResult(deps, row, false, bodySnapshot, 'FANOUT_FAILED');
       deps.log.error('notification outbox processing failed', {
         outbox_id: row.id,
-        error_code: errorCode,
+        error_code: 'FANOUT_FAILED',
       });
       failed += 1;
+      continue;
     }
+
+    if (await recordResult(deps, row, true, bodySnapshot, null)) processed += 1;
   }
 
-  return { claimed: rows.length, processed, failed };
+  return { claimed, processed, failed };
+}
+
+async function recordResult(
+  deps: NotificationOutboxDeps,
+  row: ClaimedOutboxRow,
+  success: boolean,
+  bodySnapshot: string | null,
+  errorCode: string | null,
+): Promise<boolean> {
+  try {
+    await deps.rpc('lf_notification_outbox_record', {
+      p_outbox_id: row.id,
+      p_lease_id: row.lease_id,
+      p_success: success,
+      p_body_snapshot: bodySnapshot,
+      p_error_code: errorCode,
+      p_now: deps.now().toISOString(),
+    });
+    return true;
+  } catch (error) {
+    deps.log.error('notification outbox record failed', {
+      outbox_id: row.id,
+      error_code: error instanceof Error ? error.message : 'RECORD_FAILED',
+    });
+    return false;
+  }
 }
