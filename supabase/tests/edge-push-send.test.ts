@@ -9,6 +9,7 @@ function delivery(index: number): Record<string, unknown> {
   return {
     id: `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
     notification_id: '11111111-1111-4111-8111-111111111111',
+    promise_id: '44444444-4444-4444-8444-444444444444',
     device_token_id: `22222222-2222-4222-8222-${String(index).padStart(12, '0')}`,
     expo_push_token: `ExponentPushToken[sensitive-${index}]`,
     title: `민감 제목 ${index}`,
@@ -113,6 +114,45 @@ describe('push-send handler', () => {
     expect(records).toHaveLength(1);
     expect(records[0]).toHaveLength(201);
     expect(rpcCalls).not.toContain('lf_push_refresh_notification_status');
+  });
+
+  test('Expo data에는 검증 가능한 내비게이션 세 필드만 직렬화한다', async () => {
+    let expoPayload: unknown = null;
+    const handler = createPushSendHandler(baseDeps({
+      rpc: async (fn, args) => {
+        if (fn === 'lf_push_claim_receipts') return [];
+        if (fn === 'lf_notification_outbox_claim') return [];
+        if (fn === 'lf_dispatch_due_reminders') {
+          return { claimed: 0, sent: 0, canceled: 0, deferred: 0 };
+        }
+        if (fn === 'lf_push_claim_deliveries') return [delivery(1)];
+        if (fn === 'lf_push_record_tickets') {
+          return { accepted: 1, ignored: 0, ticketed: 1, retried: 0, failed: 0 };
+        }
+        return args;
+      },
+      fetch: async (_url, init) => {
+        expoPayload = JSON.parse(String(init?.body));
+        return new Response(JSON.stringify({ data: [{ status: 'ok', id: 'ticket-1' }] }), {
+          status: 200,
+        });
+      },
+    }));
+
+    await handler(request());
+
+    expect(expoPayload).toEqual([
+      {
+        to: 'ExponentPushToken[sensitive-1]',
+        title: '민감 제목 1',
+        body: '민감 본문 1',
+        data: {
+          notification_id: '11111111-1111-4111-8111-111111111111',
+          deeplink: 'SCR-A05',
+          promise_id: '44444444-4444-4444-8444-444444444444',
+        },
+      },
+    ]);
   });
 
   test('429는 retry, MessageRateExceeded는 retry, payload와 credential 오류는 permanent로 분류한다', async () => {

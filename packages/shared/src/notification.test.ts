@@ -72,7 +72,8 @@ describe('F-06 알림 계약', () => {
     expect(asPushNotificationData({ ...valid, promise_id: 'not-a-uuid' })).toBeNull();
     expect(asPushNotificationData({ ...valid, deeplink: 'https://evil.example' })).toBeNull();
     expect(asPushNotificationData({ ...valid, deeplink: 'SCR-A99' })).toBeNull();
-    expect(asPushNotificationData({ ...valid, extra: 'ignored' })).toEqual(valid);
+    expect(asPushNotificationData({ ...valid, extra: 'rejected' })).toBeNull();
+    expect(asPushNotificationData({ ...valid, url: 'https://evil.example' })).toBeNull();
   });
 
   test('outbox 템플릿 인자를 공유 계약으로 렌더링한다', () => {

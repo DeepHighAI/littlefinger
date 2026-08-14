@@ -1,3 +1,7 @@
+import {
+  asPushNotificationData,
+  type NotificationDeeplink,
+} from '../../../packages/shared/src/notification.ts';
 import { processNotificationOutbox } from '../_shared/outbox.ts';
 
 const EXPO_SEND_URL = 'https://exp.host/--/api/v2/push/send';
@@ -18,11 +22,12 @@ export interface PushSendDeps {
 interface DeliveryClaim {
   id: string;
   notification_id: string;
+  promise_id: string;
   device_token_id: string | null;
   expo_push_token: string | null;
   title: string;
   body: string;
-  deeplink: string | null;
+  deeplink: NotificationDeeplink;
   lease_id: string;
 }
 
@@ -53,21 +58,27 @@ function rows(value: unknown): Record<string, unknown>[] {
 
 function deliveryClaims(value: unknown): DeliveryClaim[] {
   return rows(value).slice(0, 500).flatMap((row) => {
+    const data = asPushNotificationData({
+      notification_id: row['notification_id'],
+      deeplink: row['deeplink'],
+      promise_id: row['promise_id'],
+    });
     if (
       typeof row['id'] !== 'string' ||
-      typeof row['notification_id'] !== 'string' ||
+      data === null ||
       typeof row['lease_id'] !== 'string' ||
       typeof row['title'] !== 'string' ||
       typeof row['body'] !== 'string'
     ) return [];
     return [{
       id: row['id'],
-      notification_id: row['notification_id'],
+      notification_id: data.notification_id,
+      promise_id: data.promise_id,
       device_token_id: typeof row['device_token_id'] === 'string' ? row['device_token_id'] : null,
       expo_push_token: typeof row['expo_push_token'] === 'string' ? row['expo_push_token'] : null,
       title: row['title'],
       body: row['body'],
-      deeplink: typeof row['deeplink'] === 'string' ? row['deeplink'] : null,
+      deeplink: data.deeplink,
       lease_id: row['lease_id'],
     }];
   });
@@ -207,7 +218,11 @@ async function processDeliveries(deps: PushSendDeps, counts: StageCounts['delive
     if (valid.length === 0) continue;
     const request = await expoRequest(deps, EXPO_SEND_URL, valid.map((row) => ({
       to: row.expo_push_token, title: row.title, body: row.body,
-      data: row.deeplink === null ? {} : { deeplink: row.deeplink },
+      data: {
+        notification_id: row.notification_id,
+        deeplink: row.deeplink,
+        promise_id: row.promise_id,
+      },
     })));
     if (!request.ok) {
       results.push(...valid.map((row) => ({

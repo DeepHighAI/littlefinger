@@ -9,6 +9,7 @@ const NOW = '2026-08-15T00:00:00Z';
 async function makeDelivery(suffix: string): Promise<{
   deliveryId: string;
   notificationId: string;
+  promiseId: string;
   tokenId: string;
   token: string;
   userId: string;
@@ -38,6 +39,7 @@ async function makeDelivery(suffix: string): Promise<{
   return {
     deliveryId: String(delivery.rows[0]?.['id']),
     notificationId,
+    promiseId,
     tokenId,
     token,
     userId,
@@ -73,7 +75,13 @@ describe('fenced Expo push delivery RPC', () => {
     const item = await makeDelivery('lease-rotation');
     const first = (await claimDeliveries())[0];
 
-    expect(first).toMatchObject({ id: item.deliveryId, attempt_count: 0, expo_push_token: item.token });
+    expect(first).toMatchObject({
+      id: item.deliveryId,
+      notification_id: item.notificationId,
+      promise_id: item.promiseId,
+      attempt_count: 0,
+      expo_push_token: item.token,
+    });
     expect(first?.['lease_id']).toEqual(expect.any(String));
 
     await db.asAdmin(

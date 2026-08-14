@@ -11,6 +11,10 @@ const SESSION = {
 } as Session;
 
 const mockStop = jest.fn();
+const mockPushStop = jest.fn();
+const mockPush = jest.fn();
+const mockRestorePushNavigationNative = jest.fn().mockResolvedValue(undefined);
+let mockRootNavigationReady = false;
 const mockStartMobileSessionGateNative = jest.fn(
   (_events: MobileSessionGateEvents) => mockStop,
 );
@@ -38,7 +42,11 @@ jest.mock('expo-router', () => {
     children: React.ReactNode;
     guard: boolean;
   }) => (guard ? <>{children}</> : null);
-  return { Stack };
+  return {
+    Stack,
+    useRootNavigationState: () => (mockRootNavigationReady ? { key: 'root' } : undefined),
+    useRouter: () => ({ push: mockPush }),
+  };
 });
 jest.mock(
   '../lib/session-gate-native.ts',
@@ -50,11 +58,31 @@ jest.mock(
   }),
   { virtual: true },
 );
+jest.mock(
+  '../lib/push-navigation-native.ts',
+  () => ({
+    restoreAndroidPushNavigationNative: (...args: unknown[]) =>
+      mockRestorePushNavigationNative(...args),
+    startAndroidPushNavigationNative: jest.fn(() => mockPushStop),
+  }),
+  { virtual: true },
+);
+
+const { startAndroidPushNavigationNative } = jest.requireMock(
+  '../lib/push-navigation-native.ts',
+) as {
+  startAndroidPushNavigationNative: jest.Mock;
+};
 
 describe('루트 인증 게이트', () => {
   beforeEach(() => {
     capturedEvents = null;
+    mockRootNavigationReady = false;
     mockStop.mockReset();
+    mockPushStop.mockReset();
+    mockPush.mockReset();
+    mockRestorePushNavigationNative.mockReset().mockResolvedValue(undefined);
+    startAndroidPushNavigationNative.mockClear();
     mockStartMobileSessionGateNative.mockClear();
     jest.mocked(SplashScreen.hideAsync).mockClear();
   });
@@ -91,5 +119,35 @@ describe('루트 인증 게이트', () => {
       view.unmount();
     });
     expect(mockStop).toHaveBeenCalledTimes(1);
+  });
+
+  test('루트 라우터가 준비된 뒤 수신기를 한 번 열고 로그인 복구 목적지를 한 번 소비한다', async () => {
+    const view = await render(<RootLayout />);
+
+    await act(async () => {
+      capturedEvents?.onSession(SESSION);
+      capturedEvents?.onReady();
+    });
+    expect(startAndroidPushNavigationNative).not.toHaveBeenCalled();
+    expect(mockRestorePushNavigationNative).not.toHaveBeenCalled();
+
+    mockRootNavigationReady = true;
+    await act(async () => {
+      view.rerender(<RootLayout />);
+    });
+
+    expect(startAndroidPushNavigationNative).toHaveBeenCalledTimes(1);
+    expect(mockRestorePushNavigationNative).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      view.rerender(<RootLayout />);
+    });
+    expect(startAndroidPushNavigationNative).toHaveBeenCalledTimes(1);
+    expect(mockRestorePushNavigationNative).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      view.unmount();
+    });
+    expect(mockPushStop).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,10 +1,15 @@
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRootNavigationState, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import type { Session } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { MobileAuthGateContext } from '../lib/mobile-auth-gate.ts';
+import {
+  restoreAndroidPushNavigationNative,
+  startAndroidPushNavigationNative,
+} from '../lib/push-navigation-native.ts';
+import type { PushRoute } from '../lib/push-navigation.ts';
 import { startMobileSessionGateNative } from '../lib/session-gate-native.ts';
 import { FONT_ASSETS } from '../theme/fontAssets';
 
@@ -13,14 +18,24 @@ void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout(): React.JSX.Element {
   const [loaded, error] = useFonts(FONT_ASSETS);
+  const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
   const [session, setSession] = useState<Session | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [callbackFailed, setCallbackFailed] = useState(false);
+  const sessionRef = useRef<Session | null>(null);
+  const routerRef = useRef(router);
+  routerRef.current = router;
+  const routerReady = typeof rootNavigationState?.key === 'string';
+  const navigate = useCallback((route: PushRoute): void => {
+    routerRef.current.push(route);
+  }, []);
 
   useEffect(
     () =>
       startMobileSessionGateNative({
         onSession: (nextSession) => {
+          sessionRef.current = nextSession;
           setSession(nextSession);
           if (nextSession !== null) setCallbackFailed(false);
         },
@@ -29,6 +44,24 @@ export default function RootLayout(): React.JSX.Element {
       }),
     [],
   );
+
+  useEffect(() => {
+    if (!routerReady) return;
+
+    return startAndroidPushNavigationNative({
+      isAuthenticated: () => sessionRef.current !== null,
+      navigate,
+      logError: (pushError) => console.error('푸시 알림 처리에 실패했습니다.', pushError),
+    });
+  }, [navigate, routerReady]);
+
+  useEffect(() => {
+    if (session === null || !routerReady) return;
+
+    void restoreAndroidPushNavigationNative(navigate).catch((pushError: unknown) => {
+      console.error('저장된 푸시 목적지 복구에 실패했습니다.', pushError);
+    });
+  }, [navigate, routerReady, session]);
 
   useEffect(() => {
     // 폰트와 저장 세션을 모두 확인한 뒤 숨긴다. 뒤에서는 Stack이 첫 렌더부터 유지된다.

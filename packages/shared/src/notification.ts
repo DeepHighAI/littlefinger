@@ -71,7 +71,9 @@ export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: str
  * UPDATE 정책이 없어 지금 박아 넣은 URL 이 틀리면 영구히 고칠 수 없다. 같은 행에 `promise_id`
  * 가 이미 있으므로 클라이언트가 화면 ID + 인자로 경로를 조립하면 된다.
  */
-export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, string> = {
+export type NotificationDeeplink = 'SCR-A03' | 'SCR-A04' | 'SCR-A05' | 'SCR-A06';
+
+export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, NotificationDeeplink> = {
   'NT-01': 'SCR-A05',
   'NT-02': 'SCR-A05',
   // 수정 제안은 약속이 DRAFT 로 돌아간 뒤라, 갈 곳은 상세가 아니라 재작성 화면이다.
@@ -99,7 +101,7 @@ export interface NotificationTemplateArgs {
 export interface RenderedNotificationTemplate {
   title: string;
   body: string;
-  deeplink: string;
+  deeplink: NotificationDeeplink;
 }
 
 const NICKNAME_EVENTS = new Set<NotificationEvent>(['NT-01', 'NT-02', 'NT-03', 'NT-09']);
@@ -136,31 +138,35 @@ export function renderNotificationTemplate(
 
 export interface PushNotificationData {
   notification_id: string;
-  deeplink: string;
+  deeplink: NotificationDeeplink;
   promise_id: string;
 }
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
-const PUSH_DEEPLINKS = new Set<string>(Object.values(NOTIFICATION_DEEPLINK));
+const PUSH_DEEPLINKS = new Set<NotificationDeeplink>(Object.values(NOTIFICATION_DEEPLINK));
+const PUSH_DATA_FIELDS = new Set(['notification_id', 'deeplink', 'promise_id']);
 
 /** 외부 푸시 payload 는 임의 URL이나 잘못된 식별자를 앱 라우터로 넘기기 전에 거른다. */
 export function asPushNotificationData(value: unknown): PushNotificationData | null {
   if (typeof value !== 'object' || value === null) return null;
   const row = value as Record<string, unknown>;
+  const fields = Object.keys(row);
   if (
+    fields.length !== PUSH_DATA_FIELDS.size ||
+    fields.some((field) => !PUSH_DATA_FIELDS.has(field)) ||
     typeof row['notification_id'] !== 'string' ||
     !UUID_PATTERN.test(row['notification_id']) ||
     typeof row['promise_id'] !== 'string' ||
     !UUID_PATTERN.test(row['promise_id']) ||
     typeof row['deeplink'] !== 'string' ||
-    !PUSH_DEEPLINKS.has(row['deeplink'])
+    !PUSH_DEEPLINKS.has(row['deeplink'] as NotificationDeeplink)
   ) {
     return null;
   }
   return {
     notification_id: row['notification_id'],
-    deeplink: row['deeplink'],
+    deeplink: row['deeplink'] as NotificationDeeplink,
     promise_id: row['promise_id'],
   };
 }
