@@ -15,6 +15,8 @@ export interface NotificationOutboxDeps {
 
 export interface ProcessNotificationOutboxOptions {
   limit: number;
+  /** 긴 fanout 배치가 worker invocation deadline을 넘지 않도록 각 외부 경계 전에 확인한다. */
+  shouldContinue?: () => boolean;
 }
 
 interface ClaimedOutboxRow {
@@ -71,8 +73,10 @@ export async function processNotificationOutbox(
   let claimed = 0;
   let processed = 0;
   let failed = 0;
+  const shouldContinue = options.shouldContinue ?? (() => true);
 
   for (let index = 0; index < options.limit; index += 1) {
+    if (!shouldContinue()) break;
     const rows = claimedRowsOf(
       await deps.rpc('lf_notification_outbox_claim', {
         p_now: deps.now().toISOString(),
@@ -83,6 +87,7 @@ export async function processNotificationOutbox(
     const row = rows[0];
     if (row === undefined) break;
     claimed += 1;
+    if (!shouldContinue()) break;
 
     let bodySnapshot: string | null = null;
     let rendered: RenderedNotificationTemplate;
@@ -90,6 +95,7 @@ export async function processNotificationOutbox(
       rendered = renderNotificationTemplate(row.event, row.template_args);
       bodySnapshot = rendered.body;
     } catch {
+      if (!shouldContinue()) break;
       await recordResult(deps, row, false, bodySnapshot, 'TEMPLATE_INVALID');
       deps.log.error('notification outbox processing failed', {
         outbox_id: row.id,
@@ -99,6 +105,7 @@ export async function processNotificationOutbox(
       continue;
     }
 
+    if (!shouldContinue()) break;
     try {
       await deps.rpc('lf_notification_fanout', {
         p_user_id: row.recipient_user_id,
@@ -112,6 +119,7 @@ export async function processNotificationOutbox(
         p_now: deps.now().toISOString(),
       });
     } catch {
+      if (!shouldContinue()) break;
       await recordResult(deps, row, false, bodySnapshot, 'FANOUT_FAILED');
       deps.log.error('notification outbox processing failed', {
         outbox_id: row.id,
@@ -121,6 +129,7 @@ export async function processNotificationOutbox(
       continue;
     }
 
+    if (!shouldContinue()) break;
     if (await recordResult(deps, row, true, bodySnapshot, null)) processed += 1;
   }
 

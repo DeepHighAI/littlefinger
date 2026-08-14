@@ -114,7 +114,7 @@ async function expoRequest(
   deps: PushSendDeps,
   url: string,
   body: unknown,
-): Promise<{ response: Response | null; failure: ExpoOutcome; errorCode: string }> {
+): Promise<{ ok: boolean; body: unknown; failure: ExpoOutcome; errorCode: string }> {
   const controller = new AbortController();
   const remainingBudget = Math.max(1, INVOCATION_BUDGET_MS - deps.elapsedMs());
   const timeout = setTimeout(() => controller.abort(), Math.min(REQUEST_TIMEOUT_MS, remainingBudget));
@@ -125,15 +125,18 @@ async function expoRequest(
       body: JSON.stringify(body),
       signal: controller.signal,
     });
-    if (response.ok) return { response, failure: 'failed', errorCode: '' };
+    if (response.ok) {
+      return { ok: true, body: await response.json() as unknown, failure: 'failed', errorCode: '' };
+    }
     const retry = response.status === 429 || response.status >= 500;
     return {
-      response: null,
+      ok: false,
+      body: null,
       failure: retry ? 'retry' : 'failed',
       errorCode: `HTTP_${response.status}`,
     };
   } catch {
-    return { response: null, failure: 'retry', errorCode: 'NETWORK_ERROR' };
+    return { ok: false, body: null, failure: 'retry', errorCode: 'NETWORK_ERROR' };
   } finally {
     clearTimeout(timeout);
   }
@@ -145,21 +148,8 @@ function expoError(item: unknown): { outcome: ExpoOutcome; errorCode: string } {
   return { outcome: errorCode === 'MessageRateExceeded' ? 'retry' : 'failed', errorCode };
 }
 
-function notificationIds(result: unknown): string[] {
-  if (!isRecord(result) || !Array.isArray(result['notification_ids'])) return [];
-  return result['notification_ids'].filter((value): value is string => typeof value === 'string');
-}
-
 function count(result: unknown, key: string): number {
   return isRecord(result) && typeof result[key] === 'number' ? result[key] : 0;
-}
-
-async function refresh(deps: PushSendDeps, ids: string[]): Promise<void> {
-  if (ids.length === 0) return;
-  await deps.rpc('lf_push_refresh_notification_status', {
-    p_notification_ids: [...new Set(ids)],
-    p_now: deps.now().toISOString(),
-  });
 }
 
 async function processReceipts(deps: PushSendDeps, counts: StageCounts['receipts']): Promise<void> {
@@ -172,14 +162,14 @@ async function processReceipts(deps: PushSendDeps, counts: StageCounts['receipts
   for (const batch of chunks(claims, 1000)) {
     if (deps.elapsedMs() >= INVOCATION_BUDGET_MS) break;
     const request = await expoRequest(deps, EXPO_RECEIPTS_URL, { ids: batch.map((row) => row.expo_ticket_id) });
-    if (request.response === null) {
+    if (!request.ok) {
       results.push(...batch.map((row) => ({
         delivery_id: row.id, lease_id: row.lease_id, expo_ticket_id: row.expo_ticket_id,
         outcome: request.failure, error_code: request.errorCode,
       })));
       continue;
     }
-    const parsed = await request.response.json() as unknown;
+    const parsed = request.body;
     const data = isRecord(parsed) && isRecord(parsed['data']) ? parsed['data'] : {};
     for (const row of batch) {
       const receipt = data[row.expo_ticket_id];
@@ -198,7 +188,6 @@ async function processReceipts(deps: PushSendDeps, counts: StageCounts['receipts
   counts.delivered = count(recorded, 'delivered');
   counts.retried = count(recorded, 'retried');
   counts.failed = count(recorded, 'failed');
-  await refresh(deps, notificationIds(recorded));
 }
 
 async function processDeliveries(deps: PushSendDeps, counts: StageCounts['deliveries']): Promise<void> {
@@ -220,7 +209,7 @@ async function processDeliveries(deps: PushSendDeps, counts: StageCounts['delive
       to: row.expo_push_token, title: row.title, body: row.body,
       data: row.deeplink === null ? {} : { deeplink: row.deeplink },
     })));
-    if (request.response === null) {
+    if (!request.ok) {
       results.push(...valid.map((row) => ({
         delivery_id: row.id, lease_id: row.lease_id, outcome: request.failure,
         error_code: request.errorCode, attempted: true,
@@ -228,7 +217,7 @@ async function processDeliveries(deps: PushSendDeps, counts: StageCounts['delive
       })));
       continue;
     }
-    const parsed = await request.response.json() as unknown;
+    const parsed = request.body;
     const data = isRecord(parsed) && Array.isArray(parsed['data']) ? parsed['data'] : [];
     for (let index = 0; index < valid.length; index += 1) {
       const row = valid[index]!;
@@ -248,7 +237,6 @@ async function processDeliveries(deps: PushSendDeps, counts: StageCounts['delive
   counts.ticketed = count(recorded, 'ticketed');
   counts.retried = count(recorded, 'retried');
   counts.failed = count(recorded, 'failed');
-  await refresh(deps, notificationIds(recorded));
 }
 
 /** 내부 cron/trigger가 호출하는 단일 bounded worker. 응답에는 stage count만 담는다. */
@@ -275,7 +263,10 @@ export function createPushSendHandler(deps: PushSendDeps) {
           rpc: invocationDeps.rpc,
           now: invocationDeps.now,
           log: { error: () => invocationDeps.log.error('push stage failed', { stage: 'outbox', count: 1 }) },
-        }, { limit: 100 });
+        }, {
+          limit: 100,
+          shouldContinue: () => invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS,
+        });
       }
       if (invocationDeps.elapsedMs() < INVOCATION_BUDGET_MS) {
         const reminders = await invocationDeps.rpc('lf_dispatch_due_reminders', { p_now: invocationDeps.now().toISOString(), p_limit: 200 });

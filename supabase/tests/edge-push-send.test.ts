@@ -83,9 +83,11 @@ describe('push-send handler', () => {
   test('delivery 201개를 Expo 요청 100/100/1개로 나누고 ticket 결과는 한 RPC 배열로 기록한다', async () => {
     const batches: number[] = [];
     const records: unknown[] = [];
+    const rpcCalls: string[] = [];
     const claimed = Array.from({ length: 201 }, (_, index) => delivery(index + 1));
     const handler = createPushSendHandler(baseDeps({
       rpc: async (fn, args) => {
+        rpcCalls.push(fn);
         if (fn === 'lf_push_claim_receipts') return [];
         if (fn === 'lf_notification_outbox_claim') return [];
         if (fn === 'lf_dispatch_due_reminders') return { claimed: 0, sent: 0, canceled: 0, deferred: 0 };
@@ -110,6 +112,7 @@ describe('push-send handler', () => {
     expect(batches).toEqual([100, 100, 1]);
     expect(records).toHaveLength(1);
     expect(records[0]).toHaveLength(201);
+    expect(rpcCalls).not.toContain('lf_push_refresh_notification_status');
   });
 
   test('429는 retry, MessageRateExceeded는 retry, payload와 credential 오류는 permanent로 분류한다', async () => {
@@ -221,6 +224,47 @@ describe('push-send handler', () => {
     expect(calls).toEqual(['lf_push_claim_receipts']);
   });
 
+  test('44초대에 시작한 outbox가 deadline 도달 뒤 record나 다음 item을 claim하지 않는다', async () => {
+    let clock = 0;
+    let outboxClaims = 0;
+    let outboxRecords = 0;
+    const row = {
+      id: '11111111-1111-4111-8111-111111111111',
+      recipient_user_id: '22222222-2222-4222-8222-222222222222',
+      promise_id: '33333333-3333-4333-8333-333333333333',
+      event: 'NT-01',
+      template_args: { partnerNickname: '민준', promiseTitle: '매일 걷기' },
+      inapp_dedupe_key: 'deadline-inapp',
+      push_dedupe_key: 'deadline-push',
+      lease_id: '44444444-4444-4444-8444-444444444444',
+    };
+    const handler = createPushSendHandler(baseDeps({
+      elapsedMs: () => clock,
+      rpc: async (fn) => {
+        if (fn === 'lf_push_claim_receipts') {
+          clock = 44_000;
+          return [];
+        }
+        if (fn === 'lf_notification_outbox_claim') {
+          outboxClaims += 1;
+          return outboxClaims === 1 ? [row] : [];
+        }
+        if (fn === 'lf_notification_fanout') {
+          clock = 45_000;
+          return {};
+        }
+        if (fn === 'lf_notification_outbox_record') {
+          outboxRecords += 1;
+          return {};
+        }
+        return {};
+      },
+    }));
+
+    expect((await handler(request())).status).toBe(200);
+    expect({ outboxClaims, outboxRecords }).toEqual({ outboxClaims: 1, outboxRecords: 0 });
+  });
+
   test('warm worker가 오래 살아 있어도 invocation budget은 요청마다 새로 시작한다', async () => {
     const calls: string[] = [];
     const handler = createPushSendHandler(baseDeps({
@@ -265,6 +309,40 @@ describe('push-send handler', () => {
     expect(allOutput).not.toContain('민감 본문');
     expect(allOutput).not.toContain(SECRET);
     expect(allOutput).not.toContain('credentials');
+  });
+
+  test('fetch headers 뒤 멈춘 response body도 같은 10초 deadline으로 abort한다', async () => {
+    vi.useFakeTimers();
+    const recorded: Record<string, unknown>[] = [];
+    let markBodyStarted: (() => void) | undefined;
+    const bodyStarted = new Promise<void>((resolve) => { markBodyStarted = resolve; });
+    const handler = createPushSendHandler(baseDeps({
+      rpc: async (fn, args) => {
+        if (fn === 'lf_push_claim_receipts') return [];
+        if (fn === 'lf_notification_outbox_claim') return [];
+        if (fn === 'lf_dispatch_due_reminders') return { claimed: 0, sent: 0, canceled: 0, deferred: 0 };
+        if (fn === 'lf_push_claim_deliveries') return [delivery(1)];
+        if (fn === 'lf_push_record_tickets') {
+          recorded.push(...(args['p_results'] as Record<string, unknown>[]));
+          return { accepted: 1, ignored: 0, ticketed: 0, retried: 1, failed: 0, notification_ids: [] };
+        }
+        return {};
+      },
+      fetch: async (_url, init) => ({
+        ok: true,
+        status: 200,
+        json: async () => new Promise<unknown>((_resolve, reject) => {
+          markBodyStarted?.();
+          init?.signal?.addEventListener('abort', () => reject(new Error('body aborted')));
+        }),
+      }) as Response,
+    }));
+    const pending = handler(request());
+    await bodyStarted;
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect((await pending).status).toBe(200);
+    vi.useRealTimers();
+    expect(recorded).toMatchObject([{ outcome: 'retry', error_code: 'NETWORK_ERROR' }]);
   });
 
   test('남은 invocation budget이 10초보다 짧으면 그 시점에 Expo 요청을 abort한다', async () => {

@@ -113,7 +113,12 @@ describe('fenced Expo push delivery RPC', () => {
       },
     ]);
 
-    expect(result).toMatchObject({ accepted: 1, ignored: 1, ticketed: 1 });
+    expect(result).toMatchObject({
+      accepted: 1,
+      ignored: 1,
+      ticketed: 1,
+      aggregation: { sent: 0, failed: 0, pending: 1 },
+    });
     const rows = await db.asAdmin(
       `select id, status::text, attempt_count, expo_ticket_id
          from public.push_deliveries where id = any($1::uuid[]) order by id`,
@@ -129,6 +134,34 @@ describe('fenced Expo push delivery RPC', () => {
       attempt_count: 1,
       expo_ticket_id: 'current-ticket-id',
     });
+  });
+
+  test('ticket 결과와 notification 집계 중 하나라도 실패하면 delivery 변경도 롤백한다', async () => {
+    const item = await makeDelivery('ticket-aggregate-rollback');
+    const claimed = (await claimDeliveries())[0]!;
+    await db.execAdmin(`
+      create or replace function public.lf_push_refresh_notification_status(
+        p_notification_ids uuid[], p_now timestamptz default now()
+      )
+      returns jsonb language plpgsql security definer set search_path = '' as $$
+      begin
+        raise exception 'TEST_AGGREGATE_FAILURE';
+      end;
+      $$;
+    `);
+
+    await expect(recordTickets([{
+      delivery_id: item.deliveryId,
+      lease_id: claimed['lease_id'],
+      outcome: 'ticket',
+      expo_ticket_id: 'must-roll-back-ticket',
+      attempted: true,
+    }])).rejects.toThrow(/TEST_AGGREGATE_FAILURE/u);
+    const state = await db.asAdmin(
+      `select status::text, attempt_count, expo_ticket_id from public.push_deliveries where id = $1`,
+      [item.deliveryId],
+    );
+    expect(state.rows[0]).toEqual({ status: 'LEASED', attempt_count: 0, expo_ticket_id: null });
   });
 
   test('no-ticket send 실패는 60/300/900초 뒤 재시도하고 네 번째 시도에서 끝난다', async () => {
@@ -222,13 +255,59 @@ describe('fenced Expo push delivery RPC', () => {
         { delivery_id: currentItem.deliveryId, lease_id: current['lease_id'], expo_ticket_id: current['expo_ticket_id'], outcome: 'delivered' },
       ])],
     );
-    expect(recorded.rows[0]?.['result']).toMatchObject({ accepted: 1, ignored: 1, delivered: 1 });
+    expect(recorded.rows[0]?.['result']).toMatchObject({
+      accepted: 1,
+      ignored: 1,
+      delivered: 1,
+      aggregation: { sent: 1, failed: 0, pending: 0 },
+    });
     const state = await db.asAdmin(
       `select id, status::text from public.push_deliveries where id = any($1::uuid[])`,
       [[staleItem.deliveryId, currentItem.deliveryId]],
     );
     expect(state.rows.find((row) => row['id'] === staleItem.deliveryId)?.['status']).toBe('LEASED');
     expect(state.rows.find((row) => row['id'] === currentItem.deliveryId)?.['status']).toBe('DELIVERED');
+  });
+
+  test('receipt 결과와 notification 집계 실패도 같은 트랜잭션에서 롤백한다', async () => {
+    const item = await makeDelivery('receipt-aggregate-rollback');
+    const claimed = (await claimDeliveries())[0]!;
+    await recordTickets([{
+      delivery_id: item.deliveryId,
+      lease_id: claimed['lease_id'],
+      outcome: 'ticket',
+      expo_ticket_id: 'receipt-rollback-ticket',
+      attempted: true,
+    }]);
+    const receipt = await db.asAdmin(
+      `select public.lf_push_claim_receipts('2026-08-15T00:15:00Z', 1000, 60) as result`,
+    );
+    const receiptClaim = (receipt.rows[0]?.['result'] as Record<string, unknown>[])[0]!;
+    await db.execAdmin(`
+      create or replace function public.lf_push_refresh_notification_status(
+        p_notification_ids uuid[], p_now timestamptz default now()
+      )
+      returns jsonb language plpgsql security definer set search_path = '' as $$
+      begin
+        raise exception 'TEST_AGGREGATE_FAILURE';
+      end;
+      $$;
+    `);
+
+    await expect(db.asAdmin(
+      `select public.lf_push_record_receipts($1::jsonb, '2026-08-15T00:15:01Z')`,
+      [JSON.stringify([{
+        delivery_id: item.deliveryId,
+        lease_id: receiptClaim['lease_id'],
+        expo_ticket_id: receiptClaim['expo_ticket_id'],
+        outcome: 'delivered',
+      }])],
+    )).rejects.toThrow(/TEST_AGGREGATE_FAILURE/u);
+    const state = await db.asAdmin(
+      `select status::text, receipt_checked_at from public.push_deliveries where id = $1`,
+      [item.deliveryId],
+    );
+    expect(state.rows[0]).toEqual({ status: 'LEASED', receipt_checked_at: null });
   });
 
   test('DeviceNotRegistered는 claim 당시 같은 사용자의 같은 토큰만 삭제한다', async () => {
@@ -249,6 +328,41 @@ describe('fenced Expo push delivery RPC', () => {
 
     const token = await db.asAdmin(`select user_id from public.device_tokens where id = $1`, [item.tokenId]);
     expect(token.rows).toEqual([{ user_id: newOwner }]);
+  });
+
+  test('receipt DeviceNotRegistered는 같은 행·사용자의 변경된 새 token 값을 삭제하지 않는다', async () => {
+    const item = await makeDelivery('receipt-token-snapshot');
+    const claimed = (await claimDeliveries())[0]!;
+    await recordTickets([{
+      delivery_id: item.deliveryId,
+      lease_id: claimed['lease_id'],
+      outcome: 'ticket',
+      expo_ticket_id: 'receipt-token-snapshot-ticket',
+      attempted: true,
+    }]);
+    await db.asAdmin(
+      `update public.device_tokens set fcm_token = 'ExponentPushToken[new-valid-value]' where id = $1`,
+      [item.tokenId],
+    );
+    const receipt = await db.asAdmin(
+      `select public.lf_push_claim_receipts('2026-08-15T00:15:00Z', 1000, 60) as result`,
+    );
+    const receiptClaim = (receipt.rows[0]?.['result'] as Record<string, unknown>[])[0]!;
+    await db.asAdmin(
+      `select public.lf_push_record_receipts($1::jsonb, '2026-08-15T00:15:01Z')`,
+      [JSON.stringify([{
+        delivery_id: item.deliveryId,
+        lease_id: receiptClaim['lease_id'],
+        expo_ticket_id: receiptClaim['expo_ticket_id'],
+        outcome: 'failed',
+        error_code: 'DeviceNotRegistered',
+      }])],
+    );
+    const token = await db.asAdmin(
+      `select fcm_token from public.device_tokens where id = $1`,
+      [item.tokenId],
+    );
+    expect(token.rows).toEqual([{ fcm_token: 'ExponentPushToken[new-valid-value]' }]);
   });
 
   test('receipt와 notification 집계는 일부 성공을 SENT, 전부 영구 실패를 FAILED로 만든다', async () => {
