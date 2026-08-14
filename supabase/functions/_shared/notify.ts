@@ -4,9 +4,8 @@
 // 껍데기로 정했다. RPC 는 알림 행을 쓰지 않는 대신 상대 닉네임·프로필·제목을 payload 에
 // 담아 돌려주므로, 여기서 두 번째 조회 없이 행을 만든다.
 //
-// 지금은 **INAPP 행만** 쓴다(PO 결정 2026-07-26). PUSH 행은 `push-send` 워커가 생기는 M2 에
-// 함께 들어간다 — `notifications` 에는 UPDATE 정책이 아예 없어서, 보낼 사람이 없는 지금
-// QUEUED 행을 만들면 영원히 QUEUED 로 남는 거짓 기록이 된다.
+// 이 빌더는 INAPP 행의 공통 인자만 조립한다. PUSH fanout은 내부 RPC가 현재 기기 토큰의
+// 스냅샷을 잠근 뒤 함께 만든다.
 
 import {
   NOTIFICATION_DEEPLINK,

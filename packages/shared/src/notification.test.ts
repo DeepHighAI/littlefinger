@@ -7,7 +7,7 @@ import {
   fulfillmentDedupeKey,
 } from './notification.ts';
 
-describe('F-07 알림 계약', () => {
+describe('F-06 알림 계약', () => {
   test('NT-04~08·10 예약 알림 제목과 앱 화면이 명세와 같다', () => {
     expect({
       'NT-04': [NOTIFICATION_TITLE['NT-04']('무시'), NOTIFICATION_DEEPLINK['NT-04']],
