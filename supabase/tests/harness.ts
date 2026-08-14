@@ -74,7 +74,7 @@ const AUTH_SHIM = `
   create schema cron;
   create table cron.job (
     jobid bigint generated always as identity primary key,
-    jobname text not null unique,
+    jobname text not null,
     schedule text not null,
     command text not null
   );
@@ -100,6 +100,45 @@ const AUTH_SHIM = `
   begin
     delete from cron.job where jobid = p_jobid;
     return found;
+  end;
+  $$;
+
+  -- pg_net·Vault는 PGlite에 없으므로, nudge의 호출 경계와 실패 격리를 관찰할 최소 표면만 둔다.
+  create schema vault;
+  create table vault.decrypted_secrets (
+    name text primary key,
+    decrypted_secret text not null
+  );
+
+  create schema net;
+  create table net.http_post_requests (
+    id bigint generated always as identity primary key,
+    url text,
+    headers jsonb,
+    body jsonb,
+    timeout_milliseconds int
+  );
+
+  create function net.http_post(
+    url text,
+    headers jsonb default '{}'::jsonb,
+    body jsonb default '{}'::jsonb,
+    timeout_milliseconds int default null
+  )
+  returns bigint
+  language plpgsql
+  as $$
+  declare
+    v_id bigint;
+  begin
+    if url is null or url like 'fail://%' then
+      raise exception 'TEST_PG_NET_FAILURE';
+    end if;
+
+    insert into net.http_post_requests (url, headers, body, timeout_milliseconds)
+    values (url, headers, body, timeout_milliseconds)
+    returning id into v_id;
+    return v_id;
   end;
   $$;
 

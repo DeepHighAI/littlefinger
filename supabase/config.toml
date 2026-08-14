@@ -109,6 +109,10 @@ verify_jwt = true
 [functions.evidence-purge]
 verify_jwt = false
 
+# F-06 outbox nudge와 cron이 같은 비밀 헤더로 내부 worker를 호출한다.
+[functions.push-send]
+verify_jwt = false
+
 # ============================================================
 # 카카오 프로바이더 블록을 **의도적으로 두지 않는다.**
 #
