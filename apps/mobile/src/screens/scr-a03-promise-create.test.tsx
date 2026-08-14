@@ -44,6 +44,8 @@ const completeDraft = {
   end_date: '2026-08-10',
 };
 
+const TEST_NOW = new Date('2026-08-01T00:00:00+09:00');
+
 async function settle(): Promise<void> {
   await act(async () => {
     await Promise.resolve();
@@ -64,6 +66,8 @@ async function fillRequiredFields(
 describe('SCR-A03 약속 작성', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    // 종료일 검증이 실제 실행일에 따라 달라지지 않도록 KST 기준 시각을 고정한다.
+    jest.setSystemTime(TEST_NOW);
     push.mockReset();
     back.mockReset();
     jest.mocked(useRouter).mockReturnValue({ push, back } as never);
