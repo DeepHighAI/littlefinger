@@ -1,6 +1,14 @@
-import type { PromiseStatus } from '@littlefinger/shared';
+import type {
+  PromiseHomeListRequest,
+  PromiseHomeListResponse,
+  PromiseStatus,
+} from '@littlefinger/shared';
 
+import { listHomePromises as listHomePromisesWith } from './home-promises-api.ts';
+import { callMobileFunctionNative } from './mobile-api-native.ts';
 import { getMobileSupabaseClient } from './supabase-native.ts';
+
+const deps = { call: callMobileFunctionNative };
 
 export interface WaitingPromiseSummary {
   id: string;
@@ -24,6 +32,12 @@ export async function listWaitingPromises(): Promise<WaitingPromiseSummary[]> {
     title: String(row.title),
     updated_at: String(row.updated_at),
   }));
+}
+
+export async function listHomePromises(
+  input: PromiseHomeListRequest,
+): Promise<PromiseHomeListResponse> {
+  return await listHomePromisesWith(input, deps);
 }
 
 export async function deleteDraft(promiseId: string): Promise<void> {
