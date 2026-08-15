@@ -1,4 +1,4 @@
-import type { NotificationInboxItem } from '@littlefinger/shared';
+import type { NotificationInboxCursor, NotificationInboxItem } from '@littlefinger/shared';
 
 type ReadOperation =
   | { status: 'PENDING' }
@@ -14,6 +14,9 @@ export interface NotificationInboxState {
   loadFailed: boolean;
   completionRevision: number;
   latestLoadId: number;
+  nextCursor: NotificationInboxCursor | null;
+  pageLoadPending: boolean;
+  pageLoadFailed: boolean;
   readOperations: Readonly<Record<string, ReadOperation>>;
   readAllPending: boolean;
 }
@@ -23,6 +26,9 @@ export const INITIAL_NOTIFICATION_INBOX_STATE: NotificationInboxState = {
   loadFailed: false,
   completionRevision: 0,
   latestLoadId: 0,
+  nextCursor: null,
+  pageLoadPending: false,
+  pageLoadFailed: false,
   readOperations: {},
   readAllPending: false,
 };
@@ -33,9 +39,18 @@ export type NotificationInboxAction =
       type: 'REFRESH_SUCCEEDED';
       loadId: number;
       items: readonly NotificationInboxItem[];
+      nextCursor: NotificationInboxCursor | null;
       startedRevision: number;
     }
   | { type: 'REFRESH_FAILED'; loadId: number }
+  | { type: 'PAGE_STARTED'; loadId: number }
+  | {
+      type: 'PAGE_SUCCEEDED';
+      loadId: number;
+      items: readonly NotificationInboxItem[];
+      nextCursor: NotificationInboxCursor | null;
+    }
+  | { type: 'PAGE_FAILED'; loadId: number }
   | { type: 'READ_STARTED'; notificationId: string }
   | { type: 'READ_SUCCEEDED'; notificationId: string; readAt: string }
   | { type: 'READ_FAILED'; notificationId: string }
@@ -73,12 +88,20 @@ export function notificationInboxReducer(
 ): NotificationInboxState {
   switch (action.type) {
     case 'REFRESH_STARTED':
-      return { ...state, latestLoadId: action.loadId, loadFailed: false };
+      return {
+        ...state,
+        latestLoadId: action.loadId,
+        loadFailed: false,
+        nextCursor: null,
+        pageLoadPending: false,
+        pageLoadFailed: false,
+      };
     case 'REFRESH_SUCCEEDED':
       if (action.loadId !== state.latestLoadId) return state;
       return {
         ...state,
         items: action.items.map((item) => ({ ...item, locallyRead: false })),
+        nextCursor: action.nextCursor,
         loadFailed: false,
         readOperations: readOperationsForRefresh(
           state.readOperations,
@@ -88,6 +111,30 @@ export function notificationInboxReducer(
     case 'REFRESH_FAILED':
       if (action.loadId !== state.latestLoadId) return state;
       return { ...state, items: state.items ?? [], loadFailed: true };
+    case 'PAGE_STARTED':
+      if (action.loadId !== state.latestLoadId || state.pageLoadPending) return state;
+      return { ...state, pageLoadPending: true, pageLoadFailed: false };
+    case 'PAGE_SUCCEEDED': {
+      if (action.loadId !== state.latestLoadId || !state.pageLoadPending) return state;
+      const knownIds = new Set((state.items ?? []).map((item) => item.notification_id));
+      const appended = action.items
+        .filter((item) => {
+          if (knownIds.has(item.notification_id)) return false;
+          knownIds.add(item.notification_id);
+          return true;
+        })
+        .map((item) => ({ ...item, locallyRead: false }));
+      return {
+        ...state,
+        items: [...(state.items ?? []), ...appended],
+        nextCursor: action.nextCursor,
+        pageLoadPending: false,
+        pageLoadFailed: false,
+      };
+    }
+    case 'PAGE_FAILED':
+      if (action.loadId !== state.latestLoadId || !state.pageLoadPending) return state;
+      return { ...state, pageLoadPending: false, pageLoadFailed: true };
     case 'READ_STARTED':
       return {
         ...state,

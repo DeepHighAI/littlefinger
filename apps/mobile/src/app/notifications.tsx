@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[5] },
+  pageAction: { gap: space[3] },
 });
 
 function iconFor(item: NotificationInboxItem): React.JSX.Element {
@@ -145,6 +146,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
   );
   const stateRef = useRef(state);
   const inFlightItemIds = useRef(new Set<string>());
+  const pageInFlight = useRef<object | null>(null);
   const nextLoadId = useRef(0);
   stateRef.current = state;
   const { items, loadFailed } = state;
@@ -152,6 +154,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
   async function refresh(): Promise<void> {
     const loadId = ++nextLoadId.current;
     const startedRevision = stateRef.current.completionRevision;
+    pageInFlight.current = null;
     dispatch({ type: 'REFRESH_STARTED', loadId });
     try {
       const response = await listNotificationInbox();
@@ -159,11 +162,41 @@ export default function NotificationInboxScreen(): React.JSX.Element {
         type: 'REFRESH_SUCCEEDED',
         loadId,
         items: response.items,
+        nextCursor: response.next_cursor,
         startedRevision,
       });
     } catch {
       dispatch({ type: 'REFRESH_FAILED', loadId });
     }
+  }
+
+  function loadMore(): void {
+    const current = stateRef.current;
+    if (
+      current.nextCursor === null ||
+      current.pageLoadPending ||
+      current.latestLoadId !== nextLoadId.current ||
+      pageInFlight.current !== null
+    ) return;
+    const generation = current.latestLoadId;
+    const request = {};
+    pageInFlight.current = request;
+    dispatch({ type: 'PAGE_STARTED', loadId: generation });
+    void listNotificationInbox({ cursor: current.nextCursor })
+      .then((response) => {
+        dispatch({
+          type: 'PAGE_SUCCEEDED',
+          loadId: generation,
+          items: response.items,
+          nextCursor: response.next_cursor,
+        });
+      })
+      .catch(() => {
+        dispatch({ type: 'PAGE_FAILED', loadId: generation });
+      })
+      .finally(() => {
+        if (pageInFlight.current === request) pageInFlight.current = null;
+      });
   }
 
   useEffect(() => {
@@ -318,6 +351,24 @@ export default function NotificationInboxScreen(): React.JSX.Element {
               </View>
             </View>
           ))}
+          {state.nextCursor !== null && (
+            <View style={styles.pageAction}>
+              {state.pageLoadFailed && (
+                <LfText secondary align="center">
+                  {SCR_A07_LABEL.pageLoadError}
+                </LfText>
+              )}
+              <LfButton
+                label={
+                  state.pageLoadPending ? SCR_A07_LABEL.loadingMore : SCR_A07_LABEL.loadMore
+                }
+                variant="outlined"
+                block
+                disabled={state.pageLoadPending}
+                onPress={loadMore}
+              />
+            </View>
+          )}
         </ScrollView>
       )}
     </SafeAreaView>

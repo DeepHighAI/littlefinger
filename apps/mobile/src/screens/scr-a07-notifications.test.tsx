@@ -31,6 +31,10 @@ const FIRST_ID = '11111111-1111-4111-8111-111111111111';
 const SECOND_ID = '22222222-2222-4222-8222-222222222222';
 const THIRD_ID = '33333333-3333-4333-8333-333333333333';
 const PROMISE_ID = '44444444-4444-4444-8444-444444444444';
+const PAGE_CURSOR = {
+  created_at: '2026-08-14T00:00:00.000Z',
+  notification_id: '99999999-9999-4999-8999-999999999999',
+} as const;
 const push = jest.fn();
 const back = jest.fn();
 const listNotificationInboxMock = jest.mocked(listNotificationInbox);
@@ -74,6 +78,7 @@ describe('SCR-A07 알림함', () => {
       type: 'REFRESH_SUCCEEDED',
       loadId: 0,
       items: [item()],
+      nextCursor: null,
       startedRevision: 0,
     });
     const pending = notificationInboxReducer(loaded, {
@@ -364,6 +369,148 @@ describe('SCR-A07 알림함', () => {
       view.queryByText('알림을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'),
     ).toBeNull();
     expect(view.queryByTestId(`notification-unread-${FIRST_ID}`)).toBeNull();
+  });
+
+  test('21개 이상 알림은 복합 cursor를 그대로 보내 다음 페이지를 최신순 뒤에 붙인다', async () => {
+    const firstPage = Array.from({ length: 20 }, (_, index) =>
+      item({
+        notification_id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+        title: `첫 페이지 ${index + 1}`,
+        created_at: new Date(NOW.getTime() - index * 60_000).toISOString(),
+      }),
+    );
+    const last = item({
+      notification_id: '00000000-0000-4000-8000-000000000021',
+      title: '스물한 번째 알림',
+      created_at: '2026-08-14T00:00:00.000Z',
+    });
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: firstPage, unread_count: 21, next_cursor: PAGE_CURSOR })
+      .mockResolvedValueOnce({ items: [last], unread_count: 21, next_cursor: null });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '알림 더 보기' }));
+    await settle();
+
+    expect(listNotificationInboxMock).toHaveBeenNthCalledWith(2, { cursor: PAGE_CURSOR });
+    expect(view.getAllByTestId(/^notification-[0-9a-f-]{36}$/u)).toHaveLength(21);
+    expect(view.getByText('스물한 번째 알림')).toBeTruthy();
+    expect(view.queryByRole('button', { name: '알림 더 보기' })).toBeNull();
+  });
+
+  test('다음 페이지의 중복 notification_id는 한 번만 유지한다', async () => {
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 2, next_cursor: PAGE_CURSOR })
+      .mockResolvedValueOnce({
+        items: [
+          item({ title: '중복 응답' }),
+          item({ notification_id: SECOND_ID, title: '새 응답' }),
+        ],
+        unread_count: 2,
+        next_cursor: null,
+      });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '알림 더 보기' }));
+    await settle();
+
+    expect(view.getAllByTestId(`notification-${FIRST_ID}`)).toHaveLength(1);
+    expect(view.getByTestId(`notification-${SECOND_ID}`)).toBeTruthy();
+    expect(view.queryByText('중복 응답')).toBeNull();
+  });
+
+  test('다음 페이지 요청 중 중복 탭은 같은 cursor 호출을 늘리지 않는다', async () => {
+    let resolvePage:
+      | ((value: { items: NotificationInboxItem[]; unread_count: number; next_cursor: null }) => void)
+      | undefined;
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 1, next_cursor: PAGE_CURSOR })
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((resolve) => {
+            resolvePage = resolve;
+          }),
+      );
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+    const loadMore = view.getByRole('button', { name: '알림 더 보기' });
+
+    await fireEvent.press(loadMore);
+    await fireEvent.press(loadMore);
+
+    expect(listNotificationInboxMock).toHaveBeenCalledTimes(2);
+    await act(async () => resolvePage?.({ items: [], unread_count: 1, next_cursor: null }));
+  });
+
+  test('새로고침 뒤 도착한 이전 세대 페이지는 최신 권위 목록에 붙지 않는다', async () => {
+    let resolvePage:
+      | ((value: { items: NotificationInboxItem[]; unread_count: number; next_cursor: null }) => void)
+      | undefined;
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 1, next_cursor: PAGE_CURSOR })
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((resolve) => {
+            resolvePage = resolve;
+          }),
+      )
+      .mockResolvedValueOnce({
+        items: [item({ title: '새로고침 권위 항목', read_at: NOW.toISOString() })],
+        unread_count: 0,
+        next_cursor: null,
+      });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '알림 더 보기' }));
+    await fireEvent.press(view.getByRole('button', { name: '새로고침' }));
+    await settle();
+    await act(async () =>
+      resolvePage?.({
+        items: [item({ notification_id: SECOND_ID, title: '뒤늦은 페이지' })],
+        unread_count: 1,
+        next_cursor: null,
+      }),
+    );
+
+    expect(view.getByText('새로고침 권위 항목')).toBeTruthy();
+    expect(view.queryByText('뒤늦은 페이지')).toBeNull();
+  });
+
+  test('다음 페이지 실패는 기존 항목을 보존하고 다시 시도할 수 있다', async () => {
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 1, next_cursor: PAGE_CURSOR })
+      .mockRejectedValueOnce(new Error('page failed'))
+      .mockResolvedValueOnce({
+        items: [item({ notification_id: SECOND_ID, title: '재시도 페이지' })],
+        unread_count: 1,
+        next_cursor: null,
+      });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '알림 더 보기' }));
+    await settle();
+
+    expect(view.getByTestId(`notification-${FIRST_ID}`)).toBeTruthy();
+    expect(view.getByText('알림을 더 불러오지 못했어요. 다시 시도해 주세요.')).toBeTruthy();
+    await fireEvent.press(view.getByRole('button', { name: '알림 더 보기' }));
+    await settle();
+    expect(view.getByText('재시도 페이지')).toBeTruthy();
+  });
+
+  test('첫 응답이 마지막 페이지면 더 보기 control을 렌더링하지 않는다', async () => {
+    listNotificationInboxMock.mockResolvedValue({
+      items: [item()],
+      unread_count: 1,
+      next_cursor: null,
+    });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    expect(view.queryByRole('button', { name: '알림 더 보기' })).toBeNull();
   });
 
   test('전체 읽음은 읽지 않은 항목을 즉시 정리하고 중복 요청을 막는다', async () => {

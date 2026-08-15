@@ -516,7 +516,7 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
     expect(await readAtOf(secondId)).toBeNull();
   });
 
-  test('authenticated는 notifications를 직접 UPDATE할 수 없고 retention은 경계와 반복 실행을 지킨다', async () => {
+  test('authenticated는 notifications를 직접 UPDATE할 수 없고 retention은 경계와 동시 반복 실행을 지킨다', async () => {
     const now = '2026-08-15T00:00:00Z';
     const inbox = await createInboxUser('정리소유자');
     const retained = await createNotification({
@@ -543,17 +543,21 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
         [randomUUID(), inbox.userId, retained, now],
       ),
     ).rejects.toThrow(/permission denied/iu);
-    const first = await db.asAdmin(
-      `select public.lf_notification_retention_purge($1::timestamptz) as deleted`,
+    const before = await db.asAdmin(
+      `select count(*)::int as count
+         from public.notifications
+        where created_at < $1::timestamptz - make_interval(days => public.lf_notification_retention_days())`,
       [now],
     );
-    const second = await db.asAdmin(
-      `select public.lf_notification_retention_purge($1::timestamptz) as deleted`,
-      [now],
-    );
+    // PGlite는 단일 연결에서 Promise 요청을 직렬화하지만 호출 겹침과 최종 멱등 결과는 확인한다.
+    const [first, second] = await Promise.all([
+      db.asAdmin(`select public.lf_notification_retention_purge($1::timestamptz) as deleted`, [now]),
+      db.asAdmin(`select public.lf_notification_retention_purge($1::timestamptz) as deleted`, [now]),
+    ]);
 
-    expect(first.rows[0]?.['deleted']).toBeGreaterThanOrEqual(1);
-    expect(second.rows[0]?.['deleted']).toBe(0);
+    expect(
+      Number(first.rows[0]?.['deleted']) + Number(second.rows[0]?.['deleted']),
+    ).toBe(before.rows[0]?.['count']);
     const remaining = await db.asAdmin(
       `select id from public.notifications where id = any($1::uuid[]) order by id`,
       [[retained, expired]],
@@ -645,9 +649,11 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
     }
   });
 
-  test('retention cron은 같은 이름으로 다시 등록해도 04:20 KST의 한 작업만 남긴다', async () => {
-    await db.asAdmin(`select public.lf_schedule_notification_retention()`);
-    await db.asAdmin(`select public.lf_schedule_notification_retention()`);
+  test('retention cron은 동시 교체 호출 뒤에도 04:20 KST의 한 작업만 남긴다', async () => {
+    await Promise.all([
+      db.asAdmin(`select public.lf_schedule_notification_retention()`),
+      db.asAdmin(`select public.lf_schedule_notification_retention()`),
+    ]);
     const jobs = await db.asAdmin(
       `select jobname, schedule, command
          from cron.job
@@ -661,5 +667,34 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
         command: 'select public.lf_notification_retention_purge();',
       },
     ]);
+  });
+
+  test('retention cron 교체는 운영 Postgres의 동시 호출을 transaction advisory lock으로 직렬화한다', async () => {
+    const { rows } = await db.asAdmin(
+      `with expected as (
+         select pg_catalog.hashtextextended(
+                  'lf-notification-retention-scheduler', 0
+                ) as lock_key
+       ),
+       scheduled as materialized (
+         select public.lf_schedule_notification_retention() as result
+       )
+       select exists (
+                select 1
+                  from pg_catalog.pg_locks locks
+                  cross join expected
+                 where locks.locktype = 'advisory'
+                   and locks.pid = pg_backend_pid()
+                   and locks.granted
+                   and locks.objsubid = 1
+                   and locks.classid::bigint =
+                       ((expected.lock_key >> 32) & 4294967295::bigint)
+                   and locks.objid::bigint =
+                       (expected.lock_key & 4294967295::bigint)
+              ) as locked
+         from scheduled`,
+    );
+
+    expect(rows).toEqual([{ locked: true }]);
   });
 });
