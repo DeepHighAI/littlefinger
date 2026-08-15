@@ -17,8 +17,10 @@ export interface NotificationInboxState {
   nextCursor: NotificationInboxCursor | null;
   pageLoadPending: boolean;
   pageLoadFailed: boolean;
+  pageStartedRevision: number | null;
   readOperations: Readonly<Record<string, ReadOperation>>;
   readAllPending: boolean;
+  readAllSucceededRevision: number | null;
 }
 
 export const INITIAL_NOTIFICATION_INBOX_STATE: NotificationInboxState = {
@@ -29,8 +31,10 @@ export const INITIAL_NOTIFICATION_INBOX_STATE: NotificationInboxState = {
   nextCursor: null,
   pageLoadPending: false,
   pageLoadFailed: false,
+  pageStartedRevision: null,
   readOperations: {},
   readAllPending: false,
+  readAllSucceededRevision: null,
 };
 
 export type NotificationInboxAction =
@@ -113,9 +117,18 @@ export function notificationInboxReducer(
       return { ...state, items: state.items ?? [], loadFailed: true };
     case 'PAGE_STARTED':
       if (action.loadId !== state.latestLoadId || state.pageLoadPending) return state;
-      return { ...state, pageLoadPending: true, pageLoadFailed: false };
+      return {
+        ...state,
+        pageLoadPending: true,
+        pageLoadFailed: false,
+        pageStartedRevision: state.completionRevision,
+      };
     case 'PAGE_SUCCEEDED': {
       if (action.loadId !== state.latestLoadId || !state.pageLoadPending) return state;
+      const readAllFinishedAfterPageStarted =
+        state.pageStartedRevision !== null &&
+        state.readAllSucceededRevision !== null &&
+        state.readAllSucceededRevision > state.pageStartedRevision;
       const knownIds = new Set((state.items ?? []).map((item) => item.notification_id));
       const appended = action.items
         .filter((item) => {
@@ -123,18 +136,28 @@ export function notificationInboxReducer(
           knownIds.add(item.notification_id);
           return true;
         })
-        .map((item) => ({ ...item, locallyRead: false }));
+        .map((item) => ({
+          ...item,
+          locallyRead:
+            state.readAllPending || readAllFinishedAfterPageStarted,
+        }));
       return {
         ...state,
         items: [...(state.items ?? []), ...appended],
         nextCursor: action.nextCursor,
         pageLoadPending: false,
         pageLoadFailed: false,
+        pageStartedRevision: null,
       };
     }
     case 'PAGE_FAILED':
       if (action.loadId !== state.latestLoadId || !state.pageLoadPending) return state;
-      return { ...state, pageLoadPending: false, pageLoadFailed: true };
+      return {
+        ...state,
+        pageLoadPending: false,
+        pageLoadFailed: true,
+        pageStartedRevision: null,
+      };
     case 'READ_STARTED':
       return {
         ...state,
@@ -184,21 +207,23 @@ export function notificationInboxReducer(
     }
     case 'READ_ALL_SUCCEEDED': {
       const completedRevision = state.completionRevision + 1;
-      const completedIds = new Set(action.notificationIds);
+      const completedIds = new Set([
+        ...action.notificationIds,
+        ...(state.items ?? []).map((item) => item.notification_id),
+      ]);
       return {
         ...state,
         completionRevision: completedRevision,
         items:
-          state.items?.map((item) =>
-            completedIds.has(item.notification_id) ? { ...item, locallyRead: true } : item,
-          ) ?? null,
+          state.items?.map((item) => ({ ...item, locallyRead: true })) ?? null,
         readOperations: completeOperations(
           state.readOperations,
-          action.notificationIds,
+          [...completedIds],
           'SUCCEEDED',
           completedRevision,
         ),
         readAllPending: false,
+        readAllSucceededRevision: completedRevision,
       };
     }
     case 'READ_ALL_FAILED': {

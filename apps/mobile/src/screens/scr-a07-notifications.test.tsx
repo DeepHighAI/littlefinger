@@ -540,6 +540,80 @@ describe('SCR-A07 알림함', () => {
     expect(markAllNotificationsReadMock).toHaveBeenCalledTimes(1);
   });
 
+  test('전체 읽음 성공 뒤 완료된 페이지 항목도 읽음 상태로 합친다', async () => {
+    let resolvePage:
+      | ((value: { items: NotificationInboxItem[]; unread_count: number; next_cursor: null }) => void)
+      | undefined;
+    let resolveAll: ((value: { read_count: number }) => void) | undefined;
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 2, next_cursor: PAGE_CURSOR })
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((resolve) => {
+            resolvePage = resolve;
+          }),
+      );
+    markAllNotificationsReadMock.mockImplementation(
+      async () =>
+        await new Promise((resolve) => {
+          resolveAll = resolve;
+        }),
+    );
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '알림 더 보기' }));
+    await fireEvent.press(view.getByRole('button', { name: '모두 읽음' }));
+    await act(async () => resolveAll?.({ read_count: 2 }));
+    await act(async () =>
+      resolvePage?.({
+        items: [item({ notification_id: SECOND_ID, title: '늦게 도착한 읽은 알림' })],
+        unread_count: 0,
+        next_cursor: null,
+      }),
+    );
+
+    expect(view.getByTestId(`notification-${SECOND_ID}`)).toBeTruthy();
+    expect(view.queryByTestId(`notification-unread-${SECOND_ID}`)).toBeNull();
+  });
+
+  test('페이지 완료 뒤 전체 읽음이 성공하면 새 페이지 항목도 읽음 상태가 된다', async () => {
+    let resolvePage:
+      | ((value: { items: NotificationInboxItem[]; unread_count: number; next_cursor: null }) => void)
+      | undefined;
+    let resolveAll: ((value: { read_count: number }) => void) | undefined;
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 2, next_cursor: PAGE_CURSOR })
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((resolve) => {
+            resolvePage = resolve;
+          }),
+      );
+    markAllNotificationsReadMock.mockImplementation(
+      async () =>
+        await new Promise((resolve) => {
+          resolveAll = resolve;
+        }),
+    );
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '알림 더 보기' }));
+    await fireEvent.press(view.getByRole('button', { name: '모두 읽음' }));
+    await act(async () =>
+      resolvePage?.({
+        items: [item({ notification_id: SECOND_ID, title: '먼저 도착한 읽은 알림' })],
+        unread_count: 0,
+        next_cursor: null,
+      }),
+    );
+    await act(async () => resolveAll?.({ read_count: 2 }));
+
+    expect(view.getByTestId(`notification-${SECOND_ID}`)).toBeTruthy();
+    expect(view.queryByTestId(`notification-unread-${SECOND_ID}`)).toBeNull();
+  });
+
   test('읽지 않은 항목이 없으면 모두 읽음 요청을 보내지 않는다', async () => {
     listNotificationInboxMock.mockResolvedValue({
       items: [item({ read_at: NOW.toISOString() })],
