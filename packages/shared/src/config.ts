@@ -69,6 +69,9 @@ export const EVIDENCE_JPEG_QUALITY = 85;
 export const DRAFT_MAX_CONCURRENT = 20;
 export const PROMISE_MAX_PER_DAY = 30;
 
+/** SCR-A02 탭별 목록 한 페이지 크기(F-10). */
+export const PROMISE_HOME_PAGE_SIZE = 20;
+
 export const INVITE_RESEND_MAX = 10;
 export const DEVICE_TOKEN_MAX = 3;
 

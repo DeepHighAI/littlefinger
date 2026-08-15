@@ -258,6 +258,7 @@ describe('F-07 공개 API 계약', () => {
 
   test('네 Edge Function 슬러그가 공개된다', () => {
     expect(ENDPOINT).toMatchObject({
+      promiseHomeList: 'promise-home-list',
       participantPromiseList: 'participant-promise-list',
       promiseFulfillmentDetail: 'promise-fulfillment-detail',
       fulfillmentSubmit: 'fulfillment-submit',

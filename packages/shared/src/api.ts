@@ -308,6 +308,58 @@ export interface ParticipantPromiseSummary {
   waiting_for_partner: boolean;
 }
 
+export type PromiseHomeTab = 'ACTIVE' | 'WAITING' | 'COMPLETED';
+
+export type PromiseHomeCursor =
+  | {
+      tab: 'ACTIVE';
+      status_rank: number;
+      end_date: IsoDate;
+      promise_id: string;
+    }
+  | {
+      tab: 'WAITING';
+      updated_at: IsoDateTime;
+      promise_id: string;
+    }
+  | {
+      tab: 'COMPLETED';
+      closed_at: IsoDateTime | null;
+      updated_at: IsoDateTime;
+      promise_id: string;
+    };
+
+export interface PromiseHomePerson {
+  nickname: string;
+  profile_image_url: string | null;
+}
+
+export interface PromiseHomeCard {
+  promise_id: string;
+  title: string;
+  status: PromiseStatus;
+  end_date: IsoDate | null;
+  updated_at: IsoDateTime;
+  closed_at: IsoDateTime | null;
+  my_role: ParticipantRole;
+  creator: PromiseHomePerson;
+  partner: PromiseHomePerson | null;
+  has_witness: boolean;
+  needs_response: boolean;
+}
+
+export interface PromiseHomeListRequest {
+  tab: PromiseHomeTab;
+  cursor?: PromiseHomeCursor;
+}
+
+export interface PromiseHomeListResponse {
+  items: readonly PromiseHomeCard[];
+  pinned: readonly PromiseHomeCard[];
+  counts: Record<PromiseHomeTab, number>;
+  next_cursor: PromiseHomeCursor | null;
+}
+
 export interface PromiseFulfillmentDetailRequest {
   promise_id: string;
 }
@@ -505,6 +557,7 @@ export const ENDPOINT = {
   promiseAmend: 'promise-amend',
   userProvision: 'user-provision',
   deviceTokenRegister: 'device-token-register',
+  promiseHomeList: 'promise-home-list',
   participantPromiseList: 'participant-promise-list',
   promiseFulfillmentDetail: 'promise-fulfillment-detail',
   fulfillmentSubmit: 'fulfillment-submit',
