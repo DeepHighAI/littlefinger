@@ -17,6 +17,7 @@ export * from './keep-rate.ts';
 export * from './notification.ts';
 export * from './promise.ts';
 export * from './promise-home.ts';
+export * from './promise-detail.ts';
 export * from './text.ts';
 export * from './transitions.ts';
 export * from './validation.ts';

@@ -17,8 +17,11 @@ import type {
   IsoDateTime,
   Keeper,
   ParticipantRole,
+  ParticipantStatus,
   PromiseCategory,
   PromiseStatus,
+  AmendStatus,
+  AmendType,
 } from './promise.ts';
 import type { NotificationDeeplink, NotificationEvent } from './notification.ts';
 
@@ -361,6 +364,116 @@ export interface PromiseHomeListResponse {
   next_cursor: PromiseHomeCursor | null;
 }
 
+export interface PromiseDetailRequest {
+  promise_id: string;
+}
+
+export type PromiseDetailStatus = Exclude<PromiseStatus, 'DRAFT'>;
+export type PromiseDetailIntegrity = 'VERIFIED' | 'FAILED' | 'UNVERIFIED';
+
+export interface PromiseDetailActor {
+  user_id: string;
+  nickname: string;
+  profile_image_url: string | null;
+}
+
+export interface PromiseDetailPerson extends PromiseDetailActor {
+  role: ParticipantRole;
+  status: ParticipantStatus;
+  joined_at: IsoDateTime | null;
+}
+
+export type PromiseDetailApprovalAction =
+  | 'APPROVE'
+  | 'DECLINE'
+  | 'AMEND_SUGGEST'
+  | 'AMEND_REQUEST'
+  | 'AMEND_APPROVE'
+  | 'AMEND_DECLINE'
+  | 'AMEND_WITHDRAW'
+  | 'CANCEL_REQUEST'
+  | 'CANCEL_APPROVE'
+  | 'CANCEL_DECLINE'
+  | 'WITNESS_SIGN';
+
+export interface PromiseDetailApproval {
+  role: ParticipantRole;
+  action: PromiseDetailApprovalAction;
+  actor: PromiseDetailActor;
+  acted_at: IsoDateTime;
+  comment: string | null;
+}
+
+export interface PromiseDetailVersion {
+  version_no: number;
+  title: string;
+  body: string;
+  category: PromiseCategory;
+  end_date: IsoDate;
+  keeper: Keeper;
+  reward: string | null;
+  penalty: string | null;
+  content_hash: string;
+  fingerprint: string;
+  activated_at: IsoDateTime | null;
+  superseded_at: IsoDateTime | null;
+  change_reason: string | null;
+}
+
+export interface PromiseDetailInvitation {
+  status: 'PENDING' | 'USED' | 'EXPIRED' | 'REVOKED';
+  expires_at: IsoDateTime;
+  resend_count: number;
+}
+
+export interface PromiseDetailAmendRequest {
+  request_id: string;
+  type: AmendType;
+  status: AmendStatus;
+  requester: PromiseDetailActor;
+  reason: string | null;
+  created_at: IsoDateTime;
+  expires_at: IsoDateTime;
+  proposed_version: PromiseDetailVersion | null;
+}
+
+export interface PromiseDetailFulfillment {
+  round_no: number;
+  creator_has_submitted: boolean;
+  partner_has_submitted: boolean;
+  creator_check: FulfillmentCheckView | null;
+  partner_check: FulfillmentCheckView | null;
+  history: readonly FulfillmentRoundView[];
+}
+
+export interface PromiseDetailResponse {
+  promise_id: string;
+  status: PromiseDetailStatus;
+  title: string;
+  body: string;
+  category: PromiseCategory;
+  end_date: IsoDate;
+  keeper: Keeper;
+  reward: string | null;
+  penalty: string | null;
+  witness_enabled: boolean;
+  activated_at: IsoDateTime | null;
+  closed_at: IsoDateTime | null;
+  checking_started_at: IsoDateTime | null;
+  check_deadline_at: IsoDateTime | null;
+  check_round_no: number;
+  my_role: ParticipantRole;
+  creator: PromiseDetailPerson;
+  partner: PromiseDetailPerson | null;
+  witnesses: readonly PromiseDetailPerson[];
+  approvals: readonly PromiseDetailApproval[];
+  current_version: PromiseDetailVersion;
+  invitation: PromiseDetailInvitation | null;
+  amend_request: PromiseDetailAmendRequest | null;
+  fulfillment: PromiseDetailFulfillment | null;
+  integrity_status: PromiseDetailIntegrity;
+}
+
 export interface PromiseFulfillmentDetailRequest {
   promise_id: string;
 }
@@ -559,6 +672,7 @@ export const ENDPOINT = {
   userProvision: 'user-provision',
   deviceTokenRegister: 'device-token-register',
   promiseHomeList: 'promise-home-list',
+  promiseDetail: 'promise-detail',
   participantPromiseList: 'participant-promise-list',
   promiseFulfillmentDetail: 'promise-fulfillment-detail',
   fulfillmentSubmit: 'fulfillment-submit',
