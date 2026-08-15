@@ -28,32 +28,41 @@ export class LargeSecureStore {
     const encryptionKeyHex = await this.deps.secureStore.getItemAsync(key);
     if (encryptionKeyHex === null) return null;
 
-    const cipher = new aesjs.ModeOfOperation.ctr(
-      aesjs.utils.hex.toBytes(encryptionKeyHex),
-      new aesjs.Counter(1),
-    );
-    return aesjs.utils.utf8.fromBytes(cipher.decrypt(aesjs.utils.hex.toBytes(encrypted)));
+    const parts = encrypted.split(':');
+    let counter = new aesjs.Counter(1);
+    let ciphertextHex = encrypted;
+    if (parts[0] === 'v2') {
+      const counterHex = parts[1];
+      const versionedCiphertextHex = parts[2];
+      if (parts.length !== 3 || counterHex === undefined || versionedCiphertextHex === undefined) {
+        throw new Error('Invalid encrypted value');
+      }
+      counter = new aesjs.Counter(aesjs.utils.hex.toBytes(counterHex));
+      ciphertextHex = versionedCiphertextHex;
+    }
+
+    const cipher = new aesjs.ModeOfOperation.ctr(aesjs.utils.hex.toBytes(encryptionKeyHex), counter);
+    return aesjs.utils.utf8.fromBytes(cipher.decrypt(aesjs.utils.hex.toBytes(ciphertextHex)));
   }
 
   async setItem(key: string, value: string): Promise<void> {
-    const encryptionKey = this.deps.randomBytes();
-    const cipher = new aesjs.ModeOfOperation.ctr(encryptionKey, new aesjs.Counter(1));
+    const existingKeyHex = await this.deps.secureStore.getItemAsync(key);
+    const encryptionKey =
+      existingKeyHex === null
+        ? this.deps.randomBytes()
+        : Uint8Array.from(aesjs.utils.hex.toBytes(existingKeyHex));
+    const counterBytes = this.deps.randomBytes().slice(0, 16);
+    const cipher = new aesjs.ModeOfOperation.ctr(encryptionKey, new aesjs.Counter(counterBytes));
     const encrypted = cipher.encrypt(aesjs.utils.utf8.toBytes(value));
 
-    // 세션은 SecureStore 한도를 넘는다. 작은 AES 키만 보안 저장소에 두고 원문은 남기지 않는다.
-    const previousKey = await this.deps.secureStore.getItemAsync(key);
-    await this.deps.secureStore.setItemAsync(key, aesjs.utils.hex.fromBytes(encryptionKey));
-    try {
-      await this.deps.asyncStorage.setItem(key, aesjs.utils.hex.fromBytes(encrypted));
-    } catch (error) {
-      try {
-        if (previousKey === null) await this.deps.secureStore.deleteItemAsync(key);
-        else await this.deps.secureStore.setItemAsync(key, previousKey);
-      } catch {
-        // 원래 쓰기 실패를 유지한다. 호출자는 같은 값을 다시 저장해 복구한다.
-      }
-      throw error;
+    // 갱신 중 앱이 종료돼도 마지막 암호문과 키의 조합이 깨지지 않도록 기존 키를 유지한다.
+    if (existingKeyHex === null) {
+      await this.deps.secureStore.setItemAsync(key, aesjs.utils.hex.fromBytes(encryptionKey));
     }
+    await this.deps.asyncStorage.setItem(
+      key,
+      `v2:${aesjs.utils.hex.fromBytes(counterBytes)}:${aesjs.utils.hex.fromBytes(encrypted)}`,
+    );
   }
 
   async removeItem(key: string): Promise<void> {

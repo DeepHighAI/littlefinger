@@ -47,6 +47,98 @@ describe('LargeSecureStore', () => {
     expect(await store.getItem('sb-session')).toBe(session);
   });
 
+  test('같은 값을 다시 저장해도 CTR 키스트림을 재사용하지 않는다', async () => {
+    // 같은 키와 counter를 재사용하면 두 암호문의 XOR로 원문 관계가 노출된다.
+    const { asyncValues, deps } = memoryDeps();
+    const generatedValues = [
+      Uint8Array.from({ length: 32 }, (_, index) => index),
+      Uint8Array.from({ length: 32 }, (_, index) => 64 + index),
+      Uint8Array.from({ length: 32 }, (_, index) => 128 + index),
+    ];
+    deps.randomBytes = () => {
+      const next = generatedValues.shift();
+      if (next === undefined) throw new Error('unexpected random generation');
+      return next;
+    };
+    const store = new LargeSecureStore(deps);
+
+    await store.setItem('sb-session', '{"access_token":"same-secret"}');
+    const firstCiphertext = asyncValues.get('sb-session');
+    await store.setItem('sb-session', '{"access_token":"same-secret"}');
+    const secondCiphertext = asyncValues.get('sb-session');
+
+    expect(firstCiphertext).toBeDefined();
+    expect(secondCiphertext).toBeDefined();
+    expect(secondCiphertext).not.toBe(firstCiphertext);
+    await expect(store.getItem('sb-session')).resolves.toBe('{"access_token":"same-secret"}');
+  });
+
+  test('기존 고정 counter 형식의 암호문을 계속 복호화한다', async () => {
+    // 앱 업데이트가 기존 로그인 세션과 저장된 초대·푸시 목적지를 로그아웃시키면 안 된다.
+    const { asyncValues, deps, secureValues } = memoryDeps();
+    secureValues.set(
+      'legacy-session',
+      '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f',
+    );
+    asyncValues.set(
+      'legacy-session',
+      '8b7f17cd29dcec96f982f45a2dac14072ccfd4b3d001f0d86bdacc413a51',
+    );
+
+    const store = new LargeSecureStore(deps);
+
+    await expect(store.getItem('legacy-session')).resolves.toBe(
+      '{"access_token":"same-secret"}',
+    );
+  });
+
+  test('기존 값 갱신 중 프로세스가 종료되어도 마지막 커밋 값은 복호화된다', async () => {
+    // 암호문보다 먼저 암호화 키를 교체하면 재시작한 프로세스가 마지막 커밋 값을 잃는다.
+    const { deps } = memoryDeps();
+    const generatedKeys = [
+      Uint8Array.from({ length: 32 }, (_, index) => index),
+      Uint8Array.from({ length: 32 }, (_, index) => 64 + index),
+      Uint8Array.from({ length: 32 }, (_, index) => 128 + index),
+    ];
+    deps.randomBytes = () => {
+      const next = generatedKeys.shift();
+      if (next === undefined) throw new Error('unexpected key generation');
+      return next;
+    };
+
+    const originalSetItem = deps.asyncStorage.setItem;
+    let writeCount = 0;
+    let signalWriteStarted: () => void = () => undefined;
+    const writeStarted = new Promise<void>((resolve) => {
+      signalWriteStarted = resolve;
+    });
+    let releaseWrite: () => void = () => undefined;
+    const writeReleased = new Promise<void>((resolve) => {
+      releaseWrite = resolve;
+    });
+    deps.asyncStorage.setItem = async (key, value) => {
+      writeCount += 1;
+      if (writeCount === 2) {
+        signalWriteStarted();
+        await writeReleased;
+      }
+      await originalSetItem(key, value);
+    };
+
+    const store = new LargeSecureStore(deps);
+    await store.setItem('push-marker', '{"state":"PENDING"}');
+
+    const updating = store.setItem('push-marker', '{"state":"CONSUMED"}');
+    await writeStarted;
+
+    const restartedStore = new LargeSecureStore(deps);
+    await expect(restartedStore.getItem('push-marker')).resolves.toBe('{"state":"PENDING"}');
+
+    releaseWrite();
+    await updating;
+    await expect(restartedStore.getItem('push-marker')).resolves.toBe('{"state":"CONSUMED"}');
+  });
+
   test('세션 삭제는 암호문과 암호화 키를 함께 지운다', async () => {
     // SecureStore 키만 남으면 로그아웃한 계정의 보안 재료가 기기에 계속 쌓인다.
     const { asyncValues, deps, secureValues } = memoryDeps();
