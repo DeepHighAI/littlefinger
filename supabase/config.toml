@@ -82,6 +82,10 @@ verify_jwt = true
 [functions.promise-home-list]
 verify_jwt = true
 
+# SCR-A05 전문은 로그인한 참여자에게만 공개한다. RPC도 같은 actor 경계를 다시 검증한다.
+[functions.promise-detail]
+verify_jwt = true
+
 [functions.promise-draft-update]
 verify_jwt = true
 
