@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest';
 import {
   NOTIFICATION_DEEPLINK,
   NOTIFICATION_TITLE,
+  asNotificationInboxItem,
   asPushNotificationData,
   fulfillmentDedupeKey,
   renderNotificationTemplate,
@@ -74,6 +75,47 @@ describe('F-06 알림 계약', () => {
     expect(asPushNotificationData({ ...valid, deeplink: 'SCR-A99' })).toBeNull();
     expect(asPushNotificationData({ ...valid, extra: 'rejected' })).toBeNull();
     expect(asPushNotificationData({ ...valid, url: 'https://evil.example' })).toBeNull();
+  });
+
+  test('알림함 공개 경계는 이벤트의 공유 경로를 사용하고 내부 필드를 제거한다', () => {
+    const raw = {
+      notification_id: '11111111-1111-4111-8111-111111111111',
+      promise_id: '22222222-2222-4222-8222-222222222222',
+      event: 'NT-01',
+      title: '약속 성립',
+      body: '매일 걷기',
+      deeplink: 'https://evil.example/steal',
+      created_at: '2026-08-15T00:00:00Z',
+      read_at: null,
+      dedupe_key: 'internal-only',
+      status: 'SENT',
+    };
+
+    expect(asNotificationInboxItem(raw)).toEqual({
+      notification_id: '11111111-1111-4111-8111-111111111111',
+      promise_id: '22222222-2222-4222-8222-222222222222',
+      event: 'NT-01',
+      title: '약속 성립',
+      body: '매일 걷기',
+      deeplink: 'SCR-A05',
+      created_at: '2026-08-15T00:00:00Z',
+      read_at: null,
+    });
+  });
+
+  test('알림함 공개 경계는 공유 계약에 없는 이벤트를 거절한다', () => {
+    expect(
+      asNotificationInboxItem({
+        notification_id: '11111111-1111-4111-8111-111111111111',
+        promise_id: '22222222-2222-4222-8222-222222222222',
+        event: 'INTERNAL-ONLY',
+        title: '내부 알림',
+        body: '노출 금지',
+        deeplink: 'SCR-A05',
+        created_at: '2026-08-15T00:00:00Z',
+        read_at: null,
+      }),
+    ).toBeNull();
   });
 
   test('outbox 템플릿 인자를 공유 계약으로 렌더링한다', () => {

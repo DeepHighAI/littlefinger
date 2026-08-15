@@ -41,13 +41,7 @@ begin
            n.type,
            n.title,
            n.body,
-           case n.deeplink
-             when 'SCR-A03' then n.deeplink
-             when 'SCR-A04' then n.deeplink
-             when 'SCR-A05' then n.deeplink
-             when 'SCR-A06' then n.deeplink
-             else null
-           end as deeplink,
+           n.deeplink,
            n.created_at,
            n.read_at
       from public.notifications n

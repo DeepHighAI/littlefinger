@@ -361,18 +361,22 @@ describe('fulfillment_checks — 답변 원문은 Edge RPC만 읽는다', () => 
 });
 
 describe('개인 데이터는 본인만', () => {
-  test('알림함은 자기 것만 보인다', async () => {
+  test('알림 원본 테이블은 본인과 anon에게도 직접 공개하지 않는다', async () => {
     await db.asAdmin(
       `insert into public.notifications (user_id, type, channel, title, body, dedupe_key)
        values ($1, 'REMINDER', 'INAPP', '알림', '내용', $2)`,
       [creator, `dedupe-${Date.now()}-${Math.round(performance.now())}`],
     );
 
-    const mine = await db.asUser(creator, 'select id from public.notifications');
-    const theirs = await db.asUser(stranger, 'select id from public.notifications');
-
-    expect(mine.rows.length).toBeGreaterThan(0);
-    expect(theirs.rows).toEqual([]);
+    await expect(db.asUser(creator, 'select * from public.notifications')).rejects.toThrow(
+      /permission denied/iu,
+    );
+    await expect(db.asUser(stranger, 'select * from public.notifications')).rejects.toThrow(
+      /permission denied/iu,
+    );
+    await expect(db.asAnon('select * from public.notifications')).rejects.toThrow(
+      /permission denied/iu,
+    );
   });
 
   test('약속 지킴율은 남의 것을 볼 수 없다 — MVP 비노출(S-12)', async () => {

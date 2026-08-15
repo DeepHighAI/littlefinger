@@ -13,6 +13,8 @@
  * 이쪽은 **어떤 사건이었는지**다. 한 분류에 여러 사건이 들어간다.
  */
 
+import type { NotificationInboxItem } from './api.ts';
+
 /** §8-1 NT 코드 중 현재 계약과 발송 경로가 있는 것 */
 export type NotificationEvent =
   | 'NT-01'
@@ -146,6 +148,45 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 
 const PUSH_DEEPLINKS = new Set<NotificationDeeplink>(Object.values(NOTIFICATION_DEEPLINK));
 const PUSH_DATA_FIELDS = new Set(['notification_id', 'deeplink', 'promise_id']);
+const NOTIFICATION_EVENTS = new Set<NotificationEvent>(
+  Object.keys(NOTIFICATION_DEEPLINK) as NotificationEvent[],
+);
+
+/** DB RPC 결과를 공개 알림함 항목으로 좁히고, 화면 경로는 이벤트 계약에서 다시 만든다. */
+export function asNotificationInboxItem(value: unknown): NotificationInboxItem | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const row = value as Record<string, unknown>;
+  const event = row['event'];
+  const promiseId = row['promise_id'];
+  const readAt = row['read_at'];
+  if (
+    typeof row['notification_id'] !== 'string' ||
+    !UUID_PATTERN.test(row['notification_id']) ||
+    (promiseId !== null && (typeof promiseId !== 'string' || !UUID_PATTERN.test(promiseId))) ||
+    typeof event !== 'string' ||
+    !NOTIFICATION_EVENTS.has(event as NotificationEvent) ||
+    typeof row['title'] !== 'string' ||
+    typeof row['body'] !== 'string' ||
+    typeof row['created_at'] !== 'string' ||
+    !Number.isFinite(Date.parse(row['created_at'])) ||
+    (readAt !== null &&
+      (typeof readAt !== 'string' || !Number.isFinite(Date.parse(readAt))))
+  ) {
+    return null;
+  }
+
+  const publicEvent = event as NotificationEvent;
+  return {
+    notification_id: row['notification_id'],
+    promise_id: promiseId as string | null,
+    event: publicEvent,
+    title: row['title'],
+    body: row['body'],
+    deeplink: NOTIFICATION_DEEPLINK[publicEvent],
+    created_at: row['created_at'],
+    read_at: readAt as string | null,
+  };
+}
 
 /** 외부 푸시 payload 는 임의 URL이나 잘못된 식별자를 앱 라우터로 넘기기 전에 거른다. */
 export function asPushNotificationData(value: unknown): PushNotificationData | null {

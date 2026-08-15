@@ -175,6 +175,11 @@ export interface TestDb {
   ): Promise<{ rows: T[] }>;
   /** 로그인하지 않은 방문자로 실행한다. */
   asAnon<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: T[] }>;
+  /** Edge Function이 사용하는 service_role로 실행한다. */
+  asService<T = Record<string, unknown>>(
+    sql: string,
+    params?: unknown[],
+  ): Promise<{ rows: T[] }>;
   close(): Promise<void>;
 }
 
@@ -222,6 +227,7 @@ export async function createTestDb(): Promise<TestDb> {
     },
     asUser: (userId, sql, params) => runAs('authenticated', userId, sql, params),
     asAnon: (sql, params) => runAs('anon', null, sql, params),
+    asService: (sql, params) => runAs('service_role', null, sql, params),
     close: () => db.close(),
   };
 }

@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 import { NOTIFICATION_RETENTION_DAYS } from '../../packages/shared/src/config.ts';
+import { asNotificationInboxItem } from '../../packages/shared/src/notification.ts';
 import { createPromise, createTestDb, createUser, type TestDb } from './harness.ts';
 
 let db: TestDb;
@@ -35,18 +36,23 @@ async function createNotification(input: {
   readAt?: string | null;
   title?: string;
   deeplink?: string | null;
+  event?: string;
+  notificationId?: string;
 }): Promise<string> {
   const { rows } = await db.asAdmin(
     `insert into public.notifications
-       (user_id, promise_id, type, channel, title, body, deeplink, status, read_at, dedupe_key, created_at)
-     values ($1, $2, 'NT-01', $3::public.notification_channel, $4, '약속 본문', $5,
-             case when $6::timestamptz is null then 'SENT'::public.notification_status
+       (id, user_id, promise_id, type, channel, title, body, deeplink, status, read_at, dedupe_key, created_at)
+     values (coalesce($1::uuid, gen_random_uuid()), $2, $3, $4, $5::public.notification_channel,
+             $6, '약속 본문', $7,
+             case when $8::timestamptz is null then 'SENT'::public.notification_status
                   else 'READ'::public.notification_status end,
-             $6::timestamptz, $7, $8::timestamptz)
+             $8::timestamptz, $9, $10::timestamptz)
      returning id`,
     [
+      input.notificationId ?? null,
       input.userId,
       input.promiseId ?? promiseId,
+      input.event ?? 'NT-01',
       input.channel ?? 'INAPP',
       input.title ?? '알림',
       input.deeplink ?? 'SCR-A05',
@@ -159,8 +165,20 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
     });
 
     const result = await list({ actor: inbox.userId, now });
+    expect(asNotificationInboxItem(result.items[0])).toMatchObject({ deeplink: 'SCR-A05' });
+  });
 
-    expect(result.items[0]?.deeplink).toBeNull();
+  test('DB의 임의 event는 공유 공개 경계를 통과하지 못한다', async () => {
+    const now = '2026-08-15T00:00:00Z';
+    const inbox = await createInboxUser('이벤트경계소유자');
+    await createNotification({
+      userId: inbox.userId,
+      promiseId: inbox.promiseId,
+      createdAt: '2026-08-14T22:00:00Z',
+      event: 'INTERNAL-ONLY',
+    });
+    const result = await list({ actor: inbox.userId, now });
+    expect(asNotificationInboxItem(result.items[0])).toBeNull();
   });
 
   test('복합 cursor는 중복 없이 다음 최신순 페이지를 반환한다', async () => {
@@ -215,6 +233,37 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
     const result = await list({ actor: inbox.userId, now, limit: 1 });
 
     expect(result.next_cursor).toBeNull();
+  });
+
+  test('created_at이 같아도 UUID tie-break cursor로 중복과 누락 없이 이어진다', async () => {
+    const now = '2026-08-16T00:00:00Z';
+    const inbox = await createInboxUser('동률페이지소유자');
+    const createdAt = '2026-08-15T03:00:00Z';
+    const ids = [
+      '33333333-3333-4333-8333-333333333333',
+      '22222222-2222-4222-8222-222222222222',
+      '11111111-1111-4111-8111-111111111111',
+    ];
+    for (const notificationId of ids) {
+      await createNotification({
+        userId: inbox.userId,
+        promiseId: inbox.promiseId,
+        createdAt,
+        notificationId,
+      });
+    }
+
+    const pageOne = await list({ actor: inbox.userId, now, limit: 2 });
+    const pageTwo = await list({
+      actor: inbox.userId,
+      now,
+      limit: 2,
+      cursorCreatedAt: pageOne.next_cursor?.created_at ?? null,
+      cursorNotificationId: pageOne.next_cursor?.notification_id ?? null,
+    });
+
+    expect(pageOne.items.map((item) => item.notification_id)).toEqual(ids.slice(0, 2));
+    expect(pageTwo.items.map((item) => item.notification_id)).toEqual(ids.slice(2));
   });
 
   test('소유자가 단건 읽음을 반복해도 최초 read_at을 유지한다', async () => {
@@ -320,11 +369,13 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
       promiseId: inbox.promiseId,
       createdAt: '2026-05-16T23:59:59Z',
     });
-    const direct = await db.asUser(
-      inbox.userId,
-      `update public.notifications set read_at = now(), status = 'READ' where id = $1 returning id`,
-      [retained],
-    );
+    await expect(
+      db.asUser(
+        inbox.userId,
+        `update public.notifications set read_at = now(), status = 'READ' where id = $1 returning id`,
+        [retained],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
     await expect(
       db.asUser(
         inbox.userId,
@@ -341,7 +392,6 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
       [now],
     );
 
-    expect(direct.rows).toEqual([]);
     expect(first.rows[0]?.['deleted']).toBeGreaterThanOrEqual(1);
     expect(second.rows[0]?.['deleted']).toBe(0);
     const remaining = await db.asAdmin(
@@ -357,7 +407,40 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
     expect(rows[0]?.['days']).toBe(NOTIFICATION_RETENTION_DAYS);
   });
 
-  test('읽음 RPC는 SECURITY DEFINER와 빈 search_path를 유지한다', async () => {
+  test('알림함 테이블은 Data API 역할이 직접 읽지 못하고 service_role RPC는 동작한다', async () => {
+    const inbox = await createInboxUser('서비스역할소유자');
+    await createNotification({
+      userId: inbox.userId,
+      promiseId: inbox.promiseId,
+      createdAt: '2026-08-15T00:00:00Z',
+    });
+
+    await expect(
+      db.asUser(inbox.userId, `select dedupe_key, fail_reason from public.notifications`),
+    ).rejects.toThrow(/permission denied/iu);
+    await expect(db.asAnon(`select channel, status from public.notifications`)).rejects.toThrow(
+      /permission denied/iu,
+    );
+
+    const privileges = await db.asAdmin(
+      `select has_table_privilege('anon', 'public.notifications', 'SELECT') as anon,
+              has_table_privilege('authenticated', 'public.notifications', 'SELECT') as authenticated,
+              has_table_privilege('service_role', 'public.notifications', 'SELECT') as service_role`,
+    );
+    expect(privileges.rows[0]).toEqual({
+      anon: false,
+      authenticated: false,
+      service_role: true,
+    });
+
+    const result = await db.asService(
+      `select public.lf_notification_inbox_list($1, null, null, 20, $2::timestamptz) as result`,
+      [inbox.userId, '2026-08-16T00:00:00Z'],
+    );
+    expect(result.rows[0]?.['result']).toMatchObject({ unread_count: 1 });
+  });
+
+  test('알림함 RPC·retention·scheduler는 SECURITY DEFINER와 빈 search_path를 유지한다', async () => {
     const { rows } = await db.asAdmin(
       `select p.proname, p.prosecdef, p.proconfig
          from pg_proc p
@@ -366,7 +449,9 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
           and p.proname in (
             'lf_notification_inbox_list',
             'lf_notification_read',
-            'lf_notification_read_all'
+            'lf_notification_read_all',
+            'lf_notification_retention_purge',
+            'lf_schedule_notification_retention'
           )
         order by p.proname`,
     );
@@ -375,7 +460,29 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
       { proname: 'lf_notification_inbox_list', prosecdef: true, proconfig: ['search_path=""'] },
       { proname: 'lf_notification_read', prosecdef: true, proconfig: ['search_path=""'] },
       { proname: 'lf_notification_read_all', prosecdef: true, proconfig: ['search_path=""'] },
+      { proname: 'lf_notification_retention_purge', prosecdef: true, proconfig: ['search_path=""'] },
+      { proname: 'lf_schedule_notification_retention', prosecdef: true, proconfig: ['search_path=""'] },
     ]);
+  });
+
+  test('알림함 RPC·retention·scheduler 실행 권한은 service_role에만 있다', async () => {
+    const signatures = [
+      'public.lf_notification_inbox_list(uuid,timestamptz,uuid,integer,timestamptz)',
+      'public.lf_notification_read(uuid,uuid,timestamptz)',
+      'public.lf_notification_read_all(uuid,timestamptz)',
+      'public.lf_notification_retention_purge(timestamptz)',
+      'public.lf_schedule_notification_retention()',
+    ];
+
+    for (const signature of signatures) {
+      const { rows } = await db.asAdmin(
+        `select has_function_privilege('anon', $1, 'EXECUTE') as anon,
+                has_function_privilege('authenticated', $1, 'EXECUTE') as authenticated,
+                has_function_privilege('service_role', $1, 'EXECUTE') as service_role`,
+        [signature],
+      );
+      expect(rows[0]).toEqual({ anon: false, authenticated: false, service_role: true });
+    }
   });
 
   test('retention cron은 같은 이름으로 다시 등록해도 04:20 KST의 한 작업만 남긴다', async () => {
