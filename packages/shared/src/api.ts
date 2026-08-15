@@ -20,6 +20,7 @@ import type {
   PromiseCategory,
   PromiseStatus,
 } from './promise.ts';
+import type { NotificationDeeplink, NotificationEvent } from './notification.ts';
 
 /** 상태 변경 요청이 반드시 달고 오는 헤더 (§7-3.6). 값은 UUID 다. */
 export const IDEMPOTENCY_KEY_HEADER = 'Idempotency-Key';
@@ -440,6 +441,48 @@ export interface FulfillmentReopenResponse {
   notification_recipients: readonly FulfillmentNotificationRecipient[];
 }
 
+/** SCR-A07 알림함의 한 항목. 내부 전송·중복제거 상태는 절대 노출하지 않는다. */
+export interface NotificationInboxItem {
+  notification_id: string;
+  promise_id: string | null;
+  event: NotificationEvent;
+  title: string;
+  body: string;
+  deeplink: NotificationDeeplink | null;
+  created_at: IsoDateTime;
+  read_at: IsoDateTime | null;
+}
+
+/** 동률 시에도 항목을 건너뛰지 않는 최신순 복합 cursor. */
+export interface NotificationInboxCursor {
+  created_at: IsoDateTime;
+  notification_id: string;
+}
+
+export interface NotificationInboxListRequest {
+  cursor?: NotificationInboxCursor;
+  limit?: number;
+}
+
+export interface NotificationInboxListResponse {
+  items: readonly NotificationInboxItem[];
+  unread_count: number;
+  next_cursor: NotificationInboxCursor | null;
+}
+
+export interface NotificationReadRequest {
+  notification_id: string;
+}
+
+export interface NotificationReadResponse {
+  notification_id: string;
+  read_at: IsoDateTime;
+}
+
+export interface NotificationReadAllResponse {
+  read_count: number;
+}
+
 /**
  * Edge Function 슬러그. `04` §7-3 의 이름을 그대로 쓴다.
  *
@@ -466,6 +509,9 @@ export const ENDPOINT = {
   evidenceUpload: 'evidence-upload',
   evidenceDiscard: 'evidence-discard',
   evidenceSignUrl: 'evidence-sign-url',
+  notificationInbox: 'notification-inbox',
+  notificationRead: 'notification-read',
+  notificationReadAll: 'notification-read-all',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];

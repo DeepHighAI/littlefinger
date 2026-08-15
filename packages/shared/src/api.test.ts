@@ -14,10 +14,17 @@ import {
   type FulfillmentRoundView,
   type FulfillmentSubmitRequest,
   type FulfillmentSubmitResponse,
+  type NotificationInboxItem,
+  type NotificationInboxListRequest,
+  type NotificationInboxListResponse,
+  type NotificationReadAllResponse,
+  type NotificationReadRequest,
+  type NotificationReadResponse,
   type ParticipantPromiseSummary,
   type PromiseFulfillmentDetailRequest,
   type PromiseFulfillmentDetailResponse,
 } from './api.ts';
+import { NOTIFICATION_RETENTION_DAYS } from './config.ts';
 
 // 타입 소비자가 실제 화면에 필요한 모든 필드를 한 번에 조립할 수 있어야 한다.
 const summary: ParticipantPromiseSummary = {
@@ -153,6 +160,35 @@ const reopenResponse: FulfillmentReopenResponse = {
   notification_recipients: [{ user_id: 'partner-id', role: 'PARTNER' }],
 };
 
+const notificationItem: NotificationInboxItem = {
+  notification_id: 'notification-id',
+  promise_id: 'promise-id',
+  event: 'NT-01',
+  title: '손가락 걸었어요!',
+  body: '매일 걷기',
+  deeplink: 'SCR-A05',
+  created_at: '2026-08-15T00:00:00Z',
+  read_at: null,
+};
+
+const notificationListRequest: NotificationInboxListRequest = {
+  cursor: { created_at: '2026-08-15T00:00:00Z', notification_id: 'notification-id' },
+  limit: 20,
+};
+
+const notificationListResponse: NotificationInboxListResponse = {
+  items: [notificationItem],
+  unread_count: 1,
+  next_cursor: null,
+};
+
+const notificationReadRequest: NotificationReadRequest = { notification_id: 'notification-id' };
+const notificationReadResponse: NotificationReadResponse = {
+  notification_id: 'notification-id',
+  read_at: '2026-08-15T00:00:00Z',
+};
+const notificationReadAllResponse: NotificationReadAllResponse = { read_count: 1 };
+
 const validationFields: ApiValidationField[] = [
   'answer',
   'comment',
@@ -228,6 +264,32 @@ describe('F-07 공개 API 계약', () => {
       evidenceUpload: 'evidence-upload',
       evidenceDiscard: 'evidence-discard',
       evidenceSignUrl: 'evidence-sign-url',
+    });
+  });
+
+  test('알림함 계약은 공개 필드·cursor·90일 정책과 세 Edge Function을 고정한다', () => {
+    expect({
+      notificationItem,
+      notificationListRequest,
+      notificationListResponse,
+      notificationReadRequest,
+      notificationReadResponse,
+      notificationReadAllResponse,
+      retentionDays: NOTIFICATION_RETENTION_DAYS,
+    }).toMatchObject({
+      notificationItem: {
+        event: 'NT-01',
+        deeplink: 'SCR-A05',
+        read_at: null,
+      },
+      notificationListResponse: { unread_count: 1, next_cursor: null },
+      notificationReadAllResponse: { read_count: 1 },
+      retentionDays: 90,
+    });
+    expect(ENDPOINT).toMatchObject({
+      notificationInbox: 'notification-inbox',
+      notificationRead: 'notification-read',
+      notificationReadAll: 'notification-read-all',
     });
   });
 });

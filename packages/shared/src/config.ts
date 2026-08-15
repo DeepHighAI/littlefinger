@@ -81,6 +81,9 @@ export const EVIDENCE_RETENTION_DAYS = 365;
 /** 미수정 DRAFT 자동 삭제 기한(일) (J-06) */
 export const DRAFT_TTL_DAYS = 90;
 
+/** 인앱 알림 보존 기간(일). 지난 알림은 매일 정리한다(§4-6-3). */
+export const NOTIFICATION_RETENTION_DAYS = 90;
+
 /** 재협의 라운드 상한. `null` = 무제한 (S-10 기본안). 대안은 3회 제한. */
 export const AMEND_MAX_ROUNDS: number | null = null;
 
