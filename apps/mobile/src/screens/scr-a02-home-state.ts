@@ -21,6 +21,7 @@ export interface PromiseHomeTabState {
 export interface PromiseHomeState {
   selectedTab: PromiseHomeTab;
   counts: Record<PromiseHomeTab, number>;
+  latestCountsLoadId: number;
   tabs: Record<PromiseHomeTab, PromiseHomeTabState>;
 }
 
@@ -79,6 +80,7 @@ export function createInitialHomeState(): PromiseHomeState {
   return {
     selectedTab: 'ACTIVE',
     counts: { ACTIVE: 0, WAITING: 0, COMPLETED: 0 },
+    latestCountsLoadId: 0,
     tabs: {
       ACTIVE: initialTabState(),
       WAITING: initialTabState(),
@@ -146,11 +148,14 @@ export function promiseHomeReducer(
       });
     case 'LOAD_SUCCEEDED':
       if (action.loadId !== current.latestLoadId) return state;
+      const pinned = action.tab === 'ACTIVE' ? uniqueCards(action.pinned) : [];
+      const pinnedIds = new Set(pinned.map((item) => item.promise_id));
+      const hasLatestCounts = action.loadId >= state.latestCountsLoadId;
       return {
         ...replaceTab(state, action.tab, {
           ...current,
-          items: uniqueCards(action.items),
-          pinned: action.tab === 'ACTIVE' ? uniqueCards(action.pinned) : [],
+          items: uniqueCards(action.items).filter((item) => !pinnedIds.has(item.promise_id)),
+          pinned,
           nextCursor: action.nextCursor,
           loading: false,
           refreshing: false,
@@ -160,7 +165,8 @@ export function promiseHomeReducer(
           pageRequestId: null,
           pageGeneration: null,
         }),
-        counts: action.counts,
+        counts: hasLatestCounts ? action.counts : state.counts,
+        latestCountsLoadId: hasLatestCounts ? action.loadId : state.latestCountsLoadId,
       };
     case 'LOAD_FAILED':
       if (action.loadId !== current.latestLoadId) return state;
@@ -193,7 +199,9 @@ export function promiseHomeReducer(
       ) return state;
       return replaceTab(state, action.tab, {
         ...current,
-        items: uniqueCards([...(current.items ?? []), ...action.items]),
+        items: uniqueCards([...(current.items ?? []), ...action.items]).filter(
+          (item) => !current.pinned.some((pinnedItem) => pinnedItem.promise_id === item.promise_id),
+        ),
         nextCursor: action.nextCursor,
         pagePending: false,
         pageFailed: false,

@@ -1,5 +1,6 @@
 const FIRST_ID = '11111111-1111-4111-8111-111111111111';
 const SECOND_ID = '22222222-2222-4222-8222-222222222222';
+const THIRD_ID = '33333333-3333-4333-8333-333333333333';
 
 interface StateModule {
   createInitialHomeState: () => any;
@@ -96,19 +97,41 @@ describe('SCR-A02 탭별 홈 상태', () => {
       tab: 'ACTIVE',
       requestId: 2,
       generation: 1,
-      items: [card(FIRST_ID), card(SECOND_ID)],
+      items: [card(FIRST_ID), card(SECOND_ID), card(THIRD_ID)],
       nextCursor: null,
     });
 
     expect(succeeded.tabs.ACTIVE.items.map((item: any) => item.promise_id)).toEqual([
       FIRST_ID,
-      SECOND_ID,
+      THIRD_ID,
     ]);
     expect(succeeded.tabs.ACTIVE).toMatchObject({
       nextCursor: null,
       pagePending: false,
       pageFailed: false,
     });
+  });
+
+  test('ACTIVE 첫 page에서도 pinned 약속은 일반 목록에서 제거한다', () => {
+    const module = loadState()!;
+    const initial = module.createInitialHomeState();
+    const started = module.promiseHomeReducer(initial, {
+      type: 'LOAD_STARTED',
+      tab: 'ACTIVE',
+      loadId: 1,
+      refresh: false,
+    });
+    const succeeded = module.promiseHomeReducer(started, {
+      type: 'LOAD_SUCCEEDED',
+      tab: 'ACTIVE',
+      loadId: 1,
+      items: [card(FIRST_ID), card(SECOND_ID, 'CHECKING')],
+      pinned: [card(SECOND_ID, 'CHECKING')],
+      counts: { ACTIVE: 2, WAITING: 0, COMPLETED: 0 },
+      nextCursor: null,
+    });
+
+    expect(succeeded.tabs.ACTIVE.items.map((item: any) => item.promise_id)).toEqual([FIRST_ID]);
   });
 
   test('page 중복 시작은 첫 request를 보존하고 실패해도 기존 목록·재시도 가능 상태를 유지한다', () => {
@@ -201,6 +224,44 @@ describe('SCR-A02 탭별 홈 상태', () => {
     expect(failed.tabs.ACTIVE.items).toEqual(active.tabs.ACTIVE.items);
     expect(failed.tabs.ACTIVE.nextCursor).toEqual(active.tabs.ACTIVE.nextCursor);
     expect(failed.tabs.ACTIVE).toMatchObject({ loadFailed: true, refreshing: false });
+  });
+
+  test('서로 다른 탭 요청이 역순 완료돼도 최신 전체 count를 오래된 응답으로 덮지 않는다', () => {
+    const module = loadState()!;
+    const initial = module.createInitialHomeState();
+    const activeStarted = module.promiseHomeReducer(initial, {
+      type: 'LOAD_STARTED',
+      tab: 'ACTIVE',
+      loadId: 1,
+      refresh: false,
+    });
+    const waitingStarted = module.promiseHomeReducer(activeStarted, {
+      type: 'LOAD_STARTED',
+      tab: 'WAITING',
+      loadId: 2,
+      refresh: false,
+    });
+    const waitingSucceeded = module.promiseHomeReducer(waitingStarted, {
+      type: 'LOAD_SUCCEEDED',
+      tab: 'WAITING',
+      loadId: 2,
+      items: [card(SECOND_ID, 'PENDING')],
+      pinned: [],
+      counts: { ACTIVE: 4, WAITING: 3, COMPLETED: 2 },
+      nextCursor: null,
+    });
+    const activeSucceededLate = module.promiseHomeReducer(waitingSucceeded, {
+      type: 'LOAD_SUCCEEDED',
+      tab: 'ACTIVE',
+      loadId: 1,
+      items: [card(FIRST_ID)],
+      pinned: [],
+      counts: { ACTIVE: 1, WAITING: 1, COMPLETED: 1 },
+      nextCursor: null,
+    });
+
+    expect(activeSucceededLate.tabs.ACTIVE.items).toHaveLength(1);
+    expect(activeSucceededLate.counts).toEqual({ ACTIVE: 4, WAITING: 3, COMPLETED: 2 });
   });
 
   test('DRAFT 삭제 성공은 WAITING cache와 count에서 정확히 한 건만 제거한다', () => {

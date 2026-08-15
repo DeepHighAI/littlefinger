@@ -2,6 +2,7 @@ import { render, userEvent } from '@testing-library/react-native';
 import type { TextStyle, ViewStyle } from 'react-native';
 
 import { colors, line, size, space, type, weight } from '../theme/tokens';
+import { LfAvatar } from './LfAvatar';
 import { LfButton } from './LfButton';
 import { LfCard } from './LfCard';
 import { LfIcon } from './LfIcon';
@@ -234,5 +235,32 @@ describe('LfIcon', () => {
     const view = await render(<LfIcon testID="i" name="check" color="primary" />);
     const icon = view.getByTestId('i', { includeHiddenElements: true });
     expect(flatten(icon.props.style).color).toBe(colors.primary);
+  });
+});
+
+describe('LfAvatar', () => {
+  test('HTTPS 사진은 이미지로, 사진이 없으면 닉네임 첫 글자를 토큰 크기로 표시한다', async () => {
+    const fallback = await render(
+      <LfAvatar
+        testID="avatar"
+        nickname="지우"
+        profileImageUrl={null}
+        accessibilityLabel="지우 프로필 사진"
+      />,
+    );
+    expect(fallback.getByText('지')).toBeTruthy();
+    expect(styleOf(fallback, 'avatar').width).toBe(size.iconButton);
+
+    const photo = await render(
+      <LfAvatar
+        testID="avatar-photo"
+        nickname="지우"
+        profileImageUrl="https://example.com/avatar.jpg"
+        accessibilityLabel="지우 프로필 사진"
+      />,
+    );
+    expect(photo.getByLabelText('지우 프로필 사진').props.source).toEqual({
+      uri: 'https://example.com/avatar.jpg',
+    });
   });
 });

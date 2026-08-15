@@ -1,71 +1,63 @@
 import {
   PROMISE_STATUS_LABEL,
-  type ParticipantPromiseSummary,
-  type PromiseStatus,
+  ddayFrom,
+  formatDday,
+  formatKstDate,
+  type PromiseHomeCard,
+  type PromiseHomeTab,
 } from '@littlefinger/shared';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfAppBar } from '../components/LfAppBar';
+import { LfAvatar } from '../components/LfAvatar';
 import { LfButton } from '../components/LfButton';
 import { LfCard } from '../components/LfCard';
-import { LfChip } from '../components/LfChip';
+import { LfChip, type LfChipTone } from '../components/LfChip';
 import { LfEmpty } from '../components/LfEmpty';
 import { LfFab } from '../components/LfFab';
 import { LfIcon } from '../components/LfIcon';
 import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
+import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import {
-  deleteDraft,
-  listWaitingPromises,
-  type WaitingPromiseSummary,
-} from '../lib/home-promises-native.ts';
-import { listParticipantPromises } from '../lib/fulfillment-native.ts';
+  createInitialHomeState,
+  promiseHomeReducer,
+} from '../screens/scr-a02-home-state.ts';
 import { SCR_A02_LABEL as HOME_LABEL } from '../screens/scr-a02-labels.ts';
 import { colors, gutter, size, space } from '../theme/tokens';
 
-const ACTIVE_STATUSES: readonly PromiseStatus[] = [
-  'ACTIVE',
-  'AMEND_PENDING',
-  'CHECKING',
-];
-const COMPLETED_STATUSES: readonly PromiseStatus[] = [
-  'COMPLETED',
-  'BROKEN',
-  'DISPUTED',
-  'UNRESOLVED',
-  'CANCELED',
-  'DECLINED',
-];
-const FULFILLMENT_STATUSES: readonly PromiseStatus[] = [
-  'CHECKING',
-  'DISPUTED',
-  'COMPLETED',
-  'BROKEN',
-  'UNRESOLVED',
-];
+const TABS: readonly PromiseHomeTab[] = ['ACTIVE', 'WAITING', 'COMPLETED'];
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   tabs: {
     flexDirection: 'row',
-    minHeight: size.tabHeight,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: colors.surfaceChrome,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outline,
+    gap: space[3],
+    paddingHorizontal: gutter.app,
   },
-  body: {
+  tab: {
+    flex: 1,
+    minHeight: size.touchMin,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  body: { flex: 1 },
+  content: {
     flexGrow: 1,
     padding: gutter.app,
     paddingBottom: size.fabHeight + gutter.app + space[9],
   },
-  list: { gap: space[5] },
-  cardTitle: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   notifications: {
     minWidth: size.touchMin,
@@ -73,56 +65,203 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  cardBody: { gap: space[5] },
+  partyText: { flex: 1 },
+  pinned: { gap: space[5], marginBottom: space[5] },
+  footer: { paddingVertical: space[7] },
 });
 
-export default function HomeScreen(): React.JSX.Element {
-  const router = useRouter();
-  const [promises, setPromises] = useState<WaitingPromiseSummary[] | null>(null);
-  const [participantPromises, setParticipantPromises] = useState<
-    ParticipantPromiseSummary[] | null
-  >(null);
-  const [waitingLoadFailed, setWaitingLoadFailed] = useState(false);
-  const [participantLoadFailed, setParticipantLoadFailed] = useState(false);
+function tabLabel(tab: PromiseHomeTab, count: number): string {
+  if (tab === 'ACTIVE') return HOME_LABEL.activeTab(count);
+  if (tab === 'WAITING') return HOME_LABEL.waitingTab(count);
+  return HOME_LABEL.completedTab(count);
+}
 
-  useEffect(() => {
-    let active = true;
-    setWaitingLoadFailed(false);
-    setParticipantLoadFailed(false);
-    void listWaitingPromises()
-      .then((rows) => {
-        if (active) setPromises(rows);
-      })
-      .catch(() => {
-        if (active) {
-          setPromises([]);
-          setWaitingLoadFailed(true);
-        }
+function statusTone(status: PromiseHomeCard['status']): LfChipTone {
+  if (status === 'CHECKING') return 'urgent';
+  if (status === 'COMPLETED') return 'done';
+  if (status === 'BROKEN') return 'broken';
+  return status === 'ACTIVE' ? 'status' : 'neutral';
+}
+
+function counterpart(item: PromiseHomeCard): PromiseHomeCard['creator'] {
+  if (item.my_role === 'CREATOR' && item.partner !== null) return item.partner;
+  return item.creator;
+}
+
+interface HomeCardProps {
+  item: PromiseHomeCard;
+  now: Date;
+  onOpen: (item: PromiseHomeCard) => void;
+  onDelete: (item: PromiseHomeCard) => void;
+  pinned?: boolean;
+}
+
+function PromiseCard({
+  item,
+  now,
+  onOpen,
+  onDelete,
+  pinned = false,
+}: HomeCardProps): React.JSX.Element {
+  const partnerName = item.partner?.nickname ?? HOME_LABEL.partnerFallback;
+  const other = counterpart(item);
+  const content = (
+    <LfCard variant={pinned ? 'container' : 'default'}>
+      <View style={styles.cardBody}>
+        <LfRow gap={4}>
+          <LfChip label={PROMISE_STATUS_LABEL[item.status]} tone={statusTone(item.status)} />
+          {item.end_date !== null && (
+            <LfText variant="sectionTitle">
+              {formatDday(ddayFrom(item.end_date, now))}
+            </LfText>
+          )}
+        </LfRow>
+        <LfText variant="subtitle">{item.title}</LfText>
+        {item.end_date !== null && (
+          <LfText secondary>{HOME_LABEL.endDate(formatKstDate(item.end_date))}</LfText>
+        )}
+        <LfRow gap={3}>
+          <LfAvatar
+            nickname={other.nickname}
+            profileImageUrl={other.profile_image_url}
+            accessibilityLabel={HOME_LABEL.profileImage(other.nickname)}
+          />
+          <View style={styles.partyText}>
+            <LfText secondary>
+              {HOME_LABEL.parties(item.creator.nickname, partnerName)}
+            </LfText>
+          </View>
+          {item.has_witness && <LfChip label={HOME_LABEL.witness} tone="neutral" />}
+        </LfRow>
+        {item.status === 'CHECKING' && item.needs_response && (
+          <LfStack gap={3}>
+            <LfText variant="sectionTitle">{HOME_LABEL.needsResponse}</LfText>
+            <LfButton
+              label={HOME_LABEL.answerFulfillment}
+              onPress={() => onOpen(item)}
+              block
+            />
+          </LfStack>
+        )}
+        {item.status === 'DRAFT' && (
+          <LfButton
+            accessibilityLabel={HOME_LABEL.deleteDraft(item.title)}
+            label={HOME_LABEL.delete}
+            variant="text"
+            onPress={() => onDelete(item)}
+          />
+        )}
+      </View>
+    </LfCard>
+  );
+
+  if (item.status !== 'DRAFT' && item.status !== 'PENDING' && item.status !== 'CHECKING') {
+    return content;
+  }
+  if (item.status === 'CHECKING' && item.needs_response) return content;
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={HOME_LABEL.open(item.title)}
+      onPress={() => onOpen(item)}
+    >
+      {content}
+    </Pressable>
+  );
+}
+
+export interface HomeScreenProps {
+  now?: Date;
+}
+
+export default function HomeScreen({ now = new Date() }: HomeScreenProps): React.JSX.Element {
+  const router = useRouter();
+  const [state, dispatch] = useReducer(promiseHomeReducer, undefined, createInitialHomeState);
+  const stateRef = useRef(state);
+  const nextRequestId = useRef(0);
+  const loadingTabs = useRef(new Set<PromiseHomeTab>());
+  const pagingTabs = useRef(new Set<PromiseHomeTab>());
+  stateRef.current = state;
+
+  const loadFirstPage = useCallback(async (tab: PromiseHomeTab, refresh: boolean) => {
+    if (loadingTabs.current.has(tab)) return;
+    loadingTabs.current.add(tab);
+    const loadId = ++nextRequestId.current;
+    dispatch({ type: 'LOAD_STARTED', tab, loadId, refresh });
+    try {
+      const result = await listHomePromises({ tab });
+      dispatch({
+        type: 'LOAD_SUCCEEDED',
+        tab,
+        loadId,
+        items: result.items,
+        pinned: result.pinned,
+        counts: result.counts,
+        nextCursor: result.next_cursor,
       });
-    void listParticipantPromises()
-      .then((rows) => {
-        if (active) setParticipantPromises(rows);
-      })
-      .catch(() => {
-        if (active) {
-          setParticipantPromises([]);
-          setParticipantLoadFailed(true);
-        }
-      });
-    return () => {
-      active = false;
-    };
+    } catch {
+      dispatch({ type: 'LOAD_FAILED', tab, loadId });
+    } finally {
+      loadingTabs.current.delete(tab);
+    }
   }, []);
 
-  async function removeDraft(promiseId: string): Promise<void> {
+  const loadNextPage = useCallback(async (tab: PromiseHomeTab) => {
+    const snapshot = stateRef.current.tabs[tab];
+    if (
+      snapshot.nextCursor === null ||
+      snapshot.pagePending ||
+      pagingTabs.current.has(tab)
+    ) return;
+    pagingTabs.current.add(tab);
+    const requestId = ++nextRequestId.current;
+    const generation = snapshot.latestLoadId;
+    dispatch({ type: 'PAGE_STARTED', tab, requestId, generation });
     try {
-      await deleteDraft(promiseId);
-      setPromises((rows) => rows?.filter((row) => row.id !== promiseId) ?? []);
+      const result = await listHomePromises({ tab, cursor: snapshot.nextCursor });
+      dispatch({
+        type: 'PAGE_SUCCEEDED',
+        tab,
+        requestId,
+        generation,
+        items: result.items,
+        nextCursor: result.next_cursor,
+      });
     } catch {
-      setWaitingLoadFailed(true);
+      dispatch({ type: 'PAGE_FAILED', tab, requestId, generation });
+    } finally {
+      pagingTabs.current.delete(tab);
     }
-  }
+  }, []);
 
-  function confirmDelete(item: WaitingPromiseSummary): void {
+  const selected = state.tabs[state.selectedTab];
+  useEffect(() => {
+    if (selected.items === null && !selected.loading && !selected.loadFailed) {
+      void loadFirstPage(state.selectedTab, false);
+    }
+  }, [loadFirstPage, selected.items, selected.loadFailed, selected.loading, state.selectedTab]);
+
+  const openPromise = useCallback((item: PromiseHomeCard) => {
+    if (item.status === 'DRAFT') {
+      router.push({ pathname: '/promise/edit', params: { promise_id: item.promise_id } });
+    } else if (item.status === 'PENDING') {
+      router.push({ pathname: '/invite', params: { promise_id: item.promise_id } });
+    } else if (item.status === 'CHECKING') {
+      router.push({
+        pathname: '/fulfillment/[promise_id]',
+        params: { promise_id: item.promise_id },
+      });
+    }
+  }, [router]);
+
+  const removeDraft = useCallback(async (item: PromiseHomeCard) => {
+    await deleteDraft(item.promise_id);
+    dispatch({ type: 'DRAFT_DELETED', promiseId: item.promise_id });
+  }, []);
+
+  const confirmDelete = useCallback((item: PromiseHomeCard) => {
     Alert.alert(HOME_LABEL.deleteFirstTitle, HOME_LABEL.deleteFirstBody, [
       { text: HOME_LABEL.cancel, style: 'cancel' },
       {
@@ -133,157 +272,128 @@ export default function HomeScreen(): React.JSX.Element {
             {
               text: HOME_LABEL.delete,
               style: 'destructive',
-              onPress: async () => await removeDraft(item.id),
+              onPress: async () => await removeDraft(item),
             },
           ]);
         },
       },
     ]);
-  }
+  }, [removeDraft]);
 
-  function openPromise(item: WaitingPromiseSummary): void {
-    if (item.status === 'DRAFT') {
-      router.push({ pathname: '/promise/edit', params: { promise_id: item.id } });
-    } else {
-      router.push({ pathname: '/invite', params: { promise_id: item.id } });
-    }
-  }
-
-  const waitingCount = promises?.length ?? 0;
-  const activeCount =
-    participantPromises?.filter((item) => ACTIVE_STATUSES.includes(item.status))
-      .length ?? 0;
-  const completedCount =
-    participantPromises?.filter((item) => COMPLETED_STATUSES.includes(item.status))
-      .length ?? 0;
-  const sortedParticipantPromises = [...(participantPromises ?? [])].sort(
-    (left, right) => {
-      if (left.needs_response !== right.needs_response) {
-        return left.needs_response ? -1 : 1;
-      }
-      return Date.parse(right.updated_at) - Date.parse(left.updated_at);
-    },
+  const renderCard = useCallback(
+    ({ item }: { item: PromiseHomeCard }) => (
+      <PromiseCard item={item} now={now} onOpen={openPromise} onDelete={confirmDelete} />
+    ),
+    [confirmDelete, now, openPromise],
   );
-  const loading = promises === null && participantPromises === null;
-  const empty =
-    promises?.length === 0 &&
-    participantPromises?.length === 0 &&
-    !waitingLoadFailed &&
-    !participantLoadFailed;
 
-  function participantCard(item: ParticipantPromiseSummary): React.JSX.Element {
-    const card = (
-      <LfCard variant={item.needs_response ? 'emphasis' : 'default'}>
-        <LfStack gap={4}>
-          <LfChip label={PROMISE_STATUS_LABEL[item.status]} tone="status" />
-          <View style={styles.cardTitle}>
-            <LfText variant="subtitle">{item.title}</LfText>
-          </View>
+  const pinnedHeader = state.selectedTab === 'ACTIVE' && selected.pinned.length > 0 ? (
+    <View style={styles.pinned}>
+      <LfText variant="sectionTitle">{HOME_LABEL.pinnedTitle}</LfText>
+      {selected.pinned.map((item) => (
+        <PromiseCard
+          key={item.promise_id}
+          item={item}
+          now={now}
+          onOpen={openPromise}
+          onDelete={confirmDelete}
+          pinned
+        />
+      ))}
+    </View>
+  ) : null;
+
+  const pageFooter = selected.pagePending || selected.pageFailed ? (
+    <View style={styles.footer}>
+      {selected.pagePending ? (
+        <LfText align="center" secondary>{HOME_LABEL.loading}</LfText>
+      ) : (
+        <LfStack gap={3} center>
+          <LfText secondary>{HOME_LABEL.pageError}</LfText>
+          <LfButton
+            accessibilityLabel={HOME_LABEL.retryPageAccessibility}
+            label={HOME_LABEL.retry}
+            variant="text"
+            onPress={() => void loadNextPage(state.selectedTab)}
+          />
         </LfStack>
-      </LfCard>
-    );
-    const actionable = FULFILLMENT_STATUSES.includes(item.status);
-    return actionable ? (
-      <Pressable
-        key={item.promise_id}
-        testID={`participant-promise-${item.promise_id}`}
-        accessibilityRole="button"
-        accessibilityLabel={HOME_LABEL.open(item.title)}
-        onPress={() =>
-          router.push({
-            pathname: '/fulfillment/[promise_id]',
-            params: { promise_id: item.promise_id },
-          })
-        }
-      >
-        {card}
-      </Pressable>
-    ) : (
-      <View
-        key={item.promise_id}
-        testID={`participant-promise-${item.promise_id}`}
-      >
-        {card}
-      </View>
-    );
-  }
+      )}
+    </View>
+  ) : null;
 
   return (
     <SafeAreaView style={styles.screen}>
       <LfAppBar
-        brand
         title={HOME_LABEL.brand}
-        action={
+        brand
+        action={(
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={HOME_LABEL.notifications}
-            onPress={() => router.push('/notifications')}
             style={styles.notifications}
+            onPress={() => router.push('/notifications')}
           >
             <LfIcon name="notifications-none" />
           </Pressable>
-        }
+        )}
       />
-      <View style={styles.tabs} accessibilityRole="tablist">
-        <LfText variant="caption">{HOME_LABEL.activeTab(activeCount)}</LfText>
-        <LfText variant="caption">{HOME_LABEL.waitingTab(waitingCount)}</LfText>
-        <LfText variant="caption">
-          {HOME_LABEL.completedTab(completedCount)}
-        </LfText>
+      <View accessibilityRole="tablist" style={styles.tabs}>
+        {TABS.map((tab) => {
+          const selectedTab = state.selectedTab === tab;
+          const label = tabLabel(tab, state.counts[tab]);
+          return (
+            <Pressable
+              key={tab}
+              accessibilityRole="tab"
+              accessibilityLabel={label}
+              accessibilityState={{ selected: selectedTab }}
+              style={styles.tab}
+              onPress={() => dispatch({ type: 'TAB_SELECTED', tab })}
+            >
+              <LfChip label={label} tone={selectedTab ? 'urgent' : 'neutral'} />
+            </Pressable>
+          );
+        })}
       </View>
-
-      {loading ? (
-        <View style={styles.centered}>
-          <LfText secondary>{HOME_LABEL.loading}</LfText>
-        </View>
-      ) : empty ? (
-        <LfEmpty title={HOME_LABEL.empty} description={HOME_LABEL.emptyDescription} />
-      ) : (
-        <ScrollView contentContainerStyle={styles.body}>
-          <View style={styles.list}>
-            {participantLoadFailed && (
-              <LfText secondary align="center">
-                {HOME_LABEL.participantLoadError}
-              </LfText>
-            )}
-            {waitingLoadFailed && (
-              <LfText secondary align="center">
-                {HOME_LABEL.loadError}
-              </LfText>
-            )}
-            {sortedParticipantPromises.map(participantCard)}
-            {(promises ?? []).map((item) => (
-              <Pressable
-                key={item.id}
-                accessibilityRole="button"
-                accessibilityLabel={HOME_LABEL.open(item.title)}
-                onPress={() => openPromise(item)}
-              >
-                <LfCard>
-                  <LfStack gap={4}>
-                    <LfChip label={PROMISE_STATUS_LABEL[item.status]} tone="status" />
-                    <LfRow gap={4}>
-                      <View style={styles.cardTitle}>
-                        <LfText variant="subtitle">{item.title}</LfText>
-                      </View>
-                      {item.status === 'DRAFT' && (
-                        <LfButton
-                          variant="text"
-                          size="compact"
-                          label={HOME_LABEL.delete}
-                          accessibilityLabel={HOME_LABEL.deleteDraft(item.title)}
-                          onPress={() => confirmDelete(item)}
-                        />
-                      )}
-                    </LfRow>
-                  </LfStack>
-                </LfCard>
-              </Pressable>
-            ))}
+      <View style={styles.body}>
+        {selected.loading || selected.items === null ? (
+          <View style={styles.centered}>
+            <LfText secondary>{HOME_LABEL.loading}</LfText>
           </View>
-        </ScrollView>
-      )}
-
+        ) : selected.loadFailed && selected.items.length === 0 && selected.pinned.length === 0 ? (
+          <LfStack grow center gap={4}>
+            <LfText secondary align="center">{HOME_LABEL.loadError}</LfText>
+            <LfButton
+              accessibilityLabel={HOME_LABEL.retryListAccessibility}
+              label={HOME_LABEL.retry}
+              variant="text"
+              onPress={() => void loadFirstPage(state.selectedTab, false)}
+            />
+          </LfStack>
+        ) : (
+          <FlatList
+            testID="home-list"
+            data={selected.items}
+            keyExtractor={(item) => item.promise_id}
+            renderItem={renderCard}
+            ItemSeparatorComponent={() => <View style={{ height: space[5] }} />}
+            contentContainerStyle={styles.content}
+            ListHeaderComponent={pinnedHeader}
+            ListEmptyComponent={selected.pinned.length === 0 ? (
+              <LfEmpty title={HOME_LABEL.empty} description={HOME_LABEL.emptyDescription} />
+            ) : null}
+            ListFooterComponent={pageFooter}
+            onEndReached={() => void loadNextPage(state.selectedTab)}
+            onEndReachedThreshold={0.4}
+            refreshControl={(
+              <RefreshControl
+                refreshing={selected.refreshing}
+                onRefresh={() => void loadFirstPage(state.selectedTab, true)}
+              />
+            )}
+          />
+        )}
+      </View>
       <LfFab label={HOME_LABEL.create} onPress={() => router.push('/promise/edit')} />
     </SafeAreaView>
   );
