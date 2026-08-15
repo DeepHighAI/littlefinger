@@ -36,15 +36,21 @@ export interface PushNavigationManager {
 
 export const PENDING_PUSH_DESTINATION_KEY = 'littlefinger.pending-push-destination.v1';
 
-function routeFor(deeplink: NotificationDeeplink, promiseId: string): PushRoute {
+export function routeForNotificationDeeplink(
+  deeplink: NotificationDeeplink,
+  promiseId: string | null,
+): PushRoute | null {
   switch (deeplink) {
     case 'SCR-A03':
+      if (promiseId === null) return null;
       return { pathname: '/promise/edit', params: { promise_id: promiseId } };
     case 'SCR-A04':
+      if (promiseId === null) return null;
       return { pathname: '/invite', params: { promise_id: promiseId } };
     case 'SCR-A05':
       return { pathname: '/home' };
     case 'SCR-A06':
+      if (promiseId === null) return null;
       return {
         pathname: '/fulfillment/[promise_id]',
         params: { promise_id: promiseId },
@@ -133,7 +139,9 @@ export function createPushNavigationManager(
       }
 
       try {
-        navigate(routeFor(data.deeplink, data.promise_id));
+        const route = routeForNotificationDeeplink(data.deeplink, data.promise_id);
+        if (route === null) return false;
+        navigate(route);
       } catch (error) {
         reportError(error);
         return false;
@@ -196,7 +204,9 @@ export function createPushNavigationManager(
     }
 
     try {
-      navigate(routeFor(data.deeplink, data.promise_id));
+      const route = routeForNotificationDeeplink(data.deeplink, data.promise_id);
+      if (route === null) return;
+      navigate(route);
     } catch (error) {
       reportError(error);
       try {

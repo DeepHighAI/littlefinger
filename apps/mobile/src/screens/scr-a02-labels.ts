@@ -1,5 +1,6 @@
 export const SCR_A02_LABEL = {
   brand: '리틀핑거',
+  notifications: '알림',
   activeTab: (count: number) => `진행 중 ${count}`,
   completedTab: (count: number) => `완료 ${count}`,
   waitingTab: (count: number) => `대기 ${count}`,

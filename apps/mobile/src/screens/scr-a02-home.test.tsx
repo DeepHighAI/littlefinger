@@ -84,6 +84,18 @@ describe('SCR-A02 홈·약속 목록 — M1 범위', () => {
     expect(push).toHaveBeenCalledWith('/promise/edit');
   });
 
+  test('알림함 진입은 48dp 접근성 버튼으로 보호된 경로를 연다', async () => {
+    const view = await render(<HomeScreen />);
+    await settlePromises();
+
+    const action = view.getByRole('button', { name: '알림' });
+    await fireEvent.press(action);
+
+    expect(action.props.style.minHeight).toBe(48);
+    expect(action.props.style.minWidth).toBe(48);
+    expect(push).toHaveBeenCalledWith('/notifications');
+  });
+
   test('이번 흐름에서 만든 DRAFT와 PENDING만 대기 목록에 상태 라벨과 함께 보인다', async () => {
     listWaitingPromisesMock.mockResolvedValue([
       {

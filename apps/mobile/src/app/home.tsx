@@ -14,6 +14,7 @@ import { LfCard } from '../components/LfCard';
 import { LfChip } from '../components/LfChip';
 import { LfEmpty } from '../components/LfEmpty';
 import { LfFab } from '../components/LfFab';
+import { LfIcon } from '../components/LfIcon';
 import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
@@ -66,6 +67,12 @@ const styles = StyleSheet.create({
   list: { gap: space[5] },
   cardTitle: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  notifications: {
+    minWidth: size.touchMin,
+    minHeight: size.touchMin,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 export default function HomeScreen(): React.JSX.Element {
@@ -203,7 +210,20 @@ export default function HomeScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <LfAppBar brand title={HOME_LABEL.brand} />
+      <LfAppBar
+        brand
+        title={HOME_LABEL.brand}
+        action={
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={HOME_LABEL.notifications}
+            onPress={() => router.push('/notifications' as never)}
+            style={styles.notifications}
+          >
+            <LfIcon name="notifications-none" />
+          </Pressable>
+        }
+      />
       <View style={styles.tabs} accessibilityRole="tablist">
         <LfText variant="caption">{HOME_LABEL.activeTab(activeCount)}</LfText>
         <LfText variant="caption">{HOME_LABEL.waitingTab(waitingCount)}</LfText>
