@@ -1,16 +1,18 @@
 # Development Status
 
-Snapshot date: **2026-08-15 (KST)**. This records the locally verified F-06 implementation; it is
-not a claim that the migrations, Edge Function, cron, or Android development build are deployed.
+Snapshot date: **2026-08-16 (KST)**. This records the locally verified SCR-A07 and F-10 home-list
+implementation; it is not a claim that the migrations, Edge Functions, cron, or Android
+development build are deployed.
 
 ## Repository snapshot
 
-- Branch `main` is 54 commits ahead of `origin/main` at `eb79d06`.
-- `.claude/settings.local.json` is local-only and must remain uncommitted. The approved
-  `2026-08-14-m2-f06-push-delivery-followup.md` plan is included with this documentation update.
-- The local migration catalog ends at `20260815000005_harden_push_worker.sql`. The internal
-  `push-send` Edge Function, durable notification outbox, fenced delivery/receipt RPCs, Vault nudge,
-  and cron recovery configuration are implemented locally.
+- The F-10 feature baseline is `main@12c3141`, 71 commits ahead of `origin/main` before this
+  documentation update.
+- `.claude/settings.local.json` is local-only and must remain uncommitted.
+- The local migration catalog ends at `20260816000001_promise_home_list.sql`. Notification inbox
+  RPCs/functions, the dedicated `promise-home-list` RPC/Edge Function, the internal `push-send`
+  worker, durable notification outbox, fenced delivery/receipt RPCs, Vault nudge, and cron recovery
+  configuration are implemented locally.
 
 ## Deployment snapshot
 
@@ -19,10 +21,11 @@ The last live verification recorded in repository handoffs is **2026-07-30**: mi
 preview -> approve path was exercised. Earlier handoffs also record the deployed invitation
 functions and `invite-preview` access controls.
 
-On 2026-08-15, read-only `supabase migration list` and `supabase functions list` both returned
-Management API **403** for the active CLI account. Consequently, do **not** infer that the local
-F-06, F-07, or F-08 migrations/functions are deployed. Restore the correct Supabase account before
-deployment verification or any production mutation.
+On 2026-08-16, the read-only `supabase migration list` gate still returned Management API **403**
+for the active CLI account. The check stopped there without reading the function list or making a
+remote mutation. Consequently, do **not** infer that the local F-06, F-07, F-08, SCR-A07, or F-10
+migrations/functions are deployed. Restore the correct Supabase account before deployment
+verification or any production mutation.
 
 ## Firebase and EAS state
 
@@ -32,8 +35,8 @@ deployment verification or any production mutation.
 - **Last locally verified (2026-08-01):** `npm run test --workspace=@littlefinger/mobile --
   config/firebase-config.test.js --runInBand` passed 3/3 tests for the client configuration,
   native assets, and EAS-upload inclusion.
-- **Locally verified (2026-08-15):** Expo SDK dependency alignment and Android production export
-  passed with 1,587 bundled modules.
+- **Locally verified (2026-08-16):** Expo SDK dependency alignment and Android production export
+  passed with 1,597 bundled modules.
 - **Currently unverified:** Firebase Console credentials/project access, an EAS production build
   artifact, and foreground/background/terminated real-device FCM/Expo delivery.
 
@@ -49,6 +52,13 @@ deployment verification or any production mutation.
   J-01 dispatch and KST quiet-hour deferral, Expo ticket/receipt processing, fenced retries,
   Vault/cron recovery, and allowlisted Android notification navigation are implemented locally.
   Logged-out destinations use encrypted crash-safe storage with legacy ciphertext compatibility.
+- **SCR-A07 notification inbox:** server-owned list/read/read-all contracts, retention scheduling,
+  cursor pagination, race-safe optimistic read state, and allowlisted notification navigation are
+  implemented locally.
+- **F-10 SCR-A02 home list:** the dedicated participant-scoped API/RPC, three independently cached
+  tabs, ACTIVE-only imminent section, 20-row cursor pagination, selected-tab refresh, card metadata,
+  safe errors, and approved DRAFT/PENDING/CHECKING routes are implemented locally. Imminent rows are
+  excluded from the ordinary ACTIVE list.
 
 ## Known gaps
 
@@ -59,22 +69,23 @@ deployment verification or any production mutation.
 - **F-06 deployment/UAT:** the committed migrations, Vault values, `push-send`, single cron job,
   Expo receipt transitions, and Android foreground/background/terminated delivery still require
   remote verification after the Management API 403 is resolved.
+- **SCR-A07/F-10 deployment/UAT:** the inbox and home-list migrations/functions are not remotely
+  verified. The 360x800 Android check reached SCR-A02's safe API-error state and confirmed the tab,
+  retry, FAB, and no-ad structure, but populated cards, the imminent section, paging, refresh, and
+  live navigation still require a deployed API and real account data. This is not a pixel-pass
+  claim for the populated screen.
 - **J-09** weekly content-hash verification and **F-01** legal URLs, legal copy, and terms-agreement
   recording are incomplete. Email delivery remains out of MVP scope.
-- SCR-A07 inbox/read state, F-10 plus full SCR-A05 detail, and SCR-A08 reminder-settings/profile UI
-  remain separate incomplete work.
+- The full nine-state SCR-A05 detail and SCR-A08 reminder-settings/profile UI remain incomplete.
 
 ## Roadmap
 
-1. **SCR-A07:** add the notification inbox, server-owned read state, read-all action, retention,
-   unread emphasis, and allowlisted item navigation from F-06 section 4-6-3.
-2. **F-10 / SCR-A05:** complete the home list and the full promise-detail variants.
-3. **F-01:** complete legal URLs, legal copy, and terms-agreement recording; implement J-09.
-4. **M3:** witness flows, keep-rate profile/SCR-A08, amend/cancel UI, and MOD-03.
-5. **M4:** the SCR-A02-only ad slot, accessibility pass, full acceptance checklist, and Google Play
+1. **SCR-A05:** implement all nine status-specific promise-detail variants on top of the completed
+   F-10 home entry points.
+2. **F-01:** complete legal URLs, legal copy, and terms-agreement recording; implement J-09.
+3. **M3:** witness flows, keep-rate profile/SCR-A08, amend/cancel UI, and MOD-03.
+4. **M4:** the SCR-A02-only ad slot, accessibility pass, full acceptance checklist, and Google Play
    closed testing.
 
-The next local implementation step is the prepared
-[SCR-A07 notification inbox plan](superpowers/plans/2026-08-15-m2-scr-a07-notification-inbox.md).
-F-06 deployment and device UAT remain the first external gate once the correct Supabase account is
-available.
+The next local implementation step is the full SCR-A05 status-detail flow. F-06, SCR-A07, and F-10
+deployment/device UAT remain the first external gate once the correct Supabase account is available.
