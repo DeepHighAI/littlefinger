@@ -24,7 +24,7 @@ plan may complete locally without claiming that live notifications reach a devic
 
 ## TDD sequence
 
-### 1. Contracts and database RPCs
+### Task 1: Contracts and database RPCs
 
 - RED: list isolation, INAPP-only filtering, newest-first ordering, 90-day boundary, cursor
   pagination, unread count, non-owner read rejection, repeated single read, and repeated read-all.
@@ -34,7 +34,7 @@ plan may complete locally without claiming that live notifications reach a devic
 - Add an idempotent daily retention function and one replace-by-name cron job that deletes
   notifications older than 90 days. Run it twice at the same time in PGlite tests.
 
-### 2. Edge Functions and mobile API
+### Task 2: Edge Functions and mobile API
 
 - RED: JWT validation, request shape, UUID idempotency header for mutations, not-found flattening,
   unknown-error flattening, and response privacy.
@@ -43,7 +43,7 @@ plan may complete locally without claiming that live notifications reach a devic
 - A read failure never fabricates local server state. The item may still navigate, and a later list
   refresh shows the authoritative unread state.
 
-### 3. SCR-A07 mobile screen
+### Task 3: SCR-A07 mobile screen
 
 - RED: loading, empty, retryable error, newest-first sections, KST today/yesterday/earlier grouping,
   relative time, unread text/dot emphasis, single read, read-all, duplicate tap suppression, and
@@ -55,7 +55,7 @@ plan may complete locally without claiming that live notifications reach a devic
 - SCR-A05's top badge remains part of the full SCR-A05 implementation; no placeholder badge is
   added here.
 
-### 4. Verification and deployment gate
+### Task 4: Verification and deployment gate
 
 - Run focused PGlite, Edge Vitest, and mobile Jest suites through RED -> GREEN -> refactor.
 - Run `npm test`, `npm run typecheck`, `npm run build:web`, `npm run check:agents`,
