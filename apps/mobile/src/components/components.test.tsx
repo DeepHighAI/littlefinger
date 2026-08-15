@@ -5,6 +5,7 @@ import { colors, line, size, space, type, weight } from '../theme/tokens';
 import { LfAvatar } from './LfAvatar';
 import { LfButton } from './LfButton';
 import { LfCard } from './LfCard';
+import { LfDisclaimer } from './LfDisclaimer';
 import { LfIcon } from './LfIcon';
 import { LfRow } from './LfRow';
 import { LfStack } from './LfStack';
@@ -73,6 +74,19 @@ describe('LfText', () => {
   test('디스클레이머 변형은 가장 흐린 색을 쓴다', async () => {
     const view = await render(<LfText testID="t" variant="disclaimer" />);
     expect((styleOf(view, 't') as TextStyle).color).toBe(colors.textFaint);
+  });
+});
+
+describe('LfDisclaimer', () => {
+  test('변경할 수 없는 공통 법적 안내 문구만 렌더한다', async () => {
+    const view = await render(<LfDisclaimer testID="disclaimer" />);
+
+    expect(
+      view.getByText(
+        '리틀핑거의 약속 기록은 공증이나 전자계약 서비스가 아니며, 법적 효력을 보증하지 않습니다. 다만 양측의 승인 이력과 시각 정보는 분쟁 시 참고 자료로 활용될 수 있습니다.',
+      ),
+    ).toBeTruthy();
+    expect(view.getByTestId('disclaimer').props.children).toBeTruthy();
   });
 });
 
