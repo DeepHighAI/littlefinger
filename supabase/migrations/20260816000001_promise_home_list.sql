@@ -1,0 +1,308 @@
+-- F-10 SCR-A02 계정 기반 홈 목록. 탭 필터·정렬·임박 중복 제거·cursor를 서버가 소유한다.
+
+create or replace function public.lf_promise_home_list(
+  p_actor uuid,
+  p_tab text,
+  p_cursor jsonb default null,
+  p_now timestamptz default now()
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_limit constant integer := 20;
+  v_cursor_rank integer;
+  v_cursor_end_date date;
+  v_cursor_updated_at timestamptz;
+  v_cursor_closed_at timestamptz;
+  v_cursor_id uuid;
+  v_result jsonb;
+begin
+  if p_actor is null then
+    raise exception 'E_UNAUTHORIZED';
+  end if;
+  if p_tab not in ('ACTIVE', 'WAITING', 'COMPLETED') then
+    raise exception 'E_VALIDATION';
+  end if;
+
+  if p_cursor is not null then
+    if p_cursor->>'tab' is distinct from p_tab then
+      raise exception 'E_VALIDATION';
+    end if;
+    v_cursor_id := (p_cursor->>'promise_id')::uuid;
+    if p_tab = 'ACTIVE' then
+      v_cursor_rank := (p_cursor->>'status_rank')::integer;
+      v_cursor_end_date := (p_cursor->>'end_date')::date;
+      if v_cursor_rank not in (0, 1) then raise exception 'E_VALIDATION'; end if;
+    elsif p_tab = 'WAITING' then
+      v_cursor_updated_at := (p_cursor->>'updated_at')::timestamptz;
+    else
+      v_cursor_updated_at := (p_cursor->>'updated_at')::timestamptz;
+      if p_cursor->'closed_at' <> 'null'::jsonb then
+        v_cursor_closed_at := (p_cursor->>'closed_at')::timestamptz;
+      end if;
+    end if;
+  end if;
+
+  with visible as materialized (
+    select p.id,
+           p.status,
+           p.title,
+           p.end_date,
+           p.updated_at,
+           p.closed_at,
+           p.check_round_no,
+           p.check_deadline_at,
+           actor_participant.role as my_role,
+           case
+             when p.status in ('ACTIVE', 'AMEND_PENDING', 'CHECKING') then 'ACTIVE'
+             when p.status in ('DRAFT', 'PENDING') then 'WAITING'
+             else 'COMPLETED'
+           end as tab_key,
+           case when p.status = 'CHECKING' then 0 else 1 end as status_rank,
+           (
+             p.status = 'CHECKING'
+             or (
+               p.status = 'ACTIVE'
+               and p.end_date - (p_now at time zone 'Asia/Seoul')::date between 0 and 3
+             )
+           ) as is_pinned,
+           (
+             p.status = 'CHECKING'
+             and actor_participant.role in ('CREATOR', 'PARTNER')
+             and not exists (
+               select 1
+                 from public.fulfillment_checks mine
+                where mine.promise_id = p.id
+                  and mine.user_id = p_actor
+                  and mine.round_no = p.check_round_no
+             )
+           ) as needs_response,
+           jsonb_build_object(
+             'promise_id', p.id,
+             'title', p.title,
+             'status', p.status,
+             'end_date', p.end_date,
+             'updated_at', p.updated_at,
+             'closed_at', p.closed_at,
+             'my_role', actor_participant.role,
+             'creator', jsonb_build_object(
+               'nickname', creator.nickname,
+               'profile_image_url', creator.profile_image_url
+             ),
+             'partner', case
+               when partner.user_id is null then null
+               else jsonb_build_object(
+                 'nickname', partner.nickname,
+                 'profile_image_url', partner.profile_image_url
+               )
+             end,
+             'has_witness', exists (
+               select 1
+                 from public.promise_participants witness
+                where witness.promise_id = p.id
+                  and witness.role = 'WITNESS'
+                  and witness.status = 'JOINED'
+                  and witness.user_id is not null
+             ),
+             'needs_response', (
+               p.status = 'CHECKING'
+               and actor_participant.role in ('CREATOR', 'PARTNER')
+               and not exists (
+                 select 1
+                   from public.fulfillment_checks mine
+                  where mine.promise_id = p.id
+                    and mine.user_id = p_actor
+                    and mine.round_no = p.check_round_no
+               )
+             )
+           ) as card
+      from public.promises p
+      join public.promise_participants actor_participant
+        on actor_participant.promise_id = p.id
+       and actor_participant.user_id = p_actor
+       and actor_participant.status = 'JOINED'
+      join public.users creator on creator.id = p.creator_id
+      left join lateral (
+        select participant.user_id, partner_user.nickname, partner_user.profile_image_url
+          from public.promise_participants participant
+          join public.users partner_user on partner_user.id = participant.user_id
+         where participant.promise_id = p.id
+           and participant.role = 'PARTNER'
+           and participant.status = 'JOINED'
+         limit 1
+      ) partner on true
+     where p.status in (
+       'DRAFT', 'PENDING', 'ACTIVE', 'AMEND_PENDING', 'CHECKING',
+       'COMPLETED', 'BROKEN', 'DISPUTED', 'UNRESOLVED', 'DECLINED', 'CANCELED'
+     )
+       and not (p.hidden_by ? p_actor::text)
+       and (
+         p.status not in ('DRAFT', 'PENDING')
+         or (p.creator_id = p_actor and actor_participant.role = 'CREATOR')
+       )
+  ),
+  eligible as materialized (
+    select *
+      from visible
+     where tab_key = p_tab
+       and not is_pinned
+       and (
+         p_cursor is null
+         or case p_tab
+           when 'ACTIVE' then
+             status_rank > v_cursor_rank
+             or (
+               status_rank = v_cursor_rank
+               and (
+                 end_date > v_cursor_end_date
+                 or (end_date = v_cursor_end_date and id > v_cursor_id)
+               )
+             )
+           when 'WAITING' then
+             updated_at < v_cursor_updated_at
+             or (updated_at = v_cursor_updated_at and id < v_cursor_id)
+           else
+             case
+               when v_cursor_closed_at is null then
+                 closed_at is null
+                 and (
+                   updated_at < v_cursor_updated_at
+                   or (updated_at = v_cursor_updated_at and id < v_cursor_id)
+                 )
+               else
+                 closed_at is null
+                 or closed_at < v_cursor_closed_at
+                 or (
+                   closed_at = v_cursor_closed_at
+                   and (
+                     updated_at < v_cursor_updated_at
+                     or (updated_at = v_cursor_updated_at and id < v_cursor_id)
+                   )
+                 )
+             end
+         end
+       )
+  ),
+  page_source as materialized (
+    select *
+      from eligible
+     order by
+       case when p_tab = 'ACTIVE' then status_rank end asc nulls last,
+       case when p_tab = 'ACTIVE' then end_date end asc nulls last,
+       case when p_tab = 'WAITING' then updated_at end desc nulls last,
+       case when p_tab = 'COMPLETED' then (closed_at is null)::integer end asc nulls last,
+       case when p_tab = 'COMPLETED' then closed_at end desc nulls last,
+       case when p_tab = 'COMPLETED' then updated_at end desc nulls last,
+       case when p_tab = 'ACTIVE' then id end asc nulls last,
+       case when p_tab in ('WAITING', 'COMPLETED') then id end desc nulls last
+     limit v_limit + 1
+  ),
+  returned as materialized (
+    select *
+      from page_source
+     order by
+       case when p_tab = 'ACTIVE' then status_rank end asc nulls last,
+       case when p_tab = 'ACTIVE' then end_date end asc nulls last,
+       case when p_tab = 'WAITING' then updated_at end desc nulls last,
+       case when p_tab = 'COMPLETED' then (closed_at is null)::integer end asc nulls last,
+       case when p_tab = 'COMPLETED' then closed_at end desc nulls last,
+       case when p_tab = 'COMPLETED' then updated_at end desc nulls last,
+       case when p_tab = 'ACTIVE' then id end asc nulls last,
+       case when p_tab in ('WAITING', 'COMPLETED') then id end desc nulls last
+     limit v_limit
+  )
+  select jsonb_build_object(
+           'items', coalesce(
+             (
+               select jsonb_agg(
+                        card
+                        order by
+                          case when p_tab = 'ACTIVE' then status_rank end asc nulls last,
+                          case when p_tab = 'ACTIVE' then end_date end asc nulls last,
+                          case when p_tab = 'WAITING' then updated_at end desc nulls last,
+                          case when p_tab = 'COMPLETED' then (closed_at is null)::integer end asc nulls last,
+                          case when p_tab = 'COMPLETED' then closed_at end desc nulls last,
+                          case when p_tab = 'COMPLETED' then updated_at end desc nulls last,
+                          case when p_tab = 'ACTIVE' then id end asc nulls last,
+                          case when p_tab in ('WAITING', 'COMPLETED') then id end desc nulls last
+                      )
+                 from returned
+             ),
+             '[]'::jsonb
+           ),
+           'pinned', case
+             when p_tab <> 'ACTIVE' then '[]'::jsonb
+             else coalesce(
+               (
+                 select jsonb_agg(
+                          card
+                          order by status_rank asc, needs_response desc, end_date asc, id asc
+                        )
+                   from visible
+                  where tab_key = 'ACTIVE' and is_pinned
+               ),
+               '[]'::jsonb
+             )
+           end,
+           'counts', jsonb_build_object(
+             'ACTIVE', (select count(*) from visible where tab_key = 'ACTIVE'),
+             'WAITING', (select count(*) from visible where tab_key = 'WAITING'),
+             'COMPLETED', (select count(*) from visible where tab_key = 'COMPLETED')
+           ),
+           'next_cursor', case
+             when (select count(*) from page_source) <= v_limit then null
+             else (
+               select case p_tab
+                 when 'ACTIVE' then jsonb_build_object(
+                   'tab', 'ACTIVE',
+                   'status_rank', status_rank,
+                   'end_date', end_date,
+                   'promise_id', id
+                 )
+                 when 'WAITING' then jsonb_build_object(
+                   'tab', 'WAITING',
+                   'updated_at', updated_at,
+                   'promise_id', id
+                 )
+                 else jsonb_build_object(
+                   'tab', 'COMPLETED',
+                   'closed_at', closed_at,
+                   'updated_at', updated_at,
+                   'promise_id', id
+                 )
+               end
+                 from returned
+                order by
+                  case when p_tab = 'ACTIVE' then status_rank end asc nulls last,
+                  case when p_tab = 'ACTIVE' then end_date end asc nulls last,
+                  case when p_tab = 'WAITING' then updated_at end desc nulls last,
+                  case when p_tab = 'COMPLETED' then (closed_at is null)::integer end asc nulls last,
+                  case when p_tab = 'COMPLETED' then closed_at end desc nulls last,
+                  case when p_tab = 'COMPLETED' then updated_at end desc nulls last,
+                  case when p_tab = 'ACTIVE' then id end asc nulls last,
+                  case when p_tab in ('WAITING', 'COMPLETED') then id end desc nulls last
+                offset (v_limit - 1)
+                limit 1
+             )
+           end
+         )
+    into v_result;
+
+  return v_result;
+exception
+  when invalid_text_representation or datetime_field_overflow then
+    raise exception 'E_VALIDATION';
+end;
+$$;
+
+comment on function public.lf_promise_home_list(uuid, text, jsonb, timestamptz) is
+  'SCR-A02 탭별 20건 목록·ACTIVE 임박 고정·전체 탭 count. actor는 검증된 JWT에서만 전달한다.';
+
+revoke all on function public.lf_promise_home_list(uuid, text, jsonb, timestamptz) from public;
+revoke all on function public.lf_promise_home_list(uuid, text, jsonb, timestamptz) from anon;
+revoke all on function public.lf_promise_home_list(uuid, text, jsonb, timestamptz) from authenticated;
+grant execute on function public.lf_promise_home_list(uuid, text, jsonb, timestamptz) to service_role;

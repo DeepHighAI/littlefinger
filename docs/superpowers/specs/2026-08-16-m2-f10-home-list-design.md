@@ -64,7 +64,7 @@ The endpoint slug is `promise-home-list`. `PROMISE_HOME_PAGE_SIZE` is 20 and the
 
 ## Server Design
 
-`lf_promise_home_list` is a `SECURITY DEFINER` RPC with an empty `search_path`, service-role-only execution, and an explicit actor UUID from the verified JWT. It is the only home read path.
+`lf_promise_home_list` is a `SECURITY DEFINER` RPC with an empty `search_path`, service-role-only execution, and an explicit actor UUID from the verified JWT. Its trailing `p_now timestamptz default now()` parameter exists only for deterministic KST boundary tests; the Edge Function never supplies it. It is the only home read path.
 
 The RPC includes promises where the actor has a matching joined participant row. DRAFT and PENDING require the actor to be the creator; the other tabs include joined CREATOR, PARTNER, and WITNESS roles. Rows hidden by the actor remain excluded.
 
