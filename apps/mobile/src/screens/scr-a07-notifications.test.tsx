@@ -233,7 +233,10 @@ describe('SCR-A07 알림함', () => {
 
     expect(view.queryByText('읽지 않음')).toBeNull();
     expect(markNotificationReadMock).toHaveBeenCalledTimes(1);
-    expect(push).toHaveBeenCalledWith({ pathname: '/home' });
+    expect(push).toHaveBeenCalledWith({
+      pathname: '/promise/[promise_id]',
+      params: { promise_id: PROMISE_ID },
+    });
     expect(push).toHaveBeenCalledTimes(1);
     await act(async () => resolveRead?.({ notification_id: FIRST_ID, read_at: NOW.toISOString() }));
 

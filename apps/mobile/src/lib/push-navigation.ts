@@ -6,6 +6,7 @@ import {
 
 export type PushRoute =
   | { pathname: '/promise/edit'; params: { promise_id: string } }
+  | { pathname: '/promise/[promise_id]'; params: { promise_id: string } }
   | { pathname: '/invite'; params: { promise_id: string } }
   | { pathname: '/home' }
   | { pathname: '/fulfillment/[promise_id]'; params: { promise_id: string } };
@@ -48,7 +49,8 @@ export function routeForNotificationDeeplink(
       if (promiseId === null) return null;
       return { pathname: '/invite', params: { promise_id: promiseId } };
     case 'SCR-A05':
-      return { pathname: '/home' };
+      if (promiseId === null) return null;
+      return { pathname: '/promise/[promise_id]', params: { promise_id: promiseId } };
     case 'SCR-A06':
       if (promiseId === null) return null;
       return {

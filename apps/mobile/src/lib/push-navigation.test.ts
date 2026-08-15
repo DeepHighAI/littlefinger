@@ -55,7 +55,7 @@ describe('Android 푸시 내비게이션', () => {
   test.each([
     ['SCR-A03', { pathname: '/promise/edit', params: { promise_id: PROMISE_ID } }],
     ['SCR-A04', { pathname: '/invite', params: { promise_id: PROMISE_ID } }],
-    ['SCR-A05', { pathname: '/home' }],
+    ['SCR-A05', { pathname: '/promise/[promise_id]', params: { promise_id: PROMISE_ID } }],
     [
       'SCR-A06',
       { pathname: '/fulfillment/[promise_id]', params: { promise_id: PROMISE_ID } },
@@ -184,7 +184,9 @@ describe('Android 푸시 내비게이션', () => {
     });
     await h.manager.restore((route) => h.routes.push(route));
 
-    expect(h.routes).toEqual([{ pathname: '/home' }]);
+    expect(h.routes).toEqual([
+      { pathname: '/promise/[promise_id]', params: { promise_id: PROMISE_ID } },
+    ]);
     expect(h.storageEvents.filter((event) => event === 'navigate')).toHaveLength(0);
     expect(h.storageEvents.filter((event) => event.startsWith('get:'))).toHaveLength(2);
     expect(h.storageEvents.filter((event) => event.includes('"state":"PENDING"'))).toHaveLength(1);

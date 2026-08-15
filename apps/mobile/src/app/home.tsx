@@ -156,9 +156,6 @@ function PromiseCard({
     </LfCard>
   );
 
-  if (item.status !== 'DRAFT' && item.status !== 'PENDING' && item.status !== 'CHECKING') {
-    return content;
-  }
   if (item.status === 'CHECKING' && item.needs_response) return content;
 
   return (
@@ -246,11 +243,9 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
   const openPromise = useCallback((item: PromiseHomeCard) => {
     if (item.status === 'DRAFT') {
       router.push({ pathname: '/promise/edit', params: { promise_id: item.promise_id } });
-    } else if (item.status === 'PENDING') {
-      router.push({ pathname: '/invite', params: { promise_id: item.promise_id } });
-    } else if (item.status === 'CHECKING') {
+    } else {
       router.push({
-        pathname: '/fulfillment/[promise_id]',
+        pathname: '/promise/[promise_id]',
         params: { promise_id: item.promise_id },
       });
     }

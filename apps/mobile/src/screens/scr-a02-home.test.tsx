@@ -171,10 +171,14 @@ describe('SCR-A02 F-10 홈 목록', () => {
     expect(view.getByText('종료일 2026-08-30 (일)')).toBeTruthy();
     expect(view.getByText('지우 — 민준')).toBeTruthy();
     expect(view.getByText('증인')).toBeTruthy();
-    expect(view.queryByRole('button', { name: '함께 걷기 열기' })).toBeNull();
+    await fireEvent.press(view.getByRole('button', { name: '함께 걷기 열기' }));
+    expect(push).toHaveBeenCalledWith({
+      pathname: '/promise/[promise_id]',
+      params: { promise_id: ACTIVE_ID },
+    });
   });
 
-  test('CHECKING 임박 카드는 응답 필요 문구와 CTA로 SCR-A06만 연다', async () => {
+  test('CHECKING 임박 카드도 상세를 먼저 열고 응답 CTA는 SCR-A05가 소유한다', async () => {
     listHomePromisesMock.mockResolvedValue(
       response({
         pinned: [
@@ -195,12 +199,12 @@ describe('SCR-A02 F-10 홈 목록', () => {
     expect(view.getByText('이행 확인 필요')).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '지켜졌나요? 답하기' }));
     expect(push).toHaveBeenCalledWith({
-      pathname: '/fulfillment/[promise_id]',
+      pathname: '/promise/[promise_id]',
       params: { promise_id: ACTIVE_ID },
     });
   });
 
-  test('WAITING의 DRAFT·PENDING만 A03·A04로 이동하고 DRAFT 삭제는 2회 확인 뒤 반영한다', async () => {
+  test('WAITING의 DRAFT만 A03으로 가고 PENDING은 SCR-A05로 이동하며 DRAFT 삭제는 2회 확인한다', async () => {
     listHomePromisesMock.mockImplementation(async ({ tab }) =>
       tab === 'ACTIVE'
         ? response({ counts: { ACTIVE: 0, WAITING: 2, COMPLETED: 0 } })
@@ -225,7 +229,7 @@ describe('SCR-A02 F-10 홈 목록', () => {
       params: { promise_id: ACTIVE_ID },
     });
     expect(push).toHaveBeenNthCalledWith(2, {
-      pathname: '/invite',
+      pathname: '/promise/[promise_id]',
       params: { promise_id: SECOND_ID },
     });
 
@@ -239,7 +243,7 @@ describe('SCR-A02 F-10 홈 목록', () => {
     expect(view.getByRole('tab', { name: '대기 1' })).toBeTruthy();
   });
 
-  test('완료 탭과 ACTIVE·AMEND_PENDING 카드는 SCR-A05 전까지 읽기 전용이다', async () => {
+  test('ACTIVE·AMEND_PENDING·종결 카드는 모두 SCR-A05를 연다', async () => {
     listHomePromisesMock.mockImplementation(async ({ tab }) =>
       tab === 'ACTIVE'
         ? response({
@@ -263,13 +267,21 @@ describe('SCR-A02 F-10 홈 목록', () => {
     );
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
-    expect(view.queryByRole('button', { name: '활성 약속 열기' })).toBeNull();
-    expect(view.queryByRole('button', { name: '변경 중 열기' })).toBeNull();
+    await fireEvent.press(view.getByRole('button', { name: '활성 약속 열기' }));
+    await fireEvent.press(view.getByRole('button', { name: '변경 중 열기' }));
 
     await fireEvent.press(view.getByRole('tab', { name: '완료 1' }));
     await settle();
-    expect(view.getByText('완료 약속')).toBeTruthy();
-    expect(view.queryByRole('button', { name: '완료 약속 열기' })).toBeNull();
+    await fireEvent.press(view.getByRole('button', { name: '완료 약속 열기' }));
+    expect(push).toHaveBeenNthCalledWith(1, {
+      pathname: '/promise/[promise_id]', params: { promise_id: ACTIVE_ID },
+    });
+    expect(push).toHaveBeenNthCalledWith(2, {
+      pathname: '/promise/[promise_id]', params: { promise_id: SECOND_ID },
+    });
+    expect(push).toHaveBeenNthCalledWith(3, {
+      pathname: '/promise/[promise_id]', params: { promise_id: THIRD_ID },
+    });
   });
 
   test('목록 끝 중복 호출은 cursor page를 한 번만 요청하고 새 카드만 append한다', async () => {
