@@ -14,6 +14,7 @@
  */
 
 import type { NotificationInboxItem } from './api.ts';
+import { isIsoInstant } from './datetime.ts';
 
 /** §8-1 NT 코드 중 현재 계약과 발송 경로가 있는 것 */
 export type NotificationEvent =
@@ -167,10 +168,8 @@ export function asNotificationInboxItem(value: unknown): NotificationInboxItem |
     !NOTIFICATION_EVENTS.has(event as NotificationEvent) ||
     typeof row['title'] !== 'string' ||
     typeof row['body'] !== 'string' ||
-    typeof row['created_at'] !== 'string' ||
-    !Number.isFinite(Date.parse(row['created_at'])) ||
-    (readAt !== null &&
-      (typeof readAt !== 'string' || !Number.isFinite(Date.parse(readAt))))
+    !isIsoInstant(row['created_at']) ||
+    (readAt !== null && !isIsoInstant(readAt))
   ) {
     return null;
   }

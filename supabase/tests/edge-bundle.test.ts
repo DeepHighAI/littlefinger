@@ -132,7 +132,7 @@ describe('Edge Function 번들 그래프', () => {
     // 닿는 순간 vitest 가 handler 를 import 할 때 Deno 전역에서 죽는다.
     for (const entrypoint of ENTRYPOINTS) {
       const handler = resolve(FUNCTIONS_DIR, entrypoint.replace('index.ts', 'handler.ts'));
-      if (!existsSync(handler)) continue;
+      expect(existsSync(handler), `${relative(REPO_ROOT, handler)} 이 없다`).toBe(true);
       const { files } = walk(relative(FUNCTIONS_DIR, handler));
       expect(files.filter((file) => file.endsWith('runtime.ts'))).toEqual([]);
     }

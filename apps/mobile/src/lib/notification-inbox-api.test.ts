@@ -52,4 +52,18 @@ describe('모바일 알림함 API', () => {
       { idempotent: true, idempotencyKey: KEY },
     );
   });
+
+  test.each(['단건 읽음', '전체 읽음'] as const)(
+    '%s 실패를 성공 상태로 바꾸지 않고 그대로 전파한다',
+    async (operation) => {
+      const failure = new Error('server state unknown');
+      const call = jest.fn().mockRejectedValue(failure);
+      const result =
+        operation === '단건 읽음'
+          ? markNotificationRead(NOTIFICATION_ID, KEY, { call })
+          : markAllNotificationsRead(KEY, { call });
+
+      await expect(result).rejects.toBe(failure);
+    },
+  );
 });

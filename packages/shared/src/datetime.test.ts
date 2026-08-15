@@ -7,6 +7,7 @@ import {
   formatDday,
   formatKstDate,
   formatKstDateTime,
+  isIsoInstant,
   isImminent,
   isQuietHours,
   toKstDate,
@@ -14,6 +15,30 @@ import {
 
 // 근거: 02_세부기능명세서 §2-2 시각·날짜 규칙, §6-4 파생 값 계산 규칙
 // 핵심 전제: 저장은 UTC, 계산·표시는 Asia/Seoul 고정. 기기 타임존을 따르지 않는다(EC-F09).
+
+describe('isIsoInstant', () => {
+  test.each([
+    '2026-08-15T00:00:00Z',
+    '2026-08-15T00:00:00.123Z',
+    '2026-08-15T09:00:00+09:00',
+    '2026-08-14T22:00:00+00:00',
+  ])('실재하는 RFC3339 instant를 허용한다: %s', (value) => {
+    expect(isIsoInstant(value)).toBe(true);
+  });
+
+  test.each([
+    '2026-02-30T00:00:00Z',
+    '2026-13-01T00:00:00Z',
+    '2026-08-15T24:00:00Z',
+    '2026-08-15T00:60:00Z',
+    '2026-08-15 00:00:00Z',
+    '2026-08-15T00:00Z',
+    '2026-08-15T00:00:00',
+    '2026-08-15T00:00:00+0900',
+  ])('불가능하거나 비정규 instant를 거절한다: %s', (value) => {
+    expect(isIsoInstant(value)).toBe(false);
+  });
+});
 
 describe('toKstDate', () => {
   test('UTC 15:00 은 KST 로 다음 날 00:00 이다', () => {

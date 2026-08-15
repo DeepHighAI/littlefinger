@@ -1,4 +1,5 @@
 import type { Deps } from '../_shared/deps.ts';
+import { isIsoInstant } from '../../../packages/shared/src/datetime.ts';
 import { ApiError } from '../_shared/errors.ts';
 import { corsPreflight, failureResponse, jsonResponse } from '../_shared/http.ts';
 import { asNotificationInboxListResponse } from '../_shared/notification-inbox.ts';
@@ -18,8 +19,7 @@ function cursorArgs(body: Record<string, unknown>): {
     }
     const value = cursor as Record<string, unknown>;
     if (
-      typeof value['created_at'] !== 'string' ||
-      !Number.isFinite(Date.parse(value['created_at'])) ||
+      !isIsoInstant(value['created_at']) ||
       typeof value['notification_id'] !== 'string' ||
       !UUID_PATTERN.test(value['notification_id'])
     ) {

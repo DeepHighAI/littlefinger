@@ -12,14 +12,18 @@ export function createNotificationReadHandler(deps: Deps) {
     try {
       if (request.method !== 'POST') throw new ApiError('E_VALIDATION', { field: 'notification_id' });
       const actor = await deps.authenticate(request.headers.get('authorization'));
-      idempotencyKeyOf(request);
+      const idempotencyKey = idempotencyKeyOf(request);
       const body = await jsonBody(request, 'notification_id');
       const notificationId = requiredString(body, 'notification_id', 'notification_id');
       if (!UUID_PATTERN.test(notificationId)) {
         throw new ApiError('E_VALIDATION', { field: 'notification_id' });
       }
       const payload = asNotificationReadResponse(
-        await deps.rpc('lf_notification_read', { p_actor: actor, p_notification_id: notificationId }),
+        await deps.rpc('lf_notification_read', {
+          p_idempotency_key: idempotencyKey,
+          p_actor: actor,
+          p_notification_id: notificationId,
+        }),
       );
       if (payload === null) throw new Error('INVALID_NOTIFICATION_READ_RESPONSE');
       return jsonResponse(payload, 200);

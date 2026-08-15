@@ -4,6 +4,7 @@ import type {
   NotificationReadAllResponse,
   NotificationReadResponse,
 } from '../../../packages/shared/src/api.ts';
+import { isIsoInstant } from '../../../packages/shared/src/datetime.ts';
 import { asNotificationInboxItem } from '../../../packages/shared/src/notification.ts';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -12,8 +13,7 @@ function asCursor(value: unknown): NotificationInboxCursor | null {
   if (typeof value !== 'object' || value === null) return null;
   const cursor = value as Record<string, unknown>;
   if (
-    typeof cursor['created_at'] !== 'string' ||
-    !Number.isFinite(Date.parse(cursor['created_at'])) ||
+    !isIsoInstant(cursor['created_at']) ||
     typeof cursor['notification_id'] !== 'string' ||
     !UUID_PATTERN.test(cursor['notification_id'])
   ) {
@@ -56,8 +56,7 @@ export function asNotificationReadResponse(value: unknown): NotificationReadResp
   if (
     typeof payload['notification_id'] !== 'string' ||
     !UUID_PATTERN.test(payload['notification_id']) ||
-    typeof payload['read_at'] !== 'string' ||
-    !Number.isFinite(Date.parse(payload['read_at']))
+    !isIsoInstant(payload['read_at'])
   ) {
     return null;
   }

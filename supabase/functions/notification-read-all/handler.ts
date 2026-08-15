@@ -10,11 +10,14 @@ export function createNotificationReadAllHandler(deps: Deps) {
     try {
       if (request.method !== 'POST') throw new ApiError('E_VALIDATION', { field: 'idempotency_key' });
       const actor = await deps.authenticate(request.headers.get('authorization'));
-      idempotencyKeyOf(request);
+      const idempotencyKey = idempotencyKeyOf(request);
       const body = await jsonBody(request, 'idempotency_key');
       if (Object.keys(body).length > 0) throw new ApiError('E_VALIDATION', { field: 'idempotency_key' });
       const payload = asNotificationReadAllResponse(
-        await deps.rpc('lf_notification_read_all', { p_actor: actor }),
+        await deps.rpc('lf_notification_read_all', {
+          p_idempotency_key: idempotencyKey,
+          p_actor: actor,
+        }),
       );
       if (payload === null) throw new Error('INVALID_NOTIFICATION_READ_ALL_RESPONSE');
       return jsonResponse(payload, 200);

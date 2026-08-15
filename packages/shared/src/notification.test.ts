@@ -118,6 +118,26 @@ describe('F-06 알림 계약', () => {
     ).toBeNull();
   });
 
+  test.each([
+    ['created_at', '2026-02-30T00:00:00Z'],
+    ['created_at', '2026-08-15 00:00:00Z'],
+    ['read_at', '2026-02-30T00:00:00Z'],
+  ] as const)('알림함 공개 경계는 잘못된 %s instant를 거절한다', (field, value) => {
+    const raw = {
+      notification_id: '11111111-1111-4111-8111-111111111111',
+      promise_id: '22222222-2222-4222-8222-222222222222',
+      event: 'NT-01',
+      title: '약속 성립',
+      body: '매일 걷기',
+      deeplink: 'SCR-A05',
+      created_at: '2026-08-15T00:00:00Z',
+      read_at: null,
+      [field]: value,
+    };
+
+    expect(asNotificationInboxItem(raw)).toBeNull();
+  });
+
   test('outbox 템플릿 인자를 공유 계약으로 렌더링한다', () => {
     expect(
       renderNotificationTemplate('NT-01', {

@@ -89,6 +89,39 @@ async function list(input: {
   return (rows[0]?.['result'] as InboxResponse | undefined)!;
 }
 
+async function readNotification(input: {
+  key: string;
+  actor: string;
+  notificationId: string;
+  now: string;
+}): Promise<Record<string, unknown>> {
+  const { rows } = await db.asAdmin(
+    `select public.lf_notification_read($1, $2, $3, $4::timestamptz) as result`,
+    [input.key, input.actor, input.notificationId, input.now],
+  );
+  return (rows[0]?.['result'] as Record<string, unknown> | undefined)!;
+}
+
+async function readAllNotifications(input: {
+  key: string;
+  actor: string;
+  now: string;
+}): Promise<Record<string, unknown>> {
+  const { rows } = await db.asAdmin(
+    `select public.lf_notification_read_all($1, $2, $3::timestamptz) as result`,
+    [input.key, input.actor, input.now],
+  );
+  return (rows[0]?.['result'] as Record<string, unknown> | undefined)!;
+}
+
+async function readAtOf(notificationId: string): Promise<string | null> {
+  const { rows } = await db.asAdmin(
+    `select read_at::text from public.notifications where id = $1`,
+    [notificationId],
+  );
+  return (rows[0]?.['read_at'] as string | null | undefined) ?? null;
+}
+
 beforeAll(async () => {
   db = await createTestDb();
   owner = await createUser(db, '알림소유자');
@@ -273,20 +306,25 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
       promiseId: inbox.promiseId,
       createdAt: '2026-08-15T00:00:00Z',
     });
-    const first = await db.asAdmin(
-      `select public.lf_notification_read($1, $2, $3::timestamptz) as result`,
-      [inbox.userId, notificationId, '2026-08-15T01:00:00Z'],
-    );
-    const second = await db.asAdmin(
-      `select public.lf_notification_read($1, $2, $3::timestamptz) as result`,
-      [inbox.userId, notificationId, '2026-08-15T02:00:00Z'],
-    );
+    const key = randomUUID();
+    const first = await readNotification({
+      key,
+      actor: inbox.userId,
+      notificationId,
+      now: '2026-08-15T01:00:00Z',
+    });
+    const second = await readNotification({
+      key,
+      actor: inbox.userId,
+      notificationId,
+      now: '2026-08-15T02:00:00Z',
+    });
 
-    expect(first.rows[0]?.['result']).toEqual({
+    expect(first).toEqual({
       notification_id: notificationId,
       read_at: '2026-08-15T01:00:00+00:00',
     });
-    expect(second.rows[0]?.['result']).toEqual(first.rows[0]?.['result']);
+    expect(second).toEqual(first);
   });
 
   test('타인의 단건 읽음은 존재를 숨겨 E_NOT_FOUND로 거절한다', async () => {
@@ -298,11 +336,12 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
     });
 
     await expect(
-      db.asAdmin(`select public.lf_notification_read($1, $2, $3::timestamptz)`, [
-        other,
+      readNotification({
+        key: randomUUID(),
+        actor: other,
         notificationId,
-        '2026-08-15T01:00:00Z',
-      ]),
+        now: '2026-08-15T01:00:00Z',
+      }),
     ).rejects.toThrow(/E_NOT_FOUND/u);
   });
 
@@ -325,14 +364,16 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
       channel: 'PUSH',
       createdAt: '2026-08-15T00:03:00Z',
     });
-    const first = await db.asAdmin(
-      `select public.lf_notification_read_all($1, $2::timestamptz) as result`,
-      [inbox.userId, '2026-08-15T01:00:00Z'],
-    );
-    const second = await db.asAdmin(
-      `select public.lf_notification_read_all($1, $2::timestamptz) as result`,
-      [inbox.userId, '2026-08-15T02:00:00Z'],
-    );
+    const first = await readAllNotifications({
+      key: randomUUID(),
+      actor: inbox.userId,
+      now: '2026-08-15T01:00:00Z',
+    });
+    const second = await readAllNotifications({
+      key: randomUUID(),
+      actor: inbox.userId,
+      now: '2026-08-15T02:00:00Z',
+    });
     const states = await db.asAdmin(
       `select id, status::text, read_at::text
          from public.notifications
@@ -341,8 +382,8 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
       [[unread, alreadyRead, push]],
     );
 
-    expect(first.rows[0]?.['result']).toEqual({ read_count: 1 });
-    expect(second.rows[0]?.['result']).toEqual({ read_count: 0 });
+    expect(first).toEqual({ read_count: 1 });
+    expect(second).toEqual({ read_count: 0 });
     expect(states.rows).toContainEqual({
       id: unread,
       status: 'READ',
@@ -354,6 +395,125 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
       read_at: '2026-08-15 00:02:00+00',
     });
     expect(states.rows).toContainEqual({ id: push, status: 'SENT', read_at: null });
+  });
+
+  test('단건 읽음은 같은 키의 첫 응답을 재생하고 다른 알림을 변경하지 않는다', async () => {
+    const inbox = await createInboxUser('단건멱등소유자');
+    const firstId = await createNotification({
+      userId: inbox.userId,
+      promiseId: inbox.promiseId,
+      createdAt: '2026-08-15T00:00:00Z',
+    });
+    const secondId = await createNotification({
+      userId: inbox.userId,
+      promiseId: inbox.promiseId,
+      createdAt: '2026-08-15T00:01:00Z',
+    });
+    const key = randomUUID();
+
+    const first = await readNotification({
+      key,
+      actor: inbox.userId,
+      notificationId: firstId,
+      now: '2026-08-15T01:00:00Z',
+    });
+    const replay = await readNotification({
+      key,
+      actor: inbox.userId,
+      notificationId: secondId,
+      now: '2026-08-15T02:00:00Z',
+    });
+
+    expect(replay).toEqual(first);
+    expect(replay).toMatchObject({ notification_id: firstId });
+    expect(await readAtOf(secondId)).toBeNull();
+  });
+
+  test('모두 읽음은 같은 키에서 첫 read_count를 재생하고 뒤늦은 알림은 변경하지 않는다', async () => {
+    const inbox = await createInboxUser('전체멱등소유자');
+    await createNotification({
+      userId: inbox.userId,
+      promiseId: inbox.promiseId,
+      createdAt: '2026-08-15T00:00:00Z',
+    });
+    const key = randomUUID();
+    const first = await readAllNotifications({
+      key,
+      actor: inbox.userId,
+      now: '2026-08-15T01:00:00Z',
+    });
+    const laterId = await createNotification({
+      userId: inbox.userId,
+      promiseId: inbox.promiseId,
+      createdAt: '2026-08-15T01:30:00Z',
+    });
+    const replay = await readAllNotifications({
+      key,
+      actor: inbox.userId,
+      now: '2026-08-15T02:00:00Z',
+    });
+
+    expect(first).toEqual({ read_count: 1 });
+    expect(replay).toEqual(first);
+    expect(await readAtOf(laterId)).toBeNull();
+  });
+
+  test('같은 키를 다른 읽음 작업에 쓰면 E_FORBIDDEN이고 두 번째 작업은 실행되지 않는다', async () => {
+    const inbox = await createInboxUser('작업충돌소유자');
+    const firstId = await createNotification({
+      userId: inbox.userId,
+      promiseId: inbox.promiseId,
+      createdAt: '2026-08-15T00:00:00Z',
+    });
+    const unreadId = await createNotification({
+      userId: inbox.userId,
+      promiseId: inbox.promiseId,
+      createdAt: '2026-08-15T00:01:00Z',
+    });
+    const key = randomUUID();
+    await readNotification({
+      key,
+      actor: inbox.userId,
+      notificationId: firstId,
+      now: '2026-08-15T01:00:00Z',
+    });
+
+    await expect(
+      readAllNotifications({ key, actor: inbox.userId, now: '2026-08-15T02:00:00Z' }),
+    ).rejects.toThrow(/E_FORBIDDEN/u);
+    expect(await readAtOf(unreadId)).toBeNull();
+  });
+
+  test('같은 키를 다른 사용자가 쓰면 E_FORBIDDEN이고 첫 응답과 타인 상태를 숨긴다', async () => {
+    const firstInbox = await createInboxUser('키첫소유자');
+    const secondInbox = await createInboxUser('키둘소유자');
+    const firstId = await createNotification({
+      userId: firstInbox.userId,
+      promiseId: firstInbox.promiseId,
+      createdAt: '2026-08-15T00:00:00Z',
+    });
+    const secondId = await createNotification({
+      userId: secondInbox.userId,
+      promiseId: secondInbox.promiseId,
+      createdAt: '2026-08-15T00:00:00Z',
+    });
+    const key = randomUUID();
+    await readNotification({
+      key,
+      actor: firstInbox.userId,
+      notificationId: firstId,
+      now: '2026-08-15T01:00:00Z',
+    });
+
+    await expect(
+      readNotification({
+        key,
+        actor: secondInbox.userId,
+        notificationId: secondId,
+        now: '2026-08-15T02:00:00Z',
+      }),
+    ).rejects.toThrow(/E_FORBIDDEN/u);
+    expect(await readAtOf(secondId)).toBeNull();
   });
 
   test('authenticated는 notifications를 직접 UPDATE할 수 없고 retention은 경계와 반복 실행을 지킨다', async () => {
@@ -379,8 +539,8 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
     await expect(
       db.asUser(
         inbox.userId,
-        `select public.lf_notification_read($1, $2, $3::timestamptz)`,
-        [inbox.userId, retained, now],
+        `select public.lf_notification_read($1, $2, $3, $4::timestamptz)`,
+        [randomUUID(), inbox.userId, retained, now],
       ),
     ).rejects.toThrow(/permission denied/iu);
     const first = await db.asAdmin(
@@ -468,8 +628,8 @@ describe('lf_notification_inbox_* — 사용자별 INAPP 알림함', () => {
   test('알림함 RPC·retention·scheduler 실행 권한은 service_role에만 있다', async () => {
     const signatures = [
       'public.lf_notification_inbox_list(uuid,timestamptz,uuid,integer,timestamptz)',
-      'public.lf_notification_read(uuid,uuid,timestamptz)',
-      'public.lf_notification_read_all(uuid,timestamptz)',
+      'public.lf_notification_read(uuid,uuid,uuid,timestamptz)',
+      'public.lf_notification_read_all(uuid,uuid,timestamptz)',
       'public.lf_notification_retention_purge(timestamptz)',
       'public.lf_schedule_notification_retention()',
     ];

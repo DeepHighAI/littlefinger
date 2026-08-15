@@ -10,13 +10,53 @@
  */
 
 import { CHECK_DEADLINE_DAYS, IMMINENT_THRESHOLD_DAYS } from './config.ts';
-import type { IsoDate, PromiseStatus } from './promise.ts';
+import type { IsoDate, IsoDateTime, PromiseStatus } from './promise.ts';
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const QUIET_START_HOUR = 21;
 const QUIET_END_HOUR = 8;
+
+const ISO_INSTANT_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/u;
+
+function isLeapYear(year: number): boolean {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+function daysInMonth(year: number, month: number): number {
+  const days = [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return days[month - 1] ?? 0;
+}
+
+/** RFC3339 형태와 실제 달력·시각 범위를 함께 검증한다. */
+export function isIsoInstant(value: unknown): value is IsoDateTime {
+  if (typeof value !== 'string') return false;
+  const match = ISO_INSTANT_PATTERN.exec(value);
+  if (match === null) return false;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const offsetHour = match[7] === undefined ? 0 : Number(match[7]);
+  const offsetMinute = match[8] === undefined ? 0 : Number(match[8]);
+
+  return (
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= daysInMonth(year, month) &&
+    hour <= 23 &&
+    minute <= 59 &&
+    second <= 59 &&
+    offsetHour <= 23 &&
+    offsetMinute <= 59
+  );
+}
 
 /** UTC 시각을 KST 로 민 뒤 `getUTC*` 로 읽으면 기기 타임존과 무관하게 KST 성분이 나온다. */
 function shiftToKst(instant: Date): Date {

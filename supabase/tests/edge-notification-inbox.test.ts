@@ -183,6 +183,14 @@ describe('SCR-A07 notification inbox Edge Functions', () => {
 
   test.each([
     [{ cursor: { created_at: 'bad', notification_id: NOTIFICATION_ID } }, 'cursor'],
+    [
+      { cursor: { created_at: '2026-02-30T00:00:00Z', notification_id: NOTIFICATION_ID } },
+      'cursor',
+    ],
+    [
+      { cursor: { created_at: '2026-08-14 00:00:00Z', notification_id: NOTIFICATION_ID } },
+      'cursor',
+    ],
     [{ cursor: { created_at: '2026-08-14T00:00:00Z', notification_id: 'bad' } }, 'cursor'],
     [{ limit: 1.5 }, 'limit'],
     [{ limit: '20' }, 'limit'],
@@ -214,7 +222,11 @@ describe('SCR-A07 notification inbox Edge Functions', () => {
     expect(s.rpcCalls).toEqual([
       {
         fn: 'lf_notification_read',
-        args: { p_actor: ACTOR_ID, p_notification_id: NOTIFICATION_ID },
+        args: {
+          p_actor: ACTOR_ID,
+          p_idempotency_key: KEY,
+          p_notification_id: NOTIFICATION_ID,
+        },
       },
     ]);
   });
@@ -240,7 +252,25 @@ describe('SCR-A07 notification inbox Edge Functions', () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ read_count: 3 });
-    expect(s.rpcCalls).toEqual([{ fn: 'lf_notification_read_all', args: { p_actor: ACTOR_ID } }]);
+    expect(s.rpcCalls).toEqual([
+      {
+        fn: 'lf_notification_read_all',
+        args: { p_actor: ACTOR_ID, p_idempotency_key: KEY },
+      },
+    ]);
+  });
+
+  test('모두 읽음은 Idempotency-Key가 없거나 UUID가 아니면 RPC를 호출하지 않는다', async () => {
+    for (const headers of [{}, { 'idempotency-key': 'bad' }]) {
+      const s = spy({ payload: { read_count: 1 } });
+      const response = await handlers.readAll!.createNotificationReadAllHandler(s.deps)(
+        request({ body: {}, headers }),
+      );
+
+      expect(response.status).toBe(422);
+      expect((await jsonOf(response)).field).toBe('idempotency_key');
+      expect(s.rpcCalls).toEqual([]);
+    }
   });
 
   test('JWT 확인은 형태와 RPC보다 먼저이며 타인 알림은 E_NOT_FOUND로 숨긴다', async () => {
@@ -284,4 +314,71 @@ describe('SCR-A07 notification inbox Edge Functions', () => {
       '{"code":"E_INTERNAL","message":"처리 중 문제가 발생했습니다. 다시 시도해 주세요."}',
     );
   });
+
+  test.each([
+    {
+      name: '목록 item의 불가능한 created_at',
+      create: () => handlers.inbox!.createNotificationInboxHandler,
+      payload: {
+        items: [
+          {
+            notification_id: NOTIFICATION_ID,
+            promise_id: PROMISE_ID,
+            event: 'NT-01',
+            title: '약속 성립',
+            body: '매일 걷기',
+            deeplink: 'SCR-A05',
+            created_at: '2026-02-30T00:00:00Z',
+            read_at: null,
+          },
+        ],
+        unread_count: 1,
+        next_cursor: null,
+      },
+      request: () => request({ body: {} }),
+    },
+    {
+      name: '목록의 불가능한 next_cursor',
+      create: () => handlers.inbox!.createNotificationInboxHandler,
+      payload: {
+        items: [],
+        unread_count: 0,
+        next_cursor: {
+          created_at: '2026-02-30T00:00:00Z',
+          notification_id: NOTIFICATION_ID,
+        },
+      },
+      request: () => request({ body: {} }),
+    },
+    {
+      name: '단건 읽음의 불가능한 read_at',
+      create: () => handlers.read!.createNotificationReadHandler,
+      payload: {
+        notification_id: NOTIFICATION_ID,
+        read_at: '2026-02-30T00:00:00Z',
+      },
+      request: () =>
+        request({
+          body: { notification_id: NOTIFICATION_ID },
+          headers: { 'idempotency-key': KEY },
+        }),
+    },
+    {
+      name: '모두 읽음의 문자열 read_count',
+      create: () => handlers.readAll!.createNotificationReadAllHandler,
+      payload: { read_count: '1' },
+      request: () => request({ body: {}, headers: { 'idempotency-key': KEY } }),
+    },
+  ])(
+    '$name 응답은 성공으로 가장하지 않고 500을 반환한다',
+    async ({ create, payload, request: makeRequest }) => {
+      const s = spy({ payload });
+      const response = await create()(s.deps)(makeRequest());
+
+      expect(response.status).toBe(500);
+      expect(await response.text()).toBe(
+        '{"code":"E_INTERNAL","message":"처리 중 문제가 발생했습니다. 다시 시도해 주세요."}',
+      );
+    },
+  );
 });
