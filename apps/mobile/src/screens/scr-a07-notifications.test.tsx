@@ -1,13 +1,18 @@
 import type { NotificationInboxItem } from '@littlefinger/shared';
 import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import {
   createNotificationReadIdempotencyKey,
   listNotificationInbox,
   markAllNotificationsRead,
   markNotificationRead,
 } from '../lib/notification-inbox-native.ts';
+import { notificationAppearance } from './scr-a07-notification-presentation.ts';
+import {
+  INITIAL_NOTIFICATION_INBOX_STATE,
+  notificationInboxReducer,
+} from './scr-a07-notification-state.ts';
 
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
 jest.mock(
@@ -64,6 +69,24 @@ async function settle(): Promise<void> {
 }
 
 describe('SCR-A07 알림함', () => {
+  test('전체 읽음 성공은 서버 시각을 만들지 않고 대상의 로컬 읽음 상태를 목록에 합친다', () => {
+    const loaded = notificationInboxReducer(INITIAL_NOTIFICATION_INBOX_STATE, {
+      type: 'REFRESH_SUCCEEDED',
+      items: [item()],
+      startedRevision: 0,
+    });
+    const pending = notificationInboxReducer(loaded, {
+      type: 'READ_ALL_STARTED',
+      notificationIds: [FIRST_ID],
+    });
+    const succeeded = notificationInboxReducer(pending, {
+      type: 'READ_ALL_SUCCEEDED',
+      notificationIds: [FIRST_ID],
+    });
+
+    expect(succeeded.items?.[0]).toMatchObject({ read_at: null, locallyRead: true });
+  });
+
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(NOW);
@@ -152,7 +175,7 @@ describe('SCR-A07 알림함', () => {
     expect(view.getByText('매주 화·목 아침 러닝 같이 하기 · 어제 08:00')).toBeTruthy();
     expect(view.getByText('매주 화·목 아침 러닝 같이 하기 · 8월 13일 00:00')).toBeTruthy();
 
-    const rows = view.getAllByTestId(/^notification-(?!dot-)/u);
+    const rows = view.getAllByTestId(/^notification-[0-9a-f-]{36}$/u);
     expect(rows.map((row) => row.props.testID)).toEqual([
       'notification-55555555-5555-4555-8555-555555555555',
       `notification-${FIRST_ID}`,
@@ -161,7 +184,7 @@ describe('SCR-A07 알림함', () => {
     ]);
   });
 
-  test('읽지 않은 항목은 점과 읽지 않음 텍스트로 강조한다', async () => {
+  test('읽지 않은 항목은 점·토큰 텍스트로 강조하고 본문·시각·상태를 함께 읽어준다', async () => {
     listNotificationInboxMock.mockResolvedValue({
       items: [item(), item({ notification_id: SECOND_ID, read_at: NOW.toISOString() })],
       unread_count: 1,
@@ -170,10 +193,20 @@ describe('SCR-A07 알림함', () => {
     const view = await render(<NotificationInboxScreen />);
     await settle();
 
-    expect(view.getByText('읽지 않음')).toBeTruthy();
+    const unreadLabel = view.getByTestId(`notification-unread-${FIRST_ID}`);
+    expect(unreadLabel).toBeTruthy();
+    expect(StyleSheet.flatten(unreadLabel.props.style).fontFamily).toBe('Pretendard-Regular');
     expect(view.getByTestId(`notification-dot-${FIRST_ID}`)).toBeTruthy();
     expect(view.queryByTestId(`notification-dot-${SECOND_ID}`)).toBeNull();
-    expect(view.getByRole('button', { name: /민준님이 손가락 걸었어요! 약속 성립 읽지 않음/u })).toBeTruthy();
+    expect(
+      view.getByRole('button', {
+        name: '민준님이 손가락 걸었어요! 약속 성립 매주 화·목 아침 러닝 같이 하기 1분 전 읽지 않음',
+      }),
+    ).toBeTruthy();
+    const body = view.getByTestId(`notification-body-${FIRST_ID}`);
+    expect(body.props.numberOfLines).toBe(1);
+    expect(body.props.ellipsizeMode).toBe('tail');
+    expect(StyleSheet.flatten(body.parent?.props.style).minWidth).toBe(0);
   });
 
   test('항목 탭은 즉시 읽음으로 보이고 한 번만 서버에 기록한 뒤 허용된 목적지로 이동한다', async () => {
@@ -188,7 +221,7 @@ describe('SCR-A07 알림함', () => {
     const view = await render(<NotificationInboxScreen />);
     await settle();
 
-    const target = view.getByRole('button', { name: /민준님이 손가락 걸었어요! 약속 성립 읽지 않음/u });
+    const target = view.getByTestId(`notification-${FIRST_ID}`);
     await fireEvent.press(target);
     await fireEvent.press(target);
 
@@ -197,6 +230,45 @@ describe('SCR-A07 알림함', () => {
     expect(push).toHaveBeenCalledWith({ pathname: '/home' });
     expect(push).toHaveBeenCalledTimes(1);
     await act(async () => resolveRead?.({ notification_id: FIRST_ID, read_at: NOW.toISOString() }));
+
+    await fireEvent.press(view.getByTestId(`notification-${FIRST_ID}`));
+    expect(push).toHaveBeenCalledTimes(2);
+    expect(markNotificationReadMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('읽음 성공과 겹친 오래된 새로고침은 읽지 않음 상태를 되살리지 않는다', async () => {
+    let resolveRead: ((value: { notification_id: string; read_at: string }) => void) | undefined;
+    let resolveRefresh:
+      | ((value: { items: NotificationInboxItem[]; unread_count: number; next_cursor: null }) => void)
+      | undefined;
+    markNotificationReadMock.mockImplementation(
+      async () =>
+        await new Promise((resolve) => {
+          resolveRead = resolve;
+        }),
+    );
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 1, next_cursor: null })
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByTestId(`notification-${FIRST_ID}`));
+    await fireEvent.press(view.getByRole('button', { name: '새로고침' }));
+    await act(async () =>
+      resolveRead?.({ notification_id: FIRST_ID, read_at: NOW.toISOString() }),
+    );
+    await act(async () =>
+      resolveRefresh?.({ items: [item()], unread_count: 1, next_cursor: null }),
+    );
+
+    expect(view.queryByTestId(`notification-unread-${FIRST_ID}`)).toBeNull();
+    expect(view.getByTestId(`notification-${FIRST_ID}`).props.accessibilityLabel).toMatch(/읽음/u);
   });
 
   test('전체 읽음은 읽지 않은 항목을 즉시 정리하고 중복 요청을 막는다', async () => {
@@ -218,6 +290,41 @@ describe('SCR-A07 알림함', () => {
     expect(view.queryByText('읽지 않음')).toBeNull();
     expect(markAllNotificationsReadMock).toHaveBeenCalledTimes(1);
     await act(async () => resolveAll?.({ read_count: 1 }));
+
+    await fireEvent.press(view.getByTestId(`notification-${FIRST_ID}`));
+    await fireEvent.press(action);
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(markNotificationReadMock).not.toHaveBeenCalled();
+    expect(markAllNotificationsReadMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('읽지 않은 항목이 없으면 모두 읽음 요청을 보내지 않는다', async () => {
+    listNotificationInboxMock.mockResolvedValue({
+      items: [item({ read_at: NOW.toISOString() })],
+      unread_count: 0,
+      next_cursor: null,
+    });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '모두 읽음' }));
+
+    expect(markAllNotificationsReadMock).not.toHaveBeenCalled();
+  });
+
+  test('promise_id가 없는 매개변수형 deeplink는 읽음만 처리하고 이동하지 않는다', async () => {
+    listNotificationInboxMock.mockResolvedValue({
+      items: [item({ promise_id: null, event: 'NT-08', deeplink: 'SCR-A06' })],
+      unread_count: 1,
+      next_cursor: null,
+    });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: /읽지 않음/u }));
+
+    expect(push).not.toHaveBeenCalled();
+    expect(markNotificationReadMock).toHaveBeenCalledTimes(1);
   });
 
   test('읽음 요청이 실패해도 현재 화면을 되돌리지 않고 다음 새로고침에서 서버 상태를 따른다', async () => {
@@ -236,5 +343,25 @@ describe('SCR-A07 알림함', () => {
     await fireEvent.press(view.getByRole('button', { name: '새로고침' }));
     await settle();
     expect(view.getByText('읽지 않음')).toBeTruthy();
+  });
+
+  test.each([
+    ['NT-01', { semanticType: 'CONFIRMATION', icon: 'pinky', tone: 'accent', label: '약속 확정' }],
+    ['NT-02', { semanticType: 'APPROVAL', icon: 'person-off', tone: 'default', label: '승인 응답' }],
+    ['NT-03', { semanticType: 'AMEND', icon: 'sync-alt', tone: 'default', label: '변경 요청' }],
+    ['NT-04', { semanticType: 'REMINDER', icon: 'alarm', tone: 'default', label: '리마인드' }],
+    ['NT-05', { semanticType: 'REMINDER', icon: 'alarm', tone: 'default', label: '리마인드' }],
+    ['NT-06', { semanticType: 'REMINDER', icon: 'alarm', tone: 'default', label: '리마인드' }],
+    ['NT-07', { semanticType: 'REMINDER', icon: 'alarm', tone: 'default', label: '리마인드' }],
+    ['NT-08', { semanticType: 'FULFILLMENT', icon: 'notification-important', tone: 'urgent', label: '이행 확인' }],
+    ['NT-09', { semanticType: 'FULFILLMENT', icon: 'notification-important', tone: 'urgent', label: '이행 확인' }],
+    ['NT-10', { semanticType: 'FULFILLMENT', icon: 'notification-important', tone: 'urgent', label: '이행 확인' }],
+    ['NT-11', { semanticType: 'RESULT', icon: 'fact-check', tone: 'default', label: '이행 결과' }],
+    ['NT-12', { semanticType: 'RESULT', icon: 'fact-check', tone: 'default', label: '이행 결과' }],
+    ['NT-13', { semanticType: 'RESULT', icon: 'fact-check', tone: 'default', label: '이행 결과' }],
+    ['NT-14', { semanticType: 'RESULT', icon: 'fact-check', tone: 'default', label: '이행 결과' }],
+    ['NT-19', { semanticType: 'FULFILLMENT', icon: 'notification-important', tone: 'urgent', label: '이행 확인' }],
+  ] as const)('%s는 승인된 의미 유형과 아이콘을 사용한다', (event, expected) => {
+    expect(notificationAppearance(event)).toEqual(expected);
   });
 });

@@ -18,5 +18,15 @@ export const SCR_A07_LABEL = {
   yesterdayTime: (time: string) => `어제 ${time}`,
   earlierDate: (month: string, day: string) => `${month}월 ${day}일`,
   earlierTime: (date: string, time: string) => `${date} ${time}`,
-  item: (title: string, read: boolean) => `${title} ${read ? '읽음' : '읽지 않음'}`,
+  item: (title: string, body: string, time: string, read: boolean) =>
+    `${title} ${body} ${time} ${read ? '읽음' : '읽지 않음'}`,
+} as const;
+
+export const SCR_A07_NOTIFICATION_SEMANTIC_LABEL = {
+  CONFIRMATION: '약속 확정',
+  APPROVAL: '승인 응답',
+  AMEND: '변경 요청',
+  REMINDER: '리마인드',
+  FULFILLMENT: '이행 확인',
+  RESULT: '이행 결과',
 } as const;

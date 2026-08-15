@@ -217,7 +217,7 @@ export default function HomeScreen(): React.JSX.Element {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={HOME_LABEL.notifications}
-            onPress={() => router.push('/notifications' as never)}
+            onPress={() => router.push('/notifications')}
             style={styles.notifications}
           >
             <LfIcon name="notifications-none" />

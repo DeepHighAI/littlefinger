@@ -1,6 +1,6 @@
 import type { NotificationInboxItem } from '@littlefinger/shared';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,9 +21,16 @@ import {
 } from '../lib/push-navigation.ts';
 import { SCR_A07_LABEL } from '../screens/scr-a07-labels.ts';
 import {
+  notificationAppearance,
   notificationSections,
   notificationTimeLabel,
 } from '../screens/scr-a07-notification-presentation.ts';
+import {
+  INITIAL_NOTIFICATION_INBOX_STATE,
+  isNotificationUnread,
+  notificationInboxReducer,
+  unreadNotificationIds,
+} from '../screens/scr-a07-notification-state.ts';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, gutter, radius, size, space, type, weight } from '../theme/tokens';
 
@@ -69,7 +76,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.outline,
   },
-  unreadItem: { backgroundColor: colors.primarySoft, borderColor: 'transparent' },
+  unreadItem: { backgroundColor: colors.primarySoft, borderColor: colors.primarySoft },
   icon: {
     width: size.tabHeight,
     height: size.tabHeight,
@@ -80,7 +87,7 @@ const styles = StyleSheet.create({
   },
   accentIcon: { backgroundColor: colors.primaryContainer },
   urgentIcon: { backgroundColor: colors.primary },
-  itemBody: { flex: 1 },
+  itemBody: { flex: 1, minWidth: 0 },
   headline: {
     color: colors.textSecondary,
     fontSize: type.label,
@@ -110,18 +117,20 @@ const styles = StyleSheet.create({
 });
 
 function iconFor(item: NotificationInboxItem): React.JSX.Element {
-  if (item.event === 'NT-01') {
+  const appearance = notificationAppearance(item.event);
+  if (appearance.icon === 'pinky') {
     return (
       <View style={[styles.icon, styles.accentIcon]}>
         <LfPinky size="xs" tone="onContainer" />
       </View>
     );
   }
-  const urgent = item.deeplink === 'SCR-A06';
+  const urgent = appearance.tone === 'urgent';
   return (
     <View style={[styles.icon, urgent && styles.urgentIcon]}>
       <LfIcon
-        name={urgent ? 'notification-important' : 'notifications-none'}
+        name={appearance.icon}
+        size={type.heading}
         color={urgent ? 'onPrimary' : 'textSecondary'}
       />
     </View>
@@ -130,22 +139,23 @@ function iconFor(item: NotificationInboxItem): React.JSX.Element {
 
 export default function NotificationInboxScreen(): React.JSX.Element {
   const router = useRouter();
-  const [items, setItems] = useState<readonly NotificationInboxItem[] | null>(null);
-  const [loadFailed, setLoadFailed] = useState(false);
-  const [optimisticReadIds, setOptimisticReadIds] = useState<ReadonlySet<string>>(new Set());
-  const pendingReads = useRef(new Set<string>());
-  const handledItems = useRef(new Set<string>());
-  const pendingReadAll = useRef(false);
+  const [state, dispatch] = useReducer(
+    notificationInboxReducer,
+    INITIAL_NOTIFICATION_INBOX_STATE,
+  );
+  const stateRef = useRef(state);
+  const inFlightItemIds = useRef(new Set<string>());
+  stateRef.current = state;
+  const { items, loadFailed } = state;
 
   async function refresh(): Promise<void> {
-    setLoadFailed(false);
+    const startedRevision = stateRef.current.completionRevision;
+    dispatch({ type: 'REFRESH_STARTED' });
     try {
       const response = await listNotificationInbox();
-      setItems(response.items);
-      setOptimisticReadIds(new Set());
+      dispatch({ type: 'REFRESH_SUCCEEDED', items: response.items, startedRevision });
     } catch {
-      setItems((current) => current ?? []);
-      setLoadFailed(true);
+      dispatch({ type: 'REFRESH_FAILED' });
     }
   }
 
@@ -153,19 +163,26 @@ export default function NotificationInboxScreen(): React.JSX.Element {
     void refresh();
   }, []);
 
-  function markItemRead(item: NotificationInboxItem): void {
-    if (pendingReads.current.has(item.notification_id)) return;
-    pendingReads.current.add(item.notification_id);
-    setOptimisticReadIds((current) => new Set(current).add(item.notification_id));
+  function startItemRead(item: NotificationInboxItem): void {
+    inFlightItemIds.current.add(item.notification_id);
+    dispatch({ type: 'READ_STARTED', notificationId: item.notification_id });
     void markNotificationRead(item.notification_id, createNotificationReadIdempotencyKey())
-      .catch(() => undefined)
-      .finally(() => pendingReads.current.delete(item.notification_id));
+      .then((response) => {
+        dispatch({
+          type: 'READ_SUCCEEDED',
+          notificationId: response.notification_id,
+          readAt: response.read_at,
+        });
+      })
+      .catch(() => {
+        dispatch({ type: 'READ_FAILED', notificationId: item.notification_id });
+      })
+      .finally(() => inFlightItemIds.current.delete(item.notification_id));
   }
 
   function openItem(item: NotificationInboxItem): void {
-    if (handledItems.current.has(item.notification_id)) return;
-    handledItems.current.add(item.notification_id);
-    if (item.read_at === null) markItemRead(item);
+    if (inFlightItemIds.current.has(item.notification_id)) return;
+    if (isNotificationUnread(stateRef.current, item)) startItemRead(item);
     const route =
       item.deeplink === null
         ? null
@@ -174,15 +191,17 @@ export default function NotificationInboxScreen(): React.JSX.Element {
   }
 
   function readAll(): void {
-    if (pendingReadAll.current) return;
-    pendingReadAll.current = true;
-    setOptimisticReadIds(
-      new Set((items ?? []).filter((item) => item.read_at === null).map((item) => item.notification_id)),
-    );
+    const current = stateRef.current;
+    if (current.readAllPending) return;
+    const notificationIds = unreadNotificationIds(current);
+    if (notificationIds.length === 0) return;
+    dispatch({ type: 'READ_ALL_STARTED', notificationIds });
     void markAllNotificationsRead(createNotificationReadIdempotencyKey())
-      .catch(() => undefined)
-      .finally(() => {
-        pendingReadAll.current = false;
+      .then(() => {
+        dispatch({ type: 'READ_ALL_SUCCEEDED', notificationIds });
+      })
+      .catch(() => {
+        dispatch({ type: 'READ_ALL_FAILED', notificationIds });
       });
   }
 
@@ -249,21 +268,41 @@ export default function NotificationInboxScreen(): React.JSX.Element {
               <LfText variant="sectionTitle">{section.title}</LfText>
               <View style={styles.list}>
                 {section.items.map((item) => {
-                  const unread = item.read_at === null && !optimisticReadIds.has(item.notification_id);
+                  const unread = isNotificationUnread(state, item);
+                  const timeLabel = notificationTimeLabel(item.created_at, now);
                   return (
                     <Pressable
                       key={item.notification_id}
                       testID={`notification-${item.notification_id}`}
                       accessibilityRole="button"
-                      accessibilityLabel={SCR_A07_LABEL.item(item.title, !unread)}
+                      accessibilityLabel={SCR_A07_LABEL.item(
+                        item.title,
+                        item.body,
+                        timeLabel,
+                        !unread,
+                      )}
                       onPress={() => openItem(item)}
                       style={[styles.item, unread && styles.unreadItem]}
                     >
                       {iconFor(item)}
                       <View style={styles.itemBody}>
                         <Text style={[styles.headline, unread && styles.unreadHeadline]}>{item.title}</Text>
-                        <Text style={styles.meta}>{`${item.body} · ${notificationTimeLabel(item.created_at, now)}`}</Text>
-                        {unread && <Text>{SCR_A07_LABEL.unread}</Text>}
+                        <Text
+                          testID={`notification-body-${item.notification_id}`}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          style={styles.meta}
+                        >
+                          {`${item.body} · ${timeLabel}`}
+                        </Text>
+                        {unread && (
+                          <LfText
+                            testID={`notification-unread-${item.notification_id}`}
+                            variant="caption"
+                          >
+                            {SCR_A07_LABEL.unread}
+                          </LfText>
+                        )}
                       </View>
                       {unread && <View testID={`notification-dot-${item.notification_id}`} style={styles.unreadDot} />}
                     </Pressable>

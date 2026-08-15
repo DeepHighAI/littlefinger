@@ -2,9 +2,98 @@ import {
   formatKstDateTime,
   toKstDate,
   type NotificationInboxItem,
+  type NotificationEvent,
 } from '@littlefinger/shared';
 
-import { SCR_A07_LABEL } from './scr-a07-labels.ts';
+import {
+  SCR_A07_LABEL,
+  SCR_A07_NOTIFICATION_SEMANTIC_LABEL,
+} from './scr-a07-labels.ts';
+
+export type NotificationSemanticType =
+  | 'CONFIRMATION'
+  | 'APPROVAL'
+  | 'AMEND'
+  | 'REMINDER'
+  | 'FULFILLMENT'
+  | 'RESULT';
+
+export type NotificationIcon =
+  | 'pinky'
+  | 'person-off'
+  | 'sync-alt'
+  | 'alarm'
+  | 'notification-important'
+  | 'fact-check';
+
+export interface NotificationAppearance {
+  semanticType: NotificationSemanticType;
+  icon: NotificationIcon;
+  tone: 'accent' | 'urgent' | 'default';
+  label: string;
+}
+
+const NOTIFICATION_EVENT_SEMANTIC_TYPE: Record<
+  NotificationEvent,
+  NotificationSemanticType
+> = {
+  'NT-01': 'CONFIRMATION',
+  'NT-02': 'APPROVAL',
+  'NT-03': 'AMEND',
+  'NT-04': 'REMINDER',
+  'NT-05': 'REMINDER',
+  'NT-06': 'REMINDER',
+  'NT-07': 'REMINDER',
+  'NT-08': 'FULFILLMENT',
+  'NT-09': 'FULFILLMENT',
+  'NT-10': 'FULFILLMENT',
+  'NT-11': 'RESULT',
+  'NT-12': 'RESULT',
+  'NT-13': 'RESULT',
+  'NT-14': 'RESULT',
+  'NT-19': 'FULFILLMENT',
+};
+
+const NOTIFICATION_SEMANTIC_APPEARANCE: Record<
+  NotificationSemanticType,
+  Omit<NotificationAppearance, 'semanticType'>
+> = {
+  CONFIRMATION: {
+    icon: 'pinky',
+    tone: 'accent',
+    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.CONFIRMATION,
+  },
+  APPROVAL: {
+    icon: 'person-off',
+    tone: 'default',
+    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.APPROVAL,
+  },
+  AMEND: {
+    icon: 'sync-alt',
+    tone: 'default',
+    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.AMEND,
+  },
+  REMINDER: {
+    icon: 'alarm',
+    tone: 'default',
+    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.REMINDER,
+  },
+  FULFILLMENT: {
+    icon: 'notification-important',
+    tone: 'urgent',
+    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.FULFILLMENT,
+  },
+  RESULT: {
+    icon: 'fact-check',
+    tone: 'default',
+    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.RESULT,
+  },
+};
+
+export function notificationAppearance(event: NotificationEvent): NotificationAppearance {
+  const semanticType = NOTIFICATION_EVENT_SEMANTIC_TYPE[event];
+  return { semanticType, ...NOTIFICATION_SEMANTIC_APPEARANCE[semanticType] };
+}
 
 export interface NotificationSection {
   title: string;
