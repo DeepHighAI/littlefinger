@@ -105,6 +105,16 @@ verify_jwt = true
 [functions.evidence-sign-url]
 verify_jwt = true
 
+# SCR-A07은 로그인한 사용자 자신의 INAPP 알림만 읽고 상태를 갱신한다.
+[functions.notification-inbox]
+verify_jwt = true
+
+[functions.notification-read]
+verify_jwt = true
+
+[functions.notification-read-all]
+verify_jwt = true
+
 # J-08가 내부 비밀 헤더로 인증하므로 플랫폼 JWT는 사용하지 않는다.
 [functions.evidence-purge]
 verify_jwt = false

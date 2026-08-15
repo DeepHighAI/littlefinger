@@ -197,6 +197,9 @@ const validationFields: ApiValidationField[] = [
   'upload_id',
   'evidence_id',
   'variant',
+  'cursor',
+  'limit',
+  'notification_id',
 ];
 
 describe('F-07 공개 API 계약', () => {
@@ -246,6 +249,9 @@ describe('F-07 공개 API 계약', () => {
         'upload_id',
         'evidence_id',
         'variant',
+        'cursor',
+        'limit',
+        'notification_id',
       ],
     });
   });

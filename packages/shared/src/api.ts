@@ -74,6 +74,9 @@ export type ApiValidationField =
   | 'evidence_id'
   | 'variant'
   | 'idempotency_key'
+  | 'cursor'
+  | 'limit'
+  | 'notification_id'
   | 'nickname'
   | 'profile_image_url'
   | 'expo_push_token';

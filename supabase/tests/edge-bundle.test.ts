@@ -44,6 +44,9 @@ const VERIFY_JWT: Record<string, boolean> = {
   'evidence-upload': true,
   'evidence-discard': true,
   'evidence-sign-url': true,
+  'notification-inbox': true,
+  'notification-read': true,
+  'notification-read-all': true,
   'evidence-purge': false,
   // 로그인 뒤 자기 행 보정이다. 익명에게 열리면 아무 계정의 대진값이나 남의 요청으로
   // 채워질 수 있다 — p_user_id 는 JWT 에서만 온다.
@@ -101,6 +104,7 @@ function walk(entrypoint: string): Walk {
 
 describe('Edge Function 번들 그래프', () => {
   test.each(ENTRYPOINTS)('%s 의 상대 import 가 전부 실재하는 파일을 가리킨다', (entrypoint) => {
+    expect(existsSync(resolve(FUNCTIONS_DIR, entrypoint)), `${entrypoint} 진입점이 없다`).toBe(true);
     const { missing } = walk(entrypoint);
     expect(missing).toEqual([]);
   });
@@ -128,6 +132,7 @@ describe('Edge Function 번들 그래프', () => {
     // 닿는 순간 vitest 가 handler 를 import 할 때 Deno 전역에서 죽는다.
     for (const entrypoint of ENTRYPOINTS) {
       const handler = resolve(FUNCTIONS_DIR, entrypoint.replace('index.ts', 'handler.ts'));
+      if (!existsSync(handler)) continue;
       const { files } = walk(relative(FUNCTIONS_DIR, handler));
       expect(files.filter((file) => file.endsWith('runtime.ts'))).toEqual([]);
     }
