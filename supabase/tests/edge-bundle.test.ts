@@ -35,6 +35,7 @@ const VERIFY_JWT: Record<string, boolean> = {
   'promise-decline': true,
   'promise-amend': true,
   'device-token-register': true,
+  'promise-home-list': true,
   'promise-draft-update': true,
   'invite-revoke': true,
   'participant-promise-list': true,

@@ -78,6 +78,10 @@ verify_jwt = true
 [functions.device-token-register]
 verify_jwt = true
 
+# SCR-A02 전체 탭 목록은 로그인한 참여자의 actor UUID로만 조회한다(F-10).
+[functions.promise-home-list]
+verify_jwt = true
+
 [functions.promise-draft-update]
 verify_jwt = true
 

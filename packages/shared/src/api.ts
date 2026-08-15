@@ -74,6 +74,7 @@ export type ApiValidationField =
   | 'evidence_id'
   | 'variant'
   | 'idempotency_key'
+  | 'tab'
   | 'cursor'
   | 'limit'
   | 'notification_id'
