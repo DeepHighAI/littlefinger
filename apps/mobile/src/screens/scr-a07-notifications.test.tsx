@@ -72,6 +72,7 @@ describe('SCR-A07 알림함', () => {
   test('전체 읽음 성공은 서버 시각을 만들지 않고 대상의 로컬 읽음 상태를 목록에 합친다', () => {
     const loaded = notificationInboxReducer(INITIAL_NOTIFICATION_INBOX_STATE, {
       type: 'REFRESH_SUCCEEDED',
+      loadId: 0,
       items: [item()],
       startedRevision: 0,
     });
@@ -269,6 +270,100 @@ describe('SCR-A07 알림함', () => {
 
     expect(view.queryByTestId(`notification-unread-${FIRST_ID}`)).toBeNull();
     expect(view.getByTestId(`notification-${FIRST_ID}`).props.accessibilityLabel).toMatch(/읽음/u);
+  });
+
+  test('뒤늦은 이전 목록 성공은 최신 권위 목록과 읽음 상태를 덮어쓰지 않는다', async () => {
+    type ListResponse = {
+      items: NotificationInboxItem[];
+      unread_count: number;
+      next_cursor: null;
+    };
+    let resolveLoadA: ((value: ListResponse) => void) | undefined;
+    let resolveLoadB: ((value: ListResponse) => void) | undefined;
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 1, next_cursor: null })
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((resolve) => {
+            resolveLoadA = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((resolve) => {
+            resolveLoadB = resolve;
+          }),
+      );
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '새로고침' }));
+    await fireEvent.press(view.getByTestId(`notification-${FIRST_ID}`));
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '새로고침' }));
+    await act(async () =>
+      resolveLoadB?.({
+        items: [item({ body: '최신 권위 목록', read_at: NOW.toISOString() })],
+        unread_count: 0,
+        next_cursor: null,
+      }),
+    );
+    await act(async () =>
+      resolveLoadA?.({
+        items: [item({ body: '뒤늦은 이전 목록' })],
+        unread_count: 1,
+        next_cursor: null,
+      }),
+    );
+
+    expect(view.getByText(/최신 권위 목록/u)).toBeTruthy();
+    expect(view.queryByText(/뒤늦은 이전 목록/u)).toBeNull();
+    expect(view.queryByTestId(`notification-unread-${FIRST_ID}`)).toBeNull();
+  });
+
+  test('뒤늦은 이전 목록 실패는 최신 성공 뒤 오류를 표시하거나 항목을 지우지 않는다', async () => {
+    type ListResponse = {
+      items: NotificationInboxItem[];
+      unread_count: number;
+      next_cursor: null;
+    };
+    let rejectLoadA: ((reason: Error) => void) | undefined;
+    let resolveLoadB: ((value: ListResponse) => void) | undefined;
+    listNotificationInboxMock
+      .mockResolvedValueOnce({ items: [item()], unread_count: 1, next_cursor: null })
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((_, reject) => {
+            rejectLoadA = reject;
+          }),
+      )
+      .mockImplementationOnce(
+        async () =>
+          await new Promise((resolve) => {
+            resolveLoadB = resolve;
+          }),
+      );
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '새로고침' }));
+    await fireEvent.press(view.getByTestId(`notification-${FIRST_ID}`));
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '새로고침' }));
+    await act(async () =>
+      resolveLoadB?.({
+        items: [item({ body: '최신 성공 목록', read_at: NOW.toISOString() })],
+        unread_count: 0,
+        next_cursor: null,
+      }),
+    );
+    await act(async () => rejectLoadA?.(new Error('stale load failed')));
+
+    expect(view.getByText(/최신 성공 목록/u)).toBeTruthy();
+    expect(
+      view.queryByText('알림을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'),
+    ).toBeNull();
+    expect(view.queryByTestId(`notification-unread-${FIRST_ID}`)).toBeNull();
   });
 
   test('전체 읽음은 읽지 않은 항목을 즉시 정리하고 중복 요청을 막는다', async () => {

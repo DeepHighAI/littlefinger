@@ -105,3 +105,32 @@ The same focused command first passed 1 suite / 26 tests. A final reducer-contra
 - The original 360x800 structure and token geometry remain unchanged except for the requested one-line clipping and explicit unread status. Current events absent from the static reference deliberately use semantic MaterialIcons: `person-off`, `sync-alt`, `alarm`, `notification-important`, and neutral `fact-check`; C-2's rounded-corner icon difference remains.
 - Device screenshot comparison remains unavailable because this workspace has no Android SDK, `adb`, or emulator. Structural comparison used the frozen SCR-A07 HTML and `app-support.css`; this is not a pixel-diff substitute.
 - No shared DB/Edge contract, remote, Supabase config, dependency manifest, or origin was changed. `.claude/settings.local.json` remains untracked and untouched.
+
+## Fix Round 2
+
+### Race fence
+
+- The screen now issues a monotonically increasing load ID from the one `refresh()` path used by initial load, manual refresh, and retry.
+- The reducer owns `latestLoadId`. Only success or failure matching that ID can update items, read-operation reconciliation, or error state; an older response returns the current state unchanged.
+- The existing completion-revision logic remains independent of the load fence, so a read completed during the latest request is still preserved against that request's stale payload, while an explicit later refresh after a rejected read still adopts authoritative server unread state.
+
+### TDD evidence
+
+#### RED
+
+Command: `npm run test --workspace=@littlefinger/mobile -- --runInBand apps/mobile/src/screens/scr-a07-notifications.test.tsx`
+
+Result before production changes: 1 failed suite, 2 failed tests, 27 passed. After load A started, a read completed, and load B returned first, late A success replaced B's authoritative read item with stale unread data. In the symmetric case, late A rejection displayed the load-error UI over B's successful current items.
+
+#### GREEN
+
+The same focused command passed 1 suite / 29 tests after adding the screen-issued load ID and reducer fence. Both late success and late failure are ignored, and all prior optimistic-read, revision, read-all, navigation, and rejected-read reconciliation cases remain green.
+
+### Final verification
+
+- Focused SCR-A07 Jest: 1 suite / 29 tests passed.
+- `npm test`: Vitest 56 files / 1,416 tests passed; mobile Jest 27 suites / 319 tests passed.
+- `npm run typecheck`: passed for shared, mobile, web, Edge Functions, and Supabase tests.
+- `npm run check:agents`: passed (`AGENTS.md 는 CLAUDE.md 와 동기화되어 있다.`).
+- `git diff --check`: passed.
+- Scope is limited to the SCR-A07 screen, reducer, regression tests, and this report. `.claude/settings.local.json` remains untracked and untouched; no remote operation was performed.

@@ -145,17 +145,24 @@ export default function NotificationInboxScreen(): React.JSX.Element {
   );
   const stateRef = useRef(state);
   const inFlightItemIds = useRef(new Set<string>());
+  const nextLoadId = useRef(0);
   stateRef.current = state;
   const { items, loadFailed } = state;
 
   async function refresh(): Promise<void> {
+    const loadId = ++nextLoadId.current;
     const startedRevision = stateRef.current.completionRevision;
-    dispatch({ type: 'REFRESH_STARTED' });
+    dispatch({ type: 'REFRESH_STARTED', loadId });
     try {
       const response = await listNotificationInbox();
-      dispatch({ type: 'REFRESH_SUCCEEDED', items: response.items, startedRevision });
+      dispatch({
+        type: 'REFRESH_SUCCEEDED',
+        loadId,
+        items: response.items,
+        startedRevision,
+      });
     } catch {
-      dispatch({ type: 'REFRESH_FAILED' });
+      dispatch({ type: 'REFRESH_FAILED', loadId });
     }
   }
 

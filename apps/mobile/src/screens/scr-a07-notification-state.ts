@@ -13,6 +13,7 @@ export interface NotificationInboxState {
   items: readonly NotificationInboxViewItem[] | null;
   loadFailed: boolean;
   completionRevision: number;
+  latestLoadId: number;
   readOperations: Readonly<Record<string, ReadOperation>>;
   readAllPending: boolean;
 }
@@ -21,18 +22,20 @@ export const INITIAL_NOTIFICATION_INBOX_STATE: NotificationInboxState = {
   items: null,
   loadFailed: false,
   completionRevision: 0,
+  latestLoadId: 0,
   readOperations: {},
   readAllPending: false,
 };
 
 export type NotificationInboxAction =
-  | { type: 'REFRESH_STARTED' }
+  | { type: 'REFRESH_STARTED'; loadId: number }
   | {
       type: 'REFRESH_SUCCEEDED';
+      loadId: number;
       items: readonly NotificationInboxItem[];
       startedRevision: number;
     }
-  | { type: 'REFRESH_FAILED' }
+  | { type: 'REFRESH_FAILED'; loadId: number }
   | { type: 'READ_STARTED'; notificationId: string }
   | { type: 'READ_SUCCEEDED'; notificationId: string; readAt: string }
   | { type: 'READ_FAILED'; notificationId: string }
@@ -70,8 +73,9 @@ export function notificationInboxReducer(
 ): NotificationInboxState {
   switch (action.type) {
     case 'REFRESH_STARTED':
-      return { ...state, loadFailed: false };
+      return { ...state, latestLoadId: action.loadId, loadFailed: false };
     case 'REFRESH_SUCCEEDED':
+      if (action.loadId !== state.latestLoadId) return state;
       return {
         ...state,
         items: action.items.map((item) => ({ ...item, locallyRead: false })),
@@ -82,6 +86,7 @@ export function notificationInboxReducer(
         ),
       };
     case 'REFRESH_FAILED':
+      if (action.loadId !== state.latestLoadId) return state;
       return { ...state, items: state.items ?? [], loadFailed: true };
     case 'READ_STARTED':
       return {
