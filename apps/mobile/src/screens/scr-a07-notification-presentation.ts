@@ -51,6 +51,9 @@ const NOTIFICATION_EVENT_SEMANTIC_TYPE: Record<
   'NT-12': 'RESULT',
   'NT-13': 'RESULT',
   'NT-14': 'RESULT',
+  'NT-15': 'AMEND',
+  'NT-16': 'AMEND',
+  'NT-17': 'AMEND',
   'NT-18': 'CONFIRMATION',
   'NT-19': 'FULFILLMENT',
 };

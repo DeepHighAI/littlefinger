@@ -150,6 +150,11 @@ export function validateDeclineReason(value: string): ValidationResult {
   return checkLength(value, 0, 200, null);
 }
 
+/** 변경·파기 이유 — 선택, 0~200자 (F-11 / MOD-01). */
+export function validateAmendReason(value: string): ValidationResult {
+  return checkLength(value, 0, 200, null);
+}
+
 // ── §5-2 이행 확인 필드 ────────────────────────────────────
 
 /** 한 줄 의견 — 선택, 0~200자 */

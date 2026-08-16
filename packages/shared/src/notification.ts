@@ -32,6 +32,9 @@ export type NotificationEvent =
   | 'NT-12'
   | 'NT-13'
   | 'NT-14'
+  | 'NT-15'
+  | 'NT-16'
+  | 'NT-17'
   | 'NT-18'
   | 'NT-19';
 
@@ -65,6 +68,9 @@ export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: str
   'NT-12': () => '약속이 불이행으로 기록됐어요',
   'NT-13': () => '두 분의 확인이 서로 달라요',
   'NT-14': () => '이행 확인 없이 종결됐어요',
+  'NT-15': (n) => `${n}님이 약속 변경을 요청했어요`,
+  'NT-16': (n) => `요청이 ${n}됐어요`,
+  'NT-17': () => '변경 요청이 자동 철회됐어요',
   'NT-18': (n) => `${n}님이 내용을 확인했어요`,
   'NT-19': () => '다시 확인해 달라는 요청이 왔어요',
 };
@@ -94,6 +100,9 @@ export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, NotificationDeepli
   'NT-12': 'SCR-A05',
   'NT-13': 'SCR-A05',
   'NT-14': 'SCR-A05',
+  'NT-15': 'SCR-A05',
+  'NT-16': 'SCR-A05',
+  'NT-17': 'SCR-A05',
   'NT-18': 'SCR-A05',
   'NT-19': 'SCR-A06',
 };
@@ -102,6 +111,8 @@ export interface NotificationTemplateArgs {
   promiseTitle: string;
   partnerNickname?: string;
   days?: number;
+  amendType?: 'AMEND' | 'CANCEL';
+  amendDecision?: 'APPROVE' | 'DECLINE';
 }
 
 export interface RenderedNotificationTemplate {
@@ -120,6 +131,32 @@ export function renderNotificationTemplate(
 ): RenderedNotificationTemplate {
   if (typeof args.promiseTitle !== 'string' || args.promiseTitle.length === 0) {
     throw new Error('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+  }
+
+  if (event === 'NT-15') {
+    if (
+      typeof args.partnerNickname !== 'string' ||
+      args.partnerNickname.length === 0 ||
+      (args.amendType !== 'AMEND' && args.amendType !== 'CANCEL')
+    ) {
+      throw new Error('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+    }
+    return {
+      title: `${args.partnerNickname}님이 약속 ${args.amendType === 'AMEND' ? '변경을' : '파기를'} 요청했어요`,
+      body: args.promiseTitle,
+      deeplink: NOTIFICATION_DEEPLINK[event],
+    };
+  }
+
+  if (event === 'NT-16') {
+    if (args.amendDecision !== 'APPROVE' && args.amendDecision !== 'DECLINE') {
+      throw new Error('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+    }
+    return {
+      title: NOTIFICATION_TITLE[event](args.amendDecision === 'APPROVE' ? '승인' : '거절'),
+      body: args.promiseTitle,
+      deeplink: NOTIFICATION_DEEPLINK[event],
+    };
   }
 
   let titleArg = '';

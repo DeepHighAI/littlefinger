@@ -312,4 +312,14 @@ describe('F-07 공개 API 계약', () => {
     });
     expect(validationFields).toEqual(expect.arrayContaining(['reminders', 'remind_hour']));
   });
+
+  test('F-11은 수락 전 수정 제안과 분리된 네 endpoint를 공개한다', () => {
+    expect(ENDPOINT).toMatchObject({
+      promiseAmendRequest: 'promise-amend-request',
+      promiseAmendRespond: 'promise-amend-respond',
+      promiseAmendWithdraw: 'promise-amend-withdraw',
+      promiseVersionList: 'promise-version-list',
+    });
+    expect(ENDPOINT.promiseAmend).toBe('promise-amend');
+  });
 });

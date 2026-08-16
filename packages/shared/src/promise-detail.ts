@@ -147,7 +147,7 @@ function asPerson(value: unknown): PromiseDetailPerson | null {
   return record as unknown as PromiseDetailPerson;
 }
 
-function asVersion(value: unknown): PromiseDetailVersion | null {
+export function asPromiseDetailVersion(value: unknown): PromiseDetailVersion | null {
   const record = exactRecord(value, [
     'version_no',
     'title',
@@ -301,7 +301,9 @@ function asAmendRequest(value: unknown): PromiseDetailAmendRequest | null {
     !isIsoInstant(record['expires_at'])
   ) return null;
   const proposed =
-    record['proposed_version'] === null ? null : asVersion(record['proposed_version']);
+    record['proposed_version'] === null
+      ? null
+      : asPromiseDetailVersion(record['proposed_version']);
   if (
     (record['proposed_version'] !== null && proposed === null) ||
     (record['type'] === 'AMEND' && proposed === null) ||
@@ -391,7 +393,7 @@ export function asPromiseDetailResponse(value: unknown): PromiseDetailResponse |
   const status = record['status'] as PromiseDetailStatus;
   const creator = asPerson(record['creator']);
   const partner = record['partner'] === null ? null : asPerson(record['partner']);
-  const version = asVersion(record['current_version']);
+  const version = asPromiseDetailVersion(record['current_version']);
   const invitation = record['invitation'] === null ? null : asInvitation(record['invitation']);
   const amend = record['amend_request'] === null ? null : asAmendRequest(record['amend_request']);
   const fulfillment =

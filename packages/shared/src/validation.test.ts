@@ -14,6 +14,7 @@ import {
   validateReward,
   validateTitle,
 } from './validation.ts';
+import * as validationRuntime from './validation.ts';
 
 // 근거: 02_세부기능명세서 §5 필드 명세, §2-3 입력·검증·에러 표준.
 //
@@ -250,6 +251,18 @@ describe('validateDeclineReason / validateComment — 0~200자, 선택', () => {
   test('200자면 통과하고 201자는 거절한다', () => {
     expect(ok(validateComment('가'.repeat(200)))).toBe(true);
     expect(ok(validateComment('가'.repeat(201)))).toBe(false);
+  });
+});
+
+describe('validateAmendReason — F-11 변경·파기 이유 0~200자', () => {
+  test('선택 입력은 NFC 정규화 뒤 200자까지 허용하고 201자는 거절한다', () => {
+    const validateAmendReason = (
+      validationRuntime as unknown as Record<string, (value: string) => { valid: boolean }>
+    )['validateAmendReason'];
+
+    expect(validateAmendReason?.('').valid).toBe(true);
+    expect(validateAmendReason?.('가'.repeat(200)).valid).toBe(true);
+    expect(validateAmendReason?.('가'.repeat(201)).valid).toBe(false);
   });
 });
 

@@ -538,6 +538,77 @@ export interface PromiseDetailAmendRequest {
   proposed_version: PromiseDetailVersion | null;
 }
 
+/** F-11 변경 요청의 제안 전문. 확정 전이라 버전 메타데이터를 포함하지 않는다. */
+export interface PromiseAmendProposal {
+  title: string;
+  body: string;
+  category: PromiseCategory;
+  end_date: IsoDate;
+  keeper: Keeper;
+  reward: string | null;
+  penalty: string | null;
+}
+
+export interface PromiseAmendCreateRequest {
+  promise_id: string;
+  type: AmendType;
+  proposed?: PromiseAmendProposal;
+  reason?: string;
+}
+
+export interface PromiseAmendCreateResponse {
+  promise_id: string;
+  status: 'AMEND_PENDING';
+  request_id: string;
+  type: AmendType;
+  expires_at: IsoDateTime;
+}
+
+export type PromiseAmendDecision = 'APPROVE' | 'DECLINE';
+
+export interface PromiseAmendRespondRequest {
+  promise_id: string;
+  request_id: string;
+  decision: PromiseAmendDecision;
+}
+
+export interface PromiseAmendRespondResponse {
+  promise_id: string;
+  status: 'ACTIVE' | 'CANCELED';
+  request_id: string;
+  request_status: Extract<AmendStatus, 'APPROVED' | 'DECLINED'>;
+  version_no: number | null;
+}
+
+export interface PromiseAmendWithdrawRequest {
+  promise_id: string;
+  request_id: string;
+}
+
+export interface PromiseAmendWithdrawResponse {
+  promise_id: string;
+  status: 'ACTIVE';
+  request_id: string;
+  request_status: 'WITHDRAWN';
+}
+
+export interface PromiseVersionHistoryItem {
+  version: PromiseDetailVersion;
+  change_requester: PromiseDetailActor | null;
+  approved_by: PromiseDetailActor | null;
+  approved_at: IsoDateTime | null;
+  change_reason: string | null;
+}
+
+export interface PromiseVersionListRequest {
+  promise_id: string;
+}
+
+export interface PromiseVersionListResponse {
+  promise_id: string;
+  versions: readonly PromiseVersionHistoryItem[];
+}
+
 export interface PromiseDetailFulfillment {
   round_no: number;
   creator_has_submitted: boolean;
@@ -774,6 +845,10 @@ export const ENDPOINT = {
   promiseApprove: 'promise-approve',
   promiseDecline: 'promise-decline',
   promiseAmend: 'promise-amend',
+  promiseAmendRequest: 'promise-amend-request',
+  promiseAmendRespond: 'promise-amend-respond',
+  promiseAmendWithdraw: 'promise-amend-withdraw',
+  promiseVersionList: 'promise-version-list',
   userProvision: 'user-provision',
   deviceTokenRegister: 'device-token-register',
   deviceTokenUnregister: 'device-token-unregister',

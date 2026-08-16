@@ -10,6 +10,56 @@ import {
 } from './notification.ts';
 
 describe('F-06 알림 계약', () => {
+  test('NT-15~17 변경·파기 알림을 공유 템플릿으로 렌더링한다', () => {
+    const render = renderNotificationTemplate as unknown as (
+      event: string,
+      args: Record<string, unknown>,
+    ) => unknown;
+
+    expect(
+      render('NT-15', {
+        promiseTitle: '매일 걷기',
+        partnerNickname: '민준',
+        amendType: 'AMEND',
+      }),
+    ).toEqual({
+      title: '민준님이 약속 변경을 요청했어요',
+      body: '매일 걷기',
+      deeplink: 'SCR-A05',
+    });
+    expect(
+      render('NT-15', {
+        promiseTitle: '매일 걷기',
+        partnerNickname: '민준',
+        amendType: 'CANCEL',
+      }),
+    ).toMatchObject({ title: '민준님이 약속 파기를 요청했어요' });
+    expect(
+      render('NT-16', { promiseTitle: '매일 걷기', amendDecision: 'APPROVE' }),
+    ).toMatchObject({ title: '요청이 승인됐어요', deeplink: 'SCR-A05' });
+    expect(
+      render('NT-16', { promiseTitle: '매일 걷기', amendDecision: 'DECLINE' }),
+    ).toMatchObject({ title: '요청이 거절됐어요', deeplink: 'SCR-A05' });
+    expect(render('NT-17', { promiseTitle: '매일 걷기' })).toMatchObject({
+      title: '변경 요청이 자동 철회됐어요',
+      deeplink: 'SCR-A05',
+    });
+  });
+
+  test('NT-15와 NT-16은 잘못된 변경 템플릿 인자를 거절한다', () => {
+    const render = renderNotificationTemplate as unknown as (
+      event: string,
+      args: Record<string, unknown>,
+    ) => unknown;
+
+    expect(() =>
+      render('NT-15', { promiseTitle: '매일 걷기', partnerNickname: '민준' }),
+    ).toThrow('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+    expect(() =>
+      render('NT-16', { promiseTitle: '매일 걷기', amendDecision: 'MAYBE' }),
+    ).toThrow('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+  });
+
   test('NT-04~08·10 예약 알림 제목과 앱 화면이 명세와 같다', () => {
     expect({
       'NT-04': [NOTIFICATION_TITLE['NT-04']('무시'), NOTIFICATION_DEEPLINK['NT-04']],
