@@ -123,6 +123,22 @@ verify_jwt = true
 [functions.notification-read-all]
 verify_jwt = true
 
+# F-05 증인 슬롯·참여·열람·확인 서명은 모두 로그인 계정 경계 뒤에서만 실행한다.
+[functions.witness-invite-list]
+verify_jwt = true
+
+[functions.witness-invite]
+verify_jwt = true
+
+[functions.witness-join]
+verify_jwt = true
+
+[functions.witness-detail]
+verify_jwt = true
+
+[functions.witness-sign]
+verify_jwt = true
+
 # J-08가 내부 비밀 헤더로 인증하므로 플랫폼 JWT는 사용하지 않는다.
 [functions.evidence-purge]
 verify_jwt = false

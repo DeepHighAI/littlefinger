@@ -67,6 +67,7 @@ export type ApiValidationField =
   | 'penalty'
   | 'witness_enabled'
   | 'promise_id'
+  | 'participant_id'
   | 'decline_reason'
   | 'amend_suggestion'
   | 'answer'
