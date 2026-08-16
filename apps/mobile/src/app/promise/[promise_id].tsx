@@ -8,11 +8,16 @@ import {
   type PromiseDetailPerson,
   type PromiseDetailResponse,
   type PromiseDetailVersion,
+  type PromiseAmendCreateRequest,
+  type PromiseAmendDecision,
+  type PromiseVersionListResponse,
 } from '@littlefinger/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Linking,
+  Modal,
   Pressable,
   ScrollView,
   Share,
@@ -31,6 +36,7 @@ import { LfIcon } from '../../components/LfIcon';
 import { LfRow } from '../../components/LfRow';
 import { LfStack } from '../../components/LfStack';
 import { LfText } from '../../components/LfText';
+import { PromiseAmendSheet } from '../../components/promise-amend-sheet.tsx';
 import { WitnessInviteSheet } from '../../components/witness-invite-sheet.tsx';
 import {
   createFulfillmentIdempotencyKey,
@@ -38,8 +44,17 @@ import {
   signFulfillmentEvidence,
 } from '../../lib/fulfillment-native.ts';
 import { MobileApiError } from '../../lib/mobile-api.ts';
-import { getPromiseDetail } from '../../lib/promise-detail-native.ts';
 import {
+  createPromiseAmendIdempotencyKey,
+  listPromiseVersions,
+  requestPromiseAmend,
+  respondPromiseAmend,
+  withdrawPromiseAmend,
+} from '../../lib/promise-amend-native.ts';
+import { getPromiseDetail } from '../../lib/promise-detail-native.ts';
+import { openEndDatePicker } from '../../lib/promise-editor-native.ts';
+import {
+  changedVersionRows,
   claimPresentation,
   detailStatusOf,
   evidenceAvailabilityText,
@@ -49,14 +64,19 @@ import {
   formatDetailInstant,
   responseFact,
 } from '../../screens/scr-a05-detail-state.ts';
-import { SCR_A05_LABEL } from '../../screens/scr-a05-labels.ts';
-import { colors, gutter, radius, size, space } from '../../theme/tokens';
+import { MOD_01_LABEL, SCR_A05_LABEL } from '../../screens/scr-a05-labels.ts';
+import { colors, elevation, gutter, radius, size, space } from '../../theme/tokens';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const WITNESS_INVITE_STATUSES = new Set(['PENDING', 'ACTIVE', 'AMEND_PENDING', 'CHECKING']);
+const HISTORY_SHEET_MAX_HEIGHT = '88%';
 
 type ScreenPhase = 'loading' | 'ready' | 'not-found' | 'error';
+interface IntentKey {
+  signature: string;
+  key: string;
+}
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -100,6 +120,23 @@ const styles = StyleSheet.create({
   claim: { flex: 1, gap: space[3], alignItems: 'center' },
   actions: { gap: space[4] },
   compare: { gap: space[5] },
+  changePair: { gap: space[3] },
+  historyScrim: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: colors.scrim,
+  },
+  historySheet: {
+    maxHeight: HISTORY_SHEET_MAX_HEIGHT,
+    paddingHorizontal: gutter.app,
+    paddingTop: space[7],
+    paddingBottom: space[9],
+    borderTopLeftRadius: radius['2xl'],
+    borderTopRightRadius: radius['2xl'],
+    backgroundColor: colors.surface,
+    ...elevation.sheet,
+  },
+  historyContent: { gap: space[5], paddingBottom: space[5] },
 });
 
 function promiseIdOf(value: string | string[] | undefined): string | null {
@@ -222,23 +259,102 @@ function ClaimCard({
   );
 }
 
-function VersionSummary({
-  label,
-  version,
+function ChangedVersionSection({
+  before,
+  after,
 }: {
-  label: string;
-  version: PromiseDetailVersion;
+  before: PromiseDetailVersion;
+  after: PromiseDetailVersion;
+}): React.JSX.Element {
+  const rows = changedVersionRows(before, after);
+  return (
+    <View style={styles.compare}>
+      {rows.map((row) => (
+        <LfCard key={row.field}>
+          <View style={styles.changePair}>
+            <LfText variant="caption">{SCR_A05_LABEL.changedBefore(row.label)}</LfText>
+            <LfText>{row.before}</LfText>
+            <LfText variant="caption">{SCR_A05_LABEL.changedAfter(row.label)}</LfText>
+            <LfText>{row.after}</LfText>
+          </View>
+        </LfCard>
+      ))}
+    </View>
+  );
+}
+
+function VersionHistorySheet({
+  visible,
+  state,
+  onClose,
+}: {
+  visible: boolean;
+  state: { phase: 'idle' | 'loading' | 'error' } | {
+    phase: 'ready';
+    value: PromiseVersionListResponse;
+  };
+  onClose(): void;
 }): React.JSX.Element {
   return (
-    <LfCard>
-      <LfStack gap={4}>
-        <LfText variant="sectionTitle">{label}</LfText>
-        <LfText variant="subtitle">{version.title}</LfText>
-        <LfText>{version.body}</LfText>
-        <InfoRow label={SCR_A05_LABEL.endDate} value={formatDetailDate(version.end_date)} />
-        <LfText variant="caption">{fingerprintText(version.fingerprint)}</LfText>
-      </LfStack>
-    </LfCard>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.historyScrim}>
+        <View style={styles.historySheet} accessibilityViewIsModal>
+          <LfStack gap={5}>
+            <LfText variant="title">{SCR_A05_LABEL.versionHistoryTitle}</LfText>
+            {state.phase === 'loading' || state.phase === 'idle' ? (
+              <LfText>{SCR_A05_LABEL.versionHistoryLoading}</LfText>
+            ) : null}
+            {state.phase === 'error' ? <LfText>{SCR_A05_LABEL.loadError}</LfText> : null}
+            {state.phase === 'ready' ? (
+              <ScrollView contentContainerStyle={styles.historyContent}>
+                {state.value.versions.length === 0 ? (
+                  <LfText>{SCR_A05_LABEL.versionHistoryEmpty}</LfText>
+                ) : state.value.versions.map((item) => (
+                  <LfCard key={item.version.version_no}>
+                    <LfStack gap={3}>
+                      <LfText variant="sectionTitle">{SCR_A05_LABEL.version(item.version.version_no)}</LfText>
+                      <LfText variant="subtitle">{item.version.title}</LfText>
+                      <LfText>{item.version.body}</LfText>
+                      <InfoRow label={SCR_A05_LABEL.category} value={PROMISE_CATEGORY_LABEL[item.version.category]} />
+                      <InfoRow label={SCR_A05_LABEL.endDate} value={formatDetailDate(item.version.end_date)} />
+                      <InfoRow label={SCR_A05_LABEL.keeper} value={KEEPER_LABEL[item.version.keeper]} />
+                      <InfoRow label={SCR_A05_LABEL.reward} value={item.version.reward ?? SCR_A05_LABEL.noReward} />
+                      <InfoRow label={SCR_A05_LABEL.penalty} value={item.version.penalty ?? SCR_A05_LABEL.noPenalty} />
+                      <LfText variant="caption">{SCR_A05_LABEL.contentHash}</LfText>
+                      <LfText>{item.version.content_hash.slice(0, 8)}</LfText>
+                      {item.version.activated_at !== null ? (
+                        <InfoRow label={SCR_A05_LABEL.versionActivated} value={formatDetailInstant(item.version.activated_at)} />
+                      ) : null}
+                      {item.version.superseded_at !== null ? (
+                        <InfoRow label={SCR_A05_LABEL.versionSuperseded} value={formatDetailInstant(item.version.superseded_at)} />
+                      ) : null}
+                      {item.change_requester !== null ? (
+                        <InfoRow label={SCR_A05_LABEL.versionRequester} value={item.change_requester.nickname} />
+                      ) : null}
+                      {item.approved_by !== null ? (
+                        <InfoRow label={SCR_A05_LABEL.versionApprover} value={item.approved_by.nickname} />
+                      ) : null}
+                      {item.approved_at !== null ? (
+                        <InfoRow label={SCR_A05_LABEL.versionApproved} value={formatDetailInstant(item.approved_at)} />
+                      ) : null}
+                      {item.change_reason !== null ? (
+                        <InfoRow label={SCR_A05_LABEL.versionReason} value={item.change_reason} />
+                      ) : null}
+                    </LfStack>
+                  </LfCard>
+                ))}
+              </ScrollView>
+            ) : null}
+            <LfButton
+              label={SCR_A05_LABEL.versionHistoryClose}
+              variant="outlined"
+              block
+              onPress={onClose}
+            />
+          </LfStack>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -316,26 +432,47 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   const [actionError, setActionError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [witnessSheetOpen, setWitnessSheetOpen] = useState(false);
+  const [amendSheetOpen, setAmendSheetOpen] = useState(false);
+  const [versionSheetOpen, setVersionSheetOpen] = useState(false);
+  const [versionState, setVersionState] = useState<
+    { phase: 'idle' | 'loading' | 'error' } | {
+      phase: 'ready';
+      value: PromiseVersionListResponse;
+    }
+  >({ phase: 'idle' });
   const reopenKey = useRef<string | null>(null);
+  const amendRequestKey = useRef<IntentKey | null>(null);
+  const amendRespondKey = useRef<IntentKey | null>(null);
+  const amendWithdrawKey = useRef<string | null>(null);
+  const actionPending = useRef(false);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<boolean> => {
     if (promiseId === null) {
       setPhase('not-found');
-      return;
+      return false;
     }
     setPhase('loading');
     try {
       setDetail(await getPromiseDetail(promiseId));
       setPhase('ready');
+      return true;
     } catch (error) {
       setPhase(
         error instanceof MobileApiError && error.code === 'E_NOT_FOUND' ? 'not-found' : 'error',
       );
+      return false;
     }
   }, [promiseId]);
 
   useEffect(() => {
     reopenKey.current = null;
+    amendRequestKey.current = null;
+    amendRespondKey.current = null;
+    amendWithdrawKey.current = null;
+    actionPending.current = false;
+    setAmendSheetOpen(false);
+    setVersionSheetOpen(false);
+    setVersionState({ phase: 'idle' });
     void refresh();
   }, [refresh]);
 
@@ -368,6 +505,20 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   const canInviteWitness =
     WITNESS_INVITE_STATUSES.has(detail.status)
     && (detail.my_role === 'CREATOR' || detail.my_role === 'PARTNER');
+  const myUserId = detail.my_role === 'CREATOR'
+    ? detail.creator.user_id
+    : detail.my_role === 'PARTNER'
+      ? detail.partner?.user_id ?? null
+      : detail.witnesses.find((witness) => witness.role === 'WITNESS')?.user_id ?? null;
+  const pendingAmend = detail.status === 'AMEND_PENDING' ? detail.amend_request : null;
+  const isAmendRequester = pendingAmend !== null && pendingAmend.requester.user_id === myUserId;
+  const isAmendResponder = pendingAmend !== null
+    && !isAmendRequester
+    && (detail.my_role === 'CREATOR' || detail.my_role === 'PARTNER');
+  const canRequestAmend = detail.status === 'ACTIVE'
+    && (detail.my_role === 'CREATOR' || detail.my_role === 'PARTNER');
+  const canShowVersionHistory = !['DECLINED', 'CANCELED'].includes(detail.status)
+    && detail.current_version.activated_at !== null;
 
   async function reopen(): Promise<void> {
     if (promiseId === null || busy) return;
@@ -382,6 +533,106 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     } finally {
       setBusy(false);
     }
+  }
+
+  function shouldRefreshAfterAmendError(error: unknown): boolean {
+    return error instanceof MobileApiError
+      && (error.code === 'E_VALIDATION' || error.code === 'E_STATE_CONFLICT');
+  }
+
+  async function submitAmend(input: PromiseAmendCreateRequest): Promise<void> {
+    if (actionPending.current) return;
+    actionPending.current = true;
+    setBusy(true);
+    setActionError(false);
+    const signature = JSON.stringify(input);
+    if (amendRequestKey.current?.signature !== signature) {
+      amendRequestKey.current = { signature, key: createPromiseAmendIdempotencyKey() };
+    }
+    try {
+      await requestPromiseAmend(input, amendRequestKey.current.key);
+      if (await refresh()) {
+        amendRequestKey.current = null;
+        setAmendSheetOpen(false);
+      }
+    } catch (error) {
+      setActionError(true);
+      if (shouldRefreshAfterAmendError(error)) await refresh();
+      throw error;
+    } finally {
+      actionPending.current = false;
+      setBusy(false);
+    }
+  }
+
+  async function respondAmend(decision: PromiseAmendDecision): Promise<void> {
+    const currentDetail = detail;
+    const request = currentDetail?.amend_request;
+    if (currentDetail === null || request === null || request === undefined || actionPending.current) return;
+    actionPending.current = true;
+    setBusy(true);
+    setActionError(false);
+    if (amendRespondKey.current?.signature !== decision) {
+      amendRespondKey.current = { signature: decision, key: createPromiseAmendIdempotencyKey() };
+    }
+    try {
+      await respondPromiseAmend({
+        promise_id: currentDetail.promise_id,
+        request_id: request.request_id,
+        decision,
+      }, amendRespondKey.current.key);
+      if (await refresh()) amendRespondKey.current = null;
+    } catch (error) {
+      setActionError(true);
+      if (shouldRefreshAfterAmendError(error)) await refresh();
+    } finally {
+      actionPending.current = false;
+      setBusy(false);
+    }
+  }
+
+  async function withdrawAmend(): Promise<void> {
+    const currentDetail = detail;
+    const request = currentDetail?.amend_request;
+    if (currentDetail === null || request === null || request === undefined || actionPending.current) return;
+    actionPending.current = true;
+    setBusy(true);
+    setActionError(false);
+    amendWithdrawKey.current ??= createPromiseAmendIdempotencyKey();
+    try {
+      await withdrawPromiseAmend(
+        currentDetail.promise_id,
+        request.request_id,
+        amendWithdrawKey.current,
+      );
+      if (await refresh()) amendWithdrawKey.current = null;
+    } catch (error) {
+      setActionError(true);
+      if (shouldRefreshAfterAmendError(error)) await refresh();
+    } finally {
+      actionPending.current = false;
+      setBusy(false);
+    }
+  }
+
+  async function openVersionHistory(): Promise<void> {
+    if (promiseId === null) return;
+    setVersionSheetOpen(true);
+    setVersionState({ phase: 'loading' });
+    try {
+      setVersionState({ phase: 'ready', value: await listPromiseVersions(promiseId) });
+    } catch {
+      setVersionState({ phase: 'error' });
+    }
+  }
+
+  function confirmCancel(): Promise<boolean> {
+    return new Promise((resolve) => {
+      Alert.alert(MOD_01_LABEL.cancelConfirmTitle, MOD_01_LABEL.cancelConfirmBody, [
+        { text: MOD_01_LABEL.cancelConfirmDismiss, style: 'cancel', onPress: () => resolve(false) },
+        { text: MOD_01_LABEL.cancelConfirmAction, style: 'destructive', onPress: () => resolve(true) },
+      ], { cancelable: false });
+    });
   }
 
   return (
@@ -445,15 +696,52 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           </LfCard>
         )}
 
-        {detail.status === 'AMEND_PENDING' && detail.amend_request?.proposed_version !== null && detail.amend_request?.proposed_version !== undefined && (
+        {pendingAmend !== null && (
           <LfStack gap={4}>
             <LfText variant="sectionTitle">{SCR_A05_LABEL.amend}</LfText>
-            <View style={styles.compare}>
-              <VersionSummary label={SCR_A05_LABEL.before} version={detail.current_version} />
-              <VersionSummary label={SCR_A05_LABEL.after} version={detail.amend_request.proposed_version} />
-            </View>
-            {detail.amend_request.reason !== null && <LfText>{detail.amend_request.reason}</LfText>}
-            <LfText variant="caption">{SCR_A05_LABEL.amendReadOnly}</LfText>
+            {pendingAmend.type === 'AMEND' && pendingAmend.proposed_version !== null ? (
+              <ChangedVersionSection
+                before={detail.current_version}
+                after={pendingAmend.proposed_version}
+              />
+            ) : (
+              <LfCard variant="container">
+                <LfText>{SCR_A05_LABEL.cancelRequested(pendingAmend.requester.nickname)}</LfText>
+              </LfCard>
+            )}
+            <InfoRow label={SCR_A05_LABEL.amendRequester} value={pendingAmend.requester.nickname} />
+            <InfoRow label={SCR_A05_LABEL.amendRequestedAt} value={formatDetailInstant(pendingAmend.created_at)} />
+            {pendingAmend.reason !== null ? (
+              <InfoRow label={SCR_A05_LABEL.amendReason} value={pendingAmend.reason} />
+            ) : null}
+            {isAmendRequester ? (
+              <LfButton
+                label={SCR_A05_LABEL.amendWithdrawAction}
+                variant="outlined"
+                block
+                disabled={busy}
+                onPress={() => void withdrawAmend()}
+              />
+            ) : null}
+            {isAmendResponder ? (
+              <LfRow>
+                <LfButton
+                  label={pendingAmend.type === 'AMEND'
+                    ? SCR_A05_LABEL.amendApproveAction
+                    : SCR_A05_LABEL.cancelApproveAction}
+                  grow
+                  disabled={busy}
+                  onPress={() => void respondAmend('APPROVE')}
+                />
+                <LfButton
+                  label={SCR_A05_LABEL.amendDeclineAction}
+                  variant="outlined"
+                  grow
+                  disabled={busy}
+                  onPress={() => void respondAmend('DECLINE')}
+                />
+              </LfRow>
+            ) : null}
           </LfStack>
         )}
 
@@ -485,11 +773,28 @@ export default function PromiseDetailScreen(): React.JSX.Element {
             </LfStack>
           )}
           {detail.status === 'ACTIVE' && <LfDisclaimer />}
+          {canShowVersionHistory ? (
+            <LfButton
+              label={SCR_A05_LABEL.versionHistoryAction}
+              variant="outlined"
+              block
+              onPress={() => void openVersionHistory()}
+            />
+          ) : null}
         </LfStack>
 
         {terminalReason !== null && <LfCard><LfText>{terminalReason}</LfText></LfCard>}
 
         <View style={styles.actions}>
+          {canRequestAmend ? (
+            <LfButton
+              label={SCR_A05_LABEL.amendRequestAction}
+              variant="outlined"
+              block
+              disabled={busy}
+              onPress={() => setAmendSheetOpen(true)}
+            />
+          ) : null}
           {detail.status === 'PENDING' && (
             <LfButton
               label={SCR_A05_LABEL.pendingAction}
@@ -550,6 +855,20 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         visible={witnessSheetOpen}
         promiseId={detail.promise_id}
         onClose={() => setWitnessSheetOpen(false)}
+      />
+      <PromiseAmendSheet
+        visible={amendSheetOpen}
+        detail={detail}
+        now={new Date()}
+        onClose={() => setAmendSheetOpen(false)}
+        onSubmit={submitAmend}
+        pickEndDate={openEndDatePicker}
+        confirmCancel={confirmCancel}
+      />
+      <VersionHistorySheet
+        visible={versionSheetOpen}
+        state={versionState}
+        onClose={() => setVersionSheetOpen(false)}
       />
     </ScreenFrame>
   );

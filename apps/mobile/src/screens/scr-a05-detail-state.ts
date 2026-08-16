@@ -1,6 +1,9 @@
 import {
   KST_MARK,
+  KEEPER_LABEL,
+  PROMISE_CATEGORY_LABEL,
   PROMISE_STATUS_LABEL,
+  changedPromiseFields,
   ddayFrom,
   formatDday,
   formatKstDate,
@@ -10,6 +13,7 @@ import {
   type IsoDate,
   type IsoDateTime,
   type PromiseDetailStatus,
+  type PromiseDetailVersion,
   type PromiseStatus,
 } from '@littlefinger/shared';
 
@@ -86,6 +90,38 @@ export function formatDetailDday(endDate: IsoDate, now: Date): string {
 
 export function fingerprintText(value: string): string {
   return `기록 지문 · ${value}`;
+}
+
+export interface ChangedVersionRow {
+  field: ReturnType<typeof changedPromiseFields>[number];
+  label: string;
+  before: string;
+  after: string;
+}
+
+function versionFieldValue(
+  version: PromiseDetailVersion,
+  field: ChangedVersionRow['field'],
+): string {
+  if (field === 'category') return PROMISE_CATEGORY_LABEL[version.category];
+  if (field === 'keeper') return KEEPER_LABEL[version.keeper];
+  if (field === 'end_date') return formatDetailDate(version.end_date);
+  if (field === 'reward') return version.reward ?? SCR_A05_LABEL.noReward;
+  if (field === 'penalty') return version.penalty ?? SCR_A05_LABEL.noPenalty;
+  return version[field];
+}
+
+/** 변경 협의에서는 달라진 필드만 같은 구조와 강조도로 표시한다. */
+export function changedVersionRows(
+  before: PromiseDetailVersion,
+  after: PromiseDetailVersion,
+): ChangedVersionRow[] {
+  return changedPromiseFields(before, after).map((field) => ({
+    field,
+    label: SCR_A05_LABEL.versionFieldLabel[field],
+    before: versionFieldValue(before, field),
+    after: versionFieldValue(after, field),
+  }));
 }
 
 export function evidenceAvailabilityText(value: EvidenceAvailability): string | null {

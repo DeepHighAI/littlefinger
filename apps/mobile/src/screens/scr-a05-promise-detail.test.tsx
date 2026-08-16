@@ -14,6 +14,13 @@ import {
 } from '../lib/fulfillment-native.ts';
 import { MobileApiError } from '../lib/mobile-api.ts';
 import { getPromiseDetail } from '../lib/promise-detail-native.ts';
+import {
+  createPromiseAmendIdempotencyKey,
+  listPromiseVersions,
+  requestPromiseAmend,
+  respondPromiseAmend,
+  withdrawPromiseAmend,
+} from '../lib/promise-amend-native.ts';
 
 jest.mock('expo-router', () => ({
   useLocalSearchParams: jest.fn(),
@@ -25,6 +32,64 @@ jest.mock('../lib/fulfillment-native.ts', () => ({
   reopenFulfillment: jest.fn(),
   signFulfillmentEvidence: jest.fn(),
 }));
+jest.mock('../lib/promise-amend-native.ts', () => ({
+  createPromiseAmendIdempotencyKey: jest.fn(),
+  listPromiseVersions: jest.fn(),
+  requestPromiseAmend: jest.fn(),
+  respondPromiseAmend: jest.fn(),
+  withdrawPromiseAmend: jest.fn(),
+}));
+jest.mock('../lib/promise-editor-native.ts', () => ({ openEndDatePicker: jest.fn() }));
+jest.mock('../components/promise-amend-sheet.tsx', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Pressable, Text, View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    PromiseAmendSheet: ({
+      visible,
+      onSubmit,
+    }: {
+      visible: boolean;
+      onSubmit(input: unknown): Promise<void>;
+    }) => visible ? React.createElement(
+      View,
+      null,
+      React.createElement(Text, null, '변경·파기 요청 시트'),
+      React.createElement(
+        Pressable,
+        {
+          accessibilityRole: 'button',
+          accessibilityLabel: '테스트 변경 제출',
+          onPress: () => void onSubmit({
+            promise_id: '11111111-1111-4111-8111-111111111111',
+            type: 'AMEND',
+            proposed: {
+              title: '매주 화·목 아침 러닝 같이 하기',
+              body: '매주 화요일과 목요일에 함께 달린다.',
+              category: 'HABIT',
+              end_date: '2026-09-01',
+              keeper: 'BOTH',
+              reward: '오마카세 사주기',
+              penalty: '한 달 커피 사기',
+            },
+          }).catch(() => undefined),
+        },
+        React.createElement(Text, null, '테스트 변경 제출'),
+      ),
+      React.createElement(
+        Pressable,
+        {
+          accessibilityRole: 'button',
+          accessibilityLabel: '테스트 다른 변경 제출',
+          onPress: () => void onSubmit({
+            promise_id: '11111111-1111-4111-8111-111111111111',
+            type: 'CANCEL',
+          }).catch(() => undefined),
+        },
+        React.createElement(Text, null, '테스트 다른 변경 제출'),
+      ),
+    ) : null,
+  };
+}, { virtual: true });
 jest.mock('../components/witness-invite-sheet.tsx', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
@@ -43,6 +108,11 @@ const loadDetailMock = jest.mocked(getPromiseDetail);
 const reopenMock = jest.mocked(reopenFulfillment);
 const createKeyMock = jest.mocked(createFulfillmentIdempotencyKey);
 const signEvidenceMock = jest.mocked(signFulfillmentEvidence);
+const createAmendKeyMock = jest.mocked(createPromiseAmendIdempotencyKey);
+const listVersionsMock = jest.mocked(listPromiseVersions);
+const requestAmendMock = jest.mocked(requestPromiseAmend);
+const respondAmendMock = jest.mocked(respondPromiseAmend);
+const withdrawAmendMock = jest.mocked(withdrawPromiseAmend);
 
 const VERSION = {
   version_no: 1,
@@ -252,6 +322,33 @@ describe('SCR-A05 약속 상세', () => {
     });
     jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
     jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
+    createAmendKeyMock.mockReset();
+    createAmendKeyMock.mockReturnValue('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    requestAmendMock.mockReset();
+    requestAmendMock.mockResolvedValue({
+      promise_id: PROMISE_ID,
+      status: 'AMEND_PENDING',
+      request_id: '99999999-9999-4999-8999-999999999999',
+      type: 'AMEND',
+      expires_at: '2026-08-24T00:00:00Z',
+    });
+    respondAmendMock.mockReset();
+    respondAmendMock.mockResolvedValue({
+      promise_id: PROMISE_ID,
+      status: 'ACTIVE',
+      request_id: '99999999-9999-4999-8999-999999999999',
+      request_status: 'APPROVED',
+      version_no: 2,
+    });
+    withdrawAmendMock.mockReset();
+    withdrawAmendMock.mockResolvedValue({
+      promise_id: PROMISE_ID,
+      status: 'ACTIVE',
+      request_id: '99999999-9999-4999-8999-999999999999',
+      request_status: 'WITHDRAWN',
+    });
+    listVersionsMock.mockReset();
+    listVersionsMock.mockResolvedValue({ promise_id: PROMISE_ID, versions: [] });
   });
 
   afterEach(() => jest.restoreAllMocks());
@@ -375,7 +472,7 @@ describe('SCR-A05 약속 상세', () => {
     expect(push).toHaveBeenCalledWith({ pathname: '/invite', params: { promise_id: PROMISE_ID } });
   });
 
-  test('AMEND_PENDING은 현재·제안 내용을 동등하게 보여주고 미구현 액션은 렌더하지 않는다', async () => {
+  test('AMEND_PENDING은 변경된 필드만 동등한 전후 구조로 보여주고 요청자는 철회한다', async () => {
     loadDetailMock.mockResolvedValue(makeDetail({
       status: 'AMEND_PENDING',
       amend_request: {
@@ -390,11 +487,183 @@ describe('SCR-A05 약속 상세', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    expect(view.getByText('현재 내용')).toBeTruthy();
-    expect(view.getByText('제안 내용')).toBeTruthy();
+    expect(view.getByText('변경 전 · 종료일')).toBeTruthy();
+    expect(view.getByText('변경 후 · 종료일')).toBeTruthy();
     expect(view.getAllByText('2026-09-01 (화)').length).toBeGreaterThan(0);
     expect(view.getByText('2026-09-15 (화)')).toBeTruthy();
-    expect(view.queryByRole('button', { name: /승인|거절|철회/u })).toBeNull();
+    expect(view.queryByText('변경 전 · 제목')).toBeNull();
+    await fireEvent.press(view.getByRole('button', { name: '요청 철회' }));
+    await settle();
+    expect(withdrawAmendMock).toHaveBeenCalledWith(
+      PROMISE_ID,
+      '99999999-9999-4999-8999-999999999999',
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+  });
+
+  test('ACTIVE 당사자만 MOD-01에 진입하고 증인·다른 상태에는 액션을 숨긴다', async () => {
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '변경·파기 요청' }));
+    expect(view.getByText('변경·파기 요청 시트')).toBeTruthy();
+
+    loadDetailMock.mockResolvedValue(makeDetail({ my_role: 'WITNESS' }));
+    const witness = await render(<PromiseDetailScreen />);
+    await settle();
+    expect(witness.queryByRole('button', { name: '변경·파기 요청' })).toBeNull();
+  });
+
+  test('변경 요청 재시도는 같은 키를 보존하고 성공한 authoritative refresh 뒤 초기화한다', async () => {
+    requestAmendMock
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce({
+        promise_id: PROMISE_ID,
+        status: 'AMEND_PENDING',
+        request_id: '99999999-9999-4999-8999-999999999999',
+        type: 'AMEND',
+        expires_at: '2026-08-24T00:00:00Z',
+      });
+    loadDetailMock
+      .mockResolvedValueOnce(makeDetail())
+      .mockResolvedValueOnce(makeDetail({ status: 'AMEND_PENDING' }));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '변경·파기 요청' }));
+    await fireEvent.press(view.getByRole('button', { name: '테스트 변경 제출' }));
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '테스트 변경 제출' }));
+    await settle();
+
+    expect(createAmendKeyMock).toHaveBeenCalledTimes(1);
+    expect(requestAmendMock.mock.calls.map((call) => call[1])).toEqual([
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    ]);
+    expect(loadDetailMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('네트워크 실패 뒤 요청 전문이 바뀌면 새 멱등 키를 사용한다', async () => {
+    createAmendKeyMock
+      .mockReturnValueOnce('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+      .mockReturnValueOnce('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+    requestAmendMock.mockRejectedValue(new Error('network'));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '변경·파기 요청' }));
+    await fireEvent.press(view.getByRole('button', { name: '테스트 변경 제출' }));
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '테스트 다른 변경 제출' }));
+    await settle();
+
+    expect(requestAmendMock.mock.calls.map((call) => call[1])).toEqual([
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    ]);
+  });
+
+  test('응답자는 변경 승인·거절을 보고 만료된 승인 실패 시 최신 상태를 다시 읽는다', async () => {
+    const pending = makeDetail({
+      status: 'AMEND_PENDING',
+      my_role: 'PARTNER',
+      amend_request: {
+        request_id: '99999999-9999-4999-8999-999999999999',
+        type: 'AMEND',
+        status: 'PENDING',
+        requester: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null },
+        reason: null,
+        created_at: '2026-08-10T00:00:00Z',
+        expires_at: '2026-08-24T00:00:00Z',
+        proposed_version: { ...VERSION, version_no: 2, end_date: '2026-09-15', content_hash: 'b'.repeat(64), fingerprint: 'BBBB-BBBB-BB', activated_at: null },
+      },
+    });
+    respondAmendMock.mockRejectedValueOnce(new MobileApiError('E_VALIDATION', '종료일 경과'));
+    loadDetailMock.mockResolvedValueOnce(pending).mockResolvedValueOnce(makeDetail());
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    expect(view.getByRole('button', { name: '변경 승인' })).toHaveStyle({ minHeight: 48 });
+    expect(view.getByRole('button', { name: '거절' })).toBeTruthy();
+    await fireEvent.press(view.getByRole('button', { name: '변경 승인' }));
+    await settle();
+    expect(respondAmendMock).toHaveBeenCalledWith(
+      { promise_id: PROMISE_ID, request_id: '99999999-9999-4999-8999-999999999999', decision: 'APPROVE' },
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+    expect(loadDetailMock).toHaveBeenCalledTimes(2);
+    expect(view.getByText('두 사람이 손가락 걸었어요!')).toBeTruthy();
+  });
+
+  test('네트워크 실패 뒤 응답 결정을 바꾸면 새 멱등 키를 사용한다', async () => {
+    createAmendKeyMock
+      .mockReturnValueOnce('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+      .mockReturnValueOnce('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+    respondAmendMock.mockRejectedValue(new Error('network'));
+    loadDetailMock.mockResolvedValue(makeDetail({
+      status: 'AMEND_PENDING',
+      my_role: 'PARTNER',
+      amend_request: {
+        request_id: '99999999-9999-4999-8999-999999999999',
+        type: 'AMEND', status: 'PENDING',
+        requester: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null },
+        reason: null, created_at: '2026-08-10T00:00:00Z', expires_at: '2026-08-24T00:00:00Z',
+        proposed_version: { ...VERSION, version_no: 2, end_date: '2026-09-15', activated_at: null },
+      },
+    }));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '변경 승인' }));
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '거절' }));
+    await settle();
+
+    expect(respondAmendMock.mock.calls.map((call) => call[1])).toEqual([
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    ]);
+  });
+
+  test('파기 대기에는 전문 비교 대신 중립 안내와 파기 승인 문구를 표시한다', async () => {
+    loadDetailMock.mockResolvedValue(makeDetail({
+      status: 'AMEND_PENDING',
+      my_role: 'PARTNER',
+      amend_request: {
+        request_id: '99999999-9999-4999-8999-999999999999',
+        type: 'CANCEL',
+        status: 'PENDING',
+        requester: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null },
+        reason: '일정 변경',
+        created_at: '2026-08-10T00:00:00Z',
+        expires_at: '2026-08-24T00:00:00Z',
+        proposed_version: null,
+      },
+    }));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    expect(view.getByText('지우님이 파기를 요청했어요')).toBeTruthy();
+    expect(view.queryByText('변경 전 · 종료일')).toBeNull();
+    expect(view.getByRole('button', { name: '파기 승인' })).toBeTruthy();
+  });
+
+  test('버전 이력은 메타데이터와 각 버전 전문을 읽기 전용으로 표시한다', async () => {
+    listVersionsMock.mockResolvedValue({
+      promise_id: PROMISE_ID,
+      versions: [{
+        version: VERSION,
+        change_requester: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null },
+        approved_by: { user_id: PARTNER_ID, nickname: '민준', profile_image_url: null },
+        approved_at: '2026-08-01T00:00:00Z',
+        change_reason: '첫 확정',
+      }],
+    });
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '버전 이력 보기' }));
+    await settle();
+
+    for (const text of ['v1', '지우', '민준', '첫 확정', VERSION.body, 'aaaaaaaa']) {
+      expect(view.getAllByText(text).length).toBeGreaterThan(0);
+    }
+    expect(view.queryByRole('button', { name: /삭제/u })).toBeNull();
   });
 
   test('CHECKING은 양측 제출 사실과 기한을 표시하고 SCR-A06으로 이동한다', async () => {
