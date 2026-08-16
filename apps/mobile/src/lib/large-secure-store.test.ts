@@ -169,4 +169,46 @@ describe('LargeSecureStore', () => {
     expect(asyncValues.has('push-marker')).toBe(false);
     expect(secureValues.has('push-marker')).toBe(false);
   });
+
+  test('콜론이 포함된 논리 키도 SecureStore 허용 키로 분리해 왕복한다', async () => {
+    // 논리 키 계약을 저장소 제약에 맞춰 훼손하면 사용자별 키 충돌이나 기존 데이터 유실이 생긴다.
+    const { asyncValues, deps, secureValues } = memoryDeps();
+    const secureKeys: string[] = [];
+    const isAllowedSecureKey = (key: string) => /^[A-Za-z0-9._-]+$/u.test(key);
+    const validateSecureKey = (key: string) => {
+      secureKeys.push(key);
+      if (!isAllowedSecureKey(key)) {
+        throw new Error(
+          'Invalid key provided to SecureStore. Keys must not be empty and contain only alphanumeric characters, ".", "-", and "_".',
+        );
+      }
+    };
+    deps.secureStore.getItemAsync = async (key) => {
+      validateSecureKey(key);
+      return secureValues.get(key) ?? null;
+    };
+    deps.secureStore.setItemAsync = async (key, value) => {
+      validateSecureKey(key);
+      secureValues.set(key, value);
+    };
+    deps.secureStore.deleteItemAsync = async (key) => {
+      validateSecureKey(key);
+      secureValues.delete(key);
+    };
+    const store = new LargeSecureStore(deps);
+    const logicalKey = 'push-token:11111111-1111-4111-8111-111111111111';
+    const value = 'ExponentPushToken[test]';
+
+    await store.setItem(logicalKey, value);
+
+    expect(asyncValues.has(logicalKey)).toBe(true);
+    expect(secureValues.has(logicalKey)).toBe(false);
+    expect(secureKeys.every(isAllowedSecureKey)).toBe(true);
+    await expect(store.getItem(logicalKey)).resolves.toBe(value);
+
+    await store.removeItem(logicalKey);
+
+    expect(asyncValues.has(logicalKey)).toBe(false);
+    expect(secureValues.size).toBe(0);
+  });
 });
