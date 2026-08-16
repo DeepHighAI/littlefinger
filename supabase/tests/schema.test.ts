@@ -80,6 +80,27 @@ describe('J-09 record integrity scheduler', () => {
   });
 });
 
+describe('F-09 trust profile and J-10 scheduler', () => {
+  test('프로필 경계와 전량 재계산 함수가 서버 전용으로 선언된다', () => {
+    for (const signature of [
+      'public.lf_my_trust_profile(uuid)',
+      'public.lf_trust_profile_settings_update(uuid, uuid, jsonb)',
+      'public.lf_device_token_unregister(uuid, uuid, text)',
+      'public.lf_recompute_all_trust_profiles()',
+      'public.lf_schedule_trust_profile_recompute()',
+    ]) {
+      expect(lower).toContain(`revoke all on function ${signature}`);
+    }
+  });
+
+  test('J-10은 한 고정 이름으로 매일 03:00 KST에 등록된다', () => {
+    expect(lower).toContain("'lf-j10-trust-profile-recompute'");
+    expect(lower).toContain("'0 18 * * *'");
+    expect(lower).toContain("'select public.lf_recompute_all_trust_profiles();'");
+    expect(lower).toContain('select public.lf_schedule_trust_profile_recompute();');
+  });
+});
+
 /** `create table [if not exists] [public.]name` 에서 이름만 뽑는다. */
 function declaredTables(): string[] {
   const names: string[] = [];
