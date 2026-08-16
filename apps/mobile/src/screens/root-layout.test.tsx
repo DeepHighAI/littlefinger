@@ -127,6 +127,7 @@ describe('루트 인증 게이트', () => {
 
     expect(view.getByText('screen:index')).toBeTruthy();
     expect(view.getByText('screen:auth-callback')).toBeTruthy();
+    expect(view.queryByText('screen:profile')).toBeNull();
     expect(mockStartMobileSessionGateNative).toHaveBeenCalledTimes(1);
     expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
   });
@@ -147,6 +148,7 @@ describe('루트 인증 게이트', () => {
     expect(view.getByText('screen:invite')).toBeTruthy();
     expect(view.getByText('screen:fulfillment/[promise_id]')).toBeTruthy();
     expect(view.getByText('screen:notifications')).toBeTruthy();
+    expect(view.getByText('screen:profile')).toBeTruthy();
     expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
   });
 

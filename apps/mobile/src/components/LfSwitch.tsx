@@ -6,6 +6,7 @@ export interface LfSwitchProps {
   accessibilityLabel: string;
   value: boolean;
   onValueChange(value: boolean): void;
+  disabled?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -32,12 +33,14 @@ export function LfSwitch({
   accessibilityLabel,
   value,
   onValueChange,
+  disabled = false,
 }: LfSwitchProps): React.JSX.Element {
   return (
     <Pressable
       accessibilityRole="switch"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ checked: value }}
+      accessibilityState={{ checked: value, disabled }}
+      disabled={disabled}
       onPress={() => onValueChange(!value)}
       style={[styles.track, value && styles.checked]}
     >

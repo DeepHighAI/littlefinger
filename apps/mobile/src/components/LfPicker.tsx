@@ -9,6 +9,7 @@ export interface LfPickerProps {
   value?: string | undefined;
   placeholder: string;
   onPress(): void;
+  disabled?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -31,11 +32,14 @@ export function LfPicker({
   value,
   placeholder,
   onPress,
+  disabled = false,
 }: LfPickerProps): React.JSX.Element {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
       style={styles.picker}
     >

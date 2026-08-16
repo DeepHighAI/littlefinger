@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     paddingBottom: size.fabHeight + gutter.app + space[9],
   },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  notifications: {
+  appBarAction: {
     minWidth: size.touchMin,
     minHeight: size.touchMin,
     alignItems: 'center',
@@ -322,14 +322,24 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
         title={HOME_LABEL.brand}
         brand
         action={(
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={HOME_LABEL.notifications}
-            style={styles.notifications}
-            onPress={() => router.push('/notifications')}
-          >
-            <LfIcon name="notifications-none" />
-          </Pressable>
+          <LfRow gap={1}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={HOME_LABEL.notifications}
+              style={styles.appBarAction}
+              onPress={() => router.push('/notifications')}
+            >
+              <LfIcon name="notifications-none" />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={HOME_LABEL.profile}
+              style={styles.appBarAction}
+              onPress={() => router.push('/profile')}
+            >
+              <LfIcon name="person-outline" />
+            </Pressable>
+          </LfRow>
         )}
       />
       <View accessibilityRole="tablist" style={styles.tabs}>

@@ -108,6 +108,18 @@ describe('SCR-A02 F-10 홈 목록', () => {
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
   });
 
+  test('앱바는 알림과 마이 프로필을 분리하고 프로필 버튼은 SCR-A08로 이동한다', async () => {
+    const view = await render(<HomeScreen now={NOW} />);
+    await settle();
+
+    const notification = view.getByRole('button', { name: '알림' });
+    const profile = view.getByRole('button', { name: '마이 프로필' });
+    expect(notification).toHaveStyle({ minHeight: 48, minWidth: 48 });
+    expect(profile).toHaveStyle({ minHeight: 48, minWidth: 48 });
+    await fireEvent.press(profile);
+    expect(push).toHaveBeenCalledWith('/profile');
+  });
+
   test('각 탭은 48dp이고 최초 선택할 때만 지연 조회하며 돌아와도 cache를 유지한다', async () => {
     listHomePromisesMock.mockImplementation(async ({ tab }) =>
       tab === 'ACTIVE'
