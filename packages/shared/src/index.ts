@@ -22,3 +22,4 @@ export * from './promise-detail.ts';
 export * from './text.ts';
 export * from './transitions.ts';
 export * from './validation.ts';
+export * from './witness.ts';

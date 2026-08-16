@@ -32,6 +32,7 @@ export type NotificationEvent =
   | 'NT-12'
   | 'NT-13'
   | 'NT-14'
+  | 'NT-18'
   | 'NT-19';
 
 export type FulfillmentNotificationEvent = Extract<
@@ -64,6 +65,7 @@ export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: str
   'NT-12': () => '약속이 불이행으로 기록됐어요',
   'NT-13': () => '두 분의 확인이 서로 달라요',
   'NT-14': () => '이행 확인 없이 종결됐어요',
+  'NT-18': (n) => `${n}님이 내용을 확인했어요`,
   'NT-19': () => '다시 확인해 달라는 요청이 왔어요',
 };
 
@@ -92,6 +94,7 @@ export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, NotificationDeepli
   'NT-12': 'SCR-A05',
   'NT-13': 'SCR-A05',
   'NT-14': 'SCR-A05',
+  'NT-18': 'SCR-A05',
   'NT-19': 'SCR-A06',
 };
 
@@ -107,7 +110,7 @@ export interface RenderedNotificationTemplate {
   deeplink: NotificationDeeplink;
 }
 
-const NICKNAME_EVENTS = new Set<NotificationEvent>(['NT-01', 'NT-02', 'NT-03', 'NT-09']);
+const NICKNAME_EVENTS = new Set<NotificationEvent>(['NT-01', 'NT-02', 'NT-03', 'NT-09', 'NT-18']);
 const DAYS_EVENTS = new Set<NotificationEvent>(['NT-06', 'NT-10']);
 
 /** SQL outbox의 데이터 인자를 검증하고 사용자에게 보일 문구를 한 곳에서 렌더링한다. */

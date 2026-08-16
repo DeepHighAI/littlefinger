@@ -226,6 +226,105 @@ export interface InviteResolveResponse {
   target_role: Extract<ParticipantRole, 'PARTNER' | 'WITNESS'>;
 }
 
+/** MOD-02가 표시하는 증인 초대 슬롯. 로그인 전 슬롯은 식별 프로필이 없다. */
+export interface WitnessSlotView {
+  participant_id: string;
+  status: Extract<ParticipantStatus, 'INVITED' | 'JOINED'>;
+  nickname: string | null;
+  profile_image_url: string | null;
+  expires_at: IsoDateTime | null;
+  signed_at: IsoDateTime | null;
+}
+
+export interface WitnessInviteListRequest {
+  promise_id: string;
+}
+
+export interface WitnessInviteListResponse {
+  promise_id: string;
+  occupied_count: number;
+  capacity: 2;
+  witnesses: readonly WitnessSlotView[];
+}
+
+export interface WitnessInviteRequest {
+  promise_id: string;
+  /** 없으면 새 슬롯, 있으면 해당 미결합 슬롯의 링크 재발급이다. */
+  participant_id?: string;
+}
+
+export interface WitnessInviteResponse {
+  promise_id: string;
+  participant_id: string;
+  invitation_id: string;
+  title: string;
+  expires_at: IsoDateTime;
+  /** 멱등 재생 응답에는 없다. 원문을 서버 저장소에 보관하지 않기 때문이다. */
+  token?: string;
+}
+
+export interface WitnessJoinRequest extends InviteTokenRequest {}
+
+export interface WitnessJoinResponse {
+  promise_id: string;
+  participant_id: string;
+  status: 'JOINED';
+}
+
+export interface WitnessDetailRequest {
+  promise_id: string;
+}
+
+export interface WitnessDetailActor {
+  user_id: string;
+  nickname: string;
+  profile_image_url: string | null;
+}
+
+export interface WitnessDetailContent {
+  body: string;
+  category: PromiseCategory;
+  end_date: IsoDate;
+  keeper: Keeper;
+  reward: string | null;
+  penalty: string | null;
+}
+
+export interface WitnessFulfillmentClaim {
+  role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>;
+  answer: Answer;
+  comment: string | null;
+  submitted_at: IsoDateTime;
+  evidences: readonly EvidenceView[];
+}
+
+export interface WitnessFulfillmentView {
+  round_no: number;
+  claims: readonly WitnessFulfillmentClaim[];
+}
+
+export interface WitnessDetailResponse {
+  promise_id: string;
+  status: PromiseStatus;
+  visibility: 'LIMITED' | 'FULL';
+  title: string;
+  creator: WitnessDetailActor;
+  partner: WitnessDetailActor | null;
+  activated_at: IsoDateTime | null;
+  signed_at: IsoDateTime | null;
+  content: WitnessDetailContent | null;
+  fulfillment: WitnessFulfillmentView | null;
+}
+
+export interface WitnessSignRequest {
+  promise_id: string;
+}
+
+export interface WitnessSignResponse {
+  promise_id: string;
+  signed_at: IsoDateTime;
+}
+
 /**
  * 승인 응답 (§4-3-5, T-03). SCR-W03 이 그리는 것 전부가 여기 있다.
  *
@@ -664,6 +763,11 @@ export const ENDPOINT = {
   inviteRevoke: 'invite-revoke',
   inviteResolve: 'invite-resolve',
   invitePreview: 'invite-preview',
+  witnessInviteList: 'witness-invite-list',
+  witnessInvite: 'witness-invite',
+  witnessJoin: 'witness-join',
+  witnessDetail: 'witness-detail',
+  witnessSign: 'witness-sign',
   promiseApprove: 'promise-approve',
   promiseDecline: 'promise-decline',
   promiseAmend: 'promise-amend',

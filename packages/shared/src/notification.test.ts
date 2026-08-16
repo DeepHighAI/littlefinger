@@ -46,6 +46,21 @@ describe('F-06 알림 계약', () => {
     });
   });
 
+  test('NT-18 증인 확인은 증인 닉네임과 SCR-A05를 사용한다', () => {
+    expect(NOTIFICATION_TITLE['NT-18']('하영')).toBe('하영님이 내용을 확인했어요');
+    expect(NOTIFICATION_DEEPLINK['NT-18']).toBe('SCR-A05');
+    expect(
+      renderNotificationTemplate('NT-18', {
+        promiseTitle: '아침 러닝',
+        partnerNickname: '하영',
+      }),
+    ).toEqual({
+      title: '하영님이 내용을 확인했어요',
+      body: '아침 러닝',
+      deeplink: 'SCR-A05',
+    });
+  });
+
   test('이행 알림 dedupe key는 라운드와 요청 키를 모두 포함한다', () => {
     expect(
       fulfillmentDedupeKey({
@@ -165,5 +180,8 @@ describe('F-06 알림 계약', () => {
     expect(() =>
       renderNotificationTemplate('NT-10', { days: 0, promiseTitle: '매일 걷기' }),
     ).toThrow('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+    expect(() => renderNotificationTemplate('NT-18', { promiseTitle: '매일 걷기' })).toThrow(
+      'INVALID_NOTIFICATION_TEMPLATE_ARGS',
+    );
   });
 });
