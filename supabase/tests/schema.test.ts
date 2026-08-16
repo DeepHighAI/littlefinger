@@ -124,6 +124,7 @@ describe('마이그레이션이 존재한다', () => {
       'blocks',
       'reports',
       'terms_agreements',
+      'integrity_incidents',
       'daily_metrics',
       'app_configs',
     ];
