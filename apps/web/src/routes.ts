@@ -1,3 +1,5 @@
+import { legalDocumentPath, type LegalDocumentKind } from '@littlefinger/shared';
+
 /**
  * 수락 웹의 경로표.
  *
@@ -6,6 +8,10 @@
  * 경로가 달라지면 이미 카카오톡에 뿌려진 링크를 찾을 방법도 되살릴 방법도 없다.
  */
 export const ROUTE = {
+  /** 공개 이용약관 초안. 인증과 초대 토큰이 필요 없다. */
+  terms: legalDocumentPath('TERMS'),
+  /** 공개 개인정보 처리방침 초안. 인증과 초대 토큰이 필요 없다. */
+  privacy: legalDocumentPath('PRIVACY'),
   /** SCR-W01 초대 랜딩. 로그인 **전** 화면이다(§4-3-3). */
   invite: '/i/:token',
   /** SCR-W02 약속 검토. 로그인 **후**에만 열린다(§4-3-4). */
@@ -25,6 +31,10 @@ export const ROUTE = {
   /** 카카오 로그인이 돌아오는 자리. Supabase 리다이렉트 허용목록에 등록된 경로다. */
   authCallback: '/auth/callback',
 } as const;
+
+export function legalPath(kind: LegalDocumentKind): typeof ROUTE.terms | typeof ROUTE.privacy {
+  return legalDocumentPath(kind);
+}
 
 export function invitePath(token: string): string {
   return `/i/${encodeURIComponent(token)}`;

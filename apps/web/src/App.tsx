@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import { watchSignInProvision } from './lib/user-provision.ts';
 import { ROUTE } from './routes.ts';
 import { ResponseComplete } from './screens/response-complete.tsx';
+import { LegalDocument } from './screens/legal-document.tsx';
 import { ScrW01InviteLanding } from './screens/scr-w01-invite-landing.tsx';
 import { ScrW02PromiseReview } from './screens/scr-w02-promise-review.tsx';
 import { ScrW03ApprovalComplete } from './screens/scr-w03-approval-complete.tsx';
@@ -25,6 +26,8 @@ export function App(): React.JSX.Element {
 
   return (
     <Routes>
+      <Route path={ROUTE.terms} element={<LegalDocument kind="TERMS" />} />
+      <Route path={ROUTE.privacy} element={<LegalDocument kind="PRIVACY" />} />
       <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
       <Route path={ROUTE.review} element={<ScrW02PromiseReview />} />
       <Route path={ROUTE.approvalComplete} element={<ScrW03ApprovalComplete />} />
