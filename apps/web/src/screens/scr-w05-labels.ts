@@ -19,6 +19,10 @@ export const SCR_W05_LABEL = {
   evidenceBlinded: '신고 접수로 가려진 이미지입니다',
   evidenceExpired: '보관 기간이 만료된 증빙입니다',
   noComment: '남긴 의견이 없어요',
+  answer: {
+    KEPT: '지켰어요',
+    NOT_KEPT: '안 지켜졌어요',
+  },
   reward: '보상',
   penalty: '벌칙',
   endDate: '종료일',

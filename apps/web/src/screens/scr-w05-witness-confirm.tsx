@@ -123,7 +123,7 @@ function Claim({
   return (
     <section className="lf-claim">
       <p className="lf-claim__answer">
-        {PARTICIPANT_ROLE_LABEL[claim.role]} · {claim.answer === 'KEPT' ? '지켰어요' : '안 지켜졌어요'}
+        {PARTICIPANT_ROLE_LABEL[claim.role]} · {SCR_W05_LABEL.answer[claim.answer]}
       </p>
       <p className="lf-body">{claim.comment ?? SCR_W05_LABEL.noComment}</p>
       {claim.evidences.length > 0 && (
@@ -144,19 +144,9 @@ function Claim({
 function WitnessContent({
   accessToken,
   detail,
-  signedAt,
-  checked,
-  pending,
-  onChecked,
-  onSign,
 }: {
   accessToken: string;
   detail: WitnessDetailResponse;
-  signedAt: string | null;
-  checked: boolean;
-  pending: boolean;
-  onChecked(value: boolean): void;
-  onSign(): void;
 }): React.JSX.Element {
   if (detail.visibility === 'LIMITED') {
     return (
@@ -199,7 +189,25 @@ function WitnessContent({
           ))}
         </div>
       )}
+    </>
+  );
+}
 
+function WitnessActions({
+  signedAt,
+  checked,
+  pending,
+  onChecked,
+  onSign,
+}: {
+  signedAt: string | null;
+  checked: boolean;
+  pending: boolean;
+  onChecked(value: boolean): void;
+  onSign(): void;
+}): React.JSX.Element {
+  return (
+    <div className="lf-screen__actions lf-screen__actions--web">
       {signedAt === null ? (
         <div className="lf-stack lf-gap-4">
           <label className="lf-row lf-gap-3">
@@ -223,7 +231,7 @@ function WitnessContent({
       ) : (
         <p className="lf-notice">{SCR_W05_LABEL.signedAt(kst(signedAt))}</p>
       )}
-    </>
+    </div>
   );
 }
 
@@ -333,14 +341,18 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
           <WitnessContent
             accessToken={phase.accessToken}
             detail={phase.detail}
-            signedAt={phase.detail.signed_at}
-            checked={checked}
-            pending={pending}
-            onChecked={setChecked}
-            onSign={() => void runSign()}
           />
         )}
       </div>
+      {phase.kind === 'READY' && phase.detail.visibility === 'FULL' && (
+        <WitnessActions
+          signedAt={phase.detail.signed_at}
+          checked={checked}
+          pending={pending}
+          onChecked={setChecked}
+          onSign={() => void runSign()}
+        />
+      )}
     </div>
   );
 }

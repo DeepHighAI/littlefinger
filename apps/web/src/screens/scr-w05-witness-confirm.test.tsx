@@ -180,6 +180,7 @@ describe('SCR-W05 witness confirmation', () => {
     renderAt(witnessPath(PROMISE_ID));
 
     const submit = await screen.findByRole('button', { name: '내용을 확인했습니다' });
+    expect(submit.closest('.lf-screen__actions--web')).not.toBeNull();
     expect((submit as HTMLButtonElement).disabled).toBe(true);
     await fireEvent.click(screen.getByRole('checkbox', { name: '약속 내용을 확인했습니다' }));
     await fireEvent.click(submit);
