@@ -54,6 +54,9 @@ const VERIFY_JWT: Record<string, boolean> = {
   'witness-join': true,
   'witness-detail': true,
   'witness-sign': true,
+  'trust-profile': true,
+  'trust-profile-settings-update': true,
+  'device-token-unregister': true,
   'evidence-purge': false,
   // 로그인 뒤 자기 행 보정이다. 익명에게 열리면 아무 계정의 대진값이나 남의 요청으로
   // 채워질 수 있다 — p_user_id 는 JWT 에서만 온다.
