@@ -14,6 +14,7 @@ export interface PushRegistrationDeps {
   getPermission(): Promise<PushPermissionStatus>;
   requestPermission(): Promise<PushPermissionStatus>;
   getExpoPushToken(projectId: string): Promise<string>;
+  persistRegisteredToken(token: string): Promise<void>;
   fetch(
     url: string,
     init: {
@@ -61,6 +62,8 @@ export async function registerAndroidPushToken(
   if (!response.ok) {
     throw new Error('푸시 토큰 등록에 실패했다.');
   }
+
+  await deps.persistRegisteredToken(expoPushToken);
 
   return 'REGISTERED';
 }

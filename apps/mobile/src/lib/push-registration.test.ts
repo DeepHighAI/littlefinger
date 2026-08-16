@@ -37,6 +37,9 @@ function deps(
       calls.push('permission:request');
       return 'granted';
     }),
+    persistRegisteredToken: jest.fn().mockImplementation(async () => {
+      calls.push('cache');
+    }),
     setAndroidChannel: jest.fn().mockImplementation(async () => {
       calls.push('channel');
     }),
@@ -45,7 +48,7 @@ function deps(
 }
 
 describe('Android Expo 푸시 토큰 등록', () => {
-  test('채널 → 권한 → EAS projectId 토큰 → 서버 등록 순서다', async () => {
+  test('채널 → 권한 → EAS projectId 토큰 → 서버 등록 → 암호화 캐시 순서다', async () => {
     const d = deps();
 
     await expect(registerAndroidPushToken(ACCESS_TOKEN, d)).resolves.toBe('REGISTERED');
@@ -56,6 +59,7 @@ describe('Android Expo 푸시 토큰 등록', () => {
       'permission:request',
       'token',
       'register',
+      'cache',
     ]);
     expect(d.getExpoPushToken).toHaveBeenCalledWith(PROJECT_ID);
     expect(d.fetch).toHaveBeenCalledWith(d.functionUrl, {
@@ -79,7 +83,7 @@ describe('Android Expo 푸시 토큰 등록', () => {
     await registerAndroidPushToken(ACCESS_TOKEN, d);
 
     expect(d.requestPermission).not.toHaveBeenCalled();
-    expect(d.calls).toEqual(['channel', 'permission:get', 'token', 'register']);
+    expect(d.calls).toEqual(['channel', 'permission:get', 'token', 'register', 'cache']);
   });
 
   test('권한 거부는 로그인 실패가 아니라 SKIPPED이며 토큰·서버 호출이 없다', async () => {
@@ -121,5 +125,6 @@ describe('Android Expo 푸시 토큰 등록', () => {
     await expect(registerAndroidPushToken(ACCESS_TOKEN, d)).rejects.toThrow(
       '푸시 토큰 등록에 실패했다.',
     );
+    expect(d.persistRegisteredToken).not.toHaveBeenCalled();
   });
 });
