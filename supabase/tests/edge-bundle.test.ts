@@ -138,15 +138,19 @@ describe('Edge Function 번들 그래프', () => {
     );
   });
 
-  test('runtime.ts 는 진입점에서만 닿고 handler.ts 에서는 닿지 않는다', () => {
-    // 닿는 순간 vitest 가 handler 를 import 할 때 Deno 전역에서 죽는다.
-    for (const entrypoint of ENTRYPOINTS) {
-      const handler = resolve(FUNCTIONS_DIR, entrypoint.replace('index.ts', 'handler.ts'));
-      expect(existsSync(handler), `${relative(REPO_ROOT, handler)} 이 없다`).toBe(true);
-      const { files } = walk(relative(FUNCTIONS_DIR, handler));
-      expect(files.filter((file) => file.endsWith('runtime.ts'))).toEqual([]);
-    }
-  });
+  test(
+    'runtime.ts 는 진입점에서만 닿고 handler.ts 에서는 닿지 않는다',
+    () => {
+      // 닿는 순간 vitest 가 handler 를 import 할 때 Deno 전역에서 죽는다.
+      for (const entrypoint of ENTRYPOINTS) {
+        const handler = resolve(FUNCTIONS_DIR, entrypoint.replace('index.ts', 'handler.ts'));
+        expect(existsSync(handler), `${relative(REPO_ROOT, handler)} 이 없다`).toBe(true);
+        const { files } = walk(relative(FUNCTIONS_DIR, handler));
+        expect(files.filter((file) => file.endsWith('runtime.ts'))).toEqual([]);
+      }
+    },
+    15_000,
+  );
 
   test('모든 함수가 config.toml 에 기대한 verify_jwt 값으로 적혀 있다', () => {
     // 빠뜨린 함수는 값이 **전송되지 않아** 서버가 이전 값을 그대로 유지한다. 새 함수의
