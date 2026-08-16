@@ -48,6 +48,15 @@ describe('F-01 약관 동의 서버 경계', () => {
   });
 });
 
+describe('J-09 record integrity scheduler', () => {
+  test('weekly job uses one fixed name and Sunday 05:30 KST schedule', () => {
+    expect(lower).toContain("'littlefinger-j09-integrity'");
+    expect(lower).toContain("'30 20 * * 6'");
+    expect(lower).toContain("'select public.lf_verify_promise_integrity();'");
+    expect(lower).toContain('select public.lf_schedule_promise_integrity();');
+  });
+});
+
 /** `create table [if not exists] [public.]name` 에서 이름만 뽑는다. */
 function declaredTables(): string[] {
   const names: string[] = [];

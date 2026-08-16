@@ -171,8 +171,9 @@ describe('J-09 record integrity', () => {
   test('deduplicates, resolves, and reopens one cache incident lifecycle', async () => {
     const item = await createActivated('ACTIVE');
     await db.asAdmin(`update public.promises set title = '불일치' where id = $1`, [item.promiseId]);
-    await verify('2026-08-18T20:30:00Z');
-    await verify('2026-08-18T20:30:00Z');
+    const first = await verify('2026-08-18T20:30:00Z');
+    const retry = await verify('2026-08-18T20:30:00Z');
+    expect(retry).toEqual(first);
     expect(await incidentRows(item.promiseId)).toHaveLength(1);
 
     await db.asAdmin(
@@ -238,5 +239,75 @@ describe('J-09 record integrity', () => {
        ) as definition`,
     );
     expect(String(rows[0]?.['definition'])).toContain('pg_advisory_xact_lock');
+  });
+
+  test('J-09 scheduler는 SECURITY DEFINER와 빈 search_path를 사용한다', async () => {
+    const { rows } = await db.asAdmin(
+      `select p.prosecdef, p.proconfig
+         from pg_catalog.pg_proc p
+         join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.proname = 'lf_schedule_promise_integrity'`,
+    );
+
+    expect(rows).toEqual([{ prosecdef: true, proconfig: ['search_path=""'] }]);
+  });
+
+  test('J-09 scheduler는 service_role만 실행할 수 있다', async () => {
+    const { rows } = await db.asAdmin(
+      `select has_function_privilege('anon', $1, 'EXECUTE') as anon,
+              has_function_privilege('authenticated', $1, 'EXECUTE') as authenticated,
+              has_function_privilege('service_role', $1, 'EXECUTE') as service_role`,
+      ['public.lf_schedule_promise_integrity()'],
+    );
+
+    expect(rows).toEqual([{ anon: false, authenticated: false, service_role: true }]);
+  });
+
+  test('J-09 cron은 중복 행을 교체하고 일요일 05:30 KST 한 건만 남긴다', async () => {
+    await db.asAdmin(
+      `insert into cron.job (jobname, schedule, command)
+       values ('littlefinger-j09-integrity', '* * * * *', 'select 1'),
+              ('littlefinger-j09-integrity', '* * * * *', 'select 2')`,
+    );
+    await db.asService(`select public.lf_schedule_promise_integrity()`);
+    await db.asService(`select public.lf_schedule_promise_integrity()`);
+
+    const { rows } = await db.asAdmin(
+      `select jobname, schedule, command
+         from cron.job
+        where jobname = 'littlefinger-j09-integrity'`,
+    );
+    expect(rows).toEqual([{
+      jobname: 'littlefinger-j09-integrity',
+      schedule: '30 20 * * 6',
+      command: 'select public.lf_verify_promise_integrity();',
+    }]);
+  });
+
+  test('J-09 cron 교체는 transaction advisory lock으로 직렬화한다', async () => {
+    const { rows } = await db.asAdmin(
+      `with expected as (
+         select pg_catalog.hashtextextended('lf-j09-integrity-scheduler', 0) as lock_key
+       ), scheduled as materialized (
+         select public.lf_schedule_promise_integrity() as result
+       )
+       select exists (
+                select 1
+                  from pg_catalog.pg_locks locks
+                  cross join expected
+                 where locks.locktype = 'advisory'
+                   and locks.pid = pg_catalog.pg_backend_pid()
+                   and locks.granted
+                   and locks.objsubid = 1
+                   and locks.classid::bigint =
+                       ((expected.lock_key >> 32) & 4294967295::bigint)
+                   and locks.objid::bigint =
+                       (expected.lock_key & 4294967295::bigint)
+              ) as locked
+         from scheduled`,
+    );
+
+    expect(rows).toEqual([{ locked: true }]);
   });
 });
