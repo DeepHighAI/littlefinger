@@ -2,21 +2,39 @@ import {
   EVIDENCE_MAX_COUNT,
   EVIDENCE_MAX_MB,
   FULFILLMENT_COMMENT_MAX,
+  KEEPER_LABEL,
   KST_MARK,
   PARTICIPANT_ROLE_LABEL,
+  PROMISE_CATEGORY_LABEL,
   PROMISE_STATUS_LABEL,
+  changedPromiseFields,
   codepointLength,
   evidenceMimeOf,
   formatKstDate,
   formatKstDateTime,
   normalizeInput,
+  validateAmendReason,
+  validateBody,
+  validateCategory,
+  validateEndDate,
+  validateKeeper,
+  validatePenalty,
+  validateReward,
+  validateTitle,
   validateEvidences,
   type Answer,
   type EvidenceView,
   type FulfillmentCheckView,
   type ParticipantPromiseSummary,
   type ParticipantRole,
+  type PromiseAmendCreateRequest,
+  type PromiseAmendDecision,
+  type PromiseAmendProposal,
+  type PromiseCategory,
+  type PromiseDetailResponse,
   type PromiseFulfillmentDetailResponse,
+  type PromiseVersionListResponse,
+  type Keeper,
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -32,6 +50,14 @@ import {
   uploadFulfillmentEvidence,
 } from '../lib/fulfillment-api.ts';
 import { INTERNAL_MESSAGE } from '../lib/api-failure.ts';
+import {
+  getPromiseAmendDetail,
+  listPromiseVersions,
+  PromiseAmendApiError,
+  requestPromiseAmend,
+  respondPromiseAmend,
+  withdrawPromiseAmend,
+} from '../lib/promise-amend-api.ts';
 import { getSupabase } from '../lib/supabase.ts';
 import { signInWithKakao } from '../lib/web-auth.ts';
 import { promisesPath } from '../routes.ts';
@@ -67,6 +93,47 @@ const EVIDENCE_FAILED = '업로드 실패';
 const EVIDENCE_RETRY = '다시 시도';
 const EVIDENCE_BLINDED = '신고 접수로 가려진 이미지입니다';
 const EVIDENCE_EXPIRED = '보관 기간이 만료된 증빙입니다';
+const AMEND_REQUEST_CTA = '변경·파기 요청';
+const AMEND_TAB = '내용 변경';
+const CANCEL_TAB = '파기 요청';
+const AMEND_SUBMIT_CTA = '요청 보내기';
+const AMEND_COMMON_NOTICE = '상대가 승인하면 적용돼요. 승인 전까지는 지금 약속이 그대로 유지돼요.';
+const CANCEL_NOTICE = '두 사람 모두 동의하면 약속이 파기돼요';
+const NO_AMEND_CHANGES = '변경된 내용이 없어요.';
+const AMEND_REASON_LABEL = '변경 이유';
+const AMEND_REASON_PLACEHOLDER = '변경이나 파기를 요청하는 이유를 남겨주세요.';
+const AMEND_CLOSE = '변경·파기 요청 닫기';
+const AMEND_WITHDRAW = '요청 철회';
+const AMEND_APPROVE = '변경 승인';
+const CANCEL_APPROVE = '파기 승인';
+const AMEND_DECLINE = '거절';
+const VERSION_HISTORY_CTA = '버전 이력 보기';
+const VERSION_HISTORY_TITLE = '버전 이력';
+const VERSION_HISTORY_CLOSE = '버전 이력 닫기';
+const VERSION_HISTORY_LOADING = '버전 이력을 불러오는 중이에요';
+const CANCEL_CONFIRM = '상대방이 승인하면 약속이 파기되고 되돌릴 수 없어요. 파기를 요청할까요?';
+const OPTIONAL_LABEL = '선택';
+const REQUESTER_LABEL = '요청자';
+const REQUESTED_AT_LABEL = '요청 시각';
+const BEFORE_LABEL = '변경 전';
+const AFTER_LABEL = '변경 후';
+const NO_REWARD_LABEL = '보상 없음';
+const NO_PENALTY_LABEL = '벌칙 없음';
+const VERSION_PREFIX = 'v';
+const cancelRequestLabel = (nickname: string): string => `${nickname}님이 파기를 요청했어요`;
+
+const AMEND_FIELD_LABEL = {
+  title: '제목',
+  body: '약속 내용',
+  category: '카테고리',
+  end_date: '종료일',
+  keeper: '지킬 사람',
+  reward: '보상',
+  penalty: '벌칙',
+} as const;
+
+const CATEGORIES = Object.keys(PROMISE_CATEGORY_LABEL) as PromiseCategory[];
+const KEEPERS = Object.keys(KEEPER_LABEL) as Keeper[];
 
 const ANSWER_LABEL: Record<Answer, string> = {
   KEPT: '지켰어요',
@@ -76,7 +143,15 @@ const ANSWER_LABEL: Record<Answer, string> = {
 interface PromiseView {
   summary: ParticipantPromiseSummary;
   detail: PromiseFulfillmentDetailResponse;
+  agreement: PromiseDetailResponse | null;
 }
+
+interface AmendIntent {
+  identity: string;
+  key: string;
+}
+
+type AmendIntentStore = Record<string, AmendIntent>;
 
 type Phase =
   | { kind: 'LOADING' }
@@ -259,6 +334,14 @@ function keyForIntent(
   return key;
 }
 
+function keyForAmendIntent(store: AmendIntentStore, slot: string, identity: string): string {
+  const existing = store[slot];
+  if (existing?.identity === identity) return existing.key;
+  const key = crypto.randomUUID();
+  store[slot] = { identity, key };
+  return key;
+}
+
 /**
  * 응답 유실 뒤 서버를 다시 읽었을 때 전이가 실제 반영됐는지 판정한다.
  *
@@ -309,6 +392,39 @@ function orderPromises(rows: ParticipantPromiseSummary[]): ParticipantPromiseSum
       : Number.POSITIVE_INFINITY;
     if (leftDeadline !== rightDeadline) return leftDeadline - rightDeadline;
     return Date.parse(right.updated_at) - Date.parse(left.updated_at);
+  });
+}
+
+function isAmendResponder(agreement: PromiseDetailResponse | null): boolean {
+  const request = agreement?.amend_request;
+  if (agreement === null || agreement === undefined || request === null || request === undefined) {
+    return false;
+  }
+  const myUserId = agreement.my_role === 'CREATOR'
+    ? agreement.creator.user_id
+    : agreement.my_role === 'PARTNER'
+      ? agreement.partner?.user_id ?? null
+      : null;
+  return myUserId !== null && request.requester.user_id !== myUserId;
+}
+
+function promiseNeedsResponse(view: PromiseView): boolean {
+  return view.summary.needs_response || isAmendResponder(view.agreement);
+}
+
+function orderPromiseViews(views: PromiseView[]): PromiseView[] {
+  return [...views].sort((left, right) => {
+    const leftNeedsResponse = promiseNeedsResponse(left);
+    const rightNeedsResponse = promiseNeedsResponse(right);
+    if (leftNeedsResponse !== rightNeedsResponse) return leftNeedsResponse ? -1 : 1;
+    const leftDeadline = left.summary.check_deadline_at
+      ? Date.parse(left.summary.check_deadline_at)
+      : Number.POSITIVE_INFINITY;
+    const rightDeadline = right.summary.check_deadline_at
+      ? Date.parse(right.summary.check_deadline_at)
+      : Number.POSITIVE_INFINITY;
+    if (leftDeadline !== rightDeadline) return leftDeadline - rightDeadline;
+    return Date.parse(right.summary.updated_at) - Date.parse(left.summary.updated_at);
   });
 }
 
@@ -669,6 +785,212 @@ function ResponseForm({
   );
 }
 
+function proposalOf(detail: PromiseFulfillmentDetailResponse): PromiseAmendProposal {
+  return {
+    title: detail.title,
+    body: detail.body,
+    category: detail.category,
+    end_date: detail.end_date,
+    keeper: detail.keeper,
+    reward: detail.reward,
+    penalty: detail.penalty,
+  };
+}
+
+function AmendRequestSheet({
+  detail,
+  pending,
+  onClose,
+  onSubmit,
+}: {
+  detail: PromiseFulfillmentDetailResponse;
+  pending: boolean;
+  onClose(): void;
+  onSubmit(input: PromiseAmendCreateRequest): Promise<void>;
+}): React.JSX.Element {
+  const [mode, setMode] = useState<'AMEND' | 'CANCEL'>('AMEND');
+  const [proposal, setProposal] = useState<PromiseAmendProposal>(() => proposalOf(detail));
+  const [reason, setReason] = useState('');
+  const current = proposalOf(detail);
+  const normalizedReason = normalizeInput(reason);
+  const changed = changedPromiseFields(current, proposal).length > 0;
+  const valid = validateTitle(proposal.title).valid
+    && validateBody(proposal.body).valid
+    && validateCategory(proposal.category).valid
+    && validateEndDate(proposal.end_date, new Date()).valid
+    && validateKeeper(proposal.keeper).valid
+    && validateReward(proposal.reward ?? '').valid
+    && validatePenalty(proposal.penalty ?? '').valid
+    && validateAmendReason(reason).valid;
+  const disabled = pending || !validateAmendReason(reason).valid || (mode === 'AMEND' && (!changed || !valid));
+
+  function update<K extends keyof PromiseAmendProposal>(
+    field: K,
+    value: PromiseAmendProposal[K],
+  ): void {
+    setProposal((valueBefore) => ({ ...valueBefore, [field]: value }));
+  }
+
+  async function submit(): Promise<void> {
+    if (disabled) return;
+    if (mode === 'CANCEL') {
+      if (!window.confirm(CANCEL_CONFIRM)) return;
+      await onSubmit({
+        promise_id: detail.promise_id,
+        type: 'CANCEL',
+        ...(normalizedReason === '' ? {} : { reason: normalizedReason }),
+      });
+      return;
+    }
+    await onSubmit({
+      promise_id: detail.promise_id,
+      type: 'AMEND',
+      proposed: {
+        title: normalizeInput(proposal.title),
+        body: normalizeInput(proposal.body),
+        category: proposal.category,
+        end_date: proposal.end_date,
+        keeper: proposal.keeper,
+        reward: proposal.reward === null ? null : normalizeInput(proposal.reward),
+        penalty: proposal.penalty === null ? null : normalizeInput(proposal.penalty),
+      },
+      ...(normalizedReason === '' ? {} : { reason: normalizedReason }),
+    });
+  }
+
+  return (
+    <div className="lf-f11-overlay" role="dialog" aria-modal="true" aria-label={AMEND_REQUEST_CTA}>
+      <button className="lf-scrim" type="button" aria-label={AMEND_CLOSE} onClick={onClose} />
+      <section className="lf-sheet lf-f11-sheet">
+        <div className="lf-sheet__handle" aria-hidden="true" />
+        <div className="lf-row lf-gap-3">
+          <h3 className="lf-sheet__title lf-grow">{AMEND_REQUEST_CTA}</h3>
+          <button className="lf-btn lf-btn--text" type="button" onClick={onClose}>{AMEND_CLOSE}</button>
+        </div>
+        <div className="lf-segmented">
+          <button type="button" aria-pressed={mode === 'AMEND'} onClick={() => setMode('AMEND')}>{AMEND_TAB}</button>
+          <button type="button" aria-pressed={mode === 'CANCEL'} onClick={() => setMode('CANCEL')}>{CANCEL_TAB}</button>
+        </div>
+        <p className="lf-info-banner">{AMEND_COMMON_NOTICE}</p>
+        {mode === 'AMEND' ? (
+          <div className="lf-stack lf-gap-4">
+            <label className="lf-field">{AMEND_FIELD_LABEL.title}<input className="lf-input" value={proposal.title} onChange={(event) => update('title', event.target.value)} /></label>
+            <label className="lf-field">{AMEND_FIELD_LABEL.body}<textarea className="lf-input lf-textarea" value={proposal.body} onChange={(event) => update('body', event.target.value)} /></label>
+            <div className="lf-field"><span className="lf-field__label">{AMEND_FIELD_LABEL.category}</span><div className="lf-choices">{CATEGORIES.map((category) => <button className="lf-choice" type="button" key={category} aria-pressed={proposal.category === category} onClick={() => update('category', category)}>{PROMISE_CATEGORY_LABEL[category]}</button>)}</div></div>
+            <label className="lf-field">{AMEND_FIELD_LABEL.end_date}<input className="lf-input" type="date" value={proposal.end_date} onChange={(event) => update('end_date', event.target.value)} /></label>
+            <div className="lf-field"><span className="lf-field__label">{AMEND_FIELD_LABEL.keeper}</span><div className="lf-choices">{KEEPERS.map((keeper) => <button className="lf-choice" type="button" key={keeper} aria-pressed={proposal.keeper === keeper} onClick={() => update('keeper', keeper)}>{KEEPER_LABEL[keeper]}</button>)}</div></div>
+            <label className="lf-field">{AMEND_FIELD_LABEL.reward}<input className="lf-input" value={proposal.reward ?? ''} onChange={(event) => update('reward', event.target.value === '' ? null : event.target.value)} /></label>
+            <label className="lf-field">{AMEND_FIELD_LABEL.penalty}<input className="lf-input" value={proposal.penalty ?? ''} onChange={(event) => update('penalty', event.target.value === '' ? null : event.target.value)} /></label>
+            {!changed ? <p className="lf-field__hint">{NO_AMEND_CHANGES}</p> : null}
+          </div>
+        ) : <p className="lf-info-banner">{CANCEL_NOTICE}</p>}
+        <label className="lf-field">
+          <span className="lf-field__label">{AMEND_REASON_LABEL} · {OPTIONAL_LABEL}</span>
+          <textarea className="lf-input lf-textarea" aria-label={AMEND_REASON_LABEL} placeholder={AMEND_REASON_PLACEHOLDER} value={reason} onChange={(event) => setReason(event.target.value)} />
+        </label>
+        <button className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button" disabled={disabled} onClick={() => void submit()}>{AMEND_SUBMIT_CTA}</button>
+      </section>
+    </div>
+  );
+}
+
+function amendFieldValue(
+  detail: PromiseDetailResponse['current_version'],
+  field: ReturnType<typeof changedPromiseFields>[number],
+): string {
+  if (field === 'category') return PROMISE_CATEGORY_LABEL[detail.category];
+  if (field === 'keeper') return KEEPER_LABEL[detail.keeper];
+  if (field === 'end_date') return formatKstDate(detail.end_date);
+  if (field === 'reward') return detail.reward ?? NO_REWARD_LABEL;
+  if (field === 'penalty') return detail.penalty ?? NO_PENALTY_LABEL;
+  return detail[field];
+}
+
+function PendingAmendPanel({
+  agreement,
+  pending,
+  onWithdraw,
+  onRespond,
+}: {
+  agreement: PromiseDetailResponse;
+  pending: boolean;
+  onWithdraw(): void;
+  onRespond(decision: PromiseAmendDecision): void;
+}): React.JSX.Element | null {
+  const request = agreement.amend_request;
+  if (request === null) return null;
+  const proposed = request.proposed_version;
+  const myUserId = agreement.my_role === 'CREATOR'
+    ? agreement.creator.user_id
+    : agreement.partner?.user_id ?? null;
+  const requester = request.requester.user_id === myUserId;
+  const fields = proposed === null
+    ? []
+    : changedPromiseFields(agreement.current_version, proposed);
+  return (
+    <div className="lf-stack lf-gap-4 lf-mt-4">
+      {request.type === 'CANCEL' ? (
+        <p className="lf-info-banner">{cancelRequestLabel(request.requester.nickname)}</p>
+      ) : proposed !== null ? (
+        <div className="lf-stack lf-gap-3">
+          {fields.map((field) => (
+            <div className="lf-compare" key={field}>
+              <div className="lf-compare__item lf-compare__item--before"><p className="lf-compare__label">{BEFORE_LABEL} · {AMEND_FIELD_LABEL[field]}</p><p className="lf-compare__value">{amendFieldValue(agreement.current_version, field)}</p></div>
+              <div className="lf-compare__item lf-compare__item--after"><p className="lf-compare__label">{AFTER_LABEL} · {AMEND_FIELD_LABEL[field]}</p><p className="lf-compare__value">{amendFieldValue(proposed, field)}</p></div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <p className="lf-caption">{REQUESTER_LABEL} · {request.requester.nickname}</p>
+      <p className="lf-caption">{REQUESTED_AT_LABEL} · {formatKstDateTime(new Date(request.created_at))}{KST_MARK}</p>
+      {request.reason !== null ? <p>{request.reason}</p> : null}
+      {requester ? (
+        <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" disabled={pending} onClick={onWithdraw}>{AMEND_WITHDRAW}</button>
+      ) : (
+        <div className="lf-row lf-gap-3">
+          <button className="lf-btn lf-btn--filled lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('APPROVE')}>{request.type === 'AMEND' ? AMEND_APPROVE : CANCEL_APPROVE}</button>
+          <button className="lf-btn lf-btn--outlined lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('DECLINE')}>{AMEND_DECLINE}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VersionHistoryOverlay({
+  value,
+  onClose,
+}: {
+  value: PromiseVersionListResponse | null;
+  onClose(): void;
+}): React.JSX.Element {
+  return (
+    <div className="lf-f11-overlay" role="dialog" aria-modal="true" aria-label={VERSION_HISTORY_TITLE}>
+      <button className="lf-scrim" type="button" aria-label={VERSION_HISTORY_CLOSE} onClick={onClose} />
+      <section className="lf-sheet lf-f11-sheet">
+        <div className="lf-sheet__handle" aria-hidden="true" />
+        <h3 className="lf-sheet__title">{VERSION_HISTORY_TITLE}</h3>
+        {value === null ? <p>{VERSION_HISTORY_LOADING}</p> : value.versions.map((item) => (
+          <article className="lf-card" key={item.version.version_no}>
+            <div className="lf-stack lf-gap-3">
+              <h4>{VERSION_PREFIX}{item.version.version_no}</h4>
+              <p>{item.version.title}</p><p>{item.version.body}</p>
+              <p>{PROMISE_CATEGORY_LABEL[item.version.category]} · {KEEPER_LABEL[item.version.keeper]}</p>
+              <p>{formatKstDate(item.version.end_date)}</p>
+              <p>{item.version.reward ?? NO_REWARD_LABEL}</p><p>{item.version.penalty ?? NO_PENALTY_LABEL}</p>
+              <p>{item.version.content_hash.slice(0, 8)}</p>
+              {item.change_requester !== null ? <p>{item.change_requester.nickname}</p> : null}
+              {item.approved_by !== null ? <p>{item.approved_by.nickname}</p> : null}
+              {item.approved_at !== null ? <p>{formatKstDateTime(new Date(item.approved_at))}{KST_MARK}</p> : null}
+              {item.change_reason !== null ? <p>{item.change_reason}</p> : null}
+            </div>
+          </article>
+        ))}
+        <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" onClick={onClose}>{VERSION_HISTORY_CLOSE}</button>
+      </section>
+    </div>
+  );
+}
+
 interface PromiseCardProps {
   accessToken: string;
   view: PromiseView;
@@ -687,6 +1009,13 @@ interface PromiseCardProps {
   onRemoveRetained: (view: PromiseView, evidenceId: string) => void;
   onSubmit: (view: PromiseView, draft: ResponseDraft) => void;
   onReopen: (view: PromiseView) => void;
+  amendOpen: boolean;
+  onOpenAmend: (view: PromiseView) => void;
+  onCloseAmend: () => void;
+  onRequestAmend: (view: PromiseView, input: PromiseAmendCreateRequest) => Promise<void>;
+  onWithdrawAmend: (view: PromiseView) => void;
+  onRespondAmend: (view: PromiseView, decision: PromiseAmendDecision) => void;
+  onVersionHistory: (view: PromiseView) => void;
 }
 
 function PromiseCard({
@@ -701,6 +1030,13 @@ function PromiseCard({
   onRemoveRetained,
   onSubmit,
   onReopen,
+  amendOpen,
+  onOpenAmend,
+  onCloseAmend,
+  onRequestAmend,
+  onWithdrawAmend,
+  onRespondAmend,
+  onVersionHistory,
 }: PromiseCardProps): React.JSX.Element {
   const { detail, summary } = view;
   const currentDraft = draft ?? emptyDraft();
@@ -713,7 +1049,7 @@ function PromiseCard({
     <li>
       <article
         className={`lf-card lf-card--web lf-text-left ${
-          summary.needs_response ? 'lf-card--emphasis' : ''
+          promiseNeedsResponse(view) ? 'lf-card--emphasis' : ''
         }`}
       >
         <div className="lf-card__header">
@@ -732,6 +1068,26 @@ function PromiseCard({
           종료일 {formatKstDate(detail.end_date)}
           {KST_MARK}
         </p>
+
+        {detail.status === 'ACTIVE' && (
+          <button
+            className="lf-btn lf-btn--outlined lf-btn--block lf-mt-4"
+            type="button"
+            disabled={pending}
+            onClick={() => onOpenAmend(view)}
+          >
+            {AMEND_REQUEST_CTA}
+          </button>
+        )}
+
+        {detail.status === 'AMEND_PENDING' && view.agreement !== null ? (
+          <PendingAmendPanel
+            agreement={view.agreement}
+            pending={pending}
+            onWithdraw={() => onWithdrawAmend(view)}
+            onRespond={(decision) => onRespondAmend(view, decision)}
+          />
+        ) : null}
 
         {detail.status === 'CHECKING' && detail.my_check === null && (
           <>
@@ -882,6 +1238,25 @@ function PromiseCard({
             ))}
           </div>
         )}
+
+        {(detail.status === 'ACTIVE' || detail.status === 'AMEND_PENDING') ? (
+          <button
+            className="lf-btn lf-btn--text lf-btn--block lf-mt-4"
+            type="button"
+            onClick={() => onVersionHistory(view)}
+          >
+            {VERSION_HISTORY_CTA}
+          </button>
+        ) : null}
+
+        {amendOpen ? (
+          <AmendRequestSheet
+            detail={detail}
+            pending={pending}
+            onClose={onCloseAmend}
+            onSubmit={(input) => onRequestAmend(view, input)}
+          />
+        ) : null}
       </article>
     </li>
   );
@@ -893,7 +1268,13 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
   const [pendingPromiseId, setPendingPromiseId] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [signInError, setSignInError] = useState(false);
+  const [activeAmendId, setActiveAmendId] = useState<string | null>(null);
+  const [versionHistory, setVersionHistory] = useState<{
+    promiseId: string;
+    value: PromiseVersionListResponse | null;
+  } | null>(null);
   const mutationIntents = useRef<MutationIntentStore>({});
+  const amendIntents = useRef<AmendIntentStore>({});
   const objectUrls = useRef(new Set<string>());
 
   useEffect(
@@ -904,14 +1285,14 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
     [],
   );
 
-  const load = useCallback(async (signal?: AbortSignal): Promise<void> => {
+  const load = useCallback(async (signal?: AbortSignal): Promise<PromiseView[] | null> => {
     setPhase({ kind: 'LOADING' });
     try {
       const { data } = await getSupabase().auth.getSession();
       const session = data.session;
       if (session === null) {
         setPhase({ kind: 'SIGNED_OUT' });
-        return;
+        return null;
       }
       const summaries = orderPromises(
         await listParticipantPromises(session.access_token, signal),
@@ -925,11 +1306,19 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
           ),
         ),
       );
-      if (signal?.aborted) return;
-      const promises = summaries.map((summary, index) => ({
-        summary,
-        detail: details[index] as PromiseFulfillmentDetailResponse,
-      }));
+      const agreements = await Promise.all(
+        details.map((detail) => detail.status === 'AMEND_PENDING'
+          ? getPromiseAmendDetail(session.access_token, detail.promise_id, signal)
+          : Promise.resolve(null)),
+      );
+      if (signal?.aborted) return null;
+      const promises = orderPromiseViews(
+        summaries.map((summary, index) => ({
+          summary,
+          detail: details[index] as PromiseFulfillmentDetailResponse,
+          agreement: agreements[index] ?? null,
+        })),
+      );
       reconcileMutationIntents(mutationIntents.current, promises);
       setDrafts((current) => {
         const next = { ...current };
@@ -961,16 +1350,21 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         userId: session.user.id,
         promises,
       });
+      return promises;
     } catch (raised) {
-      if (signal?.aborted) return;
-      if (raised instanceof FulfillmentApiError && raised.authExpired) {
+      if (signal?.aborted) return null;
+      if (
+        (raised instanceof FulfillmentApiError && raised.authExpired)
+        || (raised instanceof PromiseAmendApiError && raised.authExpired)
+      ) {
         setPhase({ kind: 'SIGNED_OUT' });
-        return;
+        return null;
       }
       setPhase({
         kind: 'ERROR',
         message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE,
       });
+      return null;
     }
   }, []);
 
@@ -1287,9 +1681,116 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
     [load, phase],
   );
 
+  const handleRequestAmend = useCallback(
+    async (view: PromiseView, input: PromiseAmendCreateRequest): Promise<void> => {
+      if (phase.kind !== 'READY') return;
+      setPendingPromiseId(view.detail.promise_id);
+      const slot = `AMEND_REQUEST:${view.detail.promise_id}`;
+      const key = keyForAmendIntent(amendIntents.current, slot, JSON.stringify(input));
+      try {
+        await requestPromiseAmend(phase.accessToken, input, key);
+        const refreshed = await load();
+        const current = refreshed?.find(({ detail }) => detail.promise_id === view.detail.promise_id);
+        if (current?.detail.status === 'AMEND_PENDING') {
+          delete amendIntents.current[slot];
+          setActiveAmendId(null);
+        }
+      } catch (raised) {
+        if (raised instanceof PromiseAmendApiError && raised.authExpired) {
+          setPhase({ kind: 'SIGNED_OUT' });
+        } else if (
+          raised instanceof PromiseAmendApiError
+          && (raised.failure.code === 'E_STATE_CONFLICT' || raised.failure.code === 'E_VALIDATION')
+        ) {
+          await load();
+        } else {
+          setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+        }
+      } finally {
+        setPendingPromiseId(null);
+      }
+    },
+    [load, phase],
+  );
+
+  const handleWithdrawAmend = useCallback(
+    async (view: PromiseView): Promise<void> => {
+      if (phase.kind !== 'READY' || view.agreement?.amend_request === null || view.agreement === null) return;
+      const requestId = view.agreement.amend_request.request_id;
+      const slot = `AMEND_WITHDRAW:${view.detail.promise_id}`;
+      const key = keyForAmendIntent(amendIntents.current, slot, requestId);
+      setPendingPromiseId(view.detail.promise_id);
+      try {
+        await withdrawPromiseAmend(phase.accessToken, view.detail.promise_id, requestId, key);
+        const refreshed = await load();
+        const current = refreshed?.find(({ detail }) => detail.promise_id === view.detail.promise_id);
+        if (current !== undefined && current.detail.status !== 'AMEND_PENDING') {
+          delete amendIntents.current[slot];
+        }
+      } catch (raised) {
+        if (raised instanceof PromiseAmendApiError && raised.authExpired) setPhase({ kind: 'SIGNED_OUT' });
+        else if (raised instanceof PromiseAmendApiError && raised.failure.code === 'E_STATE_CONFLICT') await load();
+        else setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+      } finally {
+        setPendingPromiseId(null);
+      }
+    },
+    [load, phase],
+  );
+
+  const handleRespondAmend = useCallback(
+    async (view: PromiseView, decision: PromiseAmendDecision): Promise<void> => {
+      if (phase.kind !== 'READY' || view.agreement?.amend_request === null || view.agreement === null) return;
+      const requestId = view.agreement.amend_request.request_id;
+      if (decision === 'APPROVE' && view.agreement.amend_request.type === 'CANCEL' && !window.confirm(CANCEL_CONFIRM)) return;
+      const slot = `AMEND_RESPOND:${view.detail.promise_id}`;
+      const identity = JSON.stringify([requestId, decision]);
+      const key = keyForAmendIntent(amendIntents.current, slot, identity);
+      setPendingPromiseId(view.detail.promise_id);
+      try {
+        await respondPromiseAmend(phase.accessToken, {
+          promise_id: view.detail.promise_id,
+          request_id: requestId,
+          decision,
+        }, key);
+        const refreshed = await load();
+        const current = refreshed?.find(({ detail }) => detail.promise_id === view.detail.promise_id);
+        if (current !== undefined && current.detail.status !== 'AMEND_PENDING') {
+          delete amendIntents.current[slot];
+        }
+      } catch (raised) {
+        if (raised instanceof PromiseAmendApiError && raised.authExpired) setPhase({ kind: 'SIGNED_OUT' });
+        else if (
+          raised instanceof PromiseAmendApiError
+          && (raised.failure.code === 'E_STATE_CONFLICT' || raised.failure.code === 'E_VALIDATION')
+        ) await load();
+        else setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+      } finally {
+        setPendingPromiseId(null);
+      }
+    },
+    [load, phase],
+  );
+
+  const handleVersionHistory = useCallback(
+    async (view: PromiseView): Promise<void> => {
+      if (phase.kind !== 'READY') return;
+      setVersionHistory({ promiseId: view.detail.promise_id, value: null });
+      try {
+        const value = await listPromiseVersions(phase.accessToken, view.detail.promise_id);
+        setVersionHistory({ promiseId: view.detail.promise_id, value });
+      } catch (raised) {
+        if (raised instanceof PromiseAmendApiError && raised.authExpired) setPhase({ kind: 'SIGNED_OUT' });
+        else setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+        setVersionHistory(null);
+      }
+    },
+    [phase],
+  );
+
   const responseCount =
     phase.kind === 'READY'
-      ? phase.promises.filter(({ summary }) => summary.needs_response).length
+      ? phase.promises.filter(promiseNeedsResponse).length
       : 0;
 
   return (
@@ -1367,12 +1868,25 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
                     onRemoveRetained={handleRemoveRetained}
                     onSubmit={(nextView, draft) => void handleSubmit(nextView, draft)}
                     onReopen={(nextView) => void handleReopen(nextView)}
+                    amendOpen={activeAmendId === view.detail.promise_id}
+                    onOpenAmend={(nextView) => setActiveAmendId(nextView.detail.promise_id)}
+                    onCloseAmend={() => setActiveAmendId(null)}
+                    onRequestAmend={handleRequestAmend}
+                    onWithdrawAmend={(nextView) => void handleWithdrawAmend(nextView)}
+                    onRespondAmend={(nextView, decision) => void handleRespondAmend(nextView, decision)}
+                    onVersionHistory={(nextView) => void handleVersionHistory(nextView)}
                   />
                 ))}
               </ul>
             )}
           </>
         )}
+        {versionHistory !== null ? (
+          <VersionHistoryOverlay
+            value={versionHistory.value}
+            onClose={() => setVersionHistory(null)}
+          />
+        ) : null}
       </div>
     </div>
   );

@@ -279,6 +279,44 @@
   margin-top: var(--lf-space-3);
 }
 
+.lf-f11-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+.lf-f11-overlay .lf-scrim {
+  width: 100%;
+  border: 0;
+}
+
+.lf-f11-sheet {
+  left: 50%;
+  width: min(100%, var(--lf-viewport-width));
+  transform: translateX(-50%);
+}
+
+.lf-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: var(--lf-space-1);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-surface-muted);
+}
+
+.lf-segmented button {
+  min-height: var(--lf-touch-min);
+  border-radius: var(--lf-radius-pill);
+  background: transparent;
+  color: var(--lf-color-text-secondary);
+  font-weight: var(--lf-weight-bold);
+}
+
+.lf-segmented button[aria-pressed='true'] {
+  background: var(--lf-color-surface);
+  color: var(--lf-color-primary);
+}
+
 /* -------------------------------------------------------------
    공개 법적 문서 초안 — 로그인·초대와 독립된 스크롤 문서
    ------------------------------------------------------------- */

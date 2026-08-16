@@ -5,6 +5,7 @@ import {
   asPromiseAmendCreateResponse,
   asPromiseAmendRespondResponse,
   asPromiseAmendWithdrawResponse,
+  asPromiseDetailResponse,
   asPromiseVersionListResponse,
   type Endpoint,
   type PromiseAmendCreateRequest,
@@ -12,6 +13,7 @@ import {
   type PromiseAmendRespondRequest,
   type PromiseAmendRespondResponse,
   type PromiseAmendWithdrawResponse,
+  type PromiseDetailResponse,
   type PromiseVersionListResponse,
 } from '@littlefinger/shared';
 
@@ -134,6 +136,20 @@ export function listPromiseVersions(
     accessToken,
     { promise_id: promiseId },
     asPromiseVersionListResponse,
+    signal === undefined ? {} : { signal },
+  );
+}
+
+export function getPromiseAmendDetail(
+  accessToken: string,
+  promiseId: string,
+  signal?: AbortSignal,
+): Promise<PromiseDetailResponse> {
+  return callAmend(
+    ENDPOINT.promiseDetail,
+    accessToken,
+    { promise_id: promiseId },
+    asPromiseDetailResponse,
     signal === undefined ? {} : { signal },
   );
 }

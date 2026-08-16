@@ -3,6 +3,7 @@ import {
   ENDPOINT,
   ERROR_HTTP_STATUS,
   type ParticipantPromiseSummary,
+  type PromiseDetailResponse,
   type PromiseFulfillmentDetailResponse,
 } from '@littlefinger/shared';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -111,6 +112,93 @@ function detail(
   };
 }
 
+const AGREEMENT_VERSION = {
+  version_no: 1,
+  title: '매일 함께 걷기',
+  body: '저녁 식사 뒤 30분 걷기',
+  category: 'HABIT',
+  end_date: '2026-09-01',
+  keeper: 'BOTH',
+  reward: null,
+  penalty: null,
+  content_hash: 'a'.repeat(64),
+  fingerprint: 'AAAA-AAAA-AA',
+  activated_at: '2026-08-01T00:00:00Z',
+  superseded_at: null,
+  change_reason: null,
+} as const;
+
+function agreementDetail(
+  patch: Partial<PromiseDetailResponse> = {},
+): PromiseDetailResponse {
+  return {
+    promise_id: PROMISE_A,
+    status: 'ACTIVE',
+    title: AGREEMENT_VERSION.title,
+    body: AGREEMENT_VERSION.body,
+    category: AGREEMENT_VERSION.category,
+    end_date: AGREEMENT_VERSION.end_date,
+    keeper: AGREEMENT_VERSION.keeper,
+    reward: AGREEMENT_VERSION.reward,
+    penalty: AGREEMENT_VERSION.penalty,
+    witness_enabled: false,
+    activated_at: AGREEMENT_VERSION.activated_at,
+    closed_at: null,
+    checking_started_at: null,
+    check_deadline_at: null,
+    check_round_no: 1,
+    my_role: 'PARTNER',
+    creator: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null, role: 'CREATOR', status: 'JOINED', joined_at: AGREEMENT_VERSION.activated_at },
+    partner: { user_id: PARTNER_ID, nickname: '민준', profile_image_url: null, role: 'PARTNER', status: 'JOINED', joined_at: AGREEMENT_VERSION.activated_at },
+    witnesses: [],
+    approvals: [],
+    current_version: AGREEMENT_VERSION,
+    invitation: null,
+    amend_request: null,
+    fulfillment: null,
+    ...patch,
+  };
+}
+
+function pendingAgreement({
+  promiseId = PROMISE_A,
+  myRole = 'PARTNER',
+  type = 'AMEND',
+  requesterId = CREATOR_ID,
+}: {
+  promiseId?: string;
+  myRole?: 'CREATOR' | 'PARTNER';
+  type?: 'AMEND' | 'CANCEL';
+  requesterId?: string;
+} = {}): PromiseDetailResponse {
+  return agreementDetail({
+    promise_id: promiseId,
+    status: 'AMEND_PENDING',
+    my_role: myRole,
+    amend_request: {
+      request_id: '99999999-9999-4999-8999-999999999999',
+      type,
+      status: 'PENDING',
+      requester: {
+        user_id: requesterId,
+        nickname: requesterId === CREATOR_ID ? '지우' : '민준',
+        profile_image_url: null,
+      },
+      reason: type === 'AMEND' ? '기간 연장' : null,
+      created_at: '2026-08-10T00:00:00Z',
+      expires_at: '2026-08-24T00:00:00Z',
+      proposed_version: type === 'AMEND'
+        ? {
+            ...AGREEMENT_VERSION,
+            version_no: 2,
+            end_date: '2026-09-15',
+            activated_at: null,
+          }
+        : null,
+    },
+  });
+}
+
 function response(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -134,6 +222,7 @@ function mutationKeys(endpoint: string): string[] {
 function installServer(
   list: ParticipantPromiseSummary[],
   details: Record<string, PromiseFulfillmentDetailResponse>,
+  agreementDetails: Record<string, PromiseDetailResponse> = {},
 ): void {
   fetchMock.mockImplementation((url: string, init: RequestInit) => {
     const endpoint = endpointOf(url);
@@ -144,6 +233,39 @@ function installServer(
     if (endpoint === ENDPOINT.participantPromiseList) return Promise.resolve(response(200, list));
     if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
       return Promise.resolve(response(200, details[String(body['promise_id'])]));
+    }
+    if (endpoint === ENDPOINT.promiseDetail) {
+      return Promise.resolve(response(200, agreementDetails[String(body['promise_id'])]));
+    }
+    if (endpoint === ENDPOINT.promiseAmendRequest) {
+      return Promise.resolve(response(200, {
+        promise_id: body['promise_id'], status: 'AMEND_PENDING',
+        request_id: '99999999-9999-4999-8999-999999999999', type: body['type'],
+        expires_at: '2026-08-24T00:00:00Z',
+      }));
+    }
+    if (endpoint === ENDPOINT.promiseAmendRespond) {
+      return Promise.resolve(response(200, {
+        promise_id: body['promise_id'], status: body['decision'] === 'APPROVE' ? 'ACTIVE' : 'ACTIVE',
+        request_id: body['request_id'], request_status: body['decision'] === 'APPROVE' ? 'APPROVED' : 'DECLINED',
+        version_no: body['decision'] === 'APPROVE' ? 2 : null,
+      }));
+    }
+    if (endpoint === ENDPOINT.promiseAmendWithdraw) {
+      return Promise.resolve(response(200, {
+        promise_id: body['promise_id'], status: 'ACTIVE', request_id: body['request_id'], request_status: 'WITHDRAWN',
+      }));
+    }
+    if (endpoint === ENDPOINT.promiseVersionList) {
+      return Promise.resolve(response(200, {
+        promise_id: body['promise_id'],
+        versions: [{
+          version: AGREEMENT_VERSION,
+          change_requester: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null },
+          approved_by: { user_id: PARTNER_ID, nickname: '민준', profile_image_url: null },
+          approved_at: '2026-08-01T00:00:00Z', change_reason: '첫 확정',
+        }],
+      }));
     }
     if (endpoint === ENDPOINT.fulfillmentSubmit) {
       return Promise.resolve(
@@ -251,6 +373,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   sessionStorage.clear();
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
@@ -268,6 +391,307 @@ describe('SCR-W04 참여 약속', () => {
       options: { redirectTo: `${window.location.origin}/promises` },
     });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each(['CREATOR', 'PARTNER'] as const)('%s ACTIVE 당사자는 일곱 필드가 프리필된 변경 요청을 연다', async (myRole) => {
+    installServer(
+      [summary({ status: 'ACTIVE', needs_response: false, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'ACTIVE', my_role: myRole, end_date: '2026-09-01' }) },
+    );
+    const { container } = renderAt();
+
+    fireEvent.click(await screen.findByRole('button', { name: '변경·파기 요청' }));
+    expect(screen.getByDisplayValue('매일 함께 걷기')).toBeTruthy();
+    expect(screen.getByDisplayValue('저녁 식사 뒤 30분 걷기')).toBeTruthy();
+    expect(screen.getByDisplayValue('2026-09-01')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '습관' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '둘 다' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByText('상대가 승인하면 적용돼요. 승인 전까지는 지금 약속이 그대로 유지돼요.')).toBeTruthy();
+    expect(container.querySelector('.lf-ad-slot')).toBeNull();
+    expect(screen.getByRole('button', { name: '요청 보내기' }).className).toContain('lf-btn--cta');
+  });
+
+  it('변경된 필드가 없으면 막고 AMEND 전문과 선택 이유만 요청한다', async () => {
+    installServer(
+      [summary({ status: 'ACTIVE', needs_response: false, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'ACTIVE', end_date: '2026-09-01' }) },
+    );
+    renderAt();
+    fireEvent.click(await screen.findByRole('button', { name: '변경·파기 요청' }));
+    expect((screen.getByRole('button', { name: '요청 보내기' }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText('약속 내용'), { target: { value: '저녁 식사 뒤 40분 걷기' } });
+    fireEvent.change(screen.getByLabelText('변경 이유'), { target: { value: '운동 시간 조정' } });
+    fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
+
+    await waitFor(() => expect(mutationKeys(ENDPOINT.promiseAmendRequest)).toHaveLength(1));
+    const call = fetchMock.mock.calls.find(([url]) => endpointOf(url) === ENDPOINT.promiseAmendRequest) as [string, RequestInit];
+    expect(JSON.parse(String(call[1].body))).toEqual({
+      promise_id: PROMISE_A,
+      type: 'AMEND',
+      proposed: {
+        title: '매일 함께 걷기', body: '저녁 식사 뒤 40분 걷기', category: 'HABIT',
+        end_date: '2026-09-01', keeper: 'BOTH', reward: null, penalty: null,
+      },
+      reason: '운동 시간 조정',
+    });
+  });
+
+  it('파기 요청은 별도 안내와 두 단계 확인 뒤 CANCEL만 전송한다', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    installServer(
+      [summary({ status: 'ACTIVE', needs_response: false, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'ACTIVE', end_date: '2026-09-01' }) },
+    );
+    renderAt();
+    fireEvent.click(await screen.findByRole('button', { name: '변경·파기 요청' }));
+    fireEvent.click(screen.getByRole('button', { name: '파기 요청' }));
+    expect(screen.getByText('두 사람 모두 동의하면 약속이 파기돼요')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
+
+    await waitFor(() => expect(mutationKeys(ENDPOINT.promiseAmendRequest)).toHaveLength(1));
+    expect(confirm).toHaveBeenCalledTimes(1);
+    const call = fetchMock.mock.calls.find(([url]) => endpointOf(url) === ENDPOINT.promiseAmendRequest) as [string, RequestInit];
+    expect(JSON.parse(String(call[1].body))).toEqual({ promise_id: PROMISE_A, type: 'CANCEL' });
+  });
+
+  it('AMEND_PENDING은 변경 필드만 표시하고 요청자 철회·응답자 승인/거절을 대칭 제공한다', async () => {
+    const pending = agreementDetail({
+      status: 'AMEND_PENDING',
+      my_role: 'CREATOR',
+      amend_request: {
+        request_id: '99999999-9999-4999-8999-999999999999', type: 'AMEND', status: 'PENDING',
+        requester: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null },
+        reason: '기간 연장', created_at: '2026-08-10T00:00:00Z', expires_at: '2026-08-24T00:00:00Z',
+        proposed_version: { ...AGREEMENT_VERSION, version_no: 2, end_date: '2026-09-15', activated_at: null },
+      },
+    });
+    installServer(
+      [summary({ status: 'AMEND_PENDING', needs_response: false, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'AMEND_PENDING', my_role: 'CREATOR', end_date: '2026-09-01' }) },
+      { [PROMISE_A]: pending },
+    );
+    const requester = renderAt();
+    expect(await screen.findByText('변경 전 · 종료일')).toBeTruthy();
+    expect(screen.getByText('변경 후 · 종료일')).toBeTruthy();
+    expect(screen.queryByText('변경 전 · 제목')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '요청 철회' }));
+    await waitFor(() => expect(mutationKeys(ENDPOINT.promiseAmendWithdraw)).toHaveLength(1));
+
+    requester.unmount();
+    cleanup();
+    installServer(
+      [summary({ status: 'AMEND_PENDING', needs_response: false, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'AMEND_PENDING', my_role: 'PARTNER', end_date: '2026-09-01' }) },
+      { [PROMISE_A]: { ...pending, my_role: 'PARTNER' } },
+    );
+    renderAt();
+    expect(await screen.findByRole('button', { name: '변경 승인' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '거절' })).toBeTruthy();
+  });
+
+  it('ACTIVE 버전 이력은 전문·요청자·승인자·이유와 지문 앞 8자를 읽기 전용으로 표시한다', async () => {
+    installServer(
+      [summary({ status: 'ACTIVE', needs_response: false, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'ACTIVE', end_date: '2026-09-01' }) },
+    );
+    renderAt();
+    fireEvent.click(await screen.findByRole('button', { name: '버전 이력 보기' }));
+    for (const text of ['v1', '지우', '민준', '첫 확정', AGREEMENT_VERSION.body, 'aaaaaaaa']) {
+      expect((await screen.findAllByText(text)).length).toBeGreaterThan(0);
+    }
+    expect(screen.queryByRole('button', { name: /삭제/u })).toBeNull();
+  });
+
+  it('AMEND_PENDING 응답자는 응답 필요 건수와 목록 최상단에 반영한다', async () => {
+    installServer(
+      [
+        summary({
+          promise_id: PROMISE_A,
+          title: '일반 약속',
+          status: 'ACTIVE',
+          needs_response: false,
+          check_deadline_at: null,
+          updated_at: '2026-08-16T00:00:00Z',
+        }),
+        summary({
+          promise_id: PROMISE_B,
+          title: '변경 응답 약속',
+          status: 'AMEND_PENDING',
+          needs_response: false,
+          check_deadline_at: null,
+          updated_at: '2026-08-15T00:00:00Z',
+        }),
+      ],
+      {
+        [PROMISE_A]: detail({ status: 'ACTIVE', title: '일반 약속' }),
+        [PROMISE_B]: detail({
+          promise_id: PROMISE_B,
+          status: 'AMEND_PENDING',
+          title: '변경 응답 약속',
+          my_role: 'PARTNER',
+        }),
+      },
+      { [PROMISE_B]: pendingAgreement({ promiseId: PROMISE_B }) },
+    );
+    const { container } = renderAt();
+
+    expect(await screen.findByText('응답이 필요해요 · 1건')).toBeTruthy();
+    expect(
+      Array.from(container.querySelectorAll('[data-testid="promise-card-title"]')).map(
+        (node) => node.textContent,
+      ),
+    ).toEqual(['변경 응답 약속', '일반 약속']);
+  });
+
+  it('요청 성공 뒤 최신 조회가 실패하면 같은 intent 재시도에 같은 멱등 키를 쓴다', async () => {
+    let listCalls = 0;
+    let requestCalls = 0;
+    fetchMock.mockImplementation((url: string, init: RequestInit) => {
+      const endpoint = endpointOf(url);
+      if (endpoint === ENDPOINT.participantPromiseList) {
+        listCalls += 1;
+        if (listCalls === 2) return Promise.reject(new TypeError('refresh lost'));
+        const pending = listCalls >= 4;
+        return Promise.resolve(response(200, [summary({
+          status: pending ? 'AMEND_PENDING' : 'ACTIVE',
+          needs_response: false,
+          check_deadline_at: null,
+        })]));
+      }
+      if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
+        return Promise.resolve(response(200, detail({
+          status: listCalls >= 4 ? 'AMEND_PENDING' : 'ACTIVE',
+          end_date: '2026-09-01',
+        })));
+      }
+      if (endpoint === ENDPOINT.promiseDetail) {
+        return Promise.resolve(response(200, pendingAgreement({ myRole: 'CREATOR' })));
+      }
+      if (endpoint === ENDPOINT.promiseAmendRequest) {
+        requestCalls += 1;
+        return Promise.resolve(response(200, {
+          promise_id: PROMISE_A,
+          status: 'AMEND_PENDING',
+          request_id: '99999999-9999-4999-8999-999999999999',
+          type: 'AMEND',
+          expires_at: '2026-08-24T00:00:00Z',
+        }));
+      }
+      return Promise.resolve(response(500, {}));
+    });
+    renderAt();
+
+    fireEvent.click(await screen.findByRole('button', { name: '변경·파기 요청' }));
+    fireEvent.change(screen.getByDisplayValue('저녁 식사 뒤 30분 걷기'), {
+      target: { value: '저녁 식사 뒤 40분 걷기' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+    await screen.findByRole('button', { name: '변경·파기 요청' });
+    if (screen.queryByRole('dialog', { name: '변경·파기 요청' }) === null) {
+      fireEvent.click(screen.getByRole('button', { name: '변경·파기 요청' }));
+    }
+    fireEvent.change(screen.getByDisplayValue('저녁 식사 뒤 30분 걷기'), {
+      target: { value: '저녁 식사 뒤 40분 걷기' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
+
+    await waitFor(() => expect(requestCalls).toBe(2));
+    const keys = mutationKeys(ENDPOINT.promiseAmendRequest);
+    expect(keys).toHaveLength(2);
+    expect(keys[0]).toBe(keys[1]);
+  });
+
+  it('응답 결정을 바꾸면 새 멱등 키를 쓰고 파기 승인은 확인 전 전송하지 않는다', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    let respondCalls = 0;
+    fetchMock.mockImplementation((url: string) => {
+      const endpoint = endpointOf(url);
+      if (endpoint === ENDPOINT.participantPromiseList) {
+        return Promise.resolve(response(200, [summary({
+          status: 'AMEND_PENDING', needs_response: false, check_deadline_at: null,
+        })]));
+      }
+      if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
+        return Promise.resolve(response(200, detail({ status: 'AMEND_PENDING' })));
+      }
+      if (endpoint === ENDPOINT.promiseDetail) {
+        return Promise.resolve(response(200, pendingAgreement({ type: 'CANCEL' })));
+      }
+      if (endpoint === ENDPOINT.promiseAmendRespond) {
+        respondCalls += 1;
+        return Promise.reject(new TypeError('response lost'));
+      }
+      return Promise.resolve(response(500, {}));
+    });
+    renderAt();
+
+    fireEvent.click(await screen.findByRole('button', { name: '파기 승인' }));
+    expect(respondCalls).toBe(0);
+    confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByRole('button', { name: '파기 승인' }));
+    fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+    fireEvent.click(await screen.findByRole('button', { name: '거절' }));
+
+    await waitFor(() => expect(respondCalls).toBe(2));
+    const keys = mutationKeys(ENDPOINT.promiseAmendRespond);
+    expect(keys).toHaveLength(2);
+    expect(keys[0]).not.toBe(keys[1]);
+  });
+
+  it('만료된 변경 승인 E_VALIDATION은 최신 ACTIVE 상태를 다시 읽어 수렴한다', async () => {
+    let responded = false;
+    let listCalls = 0;
+    fetchMock.mockImplementation((url: string) => {
+      const endpoint = endpointOf(url);
+      if (endpoint === ENDPOINT.participantPromiseList) {
+        listCalls += 1;
+        return Promise.resolve(response(200, [summary({
+          status: responded ? 'ACTIVE' : 'AMEND_PENDING',
+          needs_response: false,
+          check_deadline_at: null,
+        })]));
+      }
+      if (endpoint === ENDPOINT.promiseFulfillmentDetail) {
+        return Promise.resolve(response(200, detail({
+          status: responded ? 'ACTIVE' : 'AMEND_PENDING',
+          end_date: '2026-09-01',
+        })));
+      }
+      if (endpoint === ENDPOINT.promiseDetail) {
+        return Promise.resolve(response(200, pendingAgreement()));
+      }
+      if (endpoint === ENDPOINT.promiseAmendRespond) {
+        responded = true;
+        return Promise.resolve(response(ERROR_HTTP_STATUS.E_VALIDATION, {
+          code: 'E_VALIDATION',
+          message: '종료일을 다시 확인해 주세요.',
+          action: null,
+        }));
+      }
+      return Promise.resolve(response(500, {}));
+    });
+    renderAt();
+
+    fireEvent.click(await screen.findByRole('button', { name: '변경 승인' }));
+
+    await waitFor(() => expect(listCalls).toBe(2));
+    expect(await screen.findByText('진행 중')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: '변경 승인' })).toBeNull();
+  });
+
+  it('목록과 상세 사이에 AMEND_PENDING으로 바뀌어도 상세 상태로 비교 payload를 읽는다', async () => {
+    installServer(
+      [summary({ status: 'ACTIVE', needs_response: false, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'AMEND_PENDING' }) },
+      { [PROMISE_A]: pendingAgreement() },
+    );
+    renderAt();
+
+    expect(await screen.findByRole('button', { name: '변경 승인' })).toBeTruthy();
+    expect(
+      fetchMock.mock.calls.filter(([url]) => endpointOf(url) === ENDPOINT.promiseDetail),
+    ).toHaveLength(1);
   });
 
   it('저장된 세션으로 직접 방문·새로고침해 서버 목록을 복원하고 정렬한다', async () => {
@@ -1063,7 +1487,7 @@ describe('SCR-W04 참여 약속', () => {
     expect(claimGroups[1]?.querySelectorAll('.lf-claim')).toHaveLength(2);
   });
 
-  it('ACTIVE와 AMEND_PENDING는 읽기 전용이고 F-11 버튼이 없다', async () => {
+  it('ACTIVE는 요청 진입을, AMEND_PENDING 응답자는 승인·거절을 제공한다', async () => {
     const rows = [
       summary({
         promise_id: PROMISE_A,
@@ -1079,20 +1503,45 @@ describe('SCR-W04 참여 약속', () => {
         check_deadline_at: null,
       }),
     ];
-    installServer(rows, {
-      [PROMISE_A]: detail({ status: 'ACTIVE' }),
-      [PROMISE_B]: detail({
-        promise_id: PROMISE_B,
-        title: '변경 중인 약속',
-        status: 'AMEND_PENDING',
-      }),
-    });
+    installServer(
+      rows,
+      {
+        [PROMISE_A]: detail({ status: 'ACTIVE' }),
+        [PROMISE_B]: detail({
+          promise_id: PROMISE_B,
+          title: '변경 중인 약속',
+          status: 'AMEND_PENDING',
+          my_role: 'PARTNER',
+        }),
+      },
+      {
+        [PROMISE_B]: agreementDetail({
+          promise_id: PROMISE_B,
+          status: 'AMEND_PENDING',
+          my_role: 'PARTNER',
+          amend_request: {
+            request_id: '99999999-9999-4999-8999-999999999999',
+            type: 'CANCEL',
+            status: 'PENDING',
+            requester: {
+              user_id: CREATOR_ID,
+              nickname: '지우',
+              profile_image_url: null,
+            },
+            reason: null,
+            created_at: '2026-08-10T00:00:00Z',
+            expires_at: '2026-08-24T00:00:00Z',
+            proposed_version: null,
+          },
+        }),
+      },
+    );
     renderAt();
 
     expect(await screen.findByText('변경 협의 중')).toBeTruthy();
-    for (const forbidden of ['변경 승인', '거절', '변경 요청', '파기 요청']) {
-      expect(screen.queryByRole('button', { name: forbidden })).toBeNull();
-    }
+    expect(screen.getByRole('button', { name: '변경·파기 요청' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '파기 승인' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '거절' })).toBeTruthy();
   });
 
   it('세션 만료 응답은 /promises 복귀 로그인 CTA로 회복한다', async () => {
