@@ -1,13 +1,13 @@
 # Development Status
 
 Snapshot date: **2026-08-17 (KST)**. This records the locally verified SCR-A07, F-10 home-list,
-SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow, and F-09 trust profile;
-it is not a claim that the migrations, Edge Functions, cron, or Android development build are
-deployed.
+SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow, and F-09 trust profile,
+plus the remote database, Edge Function, Vault, and cron verification completed on the same date.
+Android development-build UAT remains a separate gate.
 
 ## Repository snapshot
 
-- The F-09 trust-profile baseline is `main@de2afee`, 109 commits ahead of `origin/main` before this
+- The F-09 trust-profile baseline is `main@f5efc64`, 110 commits ahead of `origin/main` before this
   documentation update.
 - `.claude/settings.local.json` is local-only and must remain uncommitted.
 - The local migration catalog ends at `20260817000002_schedule_j10_trust_profile.sql`.
@@ -17,16 +17,22 @@ deployed.
 
 ## Deployment snapshot
 
-The last live verification recorded in repository handoffs is **2026-07-30**: migrations through
-`20260730000011_user_provisioning.sql` were local/remote aligned, and the live create -> invite ->
-preview -> approve path was exercised. Earlier handoffs also record the deployed invitation
-functions and `invite-preview` access controls.
+On **2026-08-17**, the target project `vepnrrmxvsytguocicfe` was re-authenticated and verified before
+mutation. A dry run listed exactly 21 pending migrations, and the committed migrations from
+`20260801000001_notification_push_fanout.sql` through
+`20260817000002_schedule_j10_trust_profile.sql` were applied. A subsequent migration-list readback
+showed the local and remote catalogs aligned.
 
-On 2026-08-17, the read-only `supabase migration list` gate still returned Management API **403**
-for the active CLI account. The check stopped there without reading the function list or making a
-remote mutation. Consequently, do **not** infer that the local F-05--F-10, SCR-A07, or SCR-A08
-migrations/functions are deployed. Restore the correct Supabase account before deployment
-verification or any production mutation.
+The 20 approved changed/new Edge Functions were deployed with Management API bundling (`--use-api`)
+and read back as `ACTIVE`. `push-send` is the only one with `verify_jwt=false`; it authenticates the
+internal `x-push-send-secret` header. The other 19 retain JWT verification.
+
+Seven expected cron jobs were read back as active, unique by name, and on their exact UTC schedules:
+J-02, J-03, J-08, J-01/push delivery, notification retention, J-09, and J-10. The generated
+`PUSH_SEND_SECRET` was stored only as an Edge Secret and matching Vault secret; Vault also contains
+the worker URL. The first `lf-push-send` run after configuration succeeded at 05:00 KST and received
+HTTP 200 from the Edge Function without timeout. It claimed six obsolete reminder rows and canceled
+all six; no push ticket or receipt was pending.
 
 ## Firebase and EAS state
 
@@ -93,15 +99,15 @@ verification or any production mutation.
 
 ## Known gaps
 
-- Production deployment and live verification of the current F-07/F-08 local state are pending the
-  Supabase account-access fix.
+- The remote migration, approved Edge Function, Vault, and cron configuration gates are complete,
+  but feature-level cross-account and real-device UAT is still pending.
 - Two-account app/web UAT is pending a second Kakao account; automated and recorded remote checks
   do not replace it.
-- **F-06 deployment/UAT:** the committed migrations, Vault values, `push-send`, single cron job,
-  Expo receipt transitions, and Android foreground/background/terminated delivery still require
-  remote verification after the Management API 403 is resolved.
-- **SCR-A07/F-10/SCR-A05 deployment/UAT:** the inbox, home-list, and promise-detail
-  migrations/functions are not remotely verified. The SCR-A05 automated tests verify every state
+- **F-06 device UAT:** the committed migrations, Vault values, active `push-send`, unique cron, and
+  successful HTTP invocation are remotely verified. A real Expo ticket/receipt and Android
+  foreground/background/terminated delivery still require a development build and device token.
+- **SCR-A07/F-10/SCR-A05 UAT:** the inbox, home-list, and promise-detail migrations/functions are
+  remotely deployed and active. The SCR-A05 automated tests verify every state
   heading, common content, neutral DISPUTED claims, signed-evidence boundary, allowed actions, and
   no-ad rendering. The frozen nine-screen reference was checked structurally at the 360x800 design
   contract, but populated real-device screenshots require the deployed API and account data. This
@@ -109,21 +115,20 @@ verification or any production mutation.
 - **F-01 release gate:** operator details, privacy officer details, overseas processing particulars,
   and legal review are intentionally unresolved. The current legal pages and recorded versions are
   non-deployment drafts and must not be treated as production consent documents.
-- **J-09 deployment gate:** the local migration, private incident permissions, and single weekly cron
-  have not been applied or read back remotely because the Management API still returns 403.
-  Email delivery remains out of MVP scope.
-- **F-05 deployment/UAT:** the witness migration and five Edge Functions have not been applied or
-  read back remotely because the Management API still returns 403. Cross-account Android-to-web
+- **J-09 UAT:** the migration, private incident permissions, and unique weekly cron are remotely
+  verified. A deliberate production hash mismatch was not introduced; incident lifecycle behavior
+  remains covered by automated tests. Email delivery remains out of MVP scope.
+- **F-05 UAT:** the witness migration and five Edge Functions are remotely deployed and active.
+  Cross-account Android-to-web
   invite, join, signature, evidence, and revisit UAT is still required. Automated tests and the
   Android production export passed. The signed-out SCR-W05 shell was inspected at 360x800 with no
   horizontal overflow, a 52 px CTA, and no ad. Authenticated FULL data and MOD-02 still require
   deployed-account screenshots, so this is not a real-device pixel-pass claim.
-- **F-09 deployment/UAT:** the two migrations, three Edge Functions, and J-10 cron have not been
-  applied or read back remotely because the Management API still returns 403. An Android emulator
-  verified that session post-processing no longer raises an invalid SecureStore-key error and that
-  `/profile` opens; the screen then showed its retry state because the remote profile function is
-  not deployed. Populated profile pixels, settings persistence, current-device token removal, and
-  real-device logout therefore remain external UAT and are not a pixel-pass claim.
+- **F-09 UAT:** the two migrations, three Edge Functions, and unique J-10 cron are remotely deployed
+  and verified. An Android emulator verified that session post-processing no longer raises an
+  invalid SecureStore-key error and that `/profile` opens. Populated profile pixels, settings
+  persistence, current-device token removal, and real-device logout remain external UAT and are not
+  a pixel-pass claim.
 - F-11 amend/cancel mutations, witness self-leave, and the version-history screen remain M3 work
   and are intentionally not exposed by SCR-A05 yet.
 
@@ -135,7 +140,6 @@ verification or any production mutation.
 3. **M4:** the SCR-A02-only ad slot, accessibility pass, full acceptance checklist, and Google Play
    closed testing.
 
-The next product implementation step is the remaining M3 scope. F-01/J-09, F-05/F-06/F-09,
-SCR-A07, F-10, and SCR-A05 deployment/device UAT remain the first external gate once the correct
-Supabase account is available; F-01 final copy additionally requires operator input and legal
-review.
+The next product implementation step is F-11 amend/cancel agreement, followed by witness
+self-leave and MOD-03. Device and cross-account UAT remains an external gate; F-01 final copy also
+requires operator input and legal review.
