@@ -84,6 +84,12 @@ beforeEach(async () => {
 });
 
 describe('notification_outbox 내구성 경계', () => {
+  test.each(['NT-15', 'NT-16', 'NT-17'])('%s intent를 닫힌 이벤트 제약이 허용한다', async (event) => {
+    const userId = await createUser(db, `변경이벤트-${event}`);
+    const promiseId = await createPromise(db, { creatorId: userId });
+    await expect(enqueue({ userId, promiseId, event })).resolves.toEqual(expect.any(String));
+  });
+
   test('같은 논리 이벤트를 두 번 enqueue해도 intent는 하나다', async () => {
     const userId = await createUser(db, '아웃박스중복');
     const promiseId = await createPromise(db, { creatorId: userId });

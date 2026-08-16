@@ -67,6 +67,16 @@ describe('F-11 amend agreement transaction schema', () => {
       );
     }
   });
+
+  test('J-05 uses one fixed 00:30 KST cron and server-only functions', () => {
+    expect(lower).toContain("'lf-amend-request-expiry'");
+    expect(lower).toContain("'30 15 * * *'");
+    for (const name of ['lf_expire_amend_requests', 'lf_schedule_amend_expiry']) {
+      expect(lower).toMatch(
+        new RegExp(`revoke all on function public\\.${name}\\s*\\(`, 'u'),
+      );
+    }
+  });
 });
 
 describe('F-01 약관 동의 서버 경계', () => {

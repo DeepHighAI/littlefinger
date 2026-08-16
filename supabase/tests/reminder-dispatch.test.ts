@@ -154,6 +154,46 @@ afterAll(async () => {
 });
 
 describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
+  test('AMEND_REMIND는 진행 중 요청의 상대에게 NT-15를 다시 보낸다', async () => {
+    const creatorId = await createUser(db, '변경독촉수신자');
+    const partnerId = await createUser(db, '변경독촉요청자');
+    const promiseId = await createPromise(db, {
+      creatorId,
+      partnerId,
+      status: 'ACTIVE',
+      endDateOffsetDays: 10,
+    });
+    const { rows } = await db.asAdmin(
+      `insert into public.amend_requests
+         (promise_id, requester_id, type, reason, expires_at)
+       values ($1, $2, 'CANCEL', '다시 정해요', now() + interval '4 days')
+       returning id`,
+      [promiseId, partnerId],
+    );
+    await db.asAdmin(`update public.promises set status = 'AMEND_PENDING' where id = $1`, [
+      promiseId,
+    ]);
+    const rowId = await scheduleRow({
+      promiseId,
+      userId: creatorId,
+      kind: 'AMEND_REMIND',
+      fireAt: (await kstAnchor(0, 9)).instant,
+    });
+
+    const result = await dispatch((await kstAnchor(0, 9)).instant);
+    expect(result).toMatchObject({ claimed: 1, sent: 1 });
+    expect((await scheduleState(rowId)).status).toBe('SENT');
+    expect(await outboxRowsFor(promiseId)).toEqual([
+      expect.objectContaining({
+        user_id: creatorId,
+        type: 'NT-15',
+        title: expect.stringContaining('파기를 요청했어요'),
+        deeplink: 'SCR-A05',
+      }),
+    ]);
+    expect(rows[0]?.['id']).toEqual(expect.any(String));
+  });
+
   test('기한이 되지 않은 행은 건드리지 않는다', async () => {
     const userId = await createUser(db, '미도래');
     const promiseId = await createPromise(db, {
@@ -483,7 +523,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
     await neutralize(newer);
   });
 
-  test('AMEND_REMIND 는 F-11 전까지 건드리지 않는다', async () => {
+  test('AMEND_PENDING이 아닌 약속의 stale AMEND_REMIND는 취소한다', async () => {
     const userId = await createUser(db, '수정보류');
     const promiseId = await createPromise(db, {
       creatorId: userId,
@@ -499,8 +539,8 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
 
     const result = await dispatch((await kstAnchor(0, 9)).instant);
 
-    expect(result).toMatchObject({ claimed: 0 });
-    expect((await scheduleState(rowId)).status).toBe('PENDING');
+    expect(result).toMatchObject({ claimed: 1, canceled: 1 });
+    expect((await scheduleState(rowId)).status).toBe('CANCELED');
     expect(await outboxRowsFor(promiseId)).toHaveLength(0);
   });
 
