@@ -10,7 +10,18 @@ import {
   RATE_COUNTED_STATUSES,
   RATE_EXCLUDED_STATUSES,
   TERMINAL_STATUSES,
+  type TrustProfile,
 } from './promise.ts';
+
+const trustProfile: TrustProfile = {
+  userId: 'user-id',
+  keepRate: null,
+  completedCount: 0,
+  brokenCount: 0,
+  disputedCount: 0,
+  unresolvedCount: 0,
+  activeCount: 2,
+};
 
 // 근거: 02_세부기능명세서 §2-4 상태 값(변경 금지), §6-3 Enum 목록
 describe('PROMISE_STATUSES', () => {
@@ -47,6 +58,10 @@ describe('PROMISE_STATUSES', () => {
 
 // 근거: §4-9-1 — 지킴율에 반영되는 상태와 빠지는 상태
 describe('지킴율 집계 상태 구분', () => {
+  test('진행 중 건수는 비율과 별도인 공개 프로필 필드다', () => {
+    expect(trustProfile.activeCount).toBe(2);
+  });
+
   test('비율에 반영되는 상태는 COMPLETED 와 BROKEN 뿐이다', () => {
     expect([...RATE_COUNTED_STATUSES].sort()).toEqual(['BROKEN', 'COMPLETED']);
   });

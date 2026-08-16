@@ -82,6 +82,8 @@ export type ApiValidationField =
   | 'cursor'
   | 'limit'
   | 'notification_id'
+  | 'reminders'
+  | 'remind_hour'
   | 'nickname'
   | 'profile_image_url'
   | 'expo_push_token';
@@ -774,6 +776,9 @@ export const ENDPOINT = {
   promiseAmend: 'promise-amend',
   userProvision: 'user-provision',
   deviceTokenRegister: 'device-token-register',
+  deviceTokenUnregister: 'device-token-unregister',
+  trustProfile: 'trust-profile',
+  trustProfileSettingsUpdate: 'trust-profile-settings-update',
   promiseHomeList: 'promise-home-list',
   promiseDetail: 'promise-detail',
   participantPromiseList: 'participant-promise-list',

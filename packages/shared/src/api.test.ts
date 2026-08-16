@@ -200,6 +200,8 @@ const validationFields: ApiValidationField[] = [
   'cursor',
   'limit',
   'notification_id',
+  'reminders',
+  'remind_hour',
 ];
 
 describe('F-07 공개 API 계약', () => {
@@ -252,6 +254,8 @@ describe('F-07 공개 API 계약', () => {
         'cursor',
         'limit',
         'notification_id',
+        'reminders',
+        'remind_hour',
       ],
     });
   });
@@ -298,5 +302,14 @@ describe('F-07 공개 API 계약', () => {
       notificationRead: 'notification-read',
       notificationReadAll: 'notification-read-all',
     });
+  });
+
+  test('F-09 프로필 계약은 세 전용 Edge Function 슬러그를 고정한다', () => {
+    expect(ENDPOINT).toMatchObject({
+      trustProfile: 'trust-profile',
+      trustProfileSettingsUpdate: 'trust-profile-settings-update',
+      deviceTokenUnregister: 'device-token-unregister',
+    });
+    expect(validationFields).toEqual(expect.arrayContaining(['reminders', 'remind_hour']));
   });
 });

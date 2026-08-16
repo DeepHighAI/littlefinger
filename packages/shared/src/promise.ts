@@ -269,6 +269,7 @@ export interface TrustProfile {
   brokenCount: number;
   disputedCount: number;
   unresolvedCount: number;
+  activeCount: number;
 }
 
 /**
