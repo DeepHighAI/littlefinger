@@ -1,18 +1,19 @@
 # Development Status
 
 Snapshot date: **2026-08-17 (KST)**. This records the locally verified SCR-A07, F-10 home-list,
-SCR-A05 promise-detail, F-01 draft legal boundary, J-09, and F-05 witness flow; it is not a claim
-that the migrations, Edge Functions, cron, or Android development build are deployed.
+SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow, and F-09 trust profile;
+it is not a claim that the migrations, Edge Functions, cron, or Android development build are
+deployed.
 
 ## Repository snapshot
 
-- The F-05 witness feature baseline is `main@7ce0159`, 99 commits ahead of `origin/main` before this
+- The F-09 trust-profile baseline is `main@de2afee`, 109 commits ahead of `origin/main` before this
   documentation update.
 - `.claude/settings.local.json` is local-only and must remain uncommitted.
-- The local migration catalog ends at `20260816000006_f05_witness_flow.sql`. Notification inbox
-  RPCs/functions, the dedicated home/detail RPCs and Edge Functions, the internal `push-send`
-  worker, durable notification outbox, fenced delivery/receipt RPCs, Vault nudge, and cron recovery
-  configuration are implemented locally.
+- The local migration catalog ends at `20260817000002_schedule_j10_trust_profile.sql`.
+  Notification inbox RPCs/functions, the dedicated home/detail/profile RPCs and Edge Functions,
+  the internal `push-send` worker, durable notification outbox, fenced delivery/receipt RPCs,
+  Vault nudge, and cron recovery configuration are implemented locally.
 
 ## Deployment snapshot
 
@@ -23,7 +24,7 @@ functions and `invite-preview` access controls.
 
 On 2026-08-17, the read-only `supabase migration list` gate still returned Management API **403**
 for the active CLI account. The check stopped there without reading the function list or making a
-remote mutation. Consequently, do **not** infer that the local F-05--F-08, SCR-A07, or F-10
+remote mutation. Consequently, do **not** infer that the local F-05--F-10, SCR-A07, or SCR-A08
 migrations/functions are deployed. Restore the correct Supabase account before deployment
 verification or any production mutation.
 
@@ -36,7 +37,7 @@ verification or any production mutation.
   config/firebase-config.test.js --runInBand` passed 3/3 tests for the client configuration,
   native assets, and EAS-upload inclusion.
 - **Locally verified (2026-08-17):** Expo SDK dependency alignment and Android production export
-  passed with 1,611 bundled modules after the F-05 witness changes.
+  passed with 1,618 bundled modules after the F-09 trust-profile changes.
 - **Currently unverified:** Firebase Console credentials/project access, an EAS production build
   artifact, and foreground/background/terminated real-device FCM/Expo delivery.
 
@@ -82,6 +83,13 @@ verification or any production mutation.
   signatures, account-route revisit, and NT-18 outbox intents are implemented locally. Raw invite
   tokens are returned once and stored only through the app's encrypted store. Witness self-leave is
   intentionally deferred.
+- **F-09 trust profile and SCR-A08:** the signed-in user's keeper-scoped keep rate, four status
+  counts, reminder preferences, and legal links are exposed through strict shared contracts and
+  authenticated server-owned RPC/Edge boundaries. SCR-A08 is reachable from the account action on
+  SCR-A02, contains no ads, and uses the immutable disclaimer. Current-device push token cleanup
+  precedes local logout, and token aliases containing user UUID separators are encrypted without
+  passing invalid keys to Android SecureStore. J-10 locally repairs active-user trust caches daily
+  at 03:00 KST with duplicate-safe scheduling and advisory-lock serialization.
 
 ## Known gaps
 
@@ -110,19 +118,24 @@ verification or any production mutation.
   Android production export passed. The signed-out SCR-W05 shell was inspected at 360x800 with no
   horizontal overflow, a 52 px CTA, and no ad. Authenticated FULL data and MOD-02 still require
   deployed-account screenshots, so this is not a real-device pixel-pass claim.
-- SCR-A08 reminder-settings/profile UI remains incomplete. F-11 amend/cancel mutations, witness
-  self-leave, and the version-history screen remain M3 work and are intentionally not exposed by
-  SCR-A05 yet.
+- **F-09 deployment/UAT:** the two migrations, three Edge Functions, and J-10 cron have not been
+  applied or read back remotely because the Management API still returns 403. An Android emulator
+  verified that session post-processing no longer raises an invalid SecureStore-key error and that
+  `/profile` opens; the screen then showed its retry state because the remote profile function is
+  not deployed. Populated profile pixels, settings persistence, current-device token removal, and
+  real-device logout therefore remain external UAT and are not a pixel-pass claim.
+- F-11 amend/cancel mutations, witness self-leave, and the version-history screen remain M3 work
+  and are intentionally not exposed by SCR-A05 yet.
 
 ## Roadmap
 
 1. **F-01 release:** replace draft placeholders only after operator input and legal review, then
    publish a new final legal version instead of re-labeling the recorded draft.
-2. **M3:** witness self-leave, keep-rate profile/SCR-A08, amend/cancel UI, and MOD-03.
+2. **M3:** witness self-leave, amend/cancel UI, and MOD-03.
 3. **M4:** the SCR-A02-only ad slot, accessibility pass, full acceptance checklist, and Google Play
    closed testing.
 
-The next product implementation step is the remaining M3 scope. F-01/J-09, F-05/F-06, SCR-A07,
-F-10, and SCR-A05
-deployment/device UAT remain the first external gate once the correct Supabase account is
-available; F-01 final copy additionally requires operator input and legal review.
+The next product implementation step is the remaining M3 scope. F-01/J-09, F-05/F-06/F-09,
+SCR-A07, F-10, and SCR-A05 deployment/device UAT remain the first external gate once the correct
+Supabase account is available; F-01 final copy additionally requires operator input and legal
+review.
