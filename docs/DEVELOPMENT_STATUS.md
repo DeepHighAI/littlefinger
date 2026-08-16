@@ -1,16 +1,20 @@
 # Development Status
 
 Snapshot date: **2026-08-17 (KST)**. This records the locally verified SCR-A07, F-10 home-list,
-SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow, and F-09 trust profile,
-plus the remote database, Edge Function, Vault, and cron verification completed on the same date.
-Android development-build UAT remains a separate gate.
+SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow, F-09 trust profile, and
+F-11 amend/cancel flow. It separately records the remote database, Edge Function, Vault, and cron
+verification completed before F-11 was added. Android development-build UAT remains a separate
+gate.
 
 ## Repository snapshot
 
-- The F-09 trust-profile baseline is `main@f5efc64`, 110 commits ahead of `origin/main` before this
-  documentation update.
+- The locally verified F-11 implementation baseline is `main@70bd95f`, 118 commits ahead of
+  `origin/main` before this documentation update.
 - `.claude/settings.local.json` is local-only and must remain uncommitted.
-- The local migration catalog ends at `20260817000002_schedule_j10_trust_profile.sql`.
+- The local migration catalog includes the new F-11 migrations
+  `20260816202820_f11_amend_agreement.sql` and
+  `20260816204242_f11_amend_notifications.sql`; its latest version remains
+  `20260817000002_schedule_j10_trust_profile.sql`.
   Notification inbox RPCs/functions, the dedicated home/detail/profile RPCs and Edge Functions,
   the internal `push-send` worker, durable notification outbox, fenced delivery/receipt RPCs,
   Vault nudge, and cron recovery configuration are implemented locally.
@@ -21,7 +25,8 @@ On **2026-08-17**, the target project `vepnrrmxvsytguocicfe` was re-authenticate
 mutation. A dry run listed exactly 21 pending migrations, and the committed migrations from
 `20260801000001_notification_push_fanout.sql` through
 `20260817000002_schedule_j10_trust_profile.sql` were applied. A subsequent migration-list readback
-showed the local and remote catalogs aligned.
+showed the catalogs aligned at that verification point. The two F-11 migrations were committed
+afterward and have not been applied remotely.
 
 The 20 approved changed/new Edge Functions were deployed with Management API bundling (`--use-api`)
 and read back as `ACTIVE`. `push-send` is the only one with `verify_jwt=false`; it authenticates the
@@ -43,7 +48,8 @@ all six; no push ticket or receipt was pending.
   config/firebase-config.test.js --runInBand` passed 3/3 tests for the client configuration,
   native assets, and EAS-upload inclusion.
 - **Locally verified (2026-08-17):** Expo SDK dependency alignment and Android production export
-  passed with 1,618 bundled modules after the F-09 trust-profile changes.
+  passed with 1,622 bundled modules after the F-11 changes. The final export is at
+  `C:\tmp\littlefinger-f11-android-export-20260817-final`.
 - **Currently unverified:** Firebase Console credentials/project access, an EAS production build
   artifact, and foreground/background/terminated real-device FCM/Expo delivery.
 
@@ -71,8 +77,9 @@ all six; no push ticket or receipt was pending.
   record fingerprint without a public integrity outcome, approval and participant history, evidence-safe
   fulfillment snapshots, and nine visual variants covering all ten non-DRAFT statuses are
   implemented locally. `DECLINED` and `CANCELED` intentionally share the neutral terminal visual
-  family. Existing PENDING, CHECKING, DISPUTED, and COMPLETED actions are connected; F-11 mutation
-  and version-history controls remain absent rather than acting as placeholders.
+  family. Existing PENDING, CHECKING, DISPUTED, and COMPLETED actions are connected. ACTIVE and
+  AMEND_PENDING now expose the symmetric F-11 request, withdrawal, decision, and read-only version
+  history controls on both mobile SCR-A05 and web SCR-W04.
 - **F-01 draft legal boundary:** versioned public terms/privacy routes, login-screen links on app and
   web, and server-owned idempotent `terms_agreements` recording are implemented locally. The copy is
   explicitly marked as a non-deployment draft and does not claim legal approval. Both public pages
@@ -96,11 +103,21 @@ all six; no push ticket or receipt was pending.
   precedes local logout, and token aliases containing user UUID separators are encrypted without
   passing invalid keys to Android SecureStore. J-10 locally repairs active-user trust caches daily
   at 03:00 KST with duplicate-safe scheduling and advisory-lock serialization.
+- **F-11 amend/cancel:** joined creators and partners can symmetrically request a seven-field AMEND
+  or a two-stage-confirmed CANCEL from ACTIVE, withdraw their own pending request, or approve and
+  decline the counterparty request. The database owns immutable proposed versions, contiguous
+  activated version numbers, T-07--T-10 transitions, seven-day expiry, reminders, durable NT-15--17
+  outbox intents, and read-only version history. Mobile MOD-01/SCR-A05 and web SCR-W04 render only
+  changed fields, preserve one idempotency key until an authoritative refresh converges, promote
+  pending counterparty decisions into response-needed ordering, and render no ads. Final local
+  verification passed 1,718 Vitest tests and 452 mobile Jest tests, full typecheck, web production
+  build, Expo dependency check, agent-doc synchronization, diff checks, and Android export.
 
 ## Known gaps
 
-- The remote migration, approved Edge Function, Vault, and cron configuration gates are complete,
-  but feature-level cross-account and real-device UAT is still pending.
+- The previously approved remote migration, Edge Function, Vault, and cron gates are complete
+  through F-09. F-11 is local-only: its two migrations, four Edge Functions, AMEND_REMIND dispatch,
+  and J-05 cron have not been deployed or remotely verified.
 - Two-account app/web UAT is pending a second Kakao account; automated and recorded remote checks
   do not replace it.
 - **F-06 device UAT:** the committed migrations, Vault values, active `push-send`, unique cron, and
@@ -129,17 +146,21 @@ all six; no push ticket or receipt was pending.
   invalid SecureStore-key error and that `/profile` opens. Populated profile pixels, settings
   persistence, current-device token removal, and real-device logout remain external UAT and are not
   a pixel-pass claim.
-- F-11 amend/cancel mutations, witness self-leave, and the version-history screen remain M3 work
-  and are intentionally not exposed by SCR-A05 yet.
+- **F-11 UAT:** automated tests cover creator/partner symmetry, stale state, expiry validation,
+  idempotent retries, response ordering, and both clients. A 1080x2400/420-dpi Android AVD reached
+  the installed app splash but Android terminated `com.littlefinger.app` after a 6.5-second
+  `failed to complete startup` ANR, so populated MOD-01/SCR-A05 screenshots and two-account web/app
+  UAT remain unverified. The captured splash is
+  `C:\tmp\littlefinger-f11-screen-1080x2400.png`; this is not a pixel-pass claim.
 
 ## Roadmap
 
 1. **F-01 release:** replace draft placeholders only after operator input and legal review, then
    publish a new final legal version instead of re-labeling the recorded draft.
-2. **M3:** witness self-leave, amend/cancel UI, and MOD-03.
+2. **M3:** witness self-leave and MOD-03.
 3. **M4:** the SCR-A02-only ad slot, accessibility pass, full acceptance checklist, and Google Play
    closed testing.
 
-The next product implementation step is F-11 amend/cancel agreement, followed by witness
-self-leave and MOD-03. Device and cross-account UAT remains an external gate; F-01 final copy also
-requires operator input and legal review.
+The next product implementation step is witness self-leave, followed by MOD-03. Device and
+cross-account UAT remains an external gate; F-01 final copy also requires operator input and legal
+review.
