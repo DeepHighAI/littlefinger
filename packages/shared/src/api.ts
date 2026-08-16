@@ -86,7 +86,12 @@ export type ApiValidationField =
   | 'remind_hour'
   | 'nickname'
   | 'profile_image_url'
-  | 'expo_push_token';
+  | 'expo_push_token'
+  | 'type'
+  | 'proposed'
+  | 'reason'
+  | 'request_id'
+  | 'decision';
 
 export type ApiErrorAction = 'AMEND_SUGGEST';
 

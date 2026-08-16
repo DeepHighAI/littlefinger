@@ -69,6 +69,18 @@ verify_jwt = true
 [functions.promise-amend]
 verify_jwt = true
 
+[functions.promise-amend-request]
+verify_jwt = true
+
+[functions.promise-amend-respond]
+verify_jwt = true
+
+[functions.promise-amend-withdraw]
+verify_jwt = true
+
+[functions.promise-version-list]
+verify_jwt = true
+
 # 로그인 뒤 자기 users 행 보정이다(핸드오프 2026-07-30). p_user_id 는 JWT 에서만 오므로
 # 익명에게 열릴 이유가 없다.
 [functions.user-provision]
