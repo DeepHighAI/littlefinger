@@ -26,6 +26,14 @@ jest.mock(
   }),
   { virtual: true },
 );
+jest.mock('../components/witness-invite-sheet.tsx', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    WitnessInviteSheet: ({ visible, promiseId }: { visible: boolean; promiseId: string }) =>
+      visible ? React.createElement(Text, null, `증인 초대 시트 ${promiseId}`) : null,
+  };
+});
 
 const NOW = new Date('2026-07-30T01:00:00.000Z');
 const invite: InviteWithToken = {
@@ -106,6 +114,25 @@ describe('SCR-A04 초대 전송·대기', () => {
     await fireEvent.press(view.getByRole('button', { name: '링크 다시 공유' }));
     expect(shareInviteMock).toHaveBeenCalledTimes(2);
     expect(reissueInviteMock).not.toHaveBeenCalled();
+  });
+
+  test('작성에서 증인 사용을 선택한 약속만 MOD-02 진입을 노출한다', async () => {
+    jest.mocked(useLocalSearchParams).mockReturnValue({
+      promise_id: 'promise-1',
+      witness_enabled: 'true',
+    });
+    const view = await render(<InviteScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '증인도 초대하기' }));
+    expect(view.getByText('증인 초대 시트 promise-1')).toBeTruthy();
+  });
+
+  test('증인 사용을 선택하지 않은 약속에는 MOD-02 진입을 만들지 않는다', async () => {
+    const view = await render(<InviteScreen />);
+    await settle();
+
+    expect(view.queryByRole('button', { name: '증인도 초대하기' })).toBeNull();
   });
 
   test('만료되면 만료 문구와 재발급 CTA를 보여주고 새 토큰을 발급해 공유한다', async () => {

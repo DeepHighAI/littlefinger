@@ -36,6 +36,7 @@ export const SCR_A05_LABEL = {
   disputedAction: '재확인하기',
   shareAction: '공유하기',
   newPromiseAction: '새 약속 만들기',
+  witnessInviteAction: '증인 초대',
   actionFailed: '요청을 처리하지 못했어요. 다시 시도해 주세요.',
   amendReadOnly: '변경·파기 응답 기능은 다음 단계에서 제공돼요.',
   partnerPending: '상대방 · 초대 대기',

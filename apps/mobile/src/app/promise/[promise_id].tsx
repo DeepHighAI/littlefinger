@@ -31,6 +31,7 @@ import { LfIcon } from '../../components/LfIcon';
 import { LfRow } from '../../components/LfRow';
 import { LfStack } from '../../components/LfStack';
 import { LfText } from '../../components/LfText';
+import { WitnessInviteSheet } from '../../components/witness-invite-sheet.tsx';
 import {
   createFulfillmentIdempotencyKey,
   reopenFulfillment,
@@ -53,6 +54,7 @@ import { colors, gutter, radius, size, space } from '../../theme/tokens';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+const WITNESS_INVITE_STATUSES = new Set(['PENDING', 'ACTIVE', 'AMEND_PENDING', 'CHECKING']);
 
 type ScreenPhase = 'loading' | 'ready' | 'not-found' | 'error';
 
@@ -313,6 +315,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   const [detail, setDetail] = useState<PromiseDetailResponse | null>(null);
   const [actionError, setActionError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [witnessSheetOpen, setWitnessSheetOpen] = useState(false);
   const reopenKey = useRef<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -362,6 +365,9 @@ export default function PromiseDetailScreen(): React.JSX.Element {
       : detail.status === 'CANCELED'
         ? detail.amend_request?.reason ?? null
         : null;
+  const canInviteWitness =
+    WITNESS_INVITE_STATUSES.has(detail.status)
+    && (detail.my_role === 'CREATOR' || detail.my_role === 'PARTNER');
 
   async function reopen(): Promise<void> {
     if (promiseId === null || busy) return;
@@ -529,9 +535,22 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               />
             </LfRow>
           )}
+          {canInviteWitness && (
+            <LfButton
+              label={SCR_A05_LABEL.witnessInviteAction}
+              variant="tonal"
+              block
+              onPress={() => setWitnessSheetOpen(true)}
+            />
+          )}
           {actionError && <LfText variant="caption" align="center">{SCR_A05_LABEL.actionFailed}</LfText>}
         </View>
       </ScrollView>
+      <WitnessInviteSheet
+        visible={witnessSheetOpen}
+        promiseId={detail.promise_id}
+        onClose={() => setWitnessSheetOpen(false)}
+      />
     </ScreenFrame>
   );
 }

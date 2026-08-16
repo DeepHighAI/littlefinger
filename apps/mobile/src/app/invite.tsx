@@ -17,6 +17,7 @@ import { LfPinky } from '../components/LfPinky';
 import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
+import { WitnessInviteSheet } from '../components/witness-invite-sheet.tsx';
 import {
   formatInviteCountdown,
   inviteRemainingSeconds,
@@ -61,6 +62,7 @@ const INVITE_LABEL = {
   loading: '초대 링크를 불러오는 중이에요',
   loadError: '초대 링크를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
   actionError: '초대 링크를 처리하지 못했어요. 다시 시도해 주세요.',
+  witnessInvite: '증인도 초대하기',
 } as const;
 
 type InvitePhase = 'loading' | 'ready' | 'missing' | 'revoked' | 'error';
@@ -117,8 +119,12 @@ function promiseIdOf(value: string | string[] | undefined): string | null {
 
 export default function InviteScreen(): React.JSX.Element {
   const router = useRouter();
-  const params = useLocalSearchParams<{ promise_id?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    promise_id?: string | string[];
+    witness_enabled?: string | string[];
+  }>();
   const promiseId = promiseIdOf(params.promise_id);
+  const witnessEnabled = params.witness_enabled === 'true';
   const [phase, setPhase] = useState<InvitePhase>('loading');
   const [invite, setInvite] = useState<InviteWithToken | null>(null);
   const [now, setNow] = useState(() => new Date());
@@ -126,6 +132,7 @@ export default function InviteScreen(): React.JSX.Element {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState(false);
   const [resendBlocked, setResendBlocked] = useState(false);
+  const [witnessSheetOpen, setWitnessSheetOpen] = useState(false);
 
   useEffect(() => {
     if (promiseId === null) {
@@ -369,7 +376,23 @@ export default function InviteScreen(): React.JSX.Element {
             {INVITE_LABEL.actionError}
           </LfText>
         )}
+
+        {witnessEnabled && promiseId !== null && (
+          <LfButton
+            label={INVITE_LABEL.witnessInvite}
+            variant="tonal"
+            block
+            onPress={() => setWitnessSheetOpen(true)}
+          />
+        )}
       </ScrollView>
+      {promiseId !== null && (
+        <WitnessInviteSheet
+          visible={witnessSheetOpen}
+          promiseId={promiseId}
+          onClose={() => setWitnessSheetOpen(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

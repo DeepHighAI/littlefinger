@@ -206,7 +206,10 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       if (response.status === 'PENDING') {
         router.push({
           pathname: '/invite',
-          params: { promise_id: response.promise_id },
+          params: {
+            promise_id: response.promise_id,
+            witness_enabled: draft.witness_enabled ? 'true' : 'false',
+          },
         });
       } else {
         router.push('/home');

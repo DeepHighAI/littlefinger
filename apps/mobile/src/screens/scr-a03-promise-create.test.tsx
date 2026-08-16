@@ -187,6 +187,7 @@ describe('SCR-A03 약속 작성', () => {
     const view = await render(<PromiseEditorScreen />);
     await settle();
     await fillRequiredFields(view);
+    await fireEvent.press(view.getByRole('switch', { name: '증인 초대하기' }));
     await fireEvent.changeText(
       view.getByLabelText('약속 내용'),
       '연락은 010-1234-5678로 해줘',
@@ -209,7 +210,7 @@ describe('SCR-A03 약속 작성', () => {
     expect(clearEditorLocalDraftMock).toHaveBeenCalledWith(null);
     expect(push).toHaveBeenCalledWith({
       pathname: '/invite',
-      params: { promise_id: 'promise-1' },
+      params: { promise_id: 'promise-1', witness_enabled: 'true' },
     });
     expect(JSON.stringify(push.mock.calls)).not.toContain('raw-token');
   });

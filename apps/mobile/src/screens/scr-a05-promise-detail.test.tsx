@@ -25,6 +25,14 @@ jest.mock('../lib/fulfillment-native.ts', () => ({
   reopenFulfillment: jest.fn(),
   signFulfillmentEvidence: jest.fn(),
 }));
+jest.mock('../components/witness-invite-sheet.tsx', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    WitnessInviteSheet: ({ visible, promiseId }: { visible: boolean; promiseId: string }) =>
+      visible ? React.createElement(Text, null, `증인 초대 시트 ${promiseId}`) : null,
+  };
+});
 
 const PROMISE_ID = '11111111-1111-4111-8111-111111111111';
 const CREATOR_ID = '22222222-2222-4222-8222-222222222222';
@@ -323,6 +331,32 @@ describe('SCR-A05 약속 상세', () => {
     expect(view.queryByText('기록 불일치')).toBeNull();
     expect(view.queryByText('확정 전 기록')).toBeNull();
     expect(view.getByText(/공증이나 전자계약 서비스가 아니며/u)).toBeTruthy();
+  });
+
+  test.each([
+    ['PENDING', 'CREATOR'],
+    ['PENDING', 'PARTNER'],
+    ['ACTIVE', 'CREATOR'],
+    ['ACTIVE', 'PARTNER'],
+    ['AMEND_PENDING', 'CREATOR'],
+    ['AMEND_PENDING', 'PARTNER'],
+    ['CHECKING', 'CREATOR'],
+    ['CHECKING', 'PARTNER'],
+  ] as const)('%s의 %s는 MOD-02를 열 수 있다', async (status, myRole) => {
+    loadDetailMock.mockResolvedValue(makeDetail({ status, my_role: myRole }));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '증인 초대' }));
+    expect(view.getByText(`증인 초대 시트 ${PROMISE_ID}`)).toBeTruthy();
+  });
+
+  test('증인 역할과 종결 상태에는 MOD-02 진입을 노출하지 않는다', async () => {
+    loadDetailMock.mockResolvedValue(makeDetail({ status: 'COMPLETED', my_role: 'WITNESS' }));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    expect(view.queryByRole('button', { name: '증인 초대' })).toBeNull();
   });
 
   test('PENDING은 초대 만료를 표시하고 기존 초대 관리로 이동한다', async () => {
