@@ -67,7 +67,6 @@ const RESPONSE = {
   invitation: null,
   amend_request: null,
   fulfillment: null,
-  integrity_status: 'VERIFIED',
 };
 
 describe('모바일 SCR-A05 약속 상세 API', () => {

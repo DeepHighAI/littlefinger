@@ -70,6 +70,8 @@ const RESPONSE = {
   integrity_status: 'VERIFIED',
 } as const;
 
+const { integrity_status: _internalIntegrity, ...PUBLIC_RESPONSE } = RESPONSE;
+
 async function loadHandler(): Promise<HandlerModule | null> {
   return (await import(/* @vite-ignore */ HANDLER_PATH).catch(() => null)) as HandlerModule | null;
 }
@@ -124,7 +126,9 @@ describe('SCR-A05 promise-detail Edge Function', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(RESPONSE);
+    const payload = await response.json() as Record<string, unknown>;
+    expect(payload).toEqual(PUBLIC_RESPONSE);
+    expect(payload).not.toHaveProperty('integrity_status');
     expect(spy.rpcCalls).toEqual([
       { fn: 'lf_promise_detail', args: { p_actor: ACTOR_ID, p_promise_id: PROMISE_ID } },
     ]);

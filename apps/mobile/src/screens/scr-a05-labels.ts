@@ -18,8 +18,6 @@ export const SCR_A05_LABEL = {
   dday: '남은 기간',
   record: '확정 기록',
   approvals: '승인 이력',
-  integrityVerified: '기록 일치',
-  integrityFailed: '기록 불일치',
   invitation: '초대 상태',
   invitationExpires: '초대 만료',
   amend: '변경 협의',
@@ -45,7 +43,6 @@ export const SCR_A05_LABEL = {
   history: '지난 이행 확인',
   round: (roundNo: number) => `${roundNo}차 확인`,
   evidenceCount: (count: number) => (count === 0 ? '증빙 없음' : `증빙 ${count}장`),
-  integrityUnverified: '확정 전 기록',
   answer: {
     KEPT: '지켰어요',
     NOT_KEPT: '안 지켜졌어요',

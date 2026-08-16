@@ -91,7 +91,6 @@ const active = {
   invitation: null,
   amend_request: null,
   fulfillment: null,
-  integrity_status: 'VERIFIED',
 } as const;
 
 const evidence = {
@@ -125,7 +124,8 @@ describe('SCR-A05 promise detail public boundary', () => {
 
   test.each([
     ['top-level extra key', { ...active, storage_key: 'private/full.jpg' }],
-    ['DRAFT detail', { ...active, status: 'DRAFT', integrity_status: 'UNVERIFIED' }],
+    ['internal integrity outcome', { ...active, integrity_status: 'VERIFIED' }],
+    ['DRAFT detail', { ...active, status: 'DRAFT' }],
     ['invalid promise UUID', { ...active, promise_id: 'not-a-uuid' }],
     ['invalid end date', { ...active, end_date: '2026-02-30' }],
     [
@@ -140,7 +140,6 @@ describe('SCR-A05 promise detail public boundary', () => {
       },
     ],
     ['ACTIVE invitation', { ...active, invitation: { status: 'PENDING', expires_at: '2026-08-20T00:00:00Z', resend_count: 0 } }],
-    ['ACTIVE unverified integrity', { ...active, integrity_status: 'UNVERIFIED' }],
   ] as const)('%s를 거부한다', (_name, value) => {
     expect(parse(value)).toBeNull();
   });
@@ -158,7 +157,6 @@ describe('SCR-A05 promise detail public boundary', () => {
         expires_at: '2026-08-20T00:00:00Z',
         resend_count: 2,
       },
-      integrity_status: 'UNVERIFIED',
     };
 
     expect(parse(pending)).toEqual(pending);
@@ -254,4 +252,3 @@ describe('SCR-A05 promise detail public boundary', () => {
     expect(parse({ ...canceled, amend_request: { ...canceled.amend_request, type: 'AMEND' } })).toBeNull();
   });
 });
-

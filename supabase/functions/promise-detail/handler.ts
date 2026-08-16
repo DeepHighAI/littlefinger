@@ -5,6 +5,12 @@ import { corsPreflight, failureResponse, jsonResponse } from '../_shared/http.ts
 import { promiseDetailRequestOf } from '../_shared/promise-detail.ts';
 import { jsonBody } from '../_shared/request.ts';
 
+function publicPayload(value: unknown): unknown {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
+  const { integrity_status: _internalIntegrity, ...publicValue } = value as Record<string, unknown>;
+  return publicValue;
+}
+
 export function createPromiseDetailHandler(deps: Deps) {
   return async function handle(request: Request): Promise<Response> {
     if (request.method === 'OPTIONS') return corsPreflight();
@@ -13,10 +19,10 @@ export function createPromiseDetailHandler(deps: Deps) {
       const actor = await deps.authenticate(request.headers.get('authorization'));
       const input = promiseDetailRequestOf(await jsonBody(request, 'promise_id'));
       const payload = asPromiseDetailResponse(
-        await deps.rpc('lf_promise_detail', {
+        publicPayload(await deps.rpc('lf_promise_detail', {
           p_actor: actor,
           p_promise_id: input.promise_id,
-        }),
+        })),
       );
       if (payload === null) throw new Error('INVALID_PROMISE_DETAIL_RESPONSE');
       return jsonResponse(payload, 200);

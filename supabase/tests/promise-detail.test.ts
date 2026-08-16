@@ -125,12 +125,20 @@ async function insertFixture(input: FixtureInput): Promise<FixtureResult> {
   return { versionId };
 }
 
-async function detail(actor: string, promiseId: string): Promise<PromiseDetailResponse> {
+async function internalDetail(actor: string, promiseId: string): Promise<Record<string, unknown>> {
   const { rows } = await db.asService(
     `select public.lf_promise_detail($1, $2) as result`,
     [actor, promiseId],
   );
-  const parsed = asPromiseDetailResponse(rows[0]?.['result']);
+  return rows[0]?.['result'] as Record<string, unknown>;
+}
+
+async function detail(actor: string, promiseId: string): Promise<PromiseDetailResponse> {
+  const { integrity_status: _internalIntegrity, ...publicValue } = await internalDetail(
+    actor,
+    promiseId,
+  );
+  const parsed = asPromiseDetailResponse(publicValue);
   if (parsed === null) throw new Error('INVALID_PROMISE_DETAIL');
   return parsed;
 }
@@ -199,9 +207,9 @@ describe('lf_promise_detail — SCR-A05 participant snapshot', () => {
       my_role: 'CREATOR',
       partner: { nickname: '상세상대방', profile_image_url: 'https://example.com/partner.jpg' },
       witnesses: [{ nickname: '상세증인', role: 'WITNESS' }],
-      integrity_status: 'VERIFIED',
       current_version: { version_no: 1, fingerprint: expect.stringMatching(/^[0-9A-F-]{12}$/u) },
     });
+    expect(creatorView).not.toHaveProperty('integrity_status');
     expect(creatorView.approvals.map((item) => item.role)).toEqual(['CREATOR', 'PARTNER']);
     expect(partnerView.my_role).toBe('PARTNER');
     expect(witnessView.my_role).toBe('WITNESS');
@@ -258,13 +266,11 @@ describe('lf_promise_detail — SCR-A05 participant snapshot', () => {
       status: 'PENDING',
       invitation: { status: 'PENDING', resend_count: 2 },
       partner: null,
-      integrity_status: 'UNVERIFIED',
     });
     await expect(detail(partner, declinedId)).resolves.toMatchObject({
       status: 'DECLINED',
       my_role: 'PARTNER',
       approvals: [{ action: 'DECLINE', comment: '이번 달은 어려워요.' }],
-      integrity_status: 'UNVERIFIED',
     });
   });
 
@@ -387,17 +393,20 @@ describe('lf_promise_detail — SCR-A05 participant snapshot', () => {
     expect(response.fulfillment?.partner_check?.answer).toBe(partnerAnswer);
   });
 
-  test('확정 버전 내용이 변조되면 전문은 읽되 integrity_status를 FAILED로 표시한다', async () => {
+  test('내부 RPC는 변조 결과를 감지하지만 공개 상세은 전문만 반환한다', async () => {
     const creator = await createUser(db, '무결성작성자');
     const partner = await createUser(db, '무결성상대방');
     const promiseId = 'a2000000-0000-4000-8000-000000000009';
     const { versionId } = await insertFixture({ id: promiseId, creator, partner, status: 'ACTIVE' });
     await db.asAdmin(`update public.promise_versions set body = '변조된 본문' where id = $1`, [versionId]);
 
-    await expect(detail(creator, promiseId)).resolves.toMatchObject({
+    await expect(internalDetail(creator, promiseId)).resolves.toMatchObject({
       body: '변조된 본문',
       integrity_status: 'FAILED',
     });
+    const publicDetail = await detail(creator, promiseId);
+    expect(publicDetail.body).toBe('변조된 본문');
+    expect(publicDetail).not.toHaveProperty('integrity_status');
   });
 
   test('RPC는 service_role 전용이며 authenticated·anon 직접 실행을 거부한다', async () => {

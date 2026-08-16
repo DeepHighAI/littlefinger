@@ -161,7 +161,6 @@ function makeDetail(overrides: Partial<PromiseDetailResponse> = {}): PromiseDeta
     invitation: null,
     amend_request: null,
     fulfillment: null,
-    integrity_status: 'VERIFIED',
     ...overrides,
   };
 }
@@ -307,18 +306,22 @@ describe('SCR-A05 약속 상세', () => {
       '2026-07-31 09:00 (KST)',
       '2026-08-01 09:00 (KST)',
       '기록 지문 · AAAA-AAAA-AA',
-      '기록 일치',
     ]) expect(view.getAllByText(text).length).toBeGreaterThan(0);
+    expect(view.queryByText('기록 일치')).toBeNull();
+    expect(view.queryByText('기록 불일치')).toBeNull();
+    expect(view.queryByText('확정 전 기록')).toBeNull();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
   });
 
-  test('ACTIVE에만 불변 법적 안내를 표시하고 무결성 실패를 별도 표기한다', async () => {
-    loadDetailMock.mockResolvedValue(makeDetail({ integrity_status: 'FAILED' }));
+  test('ACTIVE에만 불변 법적 안내를 표시하고 내부 무결성 결과는 노출하지 않는다', async () => {
+    loadDetailMock.mockResolvedValue(makeDetail());
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
     expect(view.getByText('두 사람이 손가락 걸었어요!')).toBeTruthy();
-    expect(view.getByText('기록 불일치')).toBeTruthy();
+    expect(view.queryByText('기록 일치')).toBeNull();
+    expect(view.queryByText('기록 불일치')).toBeNull();
+    expect(view.queryByText('확정 전 기록')).toBeNull();
     expect(view.getByText(/공증이나 전자계약 서비스가 아니며/u)).toBeTruthy();
   });
 
@@ -327,7 +330,6 @@ describe('SCR-A05 약속 상세', () => {
       status: 'PENDING', activated_at: null, partner: null, approvals: [],
       current_version: { ...VERSION, activated_at: null },
       invitation: { status: 'PENDING', expires_at: '2026-08-18T15:00:00Z', resend_count: 2 },
-      integrity_status: 'UNVERIFIED',
     }));
     const view = await render(<PromiseDetailScreen />);
     await settle();
@@ -452,7 +454,6 @@ describe('SCR-A05 약속 상세', () => {
         role: 'PARTNER', action: 'DECLINE', actor: { user_id: PARTNER_ID, nickname: '민준', profile_image_url: null },
         acted_at: '2026-08-20T00:00:00Z', comment: reason,
       }] : [],
-      integrity_status: status === 'DECLINED' ? 'UNVERIFIED' : 'VERIFIED',
     }));
     const view = await render(<PromiseDetailScreen />);
     await settle();

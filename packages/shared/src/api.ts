@@ -369,7 +369,6 @@ export interface PromiseDetailRequest {
 }
 
 export type PromiseDetailStatus = Exclude<PromiseStatus, 'DRAFT'>;
-export type PromiseDetailIntegrity = 'VERIFIED' | 'FAILED' | 'UNVERIFIED';
 
 export interface PromiseDetailActor {
   user_id: string;
@@ -471,7 +470,6 @@ export interface PromiseDetailResponse {
   invitation: PromiseDetailInvitation | null;
   amend_request: PromiseDetailAmendRequest | null;
   fulfillment: PromiseDetailFulfillment | null;
-  integrity_status: PromiseDetailIntegrity;
 }
 
 export interface PromiseFulfillmentDetailRequest {

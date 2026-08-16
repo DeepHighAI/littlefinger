@@ -386,7 +386,6 @@ export function asPromiseDetailResponse(value: unknown): PromiseDetailResponse |
     'invitation',
     'amend_request',
     'fulfillment',
-    'integrity_status',
   ]);
   if (record === null) return null;
   const status = record['status'] as PromiseDetailStatus;
@@ -425,8 +424,7 @@ export function asPromiseDetailResponse(value: unknown): PromiseDetailResponse |
     version === null ||
     (record['invitation'] !== null && invitation === null) ||
     (record['amend_request'] !== null && amend === null) ||
-    (record['fulfillment'] !== null && fulfillment === null) ||
-    !['VERIFIED', 'FAILED', 'UNVERIFIED'].includes(record['integrity_status'] as string)
+    (record['fulfillment'] !== null && fulfillment === null)
   ) return null;
   if (
     version.title !== record['title'] ||
@@ -441,17 +439,13 @@ export function asPromiseDetailResponse(value: unknown): PromiseDetailResponse |
     status === 'PENDING' &&
     (invitation === null ||
       record['activated_at'] !== null ||
-      record['integrity_status'] !== 'UNVERIFIED' ||
       partner !== null ||
       record['approvals'].length !== 0)
   ) return null;
-  if (
-    status === 'DECLINED' &&
-    (record['activated_at'] !== null || record['integrity_status'] !== 'UNVERIFIED')
-  ) return null;
+  if (status === 'DECLINED' && record['activated_at'] !== null) return null;
   if (
     CONFIRMED_STATUSES.includes(status) &&
-    (!isIsoInstant(record['activated_at']) || record['integrity_status'] === 'UNVERIFIED')
+    !isIsoInstant(record['activated_at'])
   ) return null;
   if ((status === 'PENDING') !== (invitation !== null)) return null;
   if (

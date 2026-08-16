@@ -356,12 +356,6 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   }
 
   const status = detailStatusOf(detail.status);
-  const integrityLabel =
-    detail.integrity_status === 'VERIFIED'
-      ? SCR_A05_LABEL.integrityVerified
-      : detail.integrity_status === 'FAILED'
-        ? SCR_A05_LABEL.integrityFailed
-        : SCR_A05_LABEL.integrityUnverified;
   const terminalReason =
     detail.status === 'DECLINED'
       ? (detail.approvals.find((approval) => approval.action === 'DECLINE')?.comment ?? null)
@@ -461,12 +455,8 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         <LfStack gap={4}>
           <LfText variant="sectionTitle">{SCR_A05_LABEL.record}</LfText>
-          <LfCard variant={detail.integrity_status === 'FAILED' ? 'emphasis' : 'container'}>
+          <LfCard variant="container">
             <View style={styles.info}>
-              <LfChip
-                label={integrityLabel}
-                tone={detail.integrity_status === 'FAILED' ? 'broken' : 'status'}
-              />
               <LfText variant="caption">{fingerprintText(detail.current_version.fingerprint)}</LfText>
               {detail.activated_at !== null && (
                 <LfText variant="caption">{formatDetailInstant(detail.activated_at)}</LfText>
