@@ -1,6 +1,7 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 
 import { signInWithKakao } from '../lib/kakao-auth-native.ts';
+import { openLegalDocument } from '../lib/legal-native.ts';
 import { MobileAuthGateContext } from '../lib/mobile-auth-gate.ts';
 import { colors } from '../theme/tokens';
 import LoginScreen from '../app/index';
@@ -9,7 +10,12 @@ jest.mock('../lib/kakao-auth-native.ts', () => ({
   signInWithKakao: jest.fn(),
 }));
 
+jest.mock('../lib/legal-native.ts', () => ({
+  openLegalDocument: jest.fn(),
+}));
+
 const signInWithKakaoMock = jest.mocked(signInWithKakao);
+const openLegalDocumentMock = jest.mocked(openLegalDocument);
 
 /**
  * SCR-A01 로그인 — 04 §10 M0-3.
@@ -21,6 +27,8 @@ describe('SCR-A01 로그인', () => {
   beforeEach(() => {
     signInWithKakaoMock.mockReset();
     signInWithKakaoMock.mockResolvedValue('SIGNED_IN');
+    openLegalDocumentMock.mockReset();
+    openLegalDocumentMock.mockResolvedValue(undefined);
   });
 
   test('브랜드 워드마크를 보여준다', async () => {
@@ -101,8 +109,33 @@ describe('SCR-A01 로그인', () => {
 
   test('약관 동의 안내를 보여준다', async () => {
     const view = await render(<LoginScreen />);
-    expect(view.getByText(/이용약관/u)).toBeTruthy();
-    expect(view.getByText(/개인정보 처리방침/u)).toBeTruthy();
+    expect(view.getByRole('link', { name: '이용약관' })).toBeTruthy();
+    expect(view.getByRole('link', { name: '개인정보 처리방침' })).toBeTruthy();
+    expect(view.getByText('시작하면 위 문서에 동의하게 돼요')).toBeTruthy();
+  });
+
+  test.each([
+    ['이용약관', 'TERMS'],
+    ['개인정보 처리방침', 'PRIVACY'],
+  ] as const)('%s 링크를 공개 웹 문서로 연다', async (label, kind) => {
+    const view = await render(<LoginScreen />);
+    await act(async () => {
+      fireEvent.press(view.getByRole('link', { name: label }));
+    });
+    expect(openLegalDocumentMock).toHaveBeenCalledWith(kind);
+    expect(signInWithKakaoMock).not.toHaveBeenCalled();
+  });
+
+  test('법적 문서 열기 실패는 로그인 화면을 유지하고 안내한다', async () => {
+    openLegalDocumentMock.mockRejectedValue(new Error('cannot open'));
+    const view = await render(<LoginScreen />);
+    await act(async () => {
+      fireEvent.press(view.getByRole('link', { name: '이용약관' }));
+    });
+    expect(view.getByRole('alert').props.children).toBe(
+      '법적 문서를 열 수 없습니다. 잠시 후 다시 시도해 주세요.',
+    );
+    expect(view.getByRole('button', { name: '카카오로 시작하기' })).toBeTruthy();
   });
 
   test('광고가 없다 — 신뢰 순간 화면이다', async () => {

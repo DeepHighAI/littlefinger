@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LEGAL_DOCUMENT_LABELS, type LegalDocumentKind } from '@littlefinger/shared';
 
 import { LfButton } from '../components/LfButton';
 import { LfNotice } from '../components/LfNotice';
@@ -9,9 +10,10 @@ import { LfStack } from '../components/LfStack';
 import {
   signInWithKakao,
 } from '../lib/kakao-auth-native.ts';
+import { openLegalDocument } from '../lib/legal-native.ts';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
 import { brandFontFamily } from '../theme/fonts';
-import { colors, line, space, type, weight } from '../theme/tokens';
+import { colors, line, size, space, type, weight } from '../theme/tokens';
 
 /**
  * SCR-A01 로그인 — `design-reference/screens/app/scr-a01-login.html` 이식.
@@ -36,6 +38,9 @@ const ACTIONS_BOTTOM = 28;
 const KAKAO_LOGIN_CANCELED_LABEL = '로그인을 취소했습니다. 다시 시도해 주세요.';
 const KAKAO_LOGIN_ERROR_LABEL =
   '지금 카카오 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
+const LEGAL_DOCUMENT_ERROR_LABEL =
+  '법적 문서를 열 수 없습니다. 잠시 후 다시 시도해 주세요.';
+const LEGAL_AGREEMENT_LABEL = '시작하면 위 문서에 동의하게 돼요';
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -80,6 +85,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: brandFontFamily(weight.regular),
   },
+  termsLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space[5],
+  },
+  termsLinkTarget: {
+    minHeight: size.touchMin,
+    justifyContent: 'center',
+  },
   authMessage: {
     fontSize: type.caption,
     lineHeight: line.micro,
@@ -109,6 +124,15 @@ export default function LoginScreen(): React.JSX.Element {
       setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
     } finally {
       setSigningIn(false);
+    }
+  }
+
+  async function handleLegalDocument(kind: LegalDocumentKind): Promise<void> {
+    setAuthMessage(null);
+    try {
+      await openLegalDocument(kind);
+    } catch {
+      setAuthMessage(LEGAL_DOCUMENT_ERROR_LABEL);
     }
   }
 
@@ -147,10 +171,25 @@ export default function LoginScreen(): React.JSX.Element {
               {authMessage}
             </Text>
           )}
-          <Text style={styles.terms}>
-            시작하면 <Text style={styles.termsLink}>이용약관</Text>과{' '}
-            <Text style={styles.termsLink}>개인정보 처리방침</Text>에 동의하게 돼요
-          </Text>
+          <View style={styles.termsLinks}>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel={LEGAL_DOCUMENT_LABELS.TERMS}
+              style={styles.termsLinkTarget}
+              onPress={() => void handleLegalDocument('TERMS')}
+            >
+              <Text style={[styles.terms, styles.termsLink]}>{LEGAL_DOCUMENT_LABELS.TERMS}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel={LEGAL_DOCUMENT_LABELS.PRIVACY}
+              style={styles.termsLinkTarget}
+              onPress={() => void handleLegalDocument('PRIVACY')}
+            >
+              <Text style={[styles.terms, styles.termsLink]}>{LEGAL_DOCUMENT_LABELS.PRIVACY}</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.terms}>{LEGAL_AGREEMENT_LABEL}</Text>
         </LfStack>
       </View>
     </SafeAreaView>

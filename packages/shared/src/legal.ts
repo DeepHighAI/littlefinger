@@ -28,6 +28,11 @@ export const LEGAL_DOCUMENTS = {
   },
 } as const satisfies Record<LegalDocumentKind, LegalDocumentMetadata>;
 
+export const LEGAL_DOCUMENT_LABELS = {
+  TERMS: '이용약관',
+  PRIVACY: '개인정보 처리방침',
+} as const satisfies Record<LegalDocumentKind, string>;
+
 export function legalDocumentPath(kind: LegalDocumentKind): LegalDocumentMetadata['path'] {
   return LEGAL_DOCUMENTS[kind].path;
 }

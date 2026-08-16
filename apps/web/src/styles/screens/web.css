@@ -331,3 +331,25 @@
 .lf-legal__version {
   color: var(--lf-color-text-secondary);
 }
+
+.lf-login-legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lf-space-5);
+}
+
+.lf-login-legal a {
+  min-height: var(--lf-touch-min);
+  display: inline-flex;
+  align-items: center;
+  color: var(--lf-color-text-muted);
+  font-size: var(--lf-type-caption-size);
+  text-decoration: underline;
+}
+
+.lf-login-legal a:focus-visible {
+  border-radius: var(--lf-radius-xs);
+  outline: 2px solid var(--lf-color-primary);
+  outline-offset: var(--lf-space-1);
+}

@@ -46,6 +46,8 @@ function renderAt(token = TOKEN): void {
     <MemoryRouter initialEntries={[invitePath(token)]}>
       <Routes>
         <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
+        <Route path={ROUTE.terms} element={<div />} />
+        <Route path={ROUTE.privacy} element={<div />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -254,6 +256,18 @@ describe('SCR-W01 초대 랜딩', () => {
     const [request] = signInWithOAuth.mock.calls[0] as [{ options: { redirectTo: string } }];
     const { redirectTo } = request.options;
     expect(new URL(redirectTo).pathname).toBe(invitePath(TOKEN));
+  });
+
+  it.each([
+    ['이용약관', '/legal/terms'],
+    ['개인정보 처리방침', '/legal/privacy'],
+  ])('%s 링크는 OAuth 없이 같은 origin 문서로 이동한다', async (label, href) => {
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+    renderAt();
+    const link = await screen.findByRole('link', { name: label });
+    expect(link.getAttribute('href')).toBe(href);
+    fireEvent.click(link);
+    expect(signInWithOAuth).not.toHaveBeenCalled();
   });
 
   it('카카오톡 인앱 브라우저는 prompt=none 실패 뒤 수동 CTA 로 돌아온다', async () => {

@@ -1,16 +1,17 @@
 import {
   ENDPOINT,
+  LEGAL_DOCUMENT_LABELS,
   type InviteResolveResponse,
   type InviteTokenRequest,
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useState } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 
 import { LfIcon } from '../components/LfIcon.tsx';
 import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
 import { signInWithKakao } from '../lib/web-auth.ts';
-import { invitePath, reviewPath } from '../routes.ts';
+import { invitePath, legalPath, reviewPath } from '../routes.ts';
 import {
   isLinkUnavailableReason,
   ScrW06LinkExpired,
@@ -326,6 +327,10 @@ export function ScrW01InviteLanding(): React.JSX.Element {
           <span>{KAKAO_CTA}</span>
         </button>
         {!signInFailed && <p className="lf-caption lf-text-center">{CTA_CAPTION}</p>}
+        <nav className="lf-login-legal" aria-label="법적 문서">
+          <Link to={legalPath('TERMS')}>{LEGAL_DOCUMENT_LABELS.TERMS}</Link>
+          <Link to={legalPath('PRIVACY')}>{LEGAL_DOCUMENT_LABELS.PRIVACY}</Link>
+        </nav>
         {/* 라이브 리전은 **내용이 바뀌기 전부터** DOM 에 있어야 읽힌다. `role` 과 문구를 같이
             붙이면 대부분의 스크린리더가 로그인 실패를 놓치고, 버튼은 잠겨 있어 무반응으로만
             느껴진다. 그래서 빈 채로 항상 렌더한다. */}

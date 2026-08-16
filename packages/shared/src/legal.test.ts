@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { LEGAL_DOCUMENTS, buildLegalDocumentUrl, legalDocumentPath } from './legal.ts';
+import {
+  LEGAL_DOCUMENT_LABELS,
+  LEGAL_DOCUMENTS,
+  buildLegalDocumentUrl,
+  legalDocumentPath,
+} from './legal.ts';
 
 describe('draft legal metadata', () => {
   it('publishes the approved draft versions and paths', () => {
@@ -19,6 +24,10 @@ describe('draft legal metadata', () => {
         path: '/legal/privacy',
         effective_date: '2026-08-16',
       },
+    });
+    expect(LEGAL_DOCUMENT_LABELS).toEqual({
+      TERMS: '이용약관',
+      PRIVACY: '개인정보 처리방침',
     });
   });
 
