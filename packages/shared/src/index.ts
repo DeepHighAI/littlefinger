@@ -14,6 +14,7 @@ export * from './config.ts';
 export * from './datetime.ts';
 export * from './errors.ts';
 export * from './keep-rate.ts';
+export * from './legal.ts';
 export * from './notification.ts';
 export * from './promise.ts';
 export * from './promise-home.ts';
