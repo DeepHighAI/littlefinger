@@ -28,6 +28,29 @@ function readMigrations(): string {
 const sql = readMigrations();
 const lower = sql.toLowerCase();
 
+describe('F-05 witness transaction schema', () => {
+  test('participant slots link one invitation and witness signatures are unique', () => {
+    expect(lower).toMatch(
+      /alter table public\.promise_participants[\s\S]*add column invitation_id uuid references public\.invitations/iu,
+    );
+    expect(lower).toMatch(
+      /create unique index promise_participants_unique_invitation[\s\S]*where invitation_id is not null/iu,
+    );
+    expect(lower).toMatch(
+      /create unique index approvals_unique_witness_sign[\s\S]*where action = 'witness_sign'/iu,
+    );
+  });
+
+  test('notification outbox keeps a closed event set that includes NT-18', () => {
+    const migration = readFileSync(
+      join(MIGRATIONS_DIR, '20260816000006_f05_witness_flow.sql'),
+      'utf8',
+    ).toLowerCase();
+    expect(migration).toContain('drop constraint notification_outbox_event_check');
+    expect(migration).toMatch(/add constraint notification_outbox_event_check check[\s\S]*'nt-18'/u);
+  });
+});
+
 describe('F-01 약관 동의 서버 경계', () => {
   test('버전 조합을 유일하게 만들고 클라이언트 INSERT 정책을 제거한다', () => {
     expect(lower).toMatch(

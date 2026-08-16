@@ -28,6 +28,30 @@ afterAll(async () => {
   await db.close();
 });
 
+describe('F-05 witness RPC boundary', () => {
+  test('five witness RPCs are service-role only', async () => {
+    const { rows } = await db.asAdmin(
+      `select bool_and(not has_function_privilege('anon', p.oid, 'EXECUTE')) as anon_denied,
+              bool_and(not has_function_privilege('authenticated', p.oid, 'EXECUTE')) as authenticated_denied,
+              bool_and(has_function_privilege('service_role', p.oid, 'EXECUTE')) as service_allowed,
+              count(*)::int as count
+         from pg_proc p
+         join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.proname = any(array[
+            'lf_witness_invite_list', 'lf_witness_invite', 'lf_witness_join',
+            'lf_witness_detail', 'lf_witness_sign'
+          ])`,
+    );
+    expect(rows[0]).toEqual({
+      anon_denied: true,
+      authenticated_denied: true,
+      service_allowed: true,
+      count: 5,
+    });
+  });
+});
+
 describe('존재 은닉 — 원칙: 비참여자에게 약속의 존재 자체를 알리지 않는다', () => {
   test('비참여자에게는 에러가 아니라 빈 결과가 간다', async () => {
     // 04 §7-2: "권한 없음"이 아니라 빈 결과. 애플리케이션이 E_NOT_FOUND 로 답한다.
