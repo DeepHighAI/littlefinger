@@ -9,6 +9,7 @@ import { ScrW01InviteLanding } from './screens/scr-w01-invite-landing.tsx';
 import { ScrW02PromiseReview } from './screens/scr-w02-promise-review.tsx';
 import { ScrW03ApprovalComplete } from './screens/scr-w03-approval-complete.tsx';
 import { ScrW04ParticipantPromises } from './screens/scr-w04-participant-promises.tsx';
+import { ScrW05WitnessConfirm } from './screens/scr-w05-witness-confirm.tsx';
 import { ScrW06LinkExpired } from './screens/scr-w06-link-expired.tsx';
 
 // 카카오 로그인이 돌아오는 자리는 아직 골격이다. 화면 파일은 SCR-ID 를 파일명으로 갖고
@@ -30,6 +31,8 @@ export function App(): React.JSX.Element {
       <Route path={ROUTE.privacy} element={<LegalDocument kind="PRIVACY" />} />
       <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
       <Route path={ROUTE.review} element={<ScrW02PromiseReview />} />
+      <Route path={ROUTE.witnessJoin} element={<ScrW05WitnessConfirm />} />
+      <Route path={ROUTE.witness} element={<ScrW05WitnessConfirm />} />
       <Route path={ROUTE.approvalComplete} element={<ScrW03ApprovalComplete />} />
       <Route path={ROUTE.promises} element={<ScrW04ParticipantPromises />} />
       {/* 거절·수정 제안 종결. SCR-ID 가 없어 파일명이 하는 일을 말한다(그 파일의 주석 참조). */}

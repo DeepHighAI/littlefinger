@@ -16,6 +16,10 @@ export const ROUTE = {
   invite: '/i/:token',
   /** SCR-W02 약속 검토. 로그인 **후**에만 열린다(§4-3-4). */
   review: '/i/:token/review',
+  /** SCR-W05 증인 초대 결합. 로그인한 증인이 원문 토큰을 한 번만 제출한다. */
+  witnessJoin: '/i/:token/witness',
+  /** SCR-W05 계정 기반 재방문. 원문 초대 토큰 없이 복원된다. */
+  witness: '/witness/:promise_id',
   /** SCR-W03 승인 완료(§4-4-4). */
   approvalComplete: '/i/:token/done',
   /**
@@ -48,6 +52,14 @@ export function promisesPath(): string {
 // 토큰이 살아 있는 경로는 이 하나뿐이고, 그 아래에 붙여야 화면을 옮겨도 토큰이 남는다.
 export function reviewPath(token: string): string {
   return `${invitePath(token)}/review`;
+}
+
+export function witnessJoinPath(token: string): string {
+  return `${invitePath(token)}/witness`;
+}
+
+export function witnessPath(promiseId: string): string {
+  return `/witness/${encodeURIComponent(promiseId)}`;
 }
 
 export function approvalCompletePath(token: string): string {

@@ -5,7 +5,14 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './App.tsx';
-import { invitePath, legalPath, promisesPath, ROUTE } from './routes.ts';
+import {
+  invitePath,
+  legalPath,
+  promisesPath,
+  ROUTE,
+  witnessJoinPath,
+  witnessPath,
+} from './routes.ts';
 
 // SCR-W01 은 마운트하자마자 invite-resolve 를 부른다. 이 파일은 라우팅만 보므로 응답은
 // 영원히 오지 않게 두고, **요청에 실린 토큰**으로 경로 → 화면 연결을 확인한다.
@@ -68,6 +75,16 @@ describe('App 라우팅', () => {
     );
   });
 
+  it.each([
+    witnessJoinPath('abc123'),
+    witnessPath('11111111-1111-4111-8111-111111111111'),
+  ])('증인 결합·계정 경로 %s를 SCR-W05로 연결한다', async (path) => {
+    renderAt(path);
+    expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe(
+      '증인으로 약속을 확인해 주세요',
+    );
+  });
+
   it('초대 경로가 토큰을 뽑아 SCR-W01 로 넘긴다', () => {
     renderAt('/i/abc123');
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -114,5 +131,9 @@ describe('App 라우팅', () => {
     // 이 값이 바뀌면 이미 카카오톡에 뿌려진 링크가 전부 죽는다 — 서버에 발송 URL 기록이 없다.
     expect(ROUTE.invite).toBe('/i/:token');
     expect(invitePath('t')).toBe('/i/t');
+    expect(witnessJoinPath('abc')).toBe('/i/abc/witness');
+    expect(witnessPath('11111111-1111-4111-8111-111111111111')).toBe(
+      '/witness/11111111-1111-4111-8111-111111111111',
+    );
   });
 });

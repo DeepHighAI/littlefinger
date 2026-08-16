@@ -11,7 +11,7 @@ import { LfIcon } from '../components/LfIcon.tsx';
 import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
 import { signInWithKakao } from '../lib/web-auth.ts';
-import { invitePath, legalPath, reviewPath } from '../routes.ts';
+import { invitePath, legalPath, reviewPath, witnessJoinPath } from '../routes.ts';
 import {
   isLinkUnavailableReason,
   ScrW06LinkExpired,
@@ -273,8 +273,9 @@ export function ScrW01InviteLanding(): React.JSX.Element {
     return <Navigate to={reviewPath(token ?? '')} replace />;
   }
 
-  // 증인은 SCR-W05 로 가야 하지만 그 화면이 없고, **증인용 문구가 명세 어디에도 없다**
-  // (EC-D05 는 노출 범위만 정한다). 지어내지 않고 랜딩에 남긴다 — PO 확인 필요.
+  if (signedIn && phase.invite.target_role === 'WITNESS') {
+    return <Navigate to={witnessJoinPath(token ?? '')} replace />;
+  }
 
   const remainingMs = Date.parse(phase.invite.expires_at) - now;
 

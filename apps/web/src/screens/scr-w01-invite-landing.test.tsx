@@ -342,6 +342,7 @@ describe('SCR-W01 로그인 후 분기', () => {
         <Routes>
           <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
           <Route path={ROUTE.review} element={<div data-testid="w02" />} />
+          <Route path={ROUTE.witnessJoin} element={<div data-testid="w05-join" />} />
         </Routes>
       </MemoryRouter>,
     );
@@ -366,14 +367,12 @@ describe('SCR-W01 로그인 후 분기', () => {
     expect(screen.queryByTestId('w02')).toBeNull();
   });
 
-  it('증인은 세션이 있어도 랜딩에 남는다', async () => {
-    // SCR-W05 가 없고 **증인용 문구가 명세 어디에도 없다**(EC-D05 는 노출 범위만 정한다).
-    // `invite-preview` 는 증인 토큰에 E_FORBIDDEN 을 내므로 넘겨서도 안 된다.
+  it('세션이 있는 증인은 SCR-W05 결합 경로로 넘어간다', async () => {
     getSession.mockResolvedValue({ data: { session: { access_token: 'jwt' } } });
     fetchMock.mockResolvedValue(fakeResponse(200, { ...INVITE, target_role: 'WITNESS' }));
     renderWithReview();
 
-    await screen.findByRole('heading');
+    expect(await screen.findByTestId('w05-join')).toBeTruthy();
     expect(screen.queryByTestId('w02')).toBeNull();
   });
 
