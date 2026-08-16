@@ -284,7 +284,7 @@ describe('lf_promise_detail — SCR-A05 participant snapshot', () => {
       `insert into public.promise_versions
          (promise_id, version_no, title, body, category, end_date, keeper, reward, penalty,
           content_hash, created_by, change_reason)
-       values ($1, 2, '함께 달리기', '휴가 뒤 다시 달린다.', 'HABIT', '2026-09-13', 'BOTH',
+       values ($1, null, '함께 달리기', '휴가 뒤 다시 달린다.', 'HABIT', '2026-09-13', 'BOTH',
                '맛있는 저녁', '커피 사기',
                public.lf_content_hash('함께 달리기', '휴가 뒤 다시 달린다.', 'HABIT',
                                       '2026-09-13', 'BOTH', '맛있는 저녁', '커피 사기', 2),

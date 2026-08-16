@@ -51,6 +51,24 @@ describe('F-05 witness transaction schema', () => {
   });
 });
 
+describe('F-11 amend agreement transaction schema', () => {
+  test('inactive proposals are unnumbered and all mutation RPCs are service-role-only', () => {
+    expect(lower).toMatch(
+      /create unique index promise_versions_numbered_unique[\s\S]*where version_no is not null/iu,
+    );
+    for (const name of [
+      'lf_promise_amend_request',
+      'lf_promise_amend_respond',
+      'lf_promise_amend_withdraw',
+      'lf_promise_version_list',
+    ]) {
+      expect(lower).toMatch(
+        new RegExp(`revoke all on function public\\.${name}\\s*\\(`, 'u'),
+      );
+    }
+  });
+});
+
 describe('F-01 약관 동의 서버 경계', () => {
   test('버전 조합을 유일하게 만들고 클라이언트 INSERT 정책을 제거한다', () => {
     expect(lower).toMatch(
