@@ -361,6 +361,31 @@ describe('fulfillment_checks — 답변 원문은 Edge RPC만 읽는다', () => 
 });
 
 describe('개인 데이터는 본인만', () => {
+  test('약관 동의는 본인 읽기만 가능하고 클라이언트가 만들 수 없다', async () => {
+    const own = await db.asUser(
+      creator,
+      'select terms_version, privacy_version from public.terms_agreements where user_id = $1',
+      [creator],
+    );
+    expect(own.rows).toHaveLength(1);
+
+    await expect(
+      db.asUser(
+        creator,
+        `insert into public.terms_agreements (user_id, terms_version, privacy_version)
+         values ($1, 'forged', 'forged')`,
+        [creator],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
+    await expect(
+      db.asAnon(
+        `insert into public.terms_agreements (user_id, terms_version, privacy_version)
+         values ($1, 'forged', 'forged')`,
+        [creator],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
+  });
+
   test('알림 원본 테이블은 본인과 anon에게도 직접 공개하지 않는다', async () => {
     await db.asAdmin(
       `insert into public.notifications (user_id, type, channel, title, body, dedupe_key)

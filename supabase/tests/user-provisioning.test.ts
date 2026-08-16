@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
+import { LEGAL_DOCUMENTS } from '../../packages/shared/src/legal.ts';
 import { createTestDb, type TestDb } from './harness.ts';
 
 /**
@@ -19,6 +20,11 @@ interface UserRow {
   primary_surface: string | null;
   profile_image_url: string | null;
   status: string;
+}
+
+interface AgreementRow {
+  terms_version: string;
+  privacy_version: string;
 }
 
 /** auth 쪽만 만든다. public.users 는 트리거가 만들어야 한다. */
@@ -49,6 +55,17 @@ async function userRow(userId: string): Promise<UserRow | null> {
     [userId],
   );
   return (rows[0] as unknown as UserRow) ?? null;
+}
+
+async function agreements(userId: string): Promise<AgreementRow[]> {
+  const { rows } = await db.asAdmin(
+    `select terms_version, privacy_version
+       from public.terms_agreements
+      where user_id = $1
+      order by agreed_at, id`,
+    [userId],
+  );
+  return rows as unknown as AgreementRow[];
 }
 
 async function provision(
@@ -83,6 +100,14 @@ afterAll(async () => {
 });
 
 describe('트리거가 행의 존재를 보장한다', () => {
+  test('신규 auth 사용자는 같은 트랜잭션에서 현재 약관 동의 한 건을 받는다', async () => {
+    const id = await createAuthUser();
+    expect(await agreements(id)).toEqual([{
+      terms_version: LEGAL_DOCUMENTS.TERMS.version,
+      privacy_version: LEGAL_DOCUMENTS.PRIVACY.version,
+    }]);
+  });
+
   test('auth.users INSERT 만으로 public.users 행이 생긴다', async () => {
     const id = await createAuthUser();
     const row = await userRow(id);
@@ -114,6 +139,90 @@ describe('트리거가 행의 존재를 보장한다', () => {
     const ghost = String((rows[0] as { id: string }).id);
     const message = await messageOf(() => db.asAdmin(`select public.lf_assert_actor($1)`, [ghost]));
     expect(message).toContain('E_AUTH_REQUIRED');
+  });
+});
+
+describe('약관 동의 기록은 서버가 한 번만 만든다', () => {
+  test('기존 동의가 없는 사용자는 provision 재시도에도 현재 버전 한 건만 받는다', async () => {
+    const id = await createAuthUser();
+    await db.asAdmin(`delete from public.terms_agreements where user_id = $1`, [id]);
+
+    await provision(id, 'APP');
+    await provision(id, 'WEB');
+
+    expect(await agreements(id)).toEqual([{
+      terms_version: LEGAL_DOCUMENTS.TERMS.version,
+      privacy_version: LEGAL_DOCUMENTS.PRIVACY.version,
+    }]);
+  });
+
+  test('과거 동의가 있으면 현재 초안 버전을 암묵적으로 추가하지 않는다', async () => {
+    const id = await createAuthUser();
+    await db.asAdmin(`delete from public.terms_agreements where user_id = $1`, [id]);
+    await db.asAdmin(
+      `insert into public.terms_agreements (user_id, terms_version, privacy_version)
+       values ($1, '2025-legacy', '2025-legacy')`,
+      [id],
+    );
+
+    await provision(id, 'APP');
+
+    expect(await agreements(id)).toEqual([{
+      terms_version: '2025-legacy',
+      privacy_version: '2025-legacy',
+    }]);
+  });
+
+  test('DB 현재 버전과 공유 계약 버전이 일치한다', async () => {
+    const { rows } = await db.asAdmin(
+      `select public.lf_current_terms_version() as terms_version,
+              public.lf_current_privacy_version() as privacy_version`,
+    );
+    expect(rows[0]).toEqual({
+      terms_version: LEGAL_DOCUMENTS.TERMS.version,
+      privacy_version: LEGAL_DOCUMENTS.PRIVACY.version,
+    });
+  });
+
+  test('같은 사용자와 버전 조합은 중복할 수 없다', async () => {
+    const id = await createAuthUser();
+    await expect(
+      db.asAdmin(
+        `insert into public.terms_agreements (user_id, terms_version, privacy_version)
+         values ($1, $2, $3)`,
+        [id, LEGAL_DOCUMENTS.TERMS.version, LEGAL_DOCUMENTS.PRIVACY.version],
+      ),
+    ).rejects.toThrow(/unique/iu);
+  });
+
+  test('약관 버전 기록 실패는 auth와 public 사용자까지 원자적으로 롤백한다', async () => {
+    const { rows } = await db.asAdmin(`select gen_random_uuid() as id`);
+    const id = String((rows[0] as { id: string }).id);
+
+    await db.execAdmin(`
+      create or replace function public.lf_current_terms_version()
+      returns text language plpgsql immutable set search_path = ''
+      as $$ begin raise exception 'F01_TEST_FAILURE'; end; $$;
+    `);
+    try {
+      await expect(
+        db.asAdmin(`insert into auth.users (id) values ($1)`, [id]),
+      ).rejects.toThrow(/F01_TEST_FAILURE/iu);
+      const remaining = await db.asAdmin(
+        `select
+           (select count(*)::int from auth.users where id = $1) as auth_count,
+           (select count(*)::int from public.users where id = $1) as public_count,
+           (select count(*)::int from public.terms_agreements where user_id = $1) as agreement_count`,
+        [id],
+      );
+      expect(remaining.rows[0]).toEqual({ auth_count: 0, public_count: 0, agreement_count: 0 });
+    } finally {
+      await db.execAdmin(`
+        create or replace function public.lf_current_terms_version()
+        returns text language sql immutable set search_path = ''
+        as $$ select '2026-08-16-draft.1'::text $$;
+      `);
+    }
   });
 });
 

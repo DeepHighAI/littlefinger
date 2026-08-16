@@ -28,6 +28,26 @@ function readMigrations(): string {
 const sql = readMigrations();
 const lower = sql.toLowerCase();
 
+describe('F-01 약관 동의 서버 경계', () => {
+  test('버전 조합을 유일하게 만들고 클라이언트 INSERT 정책을 제거한다', () => {
+    expect(lower).toMatch(
+      /create unique index\s+terms_agreements_version_unique[\s\S]*?user_id\s*,\s*terms_version\s*,\s*privacy_version/iu,
+    );
+    expect(lower).toContain('drop policy if exists "terms insert own"');
+    expect(lower).toMatch(/revoke insert on (?:table )?public\.terms_agreements from anon, authenticated/iu);
+  });
+
+  test('현재 버전 함수와 provision은 클라이언트 실행 권한이 없다', () => {
+    for (const signature of [
+      'public.lf_current_terms_version()',
+      'public.lf_current_privacy_version()',
+      'public.lf_user_provision(uuid, public.surface, text, text)',
+    ]) {
+      expect(lower).toContain(`revoke all on function ${signature}`);
+    }
+  });
+});
+
 /** `create table [if not exists] [public.]name` 에서 이름만 뽑는다. */
 function declaredTables(): string[] {
   const names: string[] = [];
