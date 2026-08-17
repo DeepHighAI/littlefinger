@@ -164,6 +164,13 @@ verify_jwt = true
 [functions.device-token-unregister]
 verify_jwt = true
 
+# MOD-03 완료 축하는 로그인한 작성자·상대방에게만 claim하고 실제 native 노출을 확인한다.
+[functions.completion-celebration-claim]
+verify_jwt = true
+
+[functions.completion-celebration-shown]
+verify_jwt = true
+
 # J-08가 내부 비밀 헤더로 인증하므로 플랫폼 JWT는 사용하지 않는다.
 [functions.evidence-purge]
 verify_jwt = false
