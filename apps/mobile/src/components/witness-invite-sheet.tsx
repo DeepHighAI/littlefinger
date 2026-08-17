@@ -246,7 +246,12 @@ export function WitnessInviteSheet({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.scrim}>
-        <Pressable style={styles.dismissArea} onPress={onClose} accessibilityElementsHidden />
+        <Pressable
+          style={styles.dismissArea}
+          onPress={onClose}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
         <View style={styles.sheet} accessibilityViewIsModal>
           <View style={styles.handle} />
           <View style={styles.header}>

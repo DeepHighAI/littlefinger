@@ -34,14 +34,25 @@ export function LfAvatar({
   const fallback = Array.from(nickname.trim())[0] ?? nickname;
 
   return (
-    <View {...rest} style={styles.avatar}>
+    <View
+      {...rest}
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={accessibilityLabel}
+      style={styles.avatar}
+    >
       {profileImageUrl === null ? (
-        <LfText accessibilityLabel={accessibilityLabel} variant="subtitle">
+        <LfText
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          variant="subtitle"
+        >
           {fallback}
         </LfText>
       ) : (
         <Image
-          accessibilityLabel={accessibilityLabel}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
           source={{ uri: profileImageUrl }}
           style={styles.image}
         />

@@ -41,6 +41,7 @@ const KAKAO_LOGIN_ERROR_LABEL =
 const LEGAL_DOCUMENT_ERROR_LABEL =
   '법적 문서를 열 수 없습니다. 잠시 후 다시 시도해 주세요.';
 const LEGAL_AGREEMENT_LABEL = '시작하면 위 문서에 동의하게 돼요';
+const LOGIN_LOGO_LABEL = '리틀핑거 로고';
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -139,14 +140,14 @@ export default function LoginScreen(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.body}>
-        {/* 로고를 누르면 새끼손가락을 거는 반응이 재생될 자리 (원본 .lf-pinky--tapped) */}
-        <Pressable
+        <View
           style={styles.badge}
-          accessibilityRole="button"
-          accessibilityLabel="리틀핑거 로고"
+          accessible
+          accessibilityRole="image"
+          accessibilityLabel={LOGIN_LOGO_LABEL}
         >
           <LfPinky size="xl" tone="onContainer" />
-        </Pressable>
+        </View>
 
         <Text style={styles.wordmark}>리틀핑거</Text>
         <Text style={styles.subtitle}>새끼손가락 걸고, 약속!</Text>

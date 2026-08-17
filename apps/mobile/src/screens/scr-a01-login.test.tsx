@@ -46,11 +46,9 @@ describe('SCR-A01 로그인', () => {
     // MVP 는 카카오 로그인이 유일한 진입 경로다(02 §4 F-01).
     const view = await render(<LoginScreen />);
     const buttons = view.getAllByRole('button');
-    const labels = buttons.map((b) => b.props.accessibilityLabel ?? '');
     expect(view.getByRole('button', { name: '카카오로 시작하기' })).toBeTruthy();
-    // 로고 배지도 누를 수 있으므로 버튼은 둘이다. 그 외 로그인 버튼은 없다.
-    expect(buttons).toHaveLength(2);
-    expect(labels).toContain('리틀핑거 로고');
+    expect(buttons).toHaveLength(1);
+    expect(view.getByRole('image', { name: '리틀핑거 로고' })).toBeTruthy();
   });
 
   test('카카오 버튼은 공식 가이드 색을 쓴다', async () => {

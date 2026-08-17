@@ -57,6 +57,10 @@ describe('MOD-03 완료 축하', () => {
     const { view, props } = await renderSheet();
     const modal = view.getByTestId('completion-celebration-modal');
     expect(view.getByTestId('completion-celebration-sheet').props.accessibilityViewIsModal).toBe(true);
+    expect(
+      view.getByTestId('completion-celebration-scrim', { includeHiddenElements: true }).props
+        .importantForAccessibility,
+    ).toBe('no-hide-descendants');
 
     await fireEvent(modal, 'show');
     await fireEvent(modal, 'requestClose');

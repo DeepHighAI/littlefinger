@@ -36,7 +36,12 @@ export function LfAppBar({
     <View {...rest} style={styles.container}>
       {leading}
       {brand && <LfPinky size="sm" />}
-      <View style={styles.title}>
+      <View
+        accessible
+        accessibilityRole="header"
+        accessibilityLabel={title}
+        style={styles.title}
+      >
         <LfText variant="subtitle">{title}</LfText>
       </View>
       {action}

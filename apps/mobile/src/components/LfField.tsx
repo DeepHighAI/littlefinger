@@ -28,7 +28,11 @@ export function LfField({
           {suffix}
         </LfText>
         {children}
-        {error !== undefined && <LfText variant="caption">{error}</LfText>}
+        {error !== undefined && (
+          <LfText accessibilityRole="alert" accessibilityLiveRegion="polite" variant="caption">
+            {error}
+          </LfText>
+        )}
       </LfStack>
     </View>
   );

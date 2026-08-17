@@ -2,9 +2,10 @@
 
 Snapshot date: **2026-08-17 (KST)**. This records the locally verified SCR-A07, F-10 home-list,
 SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow and self-leave,
-F-09 trust profile, F-11 amend/cancel flow, MOD-03 completion celebration, and the first M4 F-12
-home-ad boundary. It also records the remote MOD-03 migration and Edge Function deployment plus the
-completed 360x800 Android visual comparison. Cross-account Android UAT remains a separate gate.
+F-09 trust profile, F-11 amend/cancel flow, MOD-03 completion celebration, the first M4 F-12
+home-ad boundary, and the M4 mobile accessibility pass. It also records the remote MOD-03 migration
+and Edge Function deployment plus the completed 360x800 Android visual and TalkBack checks.
+Cross-account Android UAT remains a separate gate.
 
 ## Repository snapshot
 
@@ -152,6 +153,17 @@ all six; no push ticket or receipt was pending.
   fails before build unless separate real Android App and native-unit IDs are supplied. Automated
   verification passed 1,793 Vitest tests and 529 mobile Jest tests, full typecheck, a 111-module web
   build, Expo dependency alignment, and a 1,759-module Android export.
+- **M4 mobile accessibility pass:** the common interaction primitives retain the 48 dp token floor,
+  promise and notification states keep visible text labels in addition to color, and Android
+  screen-reader semantics now expose app-bar headings, avatars as images, field errors as polite
+  alerts, and picker values. SCR-A01 no longer advertises its non-actionable logo as a button.
+  MOD-01 reports the selected amend/cancel tab, and all three dismiss scrims are excluded from both
+  iOS and Android accessibility trees while sheet actions remain independently focusable. Focused
+  accessibility coverage passed 86 tests; the full regression passed 1,793 Vitest tests and 537
+  mobile Jest tests. A connected 360x800 dp Android AVD exposed the visible SCR-A02 controls with
+  meaningful labels and selected state. TalkBack was bound with touch exploration enabled, and
+  keyboard traversal produced a visible focus indicator before the emulator settings were restored.
+  No visual style or product copy changed.
 
 ## Known gaps
 
@@ -205,16 +217,21 @@ all six; no push ticket or receipt was pending.
   a rebuilt Android development/production client, Play Console's contains-ads declaration, and a
   real-device false/true flag test remain required. J-07 metrics remain operator review input only
   and must never enable the flag automatically.
+- **Accessibility release gate:** automated semantics, state labels, and touch-target contracts are
+  covered locally, and SCR-A02 TalkBack focus plus the Android accessibility tree were verified on a
+  360x800 dp AVD. Full-screen spoken-output traversal on physical hardware remains part of the final
+  acceptance checklist. J-07 was explicitly excluded from this implementation scope by the PO.
 
 ## Roadmap
 
-1. **M4 local implementation:** complete J-07 operator-review metrics, the accessibility pass, the
-   full acceptance checklist, and Google Play closed-testing preparation. The SCR-A02-only ad
-   boundary is implemented locally but remains disabled by default.
+1. **M4 local implementation:** complete the full acceptance checklist and Google Play
+   closed-testing preparation. The SCR-A02-only ad boundary and automated mobile accessibility pass
+   are implemented locally; ads remain disabled by default. J-07 is excluded from the current scope.
 2. **Remote catch-up and UAT:** deploy and verify the local-only F-11 and witness self-leave
    migrations/functions, then run the remaining two-account and Android development-build flows.
 3. **F-01 release:** replace draft placeholders only after operator input and legal review, then
    publish a new final legal version instead of re-labeling the recorded draft.
 
-The next local M4 unit is J-07 and the accessibility pass. Device and cross-account UAT remains an
-external gate; F-01 final copy also requires operator input and legal review.
+The next local M4 unit is the full acceptance checklist and Play closed-testing preparation. Device
+and cross-account UAT remains an external gate; F-01 final copy also requires operator input and
+legal review.

@@ -3,12 +3,19 @@ import type { TextStyle, ViewStyle } from 'react-native';
 
 import { colors, line, size, space, type, weight } from '../theme/tokens';
 import { LfAvatar } from './LfAvatar';
+import { LfAppBar } from './LfAppBar';
 import { LfButton } from './LfButton';
 import { LfCard } from './LfCard';
+import { LfChoice } from './LfChoice';
 import { LfDisclaimer } from './LfDisclaimer';
+import { LfFab } from './LfFab';
+import { LfField } from './LfField';
 import { LfIcon } from './LfIcon';
+import { LfInput } from './LfInput';
+import { LfPicker } from './LfPicker';
 import { LfRow } from './LfRow';
 import { LfStack } from './LfStack';
+import { LfSwitch } from './LfSwitch';
 import { LfText } from './LfText';
 
 /**
@@ -194,6 +201,16 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
     const view = await render(<LfButton testID="b" label="확인" disabled />);
     expect((styleOf(view, 'b') as ViewStyle).opacity).toBe(0.38);
   });
+
+  test('호출자가 선택 상태를 더해도 공통 비활성 상태를 보존한다', async () => {
+    const view = await render(
+      <LfButton label="변경 요청" disabled accessibilityState={{ selected: true }} />,
+    );
+    expect(view.getByRole('button', { name: '변경 요청' }).props.accessibilityState).toEqual({
+      disabled: true,
+      selected: true,
+    });
+  });
 });
 
 describe('LfCard', () => {
@@ -262,7 +279,8 @@ describe('LfAvatar', () => {
         accessibilityLabel="지우 프로필 사진"
       />,
     );
-    expect(fallback.getByText('지')).toBeTruthy();
+    expect(fallback.getByText('지', { includeHiddenElements: true })).toBeTruthy();
+    expect(fallback.getByRole('image', { name: '지우 프로필 사진' })).toBeTruthy();
     expect(styleOf(fallback, 'avatar').width).toBe(size.iconButton);
 
     const photo = await render(
@@ -273,8 +291,66 @@ describe('LfAvatar', () => {
         accessibilityLabel="지우 프로필 사진"
       />,
     );
-    expect(photo.getByLabelText('지우 프로필 사진').props.source).toEqual({
-      uri: 'https://example.com/avatar.jpg',
+    expect(photo.getByRole('image', { name: '지우 프로필 사진' })).toBeTruthy();
+  });
+});
+
+describe('M4 접근성 의미와 터치 하한', () => {
+  test('앱바 제목은 스크린리더 탐색용 헤더다', async () => {
+    const view = await render(<LfAppBar title="알림" />);
+    expect(view.getByRole('header', { name: '알림' })).toBeTruthy();
+  });
+
+  test('필드 검증 오류는 화면 변화 즉시 읽히는 경고다', async () => {
+    const view = await render(
+      <LfField label="제목" error="제목을 입력해 주세요.">
+        <LfInput accessibilityLabel="제목" />
+      </LfField>,
+    );
+    const alert = view.getByRole('alert', { name: '제목을 입력해 주세요.' });
+    expect(alert.props.accessibilityLiveRegion).toBe('polite');
+  });
+
+  test('선택기는 이름과 별도로 현재 값을 읽는다', async () => {
+    const view = await render(
+      <LfPicker
+        accessibilityLabel="종료일 선택"
+        value="2026. 9. 1."
+        placeholder="선택"
+        onPress={() => undefined}
+      />,
+    );
+    expect(view.getByRole('button', { name: '종료일 선택' }).props.accessibilityValue).toEqual({
+      text: '2026. 9. 1.',
     });
+  });
+
+  test('공통 상호작용 컴포넌트는 모두 48dp 터치 하한을 지킨다', async () => {
+    const view = await render(
+      <>
+        <LfChoice label="습관" selected={false} onPress={() => undefined} />
+        <LfPicker
+          accessibilityLabel="종료일"
+          placeholder="선택"
+          onPress={() => undefined}
+        />
+        <LfSwitch
+          accessibilityLabel="리마인드"
+          value={false}
+          onValueChange={() => undefined}
+        />
+        <LfFab label="약속 만들기" />
+      </>,
+    );
+    for (const target of [
+      view.getByRole('button', { name: '습관' }),
+      view.getByRole('button', { name: '종료일' }),
+      view.getByRole('switch', { name: '리마인드' }),
+      view.getByRole('button', { name: '약속 만들기' }),
+    ]) {
+      expect((flatten(target.props.style) as ViewStyle).minHeight).toBeGreaterThanOrEqual(
+        size.touchMin,
+      );
+    }
   });
 });

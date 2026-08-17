@@ -46,6 +46,20 @@ async function settle(): Promise<void> {
   });
 }
 
+function hiddenScrimProps(node: unknown): Record<string, unknown> | null {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = hiddenScrimProps(child);
+      if (found !== null) return found;
+    }
+    return null;
+  }
+  if (typeof node !== 'object' || node === null) return null;
+  const value = node as { props?: Record<string, unknown>; children?: unknown };
+  if (value.props?.['accessibilityElementsHidden'] === true) return value.props;
+  return hiddenScrimProps(value.children);
+}
+
 describe('MOD-02 witness invitation sheet', () => {
   beforeEach(() => {
     close.mockReset();
@@ -55,6 +69,13 @@ describe('MOD-02 witness invitation sheet', () => {
     issueMock.mockResolvedValue(invite);
     shareMock.mockReset();
     shareMock.mockResolvedValue(undefined);
+  });
+
+  test('dismiss scrim is absent from the Android accessibility tree', async () => {
+    const view = await render(<WitnessInviteSheet visible promiseId={PROMISE_ID} onClose={close} />);
+    expect(hiddenScrimProps(view.toJSON())?.['importantForAccessibility']).toBe(
+      'no-hide-descendants',
+    );
   });
 
   test('renders loading while the slot request is pending', async () => {

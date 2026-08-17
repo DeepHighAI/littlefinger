@@ -196,7 +196,12 @@ export function PromiseAmendSheet({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.scrim}>
-        <Pressable style={styles.dismissArea} onPress={onClose} accessibilityElementsHidden />
+        <Pressable
+          style={styles.dismissArea}
+          onPress={onClose}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
         <View style={styles.sheet} accessibilityViewIsModal>
           <View style={styles.handle} />
           <View style={styles.header}>
@@ -215,12 +220,14 @@ export function PromiseAmendSheet({
               <LfButton
                 label={MOD_01_LABEL.amendTab}
                 variant={mode === 'AMEND' ? 'tonal' : 'text'}
+                accessibilityState={{ selected: mode === 'AMEND' }}
                 grow
                 onPress={() => setMode('AMEND')}
               />
               <LfButton
                 label={MOD_01_LABEL.cancelTab}
                 variant={mode === 'CANCEL' ? 'danger' : 'text'}
+                accessibilityState={{ selected: mode === 'CANCEL' }}
                 grow
                 onPress={() => setMode('CANCEL')}
               />

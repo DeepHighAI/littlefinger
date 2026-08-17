@@ -38,6 +38,7 @@ export function LfPicker({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityValue={{ text: value ?? placeholder }}
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}

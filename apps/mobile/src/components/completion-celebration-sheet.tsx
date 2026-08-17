@@ -108,6 +108,7 @@ export function CompletionCelebrationSheet({
           style={styles.dismissArea}
           onPress={onClose}
           accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
         />
         {celebration !== null ? (
           <View

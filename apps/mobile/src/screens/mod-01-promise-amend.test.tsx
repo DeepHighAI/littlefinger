@@ -89,7 +89,28 @@ function props(overrides: Partial<SheetProps> = {}): SheetProps {
   };
 }
 
+function hiddenScrimProps(node: unknown): Record<string, unknown> | null {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = hiddenScrimProps(child);
+      if (found !== null) return found;
+    }
+    return null;
+  }
+  if (typeof node !== 'object' || node === null) return null;
+  const value = node as { props?: Record<string, unknown>; children?: unknown };
+  if (value.props?.['accessibilityElementsHidden'] === true) return value.props;
+  return hiddenScrimProps(value.children);
+}
+
 describe('MOD-01 변경·파기 요청', () => {
+  test('dismiss scrim is absent from the Android accessibility tree', async () => {
+    const view = await render(<PromiseAmendSheet {...props()} />);
+    expect(hiddenScrimProps(view.toJSON())?.['importantForAccessibility']).toBe(
+      'no-hide-descendants',
+    );
+  });
+
   test('ACTIVE 전문의 일곱 필드를 프리필하고 공통 합의 안내만 표시한다', async () => {
     const view = await render(<PromiseAmendSheet {...props()} />);
 
@@ -104,6 +125,22 @@ describe('MOD-01 변경·파기 요청', () => {
     expect(view.getByRole('button', { name: '둘 다' }).props.accessibilityState).toMatchObject({ selected: true });
     expect(view.getByText('상대가 승인하면 적용돼요. 승인 전까지는 지금 약속이 그대로 유지돼요.')).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
+  });
+
+  test('변경·파기 탭은 현재 선택을 스크린리더 상태로 구분한다', async () => {
+    const view = await render(<PromiseAmendSheet {...props()} />);
+    const amend = view.getByRole('button', { name: '내용 변경' });
+    const cancel = view.getByRole('button', { name: '파기 요청' });
+    expect(amend.props.accessibilityState).toMatchObject({ selected: true });
+    expect(cancel.props.accessibilityState).toMatchObject({ selected: false });
+
+    await fireEvent.press(cancel);
+    expect(view.getByRole('button', { name: '내용 변경' }).props.accessibilityState).toMatchObject({
+      selected: false,
+    });
+    expect(view.getByRole('button', { name: '파기 요청' }).props.accessibilityState).toMatchObject({
+      selected: true,
+    });
   });
 
   test('변경된 필드가 없거나 이유가 200자를 넘으면 요청 CTA를 비활성화한다', async () => {
