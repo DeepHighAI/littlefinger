@@ -8,6 +8,10 @@ import { Linking, Share } from 'react-native';
 
 import PromiseDetailScreen from '../app/promise/[promise_id]';
 import {
+  claimCompletionCelebration,
+  markCompletionCelebrationShown,
+} from '../lib/completion-celebration-native.ts';
+import {
   createFulfillmentIdempotencyKey,
   reopenFulfillment,
   signFulfillmentEvidence,
@@ -27,6 +31,10 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 jest.mock('../lib/promise-detail-native.ts', () => ({ getPromiseDetail: jest.fn() }));
+jest.mock('../lib/completion-celebration-native.ts', () => ({
+  claimCompletionCelebration: jest.fn(),
+  markCompletionCelebrationShown: jest.fn(),
+}));
 jest.mock('../lib/fulfillment-native.ts', () => ({
   createFulfillmentIdempotencyKey: jest.fn(),
   reopenFulfillment: jest.fn(),
@@ -98,6 +106,35 @@ jest.mock('../components/witness-invite-sheet.tsx', () => {
       visible ? React.createElement(Text, null, `증인 초대 시트 ${promiseId}`) : null,
   };
 });
+jest.mock('../components/completion-celebration-sheet.tsx', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Pressable, Text, View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    CompletionCelebrationSheet: ({
+      visible,
+      celebration,
+      onShown,
+      onClose,
+      onNewPromise,
+      onShare,
+    }: {
+      visible: boolean;
+      celebration: { title: string } | null;
+      onShown(): void;
+      onClose(): void;
+      onNewPromise(): void;
+      onShare(): void;
+    }) => visible && celebration !== null ? React.createElement(
+      View,
+      { testID: 'completion-celebration-sheet' },
+      React.createElement(Text, null, `축하 시트 ${celebration.title}`),
+      React.createElement(Pressable, { accessibilityRole: 'button', accessibilityLabel: '테스트 표시', onPress: onShown }, React.createElement(Text, null, '테스트 표시')),
+      React.createElement(Pressable, { accessibilityRole: 'button', accessibilityLabel: '축하 닫기', onPress: onClose }, React.createElement(Text, null, '축하 닫기')),
+      React.createElement(Pressable, { accessibilityRole: 'button', accessibilityLabel: '새 약속 만들기', onPress: onNewPromise }, React.createElement(Text, null, '새 약속 만들기')),
+      React.createElement(Pressable, { accessibilityRole: 'button', accessibilityLabel: '공유하기', onPress: onShare }, React.createElement(Text, null, '공유하기')),
+    ) : null,
+  };
+}, { virtual: true });
 
 const PROMISE_ID = '11111111-1111-4111-8111-111111111111';
 const CREATOR_ID = '22222222-2222-4222-8222-222222222222';
@@ -113,6 +150,8 @@ const listVersionsMock = jest.mocked(listPromiseVersions);
 const requestAmendMock = jest.mocked(requestPromiseAmend);
 const respondAmendMock = jest.mocked(respondPromiseAmend);
 const withdrawAmendMock = jest.mocked(withdrawPromiseAmend);
+const claimCelebrationMock = jest.mocked(claimCompletionCelebration);
+const markCelebrationShownMock = jest.mocked(markCompletionCelebrationShown);
 
 const VERSION = {
   version_no: 1,
@@ -128,6 +167,15 @@ const VERSION = {
   activated_at: '2026-08-01T00:00:00Z',
   superseded_at: null,
   change_reason: null,
+} as const;
+
+const CELEBRATION = {
+  claim_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  promise_id: PROMISE_ID,
+  title: VERSION.title,
+  counterpart_nickname: '민준',
+  keep_rate_before: 87,
+  keep_rate_after: 89,
 } as const;
 
 const creatorCheck: FulfillmentCheckView = {
@@ -349,9 +397,122 @@ describe('SCR-A05 약속 상세', () => {
     });
     listVersionsMock.mockReset();
     listVersionsMock.mockResolvedValue({ promise_id: PROMISE_ID, versions: [] });
+    claimCelebrationMock.mockReset();
+    claimCelebrationMock.mockResolvedValue(null);
+    markCelebrationShownMock.mockReset();
+    markCelebrationShownMock.mockResolvedValue();
   });
 
   afterEach(() => jest.restoreAllMocks());
+
+  test.each(['CREATOR', 'PARTNER'] as const)('COMPLETED %s는 상세 뒤 MOD-03을 claim한다', async (role) => {
+    loadDetailMock.mockResolvedValue({ ...terminalDetail('COMPLETED'), my_role: role });
+    claimCelebrationMock.mockResolvedValue(CELEBRATION);
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    expect(view.getByText(VERSION.title)).toBeTruthy();
+    expect(claimCelebrationMock).toHaveBeenCalledWith(PROMISE_ID);
+    expect(view.getByTestId('completion-celebration-sheet')).toBeTruthy();
+  });
+
+  test.each([
+    ['COMPLETED', 'WITNESS'],
+    ['PENDING', 'CREATOR'],
+    ['ACTIVE', 'CREATOR'],
+    ['AMEND_PENDING', 'PARTNER'],
+    ['CHECKING', 'CREATOR'],
+    ['BROKEN', 'CREATOR'],
+    ['DISPUTED', 'PARTNER'],
+    ['UNRESOLVED', 'CREATOR'],
+    ['DECLINED', 'CREATOR'],
+    ['CANCELED', 'PARTNER'],
+  ] as const)('%s %s는 MOD-03을 claim하지 않는다', async (status, role) => {
+    loadDetailMock.mockResolvedValue(makeDetail({ status, my_role: role }));
+    await render(<PromiseDetailScreen />);
+    await settle();
+    expect(claimCelebrationMock).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['없음', async (): Promise<null> => null],
+    ['실패', async (): Promise<never> => { throw new Error('network'); }],
+  ] as const)('claim %s은 상세 사용성을 깨거나 오류 배너를 만들지 않는다', async (_case, result) => {
+    loadDetailMock.mockResolvedValue(terminalDetail('COMPLETED'));
+    claimCelebrationMock.mockImplementation(result);
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    expect(view.getByText(VERSION.title)).toBeTruthy();
+    expect(view.queryByTestId('completion-celebration-sheet')).toBeNull();
+    expect(view.queryByText('요청을 처리하지 못했어요. 다시 시도해 주세요.')).toBeNull();
+  });
+
+  test('같은 상세 화면 generation의 재렌더는 claim을 중복 시작하지 않는다', async () => {
+    loadDetailMock.mockResolvedValue(terminalDetail('COMPLETED'));
+    claimCelebrationMock.mockResolvedValue(CELEBRATION);
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await view.rerender(<PromiseDetailScreen />);
+    await settle();
+    expect(claimCelebrationMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('native onShow는 서버 claim ID를 한 번만 확인하고 실패해도 상세를 유지한다', async () => {
+    loadDetailMock.mockResolvedValue(terminalDetail('COMPLETED'));
+    claimCelebrationMock.mockResolvedValue(CELEBRATION);
+    markCelebrationShownMock.mockRejectedValue(new Error('network'));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '테스트 표시' }));
+    await fireEvent.press(view.getByRole('button', { name: '테스트 표시' }));
+    await settle();
+    expect(markCelebrationShownMock).toHaveBeenCalledTimes(1);
+    expect(markCelebrationShownMock).toHaveBeenCalledWith(PROMISE_ID, CELEBRATION.claim_id);
+    expect(view.getByText(VERSION.title)).toBeTruthy();
+    expect(view.getByTestId('completion-celebration-sheet')).toBeTruthy();
+  });
+
+  test('닫기는 상세에 남고 다시 claim하지 않는다', async () => {
+    loadDetailMock.mockResolvedValue(terminalDetail('COMPLETED'));
+    claimCelebrationMock.mockResolvedValue(CELEBRATION);
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '축하 닫기' }));
+    expect(view.queryByTestId('completion-celebration-sheet')).toBeNull();
+    expect(view.getByText(VERSION.title)).toBeTruthy();
+    expect(claimCelebrationMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('새 약속은 닫고 작성 화면으로 이동한다', async () => {
+    loadDetailMock.mockResolvedValue(terminalDetail('COMPLETED'));
+    claimCelebrationMock.mockResolvedValue(CELEBRATION);
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(
+      within(view.getByTestId('completion-celebration-sheet')).getByRole(
+        'button',
+        { name: '새 약속 만들기' },
+      ),
+    );
+    expect(view.queryByTestId('completion-celebration-sheet')).toBeNull();
+    expect(push).toHaveBeenCalledWith('/promise/edit');
+  });
+
+  test('공유는 SCR-A05 문구를 재사용하고 시트를 유지한다', async () => {
+    loadDetailMock.mockResolvedValue(terminalDetail('COMPLETED'));
+    claimCelebrationMock.mockResolvedValue(CELEBRATION);
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(
+      within(view.getByTestId('completion-celebration-sheet')).getByRole(
+        'button',
+        { name: '공유하기' },
+      ),
+    );
+    await settle();
+    expect(Share.share).toHaveBeenCalledWith({ message: `${VERSION.title} · 완료` });
+    expect(view.getByTestId('completion-celebration-sheet')).toBeTruthy();
+  });
 
   test.each([undefined, 'bad-id'])('없거나 잘못된 promise_id는 네트워크 없이 숨긴다', async (promiseId) => {
     jest.mocked(useLocalSearchParams).mockReturnValue(

@@ -3,6 +3,7 @@ import {
   PARTICIPANT_ROLE_LABEL,
   PROMISE_CATEGORY_LABEL,
   PROMISE_STATUS_LABEL,
+  type CompletionCelebrationView,
   type EvidenceView,
   type FulfillmentCheckView,
   type PromiseDetailPerson,
@@ -36,8 +37,13 @@ import { LfIcon } from '../../components/LfIcon';
 import { LfRow } from '../../components/LfRow';
 import { LfStack } from '../../components/LfStack';
 import { LfText } from '../../components/LfText';
+import { CompletionCelebrationSheet } from '../../components/completion-celebration-sheet.tsx';
 import { PromiseAmendSheet } from '../../components/promise-amend-sheet.tsx';
 import { WitnessInviteSheet } from '../../components/witness-invite-sheet.tsx';
+import {
+  claimCompletionCelebration,
+  markCompletionCelebrationShown,
+} from '../../lib/completion-celebration-native.ts';
 import {
   createFulfillmentIdempotencyKey,
   reopenFulfillment,
@@ -434,6 +440,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   const [witnessSheetOpen, setWitnessSheetOpen] = useState(false);
   const [amendSheetOpen, setAmendSheetOpen] = useState(false);
   const [versionSheetOpen, setVersionSheetOpen] = useState(false);
+  const [celebration, setCelebration] = useState<CompletionCelebrationView | null>(null);
   const [versionState, setVersionState] = useState<
     { phase: 'idle' | 'loading' | 'error' } | {
       phase: 'ready';
@@ -445,6 +452,9 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   const amendRespondKey = useRef<IntentKey | null>(null);
   const amendWithdrawKey = useRef<string | null>(null);
   const actionPending = useRef(false);
+  const claimAttemptedFor = useRef<string | null>(null);
+  const shownAttemptedFor = useRef<string | null>(null);
+  const activePromiseId = useRef<string | null>(promiseId);
 
   const refresh = useCallback(async (): Promise<boolean> => {
     if (promiseId === null) {
@@ -453,8 +463,23 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     }
     setPhase('loading');
     try {
-      setDetail(await getPromiseDetail(promiseId));
+      const nextDetail = await getPromiseDetail(promiseId);
+      setDetail(nextDetail);
       setPhase('ready');
+      if (
+        nextDetail.status === 'COMPLETED' &&
+        (nextDetail.my_role === 'CREATOR' || nextDetail.my_role === 'PARTNER') &&
+        claimAttemptedFor.current !== nextDetail.promise_id
+      ) {
+        claimAttemptedFor.current = nextDetail.promise_id;
+        void claimCompletionCelebration(nextDetail.promise_id)
+          .then((nextCelebration) => {
+            if (activePromiseId.current === nextDetail.promise_id) {
+              setCelebration(nextCelebration);
+            }
+          })
+          .catch(() => undefined);
+      }
       return true;
     } catch (error) {
       setPhase(
@@ -465,6 +490,10 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   }, [promiseId]);
 
   useEffect(() => {
+    activePromiseId.current = promiseId;
+    claimAttemptedFor.current = null;
+    shownAttemptedFor.current = null;
+    setCelebration(null);
     reopenKey.current = null;
     amendRequestKey.current = null;
     amendRespondKey.current = null;
@@ -474,7 +503,10 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     setVersionSheetOpen(false);
     setVersionState({ phase: 'idle' });
     void refresh();
-  }, [refresh]);
+    return () => {
+      if (activePromiseId.current === promiseId) activePromiseId.current = null;
+    };
+  }, [promiseId, refresh]);
 
   if (phase !== 'ready' || detail === null) {
     const label =
@@ -632,6 +664,34 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         { text: MOD_01_LABEL.cancelConfirmDismiss, style: 'cancel', onPress: () => resolve(false) },
         { text: MOD_01_LABEL.cancelConfirmAction, style: 'destructive', onPress: () => resolve(true) },
       ], { cancelable: false });
+    });
+  }
+
+  function acknowledgeCelebrationShown(): void {
+    if (celebration === null || shownAttemptedFor.current === celebration.claim_id) return;
+    shownAttemptedFor.current = celebration.claim_id;
+    void markCompletionCelebrationShown(
+      celebration.promise_id,
+      celebration.claim_id,
+    ).catch(() => undefined);
+  }
+
+  function closeCelebration(): void {
+    setCelebration(null);
+  }
+
+  function createAfterCelebration(): void {
+    setCelebration(null);
+    router.push('/promise/edit');
+  }
+
+  function shareCelebration(): void {
+    if (detail === null) return;
+    void Share.share({
+      message: SCR_A05_LABEL.shareMessage(
+        detail.title,
+        PROMISE_STATUS_LABEL.COMPLETED,
+      ),
     });
   }
 
@@ -869,6 +929,14 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         visible={versionSheetOpen}
         state={versionState}
         onClose={() => setVersionSheetOpen(false)}
+      />
+      <CompletionCelebrationSheet
+        visible={celebration !== null}
+        celebration={celebration}
+        onShown={acknowledgeCelebrationShown}
+        onClose={closeCelebration}
+        onNewPromise={createAfterCelebration}
+        onShare={shareCelebration}
       />
     </ScreenFrame>
   );

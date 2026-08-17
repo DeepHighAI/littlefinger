@@ -49,6 +49,7 @@ jest.mock(
 );
 
 const push = jest.fn();
+const replace = jest.fn();
 const back = jest.fn();
 const loadDetailMock = jest.mocked(loadFulfillmentDetail);
 const submitMock = jest.mocked(submitFulfillment);
@@ -128,8 +129,9 @@ async function settle(): Promise<void> {
 describe('SCR-A06 이행 확인', () => {
   beforeEach(() => {
     push.mockReset();
+    replace.mockReset();
     back.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ push, back } as never);
+    jest.mocked(useRouter).mockReturnValue({ push, replace, back } as never);
     jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
     loadDetailMock.mockReset();
     loadDetailMock.mockResolvedValue(makeDetail());
@@ -238,6 +240,35 @@ describe('SCR-A06 이행 확인', () => {
     expect(view.getByText(/증빙 사진/u)).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
     expect(view.getByTestId('evidence-picker')).toBeTruthy();
+  });
+
+  test('권위 있는 COMPLETED 제출은 초안 정리 뒤 SCR-A05로 교체한다', async () => {
+    const order: string[] = [];
+    submitMock.mockResolvedValue({
+      promise_id: 'promise-1',
+      status: 'COMPLETED',
+      round_no: 1,
+      submitted_at: '2026-08-12T01:00:00Z',
+      revised_at: null,
+      waiting_for_partner: false,
+      title: '매주 화·목 아침 러닝 같이 하기',
+      actor_nickname: '서윤',
+      notification_recipients: [],
+    });
+    clearEvidenceDraftMock.mockImplementation(async () => { order.push('clear'); });
+    replace.mockImplementation(() => { order.push('replace'); });
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
+    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await settle();
+
+    expect(order).toEqual(['clear', 'replace']);
+    expect(replace).toHaveBeenCalledWith({
+      pathname: '/promise/[promise_id]',
+      params: { promise_id: 'promise-1' },
+    });
+    expect(loadDetailMock).toHaveBeenCalledTimes(1);
   });
 
   test('사진 권한 거부를 안내하고 업로드를 시작하지 않는다', async () => {

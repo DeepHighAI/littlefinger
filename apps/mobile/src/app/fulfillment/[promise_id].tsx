@@ -751,7 +751,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
           ? [upload.upload_id]
           : [],
       );
-      await submitFulfillment(
+      const result = await submitFulfillment(
         {
           promise_id: promiseId,
           answer,
@@ -777,6 +777,13 @@ export default function FulfillmentScreen(): React.JSX.Element {
       setUploads([]);
       setRetainedEvidenceIds([]);
       setDraftReady(false);
+      if (result.status === 'COMPLETED') {
+        router.replace({
+          pathname: '/promise/[promise_id]',
+          params: { promise_id: promiseId },
+        });
+        return;
+      }
       await refresh();
     } catch (error) {
       if (error instanceof MobileApiError && error.code === 'E_STATE_CONFLICT') {
