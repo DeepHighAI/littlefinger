@@ -1,6 +1,7 @@
 export const SCR_A02_LABEL = {
   brand: '리틀핑거',
   notifications: '알림',
+  advertisement: '광고',
   profile: '마이 프로필',
   activeTab: (count: number) => `진행 중 ${count}`,
   completedTab: (count: number) => `완료 ${count}`,

@@ -2,10 +2,24 @@ import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
 
+import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import HomeScreen from '../app/home';
 
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
+jest.mock(
+  '../lib/ads-config-native.ts',
+  () => ({ readAdsEnabled: jest.fn() }),
+  { virtual: true },
+);
+jest.mock('../components/LfAdSlot', () => {
+  const { View } = jest.requireActual('react-native') as typeof import('react-native');
+  return {
+    LfAdSlot: ({ enabled }: { enabled: boolean }) => (
+      enabled ? <View testID="lf-ad-slot" /> : null
+    ),
+  };
+});
 jest.mock(
   '../lib/home-promises-native.ts',
   () => ({
@@ -27,6 +41,7 @@ const THIRD_ID = '33333333-3333-4333-8333-333333333333';
 
 const listHomePromisesMock = jest.mocked(listHomePromises);
 const deleteDraftMock = jest.mocked(deleteDraft);
+const readAdsEnabledMock = jest.mocked(readAdsEnabled);
 const push = jest.fn();
 
 function card(input: {
@@ -85,6 +100,8 @@ describe('SCR-A02 F-10 홈 목록', () => {
     deleteDraftMock.mockResolvedValue(undefined);
     listHomePromisesMock.mockReset();
     listHomePromisesMock.mockResolvedValue(response());
+    readAdsEnabledMock.mockReset();
+    readAdsEnabledMock.mockResolvedValue(false);
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   });
 
@@ -106,6 +123,16 @@ describe('SCR-A02 F-10 홈 목록', () => {
     expect(view.getByText('아직 약속이 없어요. 첫 약속을 만들어보세요')).toBeTruthy();
     expect(view.getAllByRole('button', { name: '약속 만들기' })).toHaveLength(1);
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
+    expect(readAdsEnabledMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('원격 플래그가 true일 때만 목록 하단에 광고 슬롯 1개를 붙인다', async () => {
+    readAdsEnabledMock.mockResolvedValue(true);
+    const view = await render(<HomeScreen now={NOW} />);
+    await settle();
+
+    expect(view.getAllByTestId('lf-ad-slot')).toHaveLength(1);
+    expect(readAdsEnabledMock).toHaveBeenCalledTimes(1);
   });
 
   test('앱바는 알림과 마이 프로필을 분리하고 프로필 버튼은 SCR-A08로 이동한다', async () => {

@@ -36,7 +36,8 @@
           "defaultChannel": "default"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "react-native-google-mobile-ads"
     ],
     "experiments": {
       "typedRoutes": true

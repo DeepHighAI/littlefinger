@@ -2,21 +2,22 @@
 
 Snapshot date: **2026-08-17 (KST)**. This records the locally verified SCR-A07, F-10 home-list,
 SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow and self-leave,
-F-09 trust profile, F-11 amend/cancel flow, and MOD-03 completion celebration. It also records the
-remote MOD-03 migration and Edge Function deployment plus the completed 360x800 Android visual
-comparison. Cross-account Android UAT remains a separate gate.
+F-09 trust profile, F-11 amend/cancel flow, MOD-03 completion celebration, and the first M4 F-12
+home-ad boundary. It also records the remote MOD-03 migration and Edge Function deployment plus the
+completed 360x800 Android visual comparison. Cross-account Android UAT remains a separate gate.
 
 ## Repository snapshot
 
-- The locally verified MOD-03 implementation baseline is `main@4a5a4bb`, 136 commits ahead of
-  `origin/main` before this deployment-status update.
+- The remotely pushed MOD-03 deployment-validation baseline is `main@567d2a2`. The M4 F-12 work
+  follows it as a local implementation unit.
 - `.claude/settings.local.json` is local-only and must remain uncommitted.
 - The local migration catalog includes the F-11 migrations
   `20260816202820_f11_amend_agreement.sql`,
   `20260816204242_f11_amend_notifications.sql`, and
   `20260817000003_witness_self_leave.sql`, plus the new MOD-03 migration
-  `20260817100453_mod_03_completion_celebration.sql`; the last one is the latest local version and
-  matches the version recorded by the remote Management API deployment.
+  `20260817100453_mod_03_completion_celebration.sql`, plus the local-only F-12 seed
+  `20260817110000_f12_ads_enabled.sql`. The MOD-03 version matches the version recorded by the
+  remote Management API deployment.
   Notification inbox RPCs/functions, the dedicated home/detail/profile RPCs and Edge Functions,
   the internal `push-send` worker, durable notification outbox, fenced delivery/receipt RPCs,
   Vault nudge, and cron recovery configuration are implemented locally.
@@ -141,6 +142,16 @@ all six; no push ticket or receipt was pending.
   full-width primary action, secondary share action, 48 dp minimum targets, and no-ad/no-overflow
   contract passed. The accessible close action and the three additional rate states are intentional
   implementation differences from the single frozen reference state.
+- **M4 F-12 SCR-A02 ad boundary:** the server-owned `ads_enabled` flag defaults to literal boolean
+  false and fails closed on missing, malformed, or failed reads. The disabled path performs no
+  consent, SDK, or ad work and renders no component or reserved spacing. The enabled path gathers
+  UMP consent before SDK initialization, requests one native ad only when allowed, registers native
+  assets with visible Korean ad attribution, uses 48 dp interaction targets, and destroys stale or
+  unmounted native objects. Only SCR-A02 owns the slot; the acceptance web and trust screens do not
+  import the SDK. Development builds use Google's test identifiers, while production configuration
+  fails before build unless separate real Android App and native-unit IDs are supplied. Automated
+  verification passed 1,793 Vitest tests and 529 mobile Jest tests, full typecheck, a 111-module web
+  build, Expo dependency alignment, and a 1,759-module Android export.
 
 ## Known gaps
 
@@ -189,15 +200,21 @@ all six; no push ticket or receipt was pending.
   visual contract passed against the frozen reference. Creator/partner independent once-only
   delivery still needs a two-account end-to-end UAT with a real COMPLETED transition; synthetic
   production data was not introduced for this check.
+- **F-12 release gate:** `20260817110000_f12_ads_enabled.sql` is local-only and intentionally does
+  not enable ads. Real AdMob Android App/native-unit identifiers, AdMob Privacy & Messaging setup,
+  a rebuilt Android development/production client, Play Console's contains-ads declaration, and a
+  real-device false/true flag test remain required. J-07 metrics remain operator review input only
+  and must never enable the flag automatically.
 
 ## Roadmap
 
-1. **M4 local implementation:** the SCR-A02-only ad slot, accessibility pass, full acceptance
-   checklist, and Google Play closed-testing preparation.
+1. **M4 local implementation:** complete J-07 operator-review metrics, the accessibility pass, the
+   full acceptance checklist, and Google Play closed-testing preparation. The SCR-A02-only ad
+   boundary is implemented locally but remains disabled by default.
 2. **Remote catch-up and UAT:** deploy and verify the local-only F-11 and witness self-leave
    migrations/functions, then run the remaining two-account and Android development-build flows.
 3. **F-01 release:** replace draft placeholders only after operator input and legal review, then
    publish a new final legal version instead of re-labeling the recorded draft.
 
-The next local product implementation stage is M4. Device and cross-account UAT remains an external
-gate; F-01 final copy also requires operator input and legal review.
+The next local M4 unit is J-07 and the accessibility pass. Device and cross-account UAT remains an
+external gate; F-01 final copy also requires operator input and legal review.

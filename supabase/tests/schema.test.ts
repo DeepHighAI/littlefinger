@@ -28,6 +28,17 @@ function readMigrations(): string {
 const sql = readMigrations();
 const lower = sql.toLowerCase();
 
+describe('F-12 remote ad flag', () => {
+  test('seeds ads_enabled false without overwriting an operator decision', () => {
+    expect(lower).toMatch(
+      /insert into public\.app_configs\s*\(key, value\)[\s\S]*'ads_enabled'[\s\S]*'false'::jsonb[\s\S]*on conflict \(key\) do nothing/u,
+    );
+    expect(lower).not.toMatch(
+      /update public\.app_configs[\s\S]*set value = 'true'::jsonb[\s\S]*ads_enabled/u,
+    );
+  });
+});
+
 describe('F-05 witness transaction schema', () => {
   test('participant slots link one invitation and witness signatures are unique', () => {
     expect(lower).toMatch(

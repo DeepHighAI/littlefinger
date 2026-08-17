@@ -7,7 +7,7 @@ import {
   type PromiseHomeTab,
 } from '@littlefinger/shared';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfAppBar } from '../components/LfAppBar';
+import { LfAdSlot } from '../components/LfAdSlot';
 import { LfAvatar } from '../components/LfAvatar';
 import { LfButton } from '../components/LfButton';
 import { LfCard } from '../components/LfCard';
@@ -30,6 +31,7 @@ import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
 import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
+import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import {
   createInitialHomeState,
   promiseHomeReducer,
@@ -69,6 +71,7 @@ const styles = StyleSheet.create({
   partyText: { flex: 1 },
   pinned: { gap: space[5], marginBottom: space[5] },
   footer: { paddingVertical: space[7] },
+  listFooter: { gap: space[5] },
 });
 
 function tabLabel(tab: PromiseHomeTab, count: number): string {
@@ -176,11 +179,22 @@ export interface HomeScreenProps {
 export default function HomeScreen({ now = new Date() }: HomeScreenProps): React.JSX.Element {
   const router = useRouter();
   const [state, dispatch] = useReducer(promiseHomeReducer, undefined, createInitialHomeState);
+  const [adsEnabled, setAdsEnabled] = useState(false);
   const stateRef = useRef(state);
   const nextRequestId = useRef(0);
   const loadingTabs = useRef(new Set<PromiseHomeTab>());
   const pagingTabs = useRef(new Set<PromiseHomeTab>());
   stateRef.current = state;
+
+  useEffect(() => {
+    let active = true;
+    void readAdsEnabled().then((enabled) => {
+      if (active) setAdsEnabled(enabled);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const loadFirstPage = useCallback(async (tab: PromiseHomeTab, refresh: boolean) => {
     if (loadingTabs.current.has(tab)) return;
@@ -316,6 +330,13 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
     </View>
   ) : null;
 
+  const listFooter = pageFooter === null && !adsEnabled ? null : (
+    <View style={styles.listFooter}>
+      {pageFooter}
+      <LfAdSlot enabled={adsEnabled} />
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.screen}>
       <LfAppBar
@@ -387,7 +408,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
             ListEmptyComponent={selected.pinned.length === 0 ? (
               <LfEmpty title={HOME_LABEL.empty} description={HOME_LABEL.emptyDescription} />
             ) : null}
-            ListFooterComponent={pageFooter}
+            ListFooterComponent={listFooter}
             onEndReached={() => void loadNextPage(state.selectedTab)}
             onEndReachedThreshold={0.4}
             refreshControl={(
