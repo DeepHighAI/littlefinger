@@ -58,7 +58,7 @@ Native, Expo Router, LargeSecureStore, React Native Testing Library.
   endpoint slugs.
 - `packages/shared/src/api.test.ts`: endpoint stability assertion.
 - `packages/shared/src/index.ts`: public completion-celebration export.
-- `supabase/migrations/20260817000004_mod_03_completion_celebration.sql`: private table, T-12 snapshot
+- `supabase/migrations/20260817100453_mod_03_completion_celebration.sql`: private table, T-12 snapshot
   extension, claim/shown RPCs, RLS, and grants.
 - `supabase/tests/core-fulfillment.test.ts`: T-12 snapshot and concurrent second-submit behavior.
 - `supabase/tests/completion-celebration.test.ts`: claim/shown authorization, idempotency, fencing,
@@ -229,7 +229,7 @@ git commit -m "feat: define completion celebration contracts"
 ### Task 2: Capture Completion Snapshots and Add Claim/Shown Transactions
 
 **Files:**
-- Create: `supabase/migrations/20260817000004_mod_03_completion_celebration.sql`
+- Create: `supabase/migrations/20260817100453_mod_03_completion_celebration.sql`
 - Modify: `supabase/tests/core-fulfillment.test.ts`
 - Create: `supabase/tests/completion-celebration.test.ts`
 - Modify: `supabase/tests/schema.test.ts`
@@ -444,7 +444,7 @@ Run:
 npm test
 npm run check:agents
 git diff --check
-git add supabase/migrations/20260817000004_mod_03_completion_celebration.sql supabase/tests/core-fulfillment.test.ts supabase/tests/completion-celebration.test.ts supabase/tests/schema.test.ts supabase/tests/rls.test.ts
+git add supabase/migrations/20260817100453_mod_03_completion_celebration.sql supabase/tests/core-fulfillment.test.ts supabase/tests/completion-celebration.test.ts supabase/tests/schema.test.ts supabase/tests/rls.test.ts
 git diff --cached --check
 git commit -m "feat: add completion celebration transaction"
 ```

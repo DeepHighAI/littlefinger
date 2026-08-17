@@ -2,20 +2,21 @@
 
 Snapshot date: **2026-08-17 (KST)**. This records the locally verified SCR-A07, F-10 home-list,
 SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow and self-leave,
-F-09 trust profile, F-11 amend/cancel flow, and MOD-03 completion celebration. It separately records
-the remote database, Edge Function, Vault, and cron verification completed before F-11 was added.
-Android development-build UAT remains a separate gate.
+F-09 trust profile, F-11 amend/cancel flow, and MOD-03 completion celebration. It also records the
+remote MOD-03 migration and Edge Function deployment plus the completed 360x800 Android visual
+comparison. Cross-account Android UAT remains a separate gate.
 
 ## Repository snapshot
 
-- The locally verified MOD-03 implementation baseline is `main@47ef22c`, 135 commits ahead of
-  `origin/main` before this documentation update.
+- The locally verified MOD-03 implementation baseline is `main@4a5a4bb`, 136 commits ahead of
+  `origin/main` before this deployment-status update.
 - `.claude/settings.local.json` is local-only and must remain uncommitted.
 - The local migration catalog includes the F-11 migrations
   `20260816202820_f11_amend_agreement.sql`,
   `20260816204242_f11_amend_notifications.sql`, and
   `20260817000003_witness_self_leave.sql`, plus the new MOD-03 migration
-  `20260817000004_mod_03_completion_celebration.sql`; the last one is the latest local version.
+  `20260817100453_mod_03_completion_celebration.sql`; the last one is the latest local version and
+  matches the version recorded by the remote Management API deployment.
   Notification inbox RPCs/functions, the dedicated home/detail/profile RPCs and Edge Functions,
   the internal `push-send` worker, durable notification outbox, fenced delivery/receipt RPCs,
   Vault nudge, and cron recovery configuration are implemented locally.
@@ -27,11 +28,18 @@ mutation. A dry run listed exactly 21 pending migrations, and the committed migr
 `20260801000001_notification_push_fanout.sql` through
 `20260817000002_schedule_j10_trust_profile.sql` were applied. A subsequent migration-list readback
 showed the catalogs aligned at that verification point. The two F-11 migrations and the witness
-self-leave migration were committed afterward and have not been applied remotely.
+self-leave migration were committed afterward and have not been applied remotely. The MOD-03
+`20260817100453_mod_03_completion_celebration.sql` migration was subsequently applied and read back
+from the remote migration catalog.
 
 The 20 approved changed/new Edge Functions were deployed with Management API bundling (`--use-api`)
 and read back as `ACTIVE`. `push-send` is the only one with `verify_jwt=false`; it authenticates the
-internal `x-push-send-secret` header. The other 19 retain JWT verification.
+internal `x-push-send-secret` header. The other 19 retain JWT verification. MOD-03 then added
+`completion-celebration-claim` and `completion-celebration-shown` through the same authenticated
+Management API bundling path; both were read back as version 1, `ACTIVE`, with `verify_jwt=true`.
+The private `completion_celebrations` table has RLS enabled, denies direct `anon` and
+`authenticated` SELECT, and grants access only to `service_role`. Both MOD-03 RPCs have empty
+`search_path`, deny direct client execution, and grant execution only to `service_role`.
 
 Seven expected cron jobs were read back as active, unique by name, and on their exact UTC schedules:
 J-02, J-03, J-08, J-01/push delivery, notification retention, J-09, and J-10. The generated
@@ -127,7 +135,12 @@ all six; no push ticket or receipt was pending.
   48 dp actions, text sharing, new-promise navigation, scrim/back dismissal, and no ad. Final local
   verification passed 1,792 Vitest tests and 500 mobile Jest tests, full typecheck, a 111-module web
   production build, Expo dependency check, agent-doc synchronization, diff checks, and a
-  1,628-module Android export.
+  1,628-module Android export. A development build was then exercised on the existing Android AVD
+  at a logical 360x800 viewport. All four rate states were captured and compared with the frozen
+  MOD-03 reference. The sheet bounds, scrim, centered pinky, title/copy hierarchy, rate pill,
+  full-width primary action, secondary share action, 48 dp minimum targets, and no-ad/no-overflow
+  contract passed. The accessible close action and the three additional rate states are intentional
+  implementation differences from the single frozen reference state.
 
 ## Known gaps
 
@@ -170,20 +183,18 @@ all six; no push ticket or receipt was pending.
   `failed to complete startup` ANR, so populated MOD-01/SCR-A05 screenshots and two-account web/app
   UAT remain unverified. The captured splash is
   `C:\tmp\littlefinger-f11-screen-1080x2400.png`; this is not a pixel-pass claim.
-- **MOD-03 deployment and UAT:** migration `20260817000004_mod_03_completion_celebration.sql` and
-  Edge Functions `completion-celebration-claim` and `completion-celebration-shown` are local-only.
-  No remote row, function, or JWT-setting claim is made. Creator/partner independent once-only
-  delivery still needs two-account Android UAT after deployment. The frozen MOD-03 structure was
-  compared against the token-only component, including all four rate states, but the existing AVD
-  stayed `emulator-5554 unauthorized` after an ADB restart. It could not open the temporary preview,
-  so no device screenshot or pixel-pass claim exists; the preview route and verification AVD were
-  removed after the attempt.
+- **MOD-03 UAT:** the migration and both Edge Functions are remotely deployed and their database,
+  privilege, status, and JWT boundaries are verified. The Android development build produced
+  360x800 captures for changed, unchanged, first-aggregation, and still-aggregating states, and the
+  visual contract passed against the frozen reference. Creator/partner independent once-only
+  delivery still needs a two-account end-to-end UAT with a real COMPLETED transition; synthetic
+  production data was not introduced for this check.
 
 ## Roadmap
 
 1. **M4 local implementation:** the SCR-A02-only ad slot, accessibility pass, full acceptance
    checklist, and Google Play closed-testing preparation.
-2. **Remote catch-up and UAT:** deploy and verify the local-only F-11, witness self-leave, and MOD-03
+2. **Remote catch-up and UAT:** deploy and verify the local-only F-11 and witness self-leave
    migrations/functions, then run the remaining two-account and Android development-build flows.
 3. **F-01 release:** replace draft placeholders only after operator input and legal review, then
    publish a new final legal version instead of re-labeling the recorded draft.
