@@ -151,6 +151,9 @@ verify_jwt = true
 [functions.witness-sign]
 verify_jwt = true
 
+[functions.witness-leave]
+verify_jwt = true
+
 # SCR-A08 프로필·리마인드 설정과 기기 토큰 해제는 로그인한 자기 계정에만 허용한다.
 [functions.trust-profile]
 verify_jwt = true

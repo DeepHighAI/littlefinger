@@ -58,6 +58,7 @@ const VERIFY_JWT: Record<string, boolean> = {
   'witness-join': true,
   'witness-detail': true,
   'witness-sign': true,
+  'witness-leave': true,
   'trust-profile': true,
   'trust-profile-settings-update': true,
   'device-token-unregister': true,

@@ -20,7 +20,8 @@ type FactoryName =
   | 'createWitnessInviteHandler'
   | 'createWitnessJoinHandler'
   | 'createWitnessDetailHandler'
-  | 'createWitnessSignHandler';
+  | 'createWitnessSignHandler'
+  | 'createWitnessLeaveHandler';
 
 const MODULES: Record<FactoryName, string> = {
   createWitnessInviteListHandler: '../functions/witness-invite-list/handler.ts',
@@ -28,6 +29,7 @@ const MODULES: Record<FactoryName, string> = {
   createWitnessJoinHandler: '../functions/witness-join/handler.ts',
   createWitnessDetailHandler: '../functions/witness-detail/handler.ts',
   createWitnessSignHandler: '../functions/witness-sign/handler.ts',
+  createWitnessLeaveHandler: '../functions/witness-leave/handler.ts',
 };
 
 const LIST_RESPONSE = {
@@ -63,6 +65,11 @@ const DETAIL_RESPONSE = {
 const SIGN_RESPONSE = {
   promise_id: PROMISE_ID,
   signed_at: '2026-08-17T00:00:00Z',
+} as const;
+
+const LEAVE_RESPONSE = {
+  promise_id: PROMISE_ID,
+  status: 'WITHDRAWN',
 } as const;
 
 const factories = new Map<FactoryName, ((deps: Deps) => Handler) | null>();
@@ -259,10 +266,29 @@ describe('F-05 witness Edge Functions', () => {
     });
   });
 
+  test('leave sends only actor promise and mutation idempotency key', async () => {
+    const spy = createSpy({ payload: LEAVE_RESPONSE });
+    const response = await factory('createWitnessLeaveHandler')(spy.deps)(
+      request('witness-leave', { promise_id: PROMISE_ID }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await jsonOf(response)).toEqual(LEAVE_RESPONSE);
+    expect(spy.rpcCalls).toEqual([{
+      fn: 'lf_witness_leave',
+      args: {
+        p_idempotency_key: IDEMPOTENCY_KEY,
+        p_actor: ACTOR_ID,
+        p_promise_id: PROMISE_ID,
+      },
+    }]);
+  });
+
   test.each([
     ['createWitnessInviteHandler', 'witness-invite', { promise_id: PROMISE_ID }],
     ['createWitnessJoinHandler', 'witness-join', { token: TOKEN }],
     ['createWitnessSignHandler', 'witness-sign', { promise_id: PROMISE_ID }],
+    ['createWitnessLeaveHandler', 'witness-leave', { promise_id: PROMISE_ID }],
   ] as const)('%s requires a UUID Idempotency-Key before RPC', async (name, slug, body) => {
     const spy = createSpy({ payload: SIGN_RESPONSE });
     const response = await factory(name)(spy.deps)(
@@ -293,6 +319,7 @@ describe('F-05 witness Edge Functions', () => {
     ['createWitnessJoinHandler', 'witness-join', { token: 'short' }, 'token'],
     ['createWitnessDetailHandler', 'witness-detail', {}, 'promise_id'],
     ['createWitnessSignHandler', 'witness-sign', { promise_id: PROMISE_ID, surface: 'APP' }, 'promise_id'],
+    ['createWitnessLeaveHandler', 'witness-leave', { promise_id: PROMISE_ID, extra: true }, 'promise_id'],
   ] as const)('%s rejects malformed exact body before RPC', async (name, slug, body, field) => {
     const spy = createSpy({ payload: LIST_RESPONSE });
     const response = await factory(name)(spy.deps)(request(slug, body));
@@ -313,6 +340,7 @@ describe('F-05 witness Edge Functions', () => {
     ['createWitnessJoinHandler', 'witness-join', JOIN_RESPONSE, { token: TOKEN }],
     ['createWitnessDetailHandler', 'witness-detail', DETAIL_RESPONSE, { promise_id: PROMISE_ID }],
     ['createWitnessSignHandler', 'witness-sign', SIGN_RESPONSE, { promise_id: PROMISE_ID }],
+    ['createWitnessLeaveHandler', 'witness-leave', LEAVE_RESPONSE, { promise_id: PROMISE_ID }],
   ] as const)('%s rejects an RPC response outside the strict public contract', async (name, slug, payload, body) => {
     const spy = createSpy({ payload: { ...payload, private_path: '/secret/object.jpg' } });
     const response = await factory(name)(spy.deps)(request(slug, body));
