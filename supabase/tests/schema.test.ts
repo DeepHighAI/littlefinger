@@ -49,6 +49,18 @@ describe('F-05 witness transaction schema', () => {
     expect(migration).toContain('drop constraint notification_outbox_event_check');
     expect(migration).toMatch(/add constraint notification_outbox_event_check check[\s\S]*'nt-18'/u);
   });
+
+  test('witness self-leave is an empty-search-path service-role transaction', () => {
+    expect(lower).toMatch(
+      /create or replace function public\.lf_witness_leave\([\s\S]*security definer[\s\S]*set search_path = ''/u,
+    );
+    expect(lower).toMatch(
+      /revoke all on function public\.lf_witness_leave\(uuid, uuid, uuid\)[\s\S]*from public, anon, authenticated/u,
+    );
+    expect(lower).toMatch(
+      /grant execute on function public\.lf_witness_leave\(uuid, uuid, uuid\)[\s\S]*to service_role/u,
+    );
+  });
 });
 
 describe('F-11 amend agreement transaction schema', () => {

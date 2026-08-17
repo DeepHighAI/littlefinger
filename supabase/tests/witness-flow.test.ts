@@ -87,6 +87,18 @@ async function sign(input: {
   return rows[0]?.['result'] as Record<string, unknown>;
 }
 
+async function leave(input: {
+  actor: string;
+  promiseId: string;
+  key?: string;
+}): Promise<Record<string, unknown>> {
+  const { rows } = await db.asService(
+    `select public.lf_witness_leave($1, $2, $3) as result`,
+    [input.key ?? randomUUID(), input.actor, input.promiseId],
+  );
+  return rows[0]?.['result'] as Record<string, unknown>;
+}
+
 beforeAll(async () => {
   db = await createTestDb();
 }, 60_000);
@@ -395,5 +407,206 @@ describe('F-05 witness invitation transactions', () => {
         [randomUUID(), witness, promiseId],
       ),
     ).rejects.toThrow('E_NOT_FOUND');
+  });
+
+  test('joined witness leaves every promise status without changing the promise', async () => {
+    const creator = await createUser(db, '증인나가기상태작성자');
+    const witness = await createUser(db, '증인나가기상태증인');
+    const statuses = [
+      'DRAFT', 'PENDING', 'ACTIVE', 'AMEND_PENDING', 'CHECKING', 'COMPLETED',
+      'BROKEN', 'DISPUTED', 'UNRESOLVED', 'DECLINED', 'CANCELED',
+    ] as const;
+
+    for (const status of statuses) {
+      const promiseId = await createPromise(db, { creatorId: creator, witnessId: witness, status });
+      await expect(leave({ actor: witness, promiseId })).resolves.toEqual({
+        promise_id: promiseId,
+        status: 'WITHDRAWN',
+      });
+      const { rows } = await db.asAdmin(
+        `select p.status::text as promise_status, pp.status::text as participant_status
+           from public.promises p
+           join public.promise_participants pp on pp.promise_id = p.id
+          where p.id = $1 and pp.user_id = $2`,
+        [promiseId, witness],
+      );
+      expect(rows).toEqual([{ promise_status: status, participant_status: 'WITHDRAWN' }]);
+    }
+  });
+
+  test('leave preserves the existing witness signature exactly', async () => {
+    const creator = await createUser(db, '증인나가기로깅작성자');
+    const partner = await createUser(db, '증인나가기로깅상대');
+    const witness = await createUser(db, '증인나가기로깅증인');
+    const promiseId = await createPromise(db, {
+      creatorId: creator,
+      partnerId: partner,
+      witnessId: witness,
+      status: 'ACTIVE',
+    });
+    await activatePromise(promiseId);
+    await sign({ actor: witness, promiseId });
+    const { rows: before } = await db.asAdmin(
+      `select row_to_json(a)::text as value
+         from public.approvals a
+        where a.promise_id = $1 and a.user_id = $2 and a.action = 'WITNESS_SIGN'`,
+      [promiseId, witness],
+    );
+
+    await leave({ actor: witness, promiseId });
+
+    const { rows: after } = await db.asAdmin(
+      `select row_to_json(a)::text as value
+         from public.approvals a
+        where a.promise_id = $1 and a.user_id = $2 and a.action = 'WITNESS_SIGN'`,
+      [promiseId, witness],
+    );
+    expect(after).toEqual(before);
+    expect(after).toHaveLength(1);
+  });
+
+  test('leave revokes detail and new evidence signed URLs', async () => {
+    const creator = await createUser(db, '증인나가기열람작성자');
+    const witness = await createUser(db, '증인나가기열람증인');
+    const promiseId = await createPromise(db, {
+      creatorId: creator,
+      witnessId: witness,
+      status: 'COMPLETED',
+    });
+    await activatePromise(promiseId);
+    const { rows: versionRows } = await db.asAdmin(
+      `select id from public.promise_versions where promise_id = $1 and version_no = 1`,
+      [promiseId],
+    );
+    const { rows: checkRows } = await db.asAdmin(
+      `insert into public.fulfillment_checks
+         (promise_id, version_id, user_id, round_no, answer, surface)
+       values ($1, $2, $3, 1, 'KEPT', 'APP') returning id`,
+      [promiseId, versionRows[0]?.['id'], creator],
+    );
+    const { rows: evidenceRows } = await db.asAdmin(
+      `insert into public.fulfillment_evidences
+         (check_id, promise_id, uploaded_by, storage_key, thumb_key, mime, bytes, width, height)
+       values ($1, $2, $3, 'leave/full.jpg', 'leave/thumb.jpg', 'image/jpeg', 100, 10, 10)
+       returning id`,
+      [checkRows[0]?.['id'], promiseId, creator],
+    );
+    const evidenceId = String(evidenceRows[0]?.['id']);
+    await expect(detail(witness, promiseId)).resolves.toMatchObject({ promise_id: promiseId });
+    await expect(
+      db.asService(`select public.lf_evidence_sign_target($1, $2, 'FULL')`, [witness, evidenceId]),
+    ).resolves.toBeDefined();
+
+    await leave({ actor: witness, promiseId });
+
+    await expect(detail(witness, promiseId)).rejects.toThrow('E_NOT_FOUND');
+    await expect(
+      db.asService(`select public.lf_evidence_sign_target($1, $2, 'FULL')`, [witness, evidenceId]),
+    ).rejects.toThrow('E_NOT_FOUND');
+  });
+
+  test('leave releases capacity and same or new idempotency keys replay withdrawn state', async () => {
+    const creator = await createUser(db, '증인나가기멱등작성자');
+    const witness = await createUser(db, '증인나가기멱등증인');
+    const promiseId = await createPromise(db, {
+      creatorId: creator,
+      witnessId: witness,
+      status: 'ACTIVE',
+    });
+    const key = randomUUID();
+    const first = await leave({ actor: witness, promiseId, key });
+    expect(await leave({ actor: witness, promiseId, key })).toEqual(first);
+    expect(await leave({ actor: witness, promiseId, key: randomUUID() })).toEqual(first);
+
+    const { rows } = await db.asService(
+      `select public.lf_witness_invite_list($1, $2) as result`,
+      [creator, promiseId],
+    );
+    expect(rows[0]?.['result']).toMatchObject({ occupied_count: 0, witnesses: [] });
+    await expect(issue({ actor: creator, promiseId, hash: newTokenHash() })).resolves.toMatchObject({
+      promise_id: promiseId,
+    });
+  });
+
+  test('non-witness inactive actor and client roles cannot perform leave', async () => {
+    const creator = await createUser(db, '증인나가기권한작성자');
+    const partner = await createUser(db, '증인나가기권한상대');
+    const witness = await createUser(db, '증인나가기권한증인');
+    const outsider = await createUser(db, '증인나가기권한외부');
+    const promiseId = await createPromise(db, {
+      creatorId: creator,
+      partnerId: partner,
+      witnessId: witness,
+      status: 'ACTIVE',
+    });
+    await expect(leave({ actor: creator, promiseId })).rejects.toThrow('E_NOT_FOUND');
+    await expect(leave({ actor: partner, promiseId })).rejects.toThrow('E_NOT_FOUND');
+    await expect(leave({ actor: outsider, promiseId })).rejects.toThrow('E_NOT_FOUND');
+    await db.asAdmin(`update public.users set status = 'SUSPENDED' where id = $1`, [witness]);
+    await expect(leave({ actor: witness, promiseId })).rejects.toThrow('E_FORBIDDEN');
+    await db.asAdmin(`update public.users set status = 'ACTIVE' where id = $1`, [witness]);
+    await expect(
+      db.asUser(witness, `select public.lf_witness_leave($1, $2, $3)`, [
+        randomUUID(), witness, promiseId,
+      ]),
+    ).rejects.toThrow(/permission denied/iu);
+    const direct = await db.asUser(
+      witness,
+      `update public.promise_participants
+          set status = 'WITHDRAWN'
+        where promise_id = $1 and user_id = $2 returning id`,
+      [promiseId, witness],
+    );
+    expect(direct.rows).toEqual([]);
+  });
+
+  test('withdrawn witness cannot redeem another invitation for the same promise', async () => {
+    const creator = await createUser(db, '증인나가기재참여작성자');
+    const witness = await createUser(db, '증인나가기재참여증인');
+    const promiseId = await createPromise(db, {
+      creatorId: creator,
+      witnessId: witness,
+      status: 'ACTIVE',
+    });
+    await leave({ actor: witness, promiseId });
+    const tokenHash = newTokenHash();
+    await issue({ actor: creator, promiseId, hash: tokenHash });
+    await expect(join({ actor: witness, hash: tokenHash })).rejects.toThrow('E_DUPLICATE_ROLE');
+  });
+
+  test('parallel sign and leave serialize without deleting a committed signature', async () => {
+    const creator = await createUser(db, '증인나가기경합작성자');
+    const partner = await createUser(db, '증인나가기경합상대');
+    const witness = await createUser(db, '증인나가기경합증인');
+    const promiseId = await createPromise(db, {
+      creatorId: creator,
+      partnerId: partner,
+      witnessId: witness,
+      status: 'ACTIVE',
+    });
+    await activatePromise(promiseId);
+
+    const results = await Promise.allSettled([
+      sign({ actor: witness, promiseId }),
+      leave({ actor: witness, promiseId }),
+    ]);
+    expect(results.some((result) => result.status === 'fulfilled')).toBe(true);
+    const rejected = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected');
+    expect(rejected.every((result) => String(result.reason).includes('E_NOT_FOUND'))).toBe(true);
+
+    const { rows } = await db.asAdmin(
+      `select pp.status::text as participant_status,
+              count(a.id)::int as signature_count
+         from public.promise_participants pp
+         left join public.approvals a
+           on a.promise_id = pp.promise_id
+          and a.user_id = pp.user_id
+          and a.action = 'WITNESS_SIGN'
+        where pp.promise_id = $1 and pp.user_id = $2
+        group by pp.status`,
+      [promiseId, witness],
+    );
+    expect(rows[0]?.['participant_status']).toBe('WITHDRAWN');
+    expect([0, 1]).toContain(rows[0]?.['signature_count']);
   });
 });
