@@ -2,19 +2,20 @@
 
 Snapshot date: **2026-08-17 (KST)**. This records the locally verified SCR-A07, F-10 home-list,
 SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow and self-leave,
-F-09 trust profile, and F-11 amend/cancel flow. It separately records the remote database, Edge Function, Vault, and cron
-verification completed before F-11 was added. Android development-build UAT remains a separate
-gate.
+F-09 trust profile, F-11 amend/cancel flow, and MOD-03 completion celebration. It separately records
+the remote database, Edge Function, Vault, and cron verification completed before F-11 was added.
+Android development-build UAT remains a separate gate.
 
 ## Repository snapshot
 
-- The locally verified witness self-leave implementation baseline is `main@3ca9e4c`, 126 commits ahead of
+- The locally verified MOD-03 implementation baseline is `main@47ef22c`, 135 commits ahead of
   `origin/main` before this documentation update.
 - `.claude/settings.local.json` is local-only and must remain uncommitted.
-- The local migration catalog includes the new F-11 migrations
+- The local migration catalog includes the F-11 migrations
   `20260816202820_f11_amend_agreement.sql`,
   `20260816204242_f11_amend_notifications.sql`, and
-  `20260817000003_witness_self_leave.sql`; the last one is the latest local version.
+  `20260817000003_witness_self_leave.sql`, plus the new MOD-03 migration
+  `20260817000004_mod_03_completion_celebration.sql`; the last one is the latest local version.
   Notification inbox RPCs/functions, the dedicated home/detail/profile RPCs and Edge Functions,
   the internal `push-send` worker, durable notification outbox, fenced delivery/receipt RPCs,
   Vault nudge, and cron recovery configuration are implemented locally.
@@ -48,8 +49,8 @@ all six; no push ticket or receipt was pending.
   config/firebase-config.test.js --runInBand` passed 3/3 tests for the client configuration,
   native assets, and EAS-upload inclusion.
 - **Locally verified (2026-08-17):** Expo SDK dependency alignment and Android production export
-  passed with 1,622 bundled modules after witness self-leave. The latest export is at
-  `C:\tmp\littlefinger-witness-leave-20260817`.
+  passed with 1,628 bundled modules after MOD-03. The latest export is at
+  `C:\tmp\littlefinger-mod03-20260817-1810`.
 - **Currently unverified:** Firebase Console credentials/project access, an EAS production build
   artifact, and foreground/background/terminated real-device FCM/Expo delivery.
 
@@ -115,6 +116,18 @@ all six; no push ticket or receipt was pending.
   pending counterparty decisions into response-needed ordering, and render no ads. Final local
   verification passed 1,718 Vitest tests and 452 mobile Jest tests, full typecheck, web production
   build, Expo dependency check, agent-doc synchronization, diff checks, and Android export.
+- **MOD-03 completion celebration:** T-12 now captures immutable per-party before/after keep-rate
+  snapshots only for new COMPLETED transitions. Authenticated claim and shown transactions fence
+  once-only delivery with separate idempotency keys, while the app persists only encrypted
+  PENDING/SHOWN UUID envelopes. SCR-A05 claims only for joined creators and partners after an
+  authoritative COMPLETED detail load, acknowledges exposure from native `Modal.onShow`, and keeps
+  failures independent from the detail screen. SCR-A06 replaces a successful COMPLETED submission
+  with SCR-A05 only after evidence-draft cleanup. The token-only sheet covers changed, unchanged,
+  first-aggregation, and still-aggregating keep-rate copy; it has a modal accessibility boundary,
+  48 dp actions, text sharing, new-promise navigation, scrim/back dismissal, and no ad. Final local
+  verification passed 1,792 Vitest tests and 500 mobile Jest tests, full typecheck, a 111-module web
+  production build, Expo dependency check, agent-doc synchronization, diff checks, and a
+  1,628-module Android export.
 
 ## Known gaps
 
@@ -157,15 +170,23 @@ all six; no push ticket or receipt was pending.
   `failed to complete startup` ANR, so populated MOD-01/SCR-A05 screenshots and two-account web/app
   UAT remain unverified. The captured splash is
   `C:\tmp\littlefinger-f11-screen-1080x2400.png`; this is not a pixel-pass claim.
+- **MOD-03 deployment and UAT:** migration `20260817000004_mod_03_completion_celebration.sql` and
+  Edge Functions `completion-celebration-claim` and `completion-celebration-shown` are local-only.
+  No remote row, function, or JWT-setting claim is made. Creator/partner independent once-only
+  delivery still needs two-account Android UAT after deployment. The frozen MOD-03 structure was
+  compared against the token-only component, including all four rate states, but the existing AVD
+  stayed `emulator-5554 unauthorized` after an ADB restart. It could not open the temporary preview,
+  so no device screenshot or pixel-pass claim exists; the preview route and verification AVD were
+  removed after the attempt.
 
 ## Roadmap
 
-1. **F-01 release:** replace draft placeholders only after operator input and legal review, then
+1. **M4 local implementation:** the SCR-A02-only ad slot, accessibility pass, full acceptance
+   checklist, and Google Play closed-testing preparation.
+2. **Remote catch-up and UAT:** deploy and verify the local-only F-11, witness self-leave, and MOD-03
+   migrations/functions, then run the remaining two-account and Android development-build flows.
+3. **F-01 release:** replace draft placeholders only after operator input and legal review, then
    publish a new final legal version instead of re-labeling the recorded draft.
-2. **M3:** MOD-03.
-3. **M4:** the SCR-A02-only ad slot, accessibility pass, full acceptance checklist, and Google Play
-   closed testing.
 
-The next product implementation step is MOD-03. Device and
-cross-account UAT remains an external gate; F-01 final copy also requires operator input and legal
-review.
+The next local product implementation stage is M4. Device and cross-account UAT remains an external
+gate; F-01 final copy also requires operator input and legal review.
