@@ -322,4 +322,8 @@ describe('F-07 공개 API 계약', () => {
     });
     expect(ENDPOINT.promiseAmend).toBe('promise-amend');
   });
+
+  test('증인 self-leave endpoint를 공개한다', () => {
+    expect(ENDPOINT).toMatchObject({ witnessLeave: 'witness-leave' });
+  });
 });

@@ -10,6 +10,7 @@ const parseInvite = witnessExports['asWitnessInviteResponse'] as Parser | undefi
 const parseJoin = witnessExports['asWitnessJoinResponse'] as Parser | undefined;
 const parseDetail = witnessExports['asWitnessDetailResponse'] as Parser | undefined;
 const parseSign = witnessExports['asWitnessSignResponse'] as Parser | undefined;
+const parseLeave = witnessExports['asWitnessLeaveResponse'] as Parser | undefined;
 
 const PROMISE_ID = '10000000-0000-4000-8000-000000000001';
 const PARTICIPANT_ID = '20000000-0000-4000-8000-000000000002';
@@ -34,13 +35,14 @@ const ACTOR = {
 } as const;
 
 describe('F-05 증인 공개 계약', () => {
-  test('다섯 endpoint slug를 고정한다', () => {
+  test('여섯 endpoint slug를 고정한다', () => {
     expect(shared.ENDPOINT).toMatchObject({
       witnessInviteList: 'witness-invite-list',
       witnessInvite: 'witness-invite',
       witnessJoin: 'witness-join',
       witnessDetail: 'witness-detail',
       witnessSign: 'witness-sign',
+      witnessLeave: 'witness-leave',
     });
   });
 
@@ -83,6 +85,15 @@ describe('F-05 증인 공개 계약', () => {
     expect(parseJoin?.({ ...joined, status: 'INVITED' })).toBeNull();
     expect(parseSign?.(signed)).toEqual(signed);
     expect(parseSign?.({ ...signed, signed_at: '2026-02-30T00:00:00Z' })).toBeNull();
+  });
+
+  test('leave 응답은 철회 상태와 정확한 공개 필드만 허용한다', () => {
+    const left = { promise_id: PROMISE_ID, status: 'WITHDRAWN' };
+    expect(parseLeave?.(left)).toEqual(left);
+    expect(parseLeave?.({ ...left, status: 'JOINED' })).toBeNull();
+    expect(parseLeave?.({ ...left, promise_id: 'not-a-uuid' })).toBeNull();
+    expect(parseLeave?.({ ...left, participant_id: PARTICIPANT_ID })).toBeNull();
+    expect(parseLeave?.({ promise_id: PROMISE_ID })).toBeNull();
   });
 
   test('LIMITED 상세는 제목·작성자 외 약속 전문을 허용하지 않는다', () => {

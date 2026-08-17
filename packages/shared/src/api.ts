@@ -333,6 +333,15 @@ export interface WitnessSignResponse {
   signed_at: IsoDateTime;
 }
 
+export interface WitnessLeaveRequest {
+  promise_id: string;
+}
+
+export interface WitnessLeaveResponse {
+  promise_id: string;
+  status: 'WITHDRAWN';
+}
+
 /**
  * 승인 응답 (§4-3-5, T-03). SCR-W03 이 그리는 것 전부가 여기 있다.
  *
@@ -847,6 +856,7 @@ export const ENDPOINT = {
   witnessJoin: 'witness-join',
   witnessDetail: 'witness-detail',
   witnessSign: 'witness-sign',
+  witnessLeave: 'witness-leave',
   promiseApprove: 'promise-approve',
   promiseDecline: 'promise-decline',
   promiseAmend: 'promise-amend',

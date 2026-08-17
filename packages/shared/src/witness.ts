@@ -8,6 +8,7 @@ import type {
   WitnessInviteListResponse,
   WitnessInviteResponse,
   WitnessJoinResponse,
+  WitnessLeaveResponse,
   WitnessSignResponse,
   WitnessSlotView,
 } from './api.ts';
@@ -299,4 +300,12 @@ export function asWitnessSignResponse(value: unknown): WitnessSignResponse | nul
     return null;
   }
   return record as unknown as WitnessSignResponse;
+}
+
+export function asWitnessLeaveResponse(value: unknown): WitnessLeaveResponse | null {
+  const record = exactRecord(value, ['promise_id', 'status']);
+  if (record === null || !isUuid(record['promise_id']) || record['status'] !== 'WITHDRAWN') {
+    return null;
+  }
+  return record as unknown as WitnessLeaveResponse;
 }
