@@ -141,6 +141,39 @@ describe('F-09 trust profile and J-10 scheduler', () => {
   });
 });
 
+describe('MOD-03 completion celebration transaction schema', () => {
+  test('private delivery records constrain parties, rates, and one claim identifier', () => {
+    expect(lower).toMatch(
+      /create table public\.completion_celebrations[\s\S]*primary key \(promise_id, user_id\)/u,
+    );
+    expect(lower).toContain('constraint completion_celebrations_party_role');
+    expect(lower).toContain('constraint completion_celebrations_before_range');
+    expect(lower).toContain('constraint completion_celebrations_after_range');
+    expect(lower).toMatch(/claim_id uuid unique/u);
+  });
+
+  test('claim and shown RPCs are empty-search-path service-role boundaries', () => {
+    for (const signature of [
+      'public.lf_completion_celebration_claim(uuid, uuid, uuid)',
+      'public.lf_completion_celebration_shown(uuid, uuid, uuid, uuid)',
+    ]) {
+      expect(lower).toContain(`revoke all on function ${signature}`);
+      expect(lower).toContain(`grant execute on function ${signature} to service_role`);
+    }
+    for (const name of [
+      'lf_completion_celebration_claim',
+      'lf_completion_celebration_shown',
+    ]) {
+      expect(lower).toMatch(
+        new RegExp(
+          `create or replace function public\\.${name}\\([\\s\\S]*security definer[\\s\\S]*set search_path = ''`,
+          'u',
+        ),
+      );
+    }
+  });
+});
+
 /** `create table [if not exists] [public.]name` 에서 이름만 뽑는다. */
 function declaredTables(): string[] {
   const names: string[] = [];
@@ -214,6 +247,7 @@ describe('마이그레이션이 존재한다', () => {
       'notifications',
       'reminder_schedules',
       'trust_profiles',
+      'completion_celebrations',
       'blocks',
       'reports',
       'terms_agreements',

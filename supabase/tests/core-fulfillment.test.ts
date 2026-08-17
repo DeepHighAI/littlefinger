@@ -10,7 +10,7 @@ const DETAIL_SQL = `select public.lf_promise_fulfillment_detail(
   $1::uuid, $2::uuid) as payload`;
 const SUBMIT_SQL = `select public.lf_fulfillment_submit(
   $1::uuid, $2::uuid, $3::uuid, $4::public.fulfillment_answer,
-  $5::text, $6::boolean, $7::public.surface) as payload`;
+  $5::text, $6::boolean, $7::uuid[], $8::uuid[], $9::public.surface) as payload`;
 
 let db: TestDb;
 
@@ -86,6 +86,8 @@ async function submit(
     answer,
     options.comment ?? null,
     options.revise ?? false,
+    [],
+    [],
     'APP',
   ]);
   return (rows[0] as { payload: Record<string, unknown> }).payload;
@@ -498,6 +500,35 @@ describe('두 응답의 트랜잭션 판정', () => {
       expect(terminalOutbox.count).toBe(2);
     },
   );
+
+  test('KEPT + KEPT는 양 당사자의 재계산 전후 지킴율을 같은 트랜잭션에 보존한다', async () => {
+    const fixture = await seedChecking();
+
+    await submit(fixture, fixture.creatorId, 'KEPT');
+    await submit(fixture, fixture.partnerId, 'KEPT');
+
+    const { rows } = await db.asAdmin(
+      `select user_id, participant_role, keep_rate_before, keep_rate_after
+         from public.completion_celebrations
+        where promise_id = $1
+        order by participant_role`,
+      [fixture.promiseId],
+    );
+    expect(rows).toEqual([
+      {
+        user_id: fixture.creatorId,
+        participant_role: 'CREATOR',
+        keep_rate_before: null,
+        keep_rate_after: null,
+      },
+      {
+        user_id: fixture.partnerId,
+        participant_role: 'PARTNER',
+        keep_rate_before: null,
+        keep_rate_after: null,
+      },
+    ]);
+  });
 });
 
 describe('신뢰 프로필 재계산', () => {
@@ -630,6 +661,7 @@ describe('서버 전용 실행 권한', () => {
     'public.lf_recompute_trust_profile(uuid)',
     'public.lf_recompute_promise_trust_profiles(uuid)',
     'public.lf_fulfillment_submit(uuid,uuid,uuid,public.fulfillment_answer,text,boolean,public.surface)',
+    'public.lf_fulfillment_submit(uuid,uuid,uuid,public.fulfillment_answer,text,boolean,uuid[],uuid[],public.surface)',
   ] as const;
 
   test.each(

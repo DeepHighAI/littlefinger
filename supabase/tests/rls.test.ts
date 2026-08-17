@@ -385,6 +385,30 @@ describe('fulfillment_checks — 답변 원문은 Edge RPC만 읽는다', () => 
 });
 
 describe('개인 데이터는 본인만', () => {
+  test('MOD-03 전달 기록은 당사자와 anon도 직접 읽거나 수정할 수 없다', async () => {
+    await expect(
+      db.asUser(creator, 'select * from public.completion_celebrations'),
+    ).rejects.toThrow(/permission denied/iu);
+    await expect(
+      db.asUser(
+        creator,
+        `update public.completion_celebrations
+            set shown_at = now()
+          where user_id = $1`,
+        [creator],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
+    await expect(
+      db.asAnon('select * from public.completion_celebrations'),
+    ).rejects.toThrow(/permission denied/iu);
+
+    const { rows } = await db.asAdmin(
+      `select has_table_privilege('service_role', 'public.completion_celebrations', 'SELECT')
+              as service_select`,
+    );
+    expect(rows[0]).toEqual({ service_select: true });
+  });
+
   test('약관 동의는 본인 읽기만 가능하고 클라이언트가 만들 수 없다', async () => {
     const own = await db.asUser(
       creator,
