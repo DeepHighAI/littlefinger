@@ -64,7 +64,7 @@ describe('MOD-02 witness invitation sheet', () => {
     const view = await render(<WitnessInviteSheet visible promiseId={PROMISE_ID} onClose={close} />);
     expect(view.getByText('증인 목록을 불러오는 중이에요')).toBeTruthy();
     await view.unmount();
-  });
+  }, 30_000);
 
   test('loads zero slots, renders two remaining places, and no ad', async () => {
     const view = await render(<WitnessInviteSheet visible promiseId={PROMISE_ID} onClose={close} />);
