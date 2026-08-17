@@ -326,4 +326,11 @@ describe('F-07 공개 API 계약', () => {
   test('증인 self-leave endpoint를 공개한다', () => {
     expect(ENDPOINT).toMatchObject({ witnessLeave: 'witness-leave' });
   });
+
+  test('MOD-03 claim과 shown acknowledgement endpoint를 분리한다', () => {
+    expect(ENDPOINT).toMatchObject({
+      completionCelebrationClaim: 'completion-celebration-claim',
+      completionCelebrationShown: 'completion-celebration-shown',
+    });
+  });
 });

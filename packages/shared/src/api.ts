@@ -881,6 +881,8 @@ export const ENDPOINT = {
   notificationInbox: 'notification-inbox',
   notificationRead: 'notification-read',
   notificationReadAll: 'notification-read-all',
+  completionCelebrationClaim: 'completion-celebration-claim',
+  completionCelebrationShown: 'completion-celebration-shown',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];

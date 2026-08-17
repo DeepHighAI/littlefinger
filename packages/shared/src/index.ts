@@ -10,6 +10,7 @@
  */
 
 export * from './api.ts';
+export * from './completion-celebration.ts';
 export * from './config.ts';
 export * from './datetime.ts';
 export * from './errors.ts';
