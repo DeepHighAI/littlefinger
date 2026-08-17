@@ -12,6 +12,7 @@ import { LfFab } from './LfFab';
 import { LfField } from './LfField';
 import { LfIcon } from './LfIcon';
 import { LfInput } from './LfInput';
+import { LfNotice } from './LfNotice';
 import { LfPicker } from './LfPicker';
 import { LfRow } from './LfRow';
 import { LfStack } from './LfStack';
@@ -38,6 +39,13 @@ function flatten(style: unknown): Record<string, unknown> {
 
 function styleOf(view: Rendered, testID: string): Record<string, unknown> {
   return flatten(view.getByTestId(testID).props.style);
+}
+
+function pressedStyleOf(element: React.JSX.Element): Record<string, unknown> {
+  const style = (element.props as {
+    style: (state: { pressed: boolean }) => unknown;
+  }).style({ pressed: true });
+  return flatten(style);
 }
 
 describe('LfText', () => {
@@ -94,6 +102,16 @@ describe('LfDisclaimer', () => {
       ),
     ).toBeTruthy();
     expect(view.getByTestId('disclaimer').props.children).toBeTruthy();
+  });
+});
+
+describe('LfNotice', () => {
+  test('그린 틴트 위 라벨은 대비가 확보된 primaryInk를 쓴다', async () => {
+    const view = await render(<LfNotice label="초대가 곧 만료돼요" />);
+
+    expect(flatten(view.getByText('초대가 곧 만료돼요').props.style).color).toBe(
+      colors.primaryInk,
+    );
   });
 });
 
@@ -158,6 +176,11 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
     expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.primary);
   });
 
+  test('filled 를 누르는 동안 Fresh Green pressed 색을 쓴다', async () => {
+    const button = LfButton({ variant: 'filled', label: '확인' });
+    expect(pressedStyleOf(button).backgroundColor).toBe(colors.primaryPressed);
+  });
+
   test('kakao 는 카카오 공식 버튼 색을 쓴다', async () => {
     const view = await render(<LfButton testID="b" variant="kakao" label="카카오로 시작하기" />);
     expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.kakao);
@@ -213,6 +236,13 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
   });
 });
 
+describe('LfFab', () => {
+  test('누르는 동안 Fresh Green pressed 색을 쓴다', async () => {
+    const button = LfFab({ label: '약속 만들기' });
+    expect(pressedStyleOf(button).backgroundColor).toBe(colors.primaryPressed);
+  });
+});
+
 describe('LfCard', () => {
   test('기본 카드는 흰 표면에 얇은 테두리다', async () => {
     const view = await render(<LfCard testID="c" />);
@@ -222,7 +252,7 @@ describe('LfCard', () => {
     expect(s.borderWidth).toBe(1);
   });
 
-  test('emphasis 는 2dp 로즈 테두리로 주목시킨다', async () => {
+  test('emphasis 는 2dp Fresh Green 테두리로 주목시킨다', async () => {
     const view = await render(<LfCard testID="c" variant="emphasis" />);
     const s = styleOf(view, 'c') as ViewStyle;
     expect(s.borderWidth).toBe(2);

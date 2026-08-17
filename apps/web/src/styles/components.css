@@ -1,5 +1,5 @@
 /* =============================================================
-   Little Finger — Components ("Pinky")
+   Little Finger — Components ("Fresh Green")
    화면은 이 클래스들만 조합해서 만든다. 인라인 스타일 금지.
    ============================================================= */
 
@@ -23,14 +23,14 @@
   transform-origin: center;
 }
 
-/* 기본: 진한 로즈 + 연한 로즈 (밝은 배경 위) */
+/* 기본: 진한 그린 + 연한 그린 (밝은 배경 위) */
 .lf-pinky__left  { stroke: var(--lf-color-primary); }
 .lf-pinky__right { stroke: var(--lf-color-primary-pale); }
 
-/* primary-container(#FFD9DE) 위에 올릴 때 — 보조 획을 흰색으로 */
+/* primary-container 위에 올릴 때 — 보조 획을 흰색으로 */
 .lf-pinky--on-container .lf-pinky__right { stroke: var(--lf-color-surface); }
 
-/* primary(#C74B64) 위에 올릴 때 — 둘 다 흰색 */
+/* primary 위에 올릴 때 — 둘 다 흰색 */
 .lf-pinky--on-primary .lf-pinky__left  { stroke: var(--lf-color-on-primary); }
 .lf-pinky--on-primary .lf-pinky__right { stroke: var(--lf-color-on-primary); opacity: 0.65; }
 
@@ -230,7 +230,9 @@
   transition: filter var(--lf-duration-short) var(--lf-easing-standard);
 }
 
-.lf-btn:active { filter: brightness(0.94); }
+.lf-btn--filled:hover { background: var(--lf-color-primary-hover); }
+.lf-btn--filled:active { background: var(--lf-color-primary-pressed); }
+.lf-btn:not(.lf-btn--filled):active { filter: brightness(0.94); }
 
 .lf-btn:disabled,
 .lf-btn[aria-disabled='true'] {
@@ -344,7 +346,7 @@
   padding: 0 13px;
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-primary-soft);
-  color: var(--lf-color-primary);
+  color: var(--lf-color-primary-ink);
   font-size: var(--lf-type-caption-size);
   font-weight: var(--lf-weight-bold);
   white-space: nowrap;
@@ -395,7 +397,7 @@
 /* 수락 웹 카드는 조금 더 각지고 여백이 넓다 */
 .lf-card--web { border-radius: var(--lf-radius-lg); padding: var(--lf-space-7); }
 
-/* 액션이 필요한 카드 — 2px 로즈 테두리로 주목 (이행 확인 필요) */
+/* 액션이 필요한 카드 — 2px Fresh Green 테두리로 주목 (이행 확인 필요) */
 .lf-card--emphasis { border: 2px solid var(--lf-color-primary); }
 
 /* 톤 카드 — 임박 약속 · 확정 스탬프 배경 */
@@ -452,6 +454,7 @@
 
 .lf-dday--lg { font-size: 18px; }
 .lf-dday--xl { font-size: var(--lf-type-display-size); }
+.lf-card--container .lf-dday { color: var(--lf-color-success); }
 
 /* -------------------------------------------------------------
    확정 스탬프 — "제대로 기록됐다"는 신뢰감 (요청서 §8)
@@ -864,7 +867,7 @@
 }
 
 /* 읽지 않은 알림 */
-.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-primary); }
+.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-primary-ink); }
 
 /* 행 전체가 링크처럼 동작하는 진입점 (버전 이력 등) */
 .lf-row-link {

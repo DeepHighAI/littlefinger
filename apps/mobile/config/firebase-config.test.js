@@ -48,3 +48,12 @@ test('Expo 네이티브 빌드 이미지가 존재하고 EAS 업로드에서 제
     ).toBe(1);
   }
 });
+
+test('Android 런처와 스플래시 배경도 Fresh Green 화면 토큰을 따른다', () => {
+  const splashPlugin = appConfig.expo.plugins.find(
+    (plugin) => Array.isArray(plugin) && plugin[0] === 'expo-splash-screen',
+  );
+
+  expect(appConfig.expo.android.adaptiveIcon.backgroundColor).toBe('#DBFBE5');
+  expect(splashPlugin[1].backgroundColor).toBe('#FFFFFF');
+});

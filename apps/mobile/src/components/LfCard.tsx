@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[7],
   },
   default: {},
-  // 이행 확인이 필요한 카드 — 2dp 로즈 테두리로 주목시킨다
+  // 이행 확인이 필요한 카드 — 2dp 그린 테두리로 주목시킨다
   emphasis: { borderWidth: 2, borderColor: colors.primary },
   // 톤 카드 — 임박 약속 · 확정 스탬프 배경
   container: { backgroundColor: colors.primaryContainer, borderWidth: 0 },

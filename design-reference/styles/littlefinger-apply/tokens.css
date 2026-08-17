@@ -1,17 +1,12 @@
 /* =============================================================
    Little Finger — Design Tokens ("Fresh Green" — Wanted green-50)
-   Source: littlefinger-apply/tokens.css (2026-08-18 확정안).
-   역할 이름은 유지하고 색·곡률·그림자·모션을 Fresh Green으로 재정의한다.
+   확정: 2026. 8. 18. Claude Design "개선안 A-G1 프레시 그린".
+   기존 핑키 로즈 토큰을 Wanted Design System 그린 스케일로 재정의.
+   역할(변수명)은 그대로 유지 — 27개 화면·RN 포팅 표(04 §4)와 호환.
    ============================================================= */
 
-/* design-reference 사본에서 **한 곳만** 다르다: 원본 9행의 Google Fonts @import 를 지웠다.
-   04 §5-3 이 self-host 를 요구하고, 3초 예산에 외부 요청을 얹을 수 없다(PO 2026-07-29).
-   그 @import 가 싣던 둘은 각각 자체 호스팅으로 옮겼다:
-     Material Symbols Rounded → styles/icons.css (tools/subset-icon-font.js 가 만든 40 KB 서브셋)
-     Roboto Mono              → main.tsx 의 @fontsource/roboto-mono
-   나머지는 확정 Fresh Green 원본과 동일하다 — 회귀는 토큰 테스트로 잡는다. */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&family=Roboto+Mono:wght@400;500&display=swap');
 
-/* Pretendard Variable — 디자인 원본과 동일한 브랜드 서체 */
 @font-face {
   font-family: 'Pretendard';
   font-style: normal;
@@ -23,50 +18,48 @@
 
 :root {
   /* ---------------------------------------------------------
-     COLOR — 브랜드 그린(Wanted green scale)
+     COLOR — 브랜드 그린 (Wanted green scale)
      --------------------------------------------------------- */
-  --lf-color-primary:              #00BF40;
-  --lf-color-primary-hover:        #00A435;
-  --lf-color-primary-pressed:      #008629;
+  --lf-color-primary:              #00BF40; /* green-50 */
   --lf-color-on-primary:           #FFFFFF;
-  --lf-color-primary-container:    #DBFBE5;
-  --lf-color-on-primary-container: #02220C;
-  --lf-color-primary-soft:         #F0FDF4; /* 알림 pill 배경 */
-  --lf-color-primary-pale:         #6FE69C; /* 핑키 마크 보조 획 */
-  --lf-color-primary-ink:          #006420; /* 컨테이너 위 보조 텍스트 */
+  --lf-color-primary-container:    #DBFBE5; /* green-95 */
+  --lf-color-on-primary-container: #02220C; /* green-0 */
+  --lf-color-primary-soft:         #F0FDF4; /* green-99 — 알림 pill 배경 */
+  --lf-color-primary-pale:         #6FE69C; /* green-80 — 핑키 마크 보조 획 */
+  --lf-color-primary-ink:          #006420; /* green-20 — 컨테이너 위 보조 텍스트(가독성 보정) */
 
-  /* 표면 */
+  /* 표면 — 중립 화이트 (Wanted neutral) */
   --lf-color-background:      #FFFFFF;
   --lf-color-surface:         #FFFFFF;
-  --lf-color-surface-chrome:  #FFFFFF; /* 브라우저 크롬 / 앱바 */
-  --lf-color-surface-muted:   #F7F7F8; /* 비활성 탭 · 보조 칩 */
+  --lf-color-surface-chrome:  #FFFFFF;
+  --lf-color-surface-muted:   #F7F7F8; /* neutral-95 */
 
-  /* 외곽선 */
+  /* 외곽선 — Wanted 헤어라인 */
   --lf-color-outline:        rgba(112, 115, 124, 0.22);
   --lf-color-outline-strong: rgba(112, 115, 124, 0.40);
-  --lf-color-outline-icon:   #AEB0B6;
+  --lf-color-outline-icon:   #AEB0B6; /* neutral-60 */
 
-  /* 텍스트 */
+  /* 텍스트 — Wanted neutral */
   --lf-color-text:           #171719;
-  --lf-color-text-secondary: #46474C;
-  --lf-color-text-muted:     #70737C;
-  --lf-color-text-faint:     #989BA2; /* 디스클레이머 */
+  --lf-color-text-secondary: #46474C; /* neutral-22 */
+  --lf-color-text-muted:     #70737C; /* neutral-30 */
+  --lf-color-text-faint:     #989BA2; /* neutral-50 */
 
-  /* 보상 / 벌칙 (§9 용어: Reward=보상, Penalty=벌칙) */
-  --lf-color-reward-container:     #EAF2FE;
-  --lf-color-on-reward-container:  #002566;
-  --lf-color-reward-label:         #003A91;
-  --lf-color-penalty-container:    #FFD9C2;
+  /* 보상 / 벌칙 — 그린 프라이머리와 겹치지 않도록 재배정 */
+  --lf-color-reward-container:     #EAF2FE; /* blue-95 (informative) */
+  --lf-color-on-reward-container:  #002566; /* blue-0 */
+  --lf-color-reward-label:         #003A91; /* blue-10 */
+  --lf-color-penalty-container:    #FFD9C2; /* red-orange-90 (cautionary) */
   --lf-color-on-penalty-container: #3D0505;
-  --lf-color-penalty-label:        #7D2E00;
+  --lf-color-penalty-label:        #7D2E00; /* red-orange-20 */
 
-  /* 오류 · 불이행 강조 */
-  --lf-color-error:           #C81616;
-  --lf-color-error-container: #FFE9E9;
+  /* 오류 · 불이행 강조 — Wanted negative */
+  --lf-color-error:           #C81616; /* red-30 (텍스트 대비 확보) */
+  --lf-color-error-container: #FFE9E9; /* red-95 */
 
-  /* 성공 · 완료 */
-  --lf-color-success:           #008629;
-  --lf-color-success-container: #DBFBE5;
+  /* 성공 · 완료 — 프라이머리 계열로 통합 */
+  --lf-color-success:           #008629; /* green-30 */
+  --lf-color-success-container: #DBFBE5; /* green-95 */
 
   /* 카카오 로그인 (공식 버튼 가이드 색) */
   --lf-color-kakao:    #FEE500;
@@ -77,16 +70,16 @@
   --lf-color-scrim:        rgba(0, 0, 0, 0.40);
 
   /* ---------------------------------------------------------
-     TYPE
+     TYPE (변경 없음)
      --------------------------------------------------------- */
   --lf-font-brand: 'Pretendard', Roboto, system-ui, sans-serif;
   --lf-font-mono:  'Roboto Mono', ui-monospace, Menlo, monospace;
 
-  --lf-type-display-size: 28px; /* D-Day 대형 숫자 */
-  --lf-type-title-size:   21px; /* 화면 타이틀 · 상세 제목 */
-  --lf-type-heading-size: 19px; /* 앱바 타이틀 · 섹션 헤드 */
+  --lf-type-display-size: 28px;
+  --lf-type-title-size:   21px;
+  --lf-type-heading-size: 19px;
   --lf-type-subtitle-size:17px;
-  --lf-type-body-lg-size: 16px; /* 카드 제목 · 주 CTA 라벨 */
+  --lf-type-body-lg-size: 16px;
   --lf-type-body-size:    14px;
   --lf-type-label-size:   13px;
   --lf-type-caption-size: 12px;
@@ -103,7 +96,7 @@
   --lf-weight-heavy:   800;
 
   /* ---------------------------------------------------------
-     SHAPE — Wanted 12px 입력·버튼 기준
+     SHAPE — 버튼·입력은 Wanted 12px 기준으로 한 단계 각지게
      --------------------------------------------------------- */
   --lf-radius-xs:    8px;
   --lf-radius-sm:   12px;
@@ -114,7 +107,7 @@
   --lf-radius-pill: 9999px;
 
   /* ---------------------------------------------------------
-     SPACING
+     SPACING (변경 없음)
      --------------------------------------------------------- */
   --lf-space-1:  4px;
   --lf-space-2:  6px;
@@ -126,12 +119,11 @@
   --lf-space-8: 20px;
   --lf-space-9: 24px;
 
-  /* 화면 좌우 기본 여백 — 앱 16dp, 수락 웹 20dp */
   --lf-gutter-app: 16px;
   --lf-gutter-web: 20px;
 
   /* ---------------------------------------------------------
-     SIZE — 접근성: 터치 타깃 최소 48dp (요청서 §8)
+     SIZE (변경 없음)
      --------------------------------------------------------- */
   --lf-touch-min:     48px;
   --lf-icon-button:   44px;
@@ -142,26 +134,25 @@
   --lf-fab-height:    52px;
   --lf-tab-height:    38px;
 
-  /* 기준 뷰포트 360×800dp (요청서 §2) */
   --lf-viewport-width:  360px;
   --lf-viewport-height: 800px;
   --lf-statusbar-height: 40px;
   --lf-navbar-height:    24px;
 
   /* ---------------------------------------------------------
-     ELEVATION
+     ELEVATION — Wanted 저대비 섀도
      --------------------------------------------------------- */
   --lf-elevation-card: 0 1px 2px rgba(23, 23, 23, 0.06), 0 1px 3px rgba(23, 23, 23, 0.10);
   --lf-elevation-fab:  0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.06);
   --lf-elevation-sheet: 0 -8px 28px rgba(0, 0, 0, 0.12);
 
   /* ---------------------------------------------------------
-     MOTION — Wanted 빠르고 미묘한 ease-out
+     MOTION — Wanted: 빠르고 미묘한 ease-out
      --------------------------------------------------------- */
   --lf-easing-standard:              cubic-bezier(0, 0, 0, 1);
   --lf-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
   --lf-duration-short:  120ms;
   --lf-duration-medium: 240ms;
   --lf-duration-long:   400ms;
-  --lf-duration-hook:  3400ms; /* 새끼손가락 걸기 루프 (Q-3) */
+  --lf-duration-hook:  3400ms;
 }

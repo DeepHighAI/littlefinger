@@ -26,11 +26,16 @@ import {
  * design-reference/ 는 읽기 전용이므로, 이 테스트가 실패하면 고쳐야 하는 쪽은 항상 tokens.ts 다.
  */
 
-const TOKENS_CSS = join(__dirname, '../../../../design-reference/styles/tokens.css');
+const TOKENS_CSS = join(
+  __dirname,
+  '../../../../design-reference/styles/littlefinger-apply/tokens.css',
+);
+const WEB_TOKENS_CSS = join(__dirname, '../../../web/src/styles/tokens.css');
+const WEB_COMPONENTS_CSS = join(__dirname, '../../../web/src/styles/components.css');
 
 /** `--lf-foo-bar: value;` 를 전부 뽑아 { 'foo-bar': 'value' } 로 만든다. */
-function parseCssTokens(): Map<string, string> {
-  const css = readFileSync(TOKENS_CSS, 'utf8');
+function parseCssTokens(path: string): Map<string, string> {
+  const css = readFileSync(path, 'utf8');
   const found = new Map<string, string>();
 
   for (const match of css.matchAll(/--lf-([a-z0-9-]+)\s*:\s*([^;]+);/gu)) {
@@ -44,7 +49,8 @@ function parseCssTokens(): Map<string, string> {
   return found;
 }
 
-const cssTokens = parseCssTokens();
+const cssTokens = parseCssTokens(TOKENS_CSS);
+const webCssTokens = parseCssTokens(WEB_TOKENS_CSS);
 
 /** `space-1` → `1`, `on-primary-container` → `onPrimaryContainer` */
 function camel(kebab: string): string {
@@ -120,6 +126,30 @@ describe('색상은 문자열 그대로 옮긴다', () => {
   });
 });
 
+describe('Fresh Green 웹 토큰도 같은 계약을 쓴다', () => {
+  test('수락 웹의 모든 토큰 값이 확정안과 일치한다', () => {
+    for (const [name, expected] of cssTokens) {
+      expect(webCssTokens.get(name)).toBe(expected);
+    }
+    expect(webCssTokens.get('color-primary-hover')).toBe('#00A435');
+    expect(webCssTokens.get('color-primary-pressed')).toBe('#008629');
+  });
+
+  test('그린 틴트 위 텍스트 세 곳은 대비 보정 역할을 쓴다', () => {
+    const css = readFileSync(WEB_COMPONENTS_CSS, 'utf8');
+
+    expect(css).toMatch(
+      /\.lf-notice\s*\{[^}]*color:\s*var\(--lf-color-primary-ink\)/su,
+    );
+    expect(css).toMatch(
+      /\.lf-card--container\s+\.lf-dday\s*\{[^}]*color:\s*var\(--lf-color-success\)/su,
+    );
+    expect(css).toMatch(
+      /\.lf-list-item--unread\s+\.lf-list-item__headline\s*\{[^}]*color:\s*var\(--lf-color-primary-ink\)/su,
+    );
+  });
+});
+
 describe('치수는 px 를 뗀 숫자다 — CSS px 값이 곧 RN dp 다', () => {
   test.each([...cssTokens.entries()].filter(([n]) => n.startsWith('type-')))(
     '--lf-%s = %s',
@@ -182,27 +212,27 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
   });
 
   test('그림자는 box-shadow 대신 객체다', () => {
-    // --lf-elevation-card: 0 1px 3px rgba(34, 25, 26, 0.06);
+    // 두 겹 CSS 그림자를 RN 단일 그림자의 더 강한 두 번째 층으로 보존한다.
     expect(elevation.card).toEqual({
-      shadowColor: '#22191A',
+      shadowColor: '#171717',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
+      shadowOpacity: 0.1,
       shadowRadius: 3,
       elevation: 1,
     });
-    // --lf-elevation-fab: 0 8px 20px rgba(199, 75, 100, 0.4);
     expect(elevation.fab.shadowOffset).toEqual({ width: 0, height: 8 });
-    expect(elevation.fab.shadowRadius).toBe(20);
-    expect(elevation.fab.shadowOpacity).toBe(0.4);
-    // --lf-elevation-sheet: 0 -8px 28px rgba(34, 25, 26, 0.16); — 위로 뜨는 그림자
+    expect(elevation.fab.shadowRadius).toBe(24);
+    expect(elevation.fab.shadowOpacity).toBe(0.08);
+    expect(elevation.sheet.shadowColor).toBe('#000000');
     expect(elevation.sheet.shadowOffset).toEqual({ width: 0, height: -8 });
     expect(elevation.sheet.shadowRadius).toBe(28);
+    expect(elevation.sheet.shadowOpacity).toBe(0.12);
   });
 
   test('이징은 베지어 계수 배열이다', () => {
     // cubic-bezier 인자를 그대로 옮긴다. Easing.bezier 로 만드는 건 애니메이션 쪽 몫이고,
     // 여기서 만들면 tokens.ts 가 react-native-reanimated 를 import 하게 된다.
-    expect(easing.standard).toEqual([0.2, 0, 0, 1]);
+    expect(easing.standard).toEqual([0, 0, 0, 1]);
     expect(easing.emphasizedDecelerate).toEqual([0.05, 0.7, 0.1, 1]);
   });
 

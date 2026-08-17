@@ -1,0 +1,13 @@
+/* =============================================================
+   Little Finger — Fresh Green 가독성 패치 (components.css 뒤에 로드)
+   그린 틴트(primary-container/soft) 위의 그린 텍스트를 딥 그린으로.
+   ============================================================= */
+
+/* 알림 pill: green-99 배경 위 green-50 텍스트 → green-20 */
+.lf-notice { color: var(--lf-color-primary-ink); }
+
+/* 임박 고정 카드의 D-Day: green-95 배경 위 green-50 → green-30 */
+.lf-card--container .lf-dday { color: #008629; }
+
+/* 읽지 않은 알림 헤드라인: primary-soft 배경 위 green-50 → green-20 */
+.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-primary-ink); }

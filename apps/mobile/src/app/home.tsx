@@ -115,7 +115,7 @@ function PromiseCard({
         <LfRow gap={4}>
           <LfChip label={PROMISE_STATUS_LABEL[item.status]} tone={statusTone(item.status)} />
           {item.end_date !== null && (
-            <LfText variant="sectionTitle">
+            <LfText variant={pinned ? 'containerAccent' : 'sectionTitle'}>
               {formatDday(ddayFrom(item.end_date, now))}
             </LfText>
           )}

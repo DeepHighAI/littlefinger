@@ -7,7 +7,7 @@
    BUTTON — 추가 배리언트
    ------------------------------------------------------------- */
 
-/* 중립 아웃라인 버튼 — 로즈가 아닌 무채색 테두리 (거절 등 보조 액션) */
+/* 중립 아웃라인 버튼 — 브랜드색이 아닌 무채색 테두리 (거절 등 보조 액션) */
 .lf-btn--outlined-neutral {
   background: transparent;
   border: 1px solid var(--lf-color-outline-strong);
@@ -88,7 +88,7 @@
 }
 
 /* -------------------------------------------------------------
-   INFO BANNER — 옅은 로즈 배경의 안내 박스 (예: SCR-W05 증인 권한 안내)
+   INFO BANNER — 옅은 그린 배경의 안내 박스 (예: SCR-W05 증인 권한 안내)
    ------------------------------------------------------------- */
 .lf-info-banner {
   display: flex;
@@ -121,13 +121,13 @@
   font-size: var(--lf-type-micro-size);
 }
 
-/* 진한 로즈 톤 — 첫 번째 참여자 */
+/* 진한 브랜드 톤 — 첫 번째 참여자 */
 .lf-avatar--solid {
   background: var(--lf-color-primary);
   color: var(--lf-color-on-primary);
 }
 
-/* 연한 로즈 톤 — 두 번째 참여자 (기본 .lf-avatar 와 구분) */
+/* 연한 브랜드 톤 — 두 번째 참여자 (기본 .lf-avatar 와 구분) */
 .lf-avatar--alt {
   background: var(--lf-color-primary-pale);
   color: var(--lf-color-on-primary);

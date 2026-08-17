@@ -12,53 +12,55 @@
  */
 
 export const colors = {
-  // 브랜드 로즈 — 새끼손가락 걸기 모티프
-  primary: '#C74B64',
+  // 브랜드 그린 — 새끼손가락 걸기 모티프
+  primary: '#00BF40',
+  primaryHover: '#00A435',
+  primaryPressed: '#008629',
   onPrimary: '#FFFFFF',
-  primaryContainer: '#FFD9DE',
-  onPrimaryContainer: '#400A18',
-  primarySoft: '#FEF0F2',
-  primaryPale: '#F49BA6',
-  primaryInk: '#7A4A52',
+  primaryContainer: '#DBFBE5',
+  onPrimaryContainer: '#02220C',
+  primarySoft: '#F0FDF4',
+  primaryPale: '#6FE69C',
+  primaryInk: '#006420',
 
   // 표면
-  background: '#FFF8F8',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceChrome: '#FFFDFD',
-  surfaceMuted: '#F4E4E7',
+  surfaceChrome: '#FFFFFF',
+  surfaceMuted: '#F7F7F8',
 
   // 외곽선
-  outline: '#F6E0E3',
-  outlineStrong: '#DFC3C7',
-  outlineIcon: '#B99CA1',
+  outline: 'rgba(112, 115, 124, 0.22)',
+  outlineStrong: 'rgba(112, 115, 124, 0.40)',
+  outlineIcon: '#AEB0B6',
 
   // 텍스트
-  text: '#22191A',
-  textSecondary: '#574144',
-  textMuted: '#9B8286',
-  textFaint: '#AD9296',
+  text: '#171719',
+  textSecondary: '#46474C',
+  textMuted: '#70737C',
+  textFaint: '#989BA2',
 
   // 보상 / 벌칙 (§9 용어: Reward=보상, Penalty=벌칙)
-  rewardContainer: '#FFDBC8',
-  onRewardContainer: '#331200',
-  rewardLabel: '#7A3E12',
-  penaltyContainer: '#F4E4E7',
-  onPenaltyContainer: '#3A2A2D',
-  penaltyLabel: '#7A4A52',
+  rewardContainer: '#EAF2FE',
+  onRewardContainer: '#002566',
+  rewardLabel: '#003A91',
+  penaltyContainer: '#FFD9C2',
+  onPenaltyContainer: '#3D0505',
+  penaltyLabel: '#7D2E00',
 
   // 오류 · 불이행
-  error: '#8C1D18',
-  errorContainer: '#F9DEDC',
+  error: '#C81616',
+  errorContainer: '#FFE9E9',
 
   // 성공 · 완료
-  success: '#1B6B4A',
-  successContainer: '#CFEDDD',
+  success: '#008629',
+  successContainer: '#DBFBE5',
 
   // 카카오 로그인 공식 버튼 가이드 색
   kakao: '#FEE500',
   onKakao: '#191919',
 
-  scrim: 'rgba(34, 25, 26, 0.42)',
+  scrim: 'rgba(0, 0, 0, 0.40)',
 } as const;
 
 /**
@@ -98,14 +100,14 @@ export const weight = {
   heavy: '800',
 } as const;
 
-/** 핑키는 M3 기본보다 한 단계 더 둥글다. */
+/** Fresh Green은 Wanted 12dp 입력·버튼 기준의 절제된 곡률을 쓴다. */
 export const radius = {
   xs: 8,
   sm: 12,
-  md: 16,
-  lg: 20,
-  xl: 24,
-  '2xl': 28,
+  md: 12,
+  lg: 16,
+  xl: 16,
+  '2xl': 20,
   pill: 9999,
 } as const;
 
@@ -134,7 +136,7 @@ export const size = {
   appbarHeight: 56,
   ctaHeight: 52,
   actionHeight: 48,
-  fabHeight: 56,
+  fabHeight: 52,
   tabHeight: 38,
   /** SCR-A06 승인 레퍼런스의 정사각형 증빙 타일. */
   evidenceThumb: 84,
@@ -145,27 +147,27 @@ export const size = {
  * MVP 는 안드로이드만이므로 실제로 그려지는 건 `elevation` 쪽이다.
  */
 export const elevation = {
-  // 0 1px 3px rgba(34, 25, 26, 0.06)
+  // CSS의 두 겹 카드 그림자 중 더 강한 층을 RN 단일 그림자로 보존한다.
   card: {
-    shadowColor: '#22191A',
+    shadowColor: '#171717',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 1,
   },
-  // 0 8px 20px rgba(199, 75, 100, 0.4)
+  // 0 8px 24px rgba(0, 0, 0, 0.08)
   fab: {
-    shadowColor: '#C74B64',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
     elevation: 8,
   },
-  // 0 -8px 28px rgba(34, 25, 26, 0.16) — 시트는 위로 그림자를 던진다
+  // 0 -8px 28px rgba(0, 0, 0, 0.12) — 시트는 위로 그림자를 던진다
   sheet: {
-    shadowColor: '#22191A',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.16,
+    shadowOpacity: 0.12,
     shadowRadius: 28,
     elevation: 12,
   },
@@ -179,15 +181,15 @@ export const elevation = {
  * 계수만 들고 있다가 애니메이션 쪽에서 `Easing.bezier(...easing.standard)` 로 만든다.
  */
 export const easing = {
-  standard: [0.2, 0, 0, 1],
+  standard: [0, 0, 0, 1],
   emphasizedDecelerate: [0.05, 0.7, 0.1, 1],
 } as const;
 
 /** ms */
 export const duration = {
-  short: 200,
-  medium: 350,
-  long: 500,
+  short: 120,
+  medium: 240,
+  long: 400,
   hook: 3400, // 새끼손가락 걸기 루프 (Q-3)
 } as const;
 

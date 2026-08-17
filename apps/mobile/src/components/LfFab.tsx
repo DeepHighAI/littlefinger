@@ -37,7 +37,10 @@ export function LfFab({ label, ...rest }: LfFabProps): React.JSX.Element {
       accessibilityRole="button"
       accessibilityLabel={label}
       {...rest}
-      style={styles.button}
+      style={({ pressed }) => [
+        styles.button,
+        pressed && { backgroundColor: colors.primaryPressed },
+      ]}
     >
       <LfPinky size="xs" tone="onPrimary" />
       <Text style={styles.label}>{label}</Text>

@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     fontFamily: brandFontFamily(weight.medium),
   },
   unreadHeadline: {
-    color: colors.text,
+    color: colors.primaryInk,
     fontWeight: weight.bold,
     fontFamily: brandFontFamily(weight.bold),
   },

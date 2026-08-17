@@ -1,9 +1,10 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
+import { colors } from '../theme/tokens.ts';
 import HomeScreen from '../app/home';
 
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
@@ -191,6 +192,7 @@ describe('SCR-A02 F-10 홈 목록', () => {
     expect(view.getByRole('tab', { name: '진행 중 2' })).toBeTruthy();
     expect(view.getByRole('tab', { name: '대기 1' })).toBeTruthy();
     expect(view.getByRole('tab', { name: '완료 3' })).toBeTruthy();
+    expect(StyleSheet.flatten(view.getByText('D-1').props.style).color).toBe(colors.success);
   });
 
   test('일반 카드는 상태·D-Day·종료일·당사자·증인 정보를 색 외 텍스트로 표시한다', async () => {

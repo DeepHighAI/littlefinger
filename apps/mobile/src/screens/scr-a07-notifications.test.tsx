@@ -1,7 +1,8 @@
 import type { NotificationInboxItem } from '@littlefinger/shared';
-import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
+import { act, cleanup, fireEvent, render, within } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
+import { colors } from '../theme/tokens.ts';
 import {
   createNotificationReadIdempotencyKey,
   listNotificationInbox,
@@ -213,6 +214,10 @@ describe('SCR-A07 알림함', () => {
     expect(body.props.numberOfLines).toBe(1);
     expect(body.props.ellipsizeMode).toBe('tail');
     expect(StyleSheet.flatten(body.parent?.props.style).minWidth).toBe(0);
+    const unreadHeadline = within(view.getByTestId(`notification-${FIRST_ID}`)).getByText(
+      item().title,
+    );
+    expect(StyleSheet.flatten(unreadHeadline.props.style).color).toBe(colors.primaryInk);
   });
 
   test('항목 탭은 즉시 읽음으로 보이고 한 번만 서버에 기록한 뒤 허용된 목적지로 이동한다', async () => {

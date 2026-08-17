@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, radius, space, type, weight } from '../theme/tokens';
 
-/** 원본 `.lf-notice` — 연한 로즈 배경의 알림 pill (04 §5-2) */
+/** 원본 `.lf-notice` — 연한 그린 배경의 알림 pill (04 §5-2) */
 
 export interface LfNoticeProps extends Omit<ViewProps, 'style' | 'children'> {
   label: string;
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: type.caption,
     fontWeight: weight.bold,
-    color: colors.primary,
+    color: colors.primaryInk,
     fontFamily: brandFontFamily(weight.bold),
   },
 });

@@ -15,6 +15,7 @@ export type LfTextVariant =
   | 'title'
   | 'subtitle'
   | 'sectionTitle'
+  | 'containerAccent'
   | 'body'
   | 'caption'
   | 'disclaimer';
@@ -36,6 +37,7 @@ const styles = StyleSheet.create({
   },
   subtitle: { fontSize: type.subtitle, fontWeight: weight.heavy, color: colors.text },
   sectionTitle: { fontSize: type.caption, fontWeight: weight.bold, color: colors.textMuted },
+  containerAccent: { fontSize: type.caption, fontWeight: weight.bold, color: colors.success },
   body: {
     fontSize: type.body,
     lineHeight: line.body,

@@ -103,8 +103,10 @@ export function LfButton({
         buttonSize === 'compact' && { paddingHorizontal: space[7] },
         block && { width: '100%' },
         grow && { flex: 1 },
-        // 원본의 :active { filter: brightness(0.94) } 대응. RN 에 filter 가 없다.
-        pressed && { opacity: PRESSED_OPACITY },
+        pressed &&
+          (variant === 'filled'
+            ? { backgroundColor: colors.primaryPressed }
+            : { opacity: PRESSED_OPACITY }),
         isDisabled && { opacity: DISABLED_OPACITY },
       ]}
     >
