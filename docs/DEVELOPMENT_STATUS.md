@@ -1,20 +1,20 @@
 # Development Status
 
 Snapshot date: **2026-08-17 (KST)**. This records the locally verified SCR-A07, F-10 home-list,
-SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow, F-09 trust profile, and
-F-11 amend/cancel flow. It separately records the remote database, Edge Function, Vault, and cron
+SCR-A05 promise-detail, F-01 draft legal boundary, J-09, F-05 witness flow and self-leave,
+F-09 trust profile, and F-11 amend/cancel flow. It separately records the remote database, Edge Function, Vault, and cron
 verification completed before F-11 was added. Android development-build UAT remains a separate
 gate.
 
 ## Repository snapshot
 
-- The locally verified F-11 implementation baseline is `main@70bd95f`, 118 commits ahead of
+- The locally verified witness self-leave implementation baseline is `main@3ca9e4c`, 126 commits ahead of
   `origin/main` before this documentation update.
 - `.claude/settings.local.json` is local-only and must remain uncommitted.
 - The local migration catalog includes the new F-11 migrations
-  `20260816202820_f11_amend_agreement.sql` and
-  `20260816204242_f11_amend_notifications.sql`; its latest version remains
-  `20260817000002_schedule_j10_trust_profile.sql`.
+  `20260816202820_f11_amend_agreement.sql`,
+  `20260816204242_f11_amend_notifications.sql`, and
+  `20260817000003_witness_self_leave.sql`; the last one is the latest local version.
   Notification inbox RPCs/functions, the dedicated home/detail/profile RPCs and Edge Functions,
   the internal `push-send` worker, durable notification outbox, fenced delivery/receipt RPCs,
   Vault nudge, and cron recovery configuration are implemented locally.
@@ -25,8 +25,8 @@ On **2026-08-17**, the target project `vepnrrmxvsytguocicfe` was re-authenticate
 mutation. A dry run listed exactly 21 pending migrations, and the committed migrations from
 `20260801000001_notification_push_fanout.sql` through
 `20260817000002_schedule_j10_trust_profile.sql` were applied. A subsequent migration-list readback
-showed the catalogs aligned at that verification point. The two F-11 migrations were committed
-afterward and have not been applied remotely.
+showed the catalogs aligned at that verification point. The two F-11 migrations and the witness
+self-leave migration were committed afterward and have not been applied remotely.
 
 The 20 approved changed/new Edge Functions were deployed with Management API bundling (`--use-api`)
 and read back as `ACTIVE`. `push-send` is the only one with `verify_jwt=false`; it authenticates the
@@ -48,8 +48,8 @@ all six; no push ticket or receipt was pending.
   config/firebase-config.test.js --runInBand` passed 3/3 tests for the client configuration,
   native assets, and EAS-upload inclusion.
 - **Locally verified (2026-08-17):** Expo SDK dependency alignment and Android production export
-  passed with 1,622 bundled modules after the F-11 changes. The final export is at
-  `C:\tmp\littlefinger-f11-android-export-20260817-final`.
+  passed with 1,622 bundled modules after witness self-leave. The latest export is at
+  `C:\tmp\littlefinger-witness-leave-20260817`.
 - **Currently unverified:** Firebase Console credentials/project access, an EAS production build
   artifact, and foreground/background/terminated real-device FCM/Expo delivery.
 
@@ -93,9 +93,12 @@ all six; no push ticket or receipt was pending.
 - **F-05 core witness flow:** participant-scoped witness slots, one-time invite issuance/reissue,
   MOD-02 management from supported promise states, token redemption, LIMITED pre-activation and
   FULL post-activation SCR-W05 views, evidence-safe fulfillment claims, one-time confirmation
-  signatures, account-route revisit, and NT-18 outbox intents are implemented locally. Raw invite
-  tokens are returned once and stored only through the app's encrypted store. Witness self-leave is
-  intentionally deferred.
+  signatures, account-route revisit, and NT-18 outbox intents are implemented locally. A JOINED
+  witness can now leave without changing the promise: the participant row becomes WITHDRAWN, the
+  historical WITNESS_SIGN row remains immutable, future detail/evidence access is revoked, and the
+  witness slot becomes available for a different account. SCR-W05 distinguishes signed and unsigned
+  warnings, retains one idempotency key across retry, and clears the protected detail after success.
+  Raw invite tokens are returned once and stored only through the app's encrypted store.
 - **F-09 trust profile and SCR-A08:** the signed-in user's keeper-scoped keep rate, four status
   counts, reminder preferences, and legal links are exposed through strict shared contracts and
   authenticated server-owned RPC/Edge boundaries. SCR-A08 is reachable from the account action on
@@ -117,7 +120,8 @@ all six; no push ticket or receipt was pending.
 
 - The previously approved remote migration, Edge Function, Vault, and cron gates are complete
   through F-09. F-11 is local-only: its two migrations, four Edge Functions, AMEND_REMIND dispatch,
-  and J-05 cron have not been deployed or remotely verified.
+  and J-05 cron have not been deployed or remotely verified. Witness self-leave is also local-only:
+  `20260817000003_witness_self_leave.sql` and `witness-leave` are not deployed.
 - Two-account app/web UAT is pending a second Kakao account; automated and recorded remote checks
   do not replace it.
 - **F-06 device UAT:** the committed migrations, Vault values, active `push-send`, unique cron, and
@@ -138,9 +142,10 @@ all six; no push ticket or receipt was pending.
 - **F-05 UAT:** the witness migration and five Edge Functions are remotely deployed and active.
   Cross-account Android-to-web
   invite, join, signature, evidence, and revisit UAT is still required. Automated tests and the
-  Android production export passed. The signed-out SCR-W05 shell was inspected at 360x800 with no
-  horizontal overflow, a 52 px CTA, and no ad. Authenticated FULL data and MOD-02 still require
-  deployed-account screenshots, so this is not a real-device pixel-pass claim.
+  Android production export passed. The signed-out SCR-W05 shell was inspected again at 360x800
+  with no horizontal overflow, a 52 px CTA, and no ad. The self-leave RPC and Edge Function are not
+  remote yet; authenticated LIMITED/FULL self-leave and MOD-02 still require deployed-account
+  screenshots, so this is not a real-device pixel-pass claim.
 - **F-09 UAT:** the two migrations, three Edge Functions, and unique J-10 cron are remotely deployed
   and verified. An Android emulator verified that session post-processing no longer raises an
   invalid SecureStore-key error and that `/profile` opens. Populated profile pixels, settings
@@ -157,10 +162,10 @@ all six; no push ticket or receipt was pending.
 
 1. **F-01 release:** replace draft placeholders only after operator input and legal review, then
    publish a new final legal version instead of re-labeling the recorded draft.
-2. **M3:** witness self-leave and MOD-03.
+2. **M3:** MOD-03.
 3. **M4:** the SCR-A02-only ad slot, accessibility pass, full acceptance checklist, and Google Play
    closed testing.
 
-The next product implementation step is witness self-leave, followed by MOD-03. Device and
+The next product implementation step is MOD-03. Device and
 cross-account UAT remains an external gate; F-01 final copy also requires operator input and legal
 review.
