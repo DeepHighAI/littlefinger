@@ -33,7 +33,9 @@ The following decisions are fixed for this implementation:
 
 ## Chosen Architecture
 
-Add a private per-user completion-delivery record and a dedicated authenticated claim endpoint.
+Add a private per-user completion-delivery record, an authenticated claim endpoint, and an
+authenticated shown acknowledgement. Claim reserves one delivery across devices; acknowledgement
+records exposure only from the native modal's `onShow` callback.
 
 The alternatives are rejected for the following reasons:
 
@@ -42,14 +44,15 @@ The alternatives are rejected for the following reasons:
    snapshot, and makes later delivery variants add more participant columns.
 2. **Store a local seen flag only.** This is simple, but cannot enforce one delivery across devices,
    reinstallations, or lost server responses.
-3. **Selected: private per-user celebration records plus a claim endpoint.** This keeps the result
-   transaction atomic, captures historical rates at the only authoritative transition, and gives
-   each party an independent, idempotent consumption boundary.
+3. **Selected: private per-user celebration records plus claim and shown endpoints.** This keeps the
+   result transaction atomic, captures historical rates at the only authoritative transition,
+   gives each party an independent reservation, and records completed exposure only after the
+   native modal is visible.
 
 ## Shared Contract
 
-Add one authenticated endpoint slug, `completion-celebration-claim`, and these strict shared
-contracts:
+Add authenticated endpoint slugs `completion-celebration-claim` and
+`completion-celebration-shown`, with these strict shared contracts:
 
 ```ts
 interface CompletionCelebrationClaimRequest {
@@ -57,6 +60,7 @@ interface CompletionCelebrationClaimRequest {
 }
 
 interface CompletionCelebrationView {
+  claim_id: string;
   promise_id: string;
   title: string;
   counterpart_nickname: string | null;
@@ -68,11 +72,21 @@ interface CompletionCelebrationClaimResponse {
   available: boolean;
   celebration: CompletionCelebrationView | null;
 }
+
+interface CompletionCelebrationShownRequest {
+  promise_id: string;
+  claim_id: string;
+}
+
+interface CompletionCelebrationShownResponse {
+  promise_id: string;
+  shown_at: string;
+}
 ```
 
 `available: true` requires a non-null celebration and `available: false` requires
 `celebration: null`. Parsers reject unknown keys, invalid UUIDs, out-of-range rates, and
-inconsistent unions. The mutation requires a Supabase JWT and a UUID `Idempotency-Key`.
+inconsistent unions. Both mutations require a Supabase JWT and their own UUID `Idempotency-Key`.
 
 The shared presentation helper renders exactly four keep-rate states:
 
@@ -97,7 +111,9 @@ Add private table `completion_celebrations` with:
 - `keep_rate_before integer null`, constrained to 0 through 100;
 - `keep_rate_after integer null`, constrained to 0 through 100;
 - `created_at timestamptz not null`;
-- `claimed_at timestamptz null`; and
+- `claim_id uuid null`, unique when present;
+- `claimed_at timestamptz null`;
+- `shown_at timestamptz null`; and
 - primary key `(promise_id, user_id)`.
 
 The table stores no invite token, notification payload, share content, or client routing state.
@@ -124,7 +140,7 @@ The migration does not backfill promises that were already COMPLETED. Their hist
 keep rate cannot be reconstructed without inventing data. An eligible party opening such a promise
 receives `available: false` and continues to SCR-A05 without a retrospective celebration.
 
-## Claim Transaction and Idempotency
+## Claim and Shown Transactions
 
 Add service-role-only function:
 
@@ -146,15 +162,32 @@ The function:
    caller;
 5. locks the actor's celebration row, returning `available: false` when an eligible actor has no
    row because the promise predates the feature;
-6. if `claimed_at` is null, sets it once and returns `available: true` with the title, current
-   counterpart nickname, and immutable rate snapshots;
-7. if another idempotency key already consumed the row, returns `available: false`; and
+6. if `claim_id` is null, generates it, sets `claimed_at` once, and returns `available: true` with
+   the claim ID, title, current counterpart nickname, and immutable rate snapshots;
+7. if another idempotency key already reserved the row, returns `available: false`; and
 8. stores the authoritative JSON response in the idempotency record.
 
 Reusing the same key replays the first response byte-for-byte, including `available: true`, after
-`claimed_at` has been set. A new key cannot consume the celebration again. Creator and partner rows
-are independent, so one party's claim has no effect on the other. A missing counterpart nickname is
-returned as null and rendered with the existing neutral `상대방` label.
+the reservation has been set. A new key cannot reserve the celebration again. Creator and partner
+rows are independent, so one party's claim has no effect on the other. A missing counterpart
+nickname is returned as null and rendered with the existing neutral `상대방` label.
+
+Add service-role-only function:
+
+```sql
+public.lf_completion_celebration_shown(
+  p_idempotency_key uuid,
+  p_actor uuid,
+  p_promise_id uuid,
+  p_claim_id uuid
+) returns jsonb
+```
+
+The shown transaction verifies the ACTIVE actor, begins idempotency under endpoint name
+`completion-celebration-shown`, locks the actor-owned celebration row, requires the matching
+`claim_id`, and sets `shown_at` once. A same-key replay or a different-key retry after success returns
+the original authoritative `shown_at`. A witness, outsider, wrong claim ID, or other party's claim
+receives `E_NOT_FOUND`. The shown transaction returns only `promise_id` and `shown_at`.
 
 Every `SECURITY DEFINER` function uses an explicit empty `search_path`, schema-qualifies objects,
 and grants execute only to `service_role`. Claiming does not update the promise, trust profile,
@@ -162,16 +195,16 @@ notifications, or daily metrics.
 
 ## Edge Function Boundary
 
-The new function follows the repository shell split:
+Both new functions follow the repository shell split:
 
 - `handler.ts` requires POST, authenticates the JWT, validates exact `{ promise_id }`, validates
   the UUID idempotency header, invokes the RPC, strictly parses its response, and flattens unknown
   failures;
 - `index.ts` creates runtime dependencies and registers `Deno.serve` only.
 
-`supabase/config.toml` explicitly sets `[functions.completion-celebration-claim] verify_jwt = true`.
-Logs never include a promise title, nickname, idempotency key, response payload, or participant ID.
-The endpoint emits no notification and does not turn a committed fulfillment result into a failure.
+`supabase/config.toml` explicitly sets both functions to `verify_jwt = true`. Logs never include a
+promise title, nickname, claim ID, idempotency key, response payload, or participant ID. Neither
+endpoint emits a notification or turns a committed fulfillment result into a failure.
 
 ## Mobile Delivery Lifecycle
 
@@ -181,7 +214,8 @@ SCR-A06 uses the authoritative `FulfillmentSubmitResponse`. When a successful su
 
 SCR-A05 attempts a claim only after an authoritative detail response reports COMPLETED. Before the
 request, the app stores a user-and-promise-scoped UUID idempotency key with `LargeSecureStore`.
-There is at most one in-flight claim per screen generation.
+There is at most one in-flight claim per screen generation. The local envelope has PENDING and
+SHOWN phases and never contains the celebration payload.
 
 The lifecycle is:
 
@@ -189,14 +223,18 @@ The lifecycle is:
 2. restore or create and durably store the claim key;
 3. call the claim endpoint;
 4. render MOD-03 when the response is `available: true`;
-5. remove the local key only from the modal's native `onShow` callback; and
-6. clear the key without rendering when the response is `available: false`.
+5. from the modal's native `onShow`, persist a SHOWN envelope containing only `claim_id` and a
+   separate shown-request idempotency key;
+6. call the shown endpoint and remove the envelope only after acknowledgement succeeds; and
+7. clear the PENDING key without rendering when the claim response is `available: false`.
 
-If the request or response fails before `onShow`, the key remains encrypted and the next eligible
-detail entry replays the server's cached response. If the app process stops after the server claim
-but before the modal is visible, the same key is recovered and the same payload is shown. Claim
-failure is silent in the detail content: SCR-A05 remains usable and a later entry retries. The app
-does not persist the title, nickname, rate snapshots, or share message locally.
+If the claim request or response fails before `onShow`, the PENDING key remains encrypted and the
+next eligible detail entry replays the server's cached response. If the app process stops after the
+server claim but before the modal is visible, the same key is recovered and the same payload is
+shown. If shown acknowledgement fails after the modal is visible, the SHOWN envelope retries the
+acknowledgement on restart without rendering the celebration again. Claim and acknowledgement
+failure are silent in the detail content. The app does not persist the title, nickname, rate
+snapshots, or share message locally.
 
 ## MOD-03 UX
 
@@ -222,17 +260,18 @@ contains no evidence image, generated share card, ad component, or reserved ad s
 
 Implementation proceeds in strict RED -> expected failure -> minimum GREEN cycles:
 
-1. shared request/response contracts, endpoint, strict parser, four-state keep-rate formatter, and
-   MOD-03 labels;
+1. shared claim/shown request and response contracts, endpoints, strict parsers, four-state
+   keep-rate formatter, and MOD-03 labels;
 2. PGlite completion-transition tests for before/after snapshots, both party records, non-COMPLETED
    outcomes, fulfillment idempotency, and simultaneous second submissions;
-3. PGlite claim tests for actor eligibility, witness and outsider hiding, party independence, first
-   claim, same-key replay, different-key exhaustion, privileges, and `search_path` hardening;
-4. pure Edge handler tests for JWT, method, exact body, idempotency header, RPC arguments, strict
-   response parsing, flattened failures, and safe logs;
+3. PGlite claim/shown tests for actor eligibility, witness and outsider hiding, party independence,
+   first reservation, same-key replay, different-key exhaustion, claim-ID fencing, shown
+   idempotency, privileges, and `search_path` hardening;
+4. pure Edge handler tests for both mutations covering JWT, method, exact body, idempotency header,
+   RPC arguments, strict response parsing, flattened failures, and safe logs;
 5. mobile API and secure lifecycle tests for pre-request persistence, response-loss replay,
-   process-restart recovery, native `onShow` cleanup, unavailable cleanup, retry, and in-flight
-   deduplication;
+   process-restart recovery, native `onShow` acknowledgement, SHOWN retry without redisplay,
+   unavailable cleanup, and in-flight deduplication;
 6. SCR-A06 and SCR-A05 tests for the COMPLETED route replacement, eligible-only claim, sheet
    dismissal, text share, new-promise navigation, all rate states, accessibility, and absence of
    ads; and
@@ -249,8 +288,8 @@ explicit authorization.
 The subsequent executable plan should preserve these commit boundaries:
 
 1. shared celebration contracts and presentation policy;
-2. completion snapshots and claim transaction;
-3. authenticated celebration Edge Function;
+2. completion snapshots plus claim and shown transactions;
+3. authenticated celebration Edge Functions;
 4. encrypted mobile claim lifecycle;
 5. MOD-03 with SCR-A06 and SCR-A05 routing; and
 6. verification and development-status documentation.
