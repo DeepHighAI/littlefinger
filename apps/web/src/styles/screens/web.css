@@ -296,6 +296,23 @@
   transform: translateX(-50%);
 }
 
+.lf-witness-leave-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+.lf-witness-leave-overlay .lf-scrim {
+  width: 100%;
+  border: 0;
+}
+
+.lf-witness-leave-sheet {
+  left: 50%;
+  width: min(100%, var(--lf-viewport-width));
+  transform: translateX(-50%);
+}
+
 .lf-segmented {
   display: grid;
   grid-template-columns: 1fr 1fr;

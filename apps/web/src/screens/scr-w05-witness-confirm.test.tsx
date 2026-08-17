@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import type { WitnessDetailResponse } from '@littlefinger/shared';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,6 +11,7 @@ const {
   getSession,
   joinWitness,
   getWitnessDetail,
+  leaveWitness,
   signWitness,
   signFulfillmentEvidence,
   signInWithKakao,
@@ -18,6 +19,7 @@ const {
   getSession: vi.fn(),
   joinWitness: vi.fn(),
   getWitnessDetail: vi.fn(),
+  leaveWitness: vi.fn(),
   signWitness: vi.fn(),
   signFulfillmentEvidence: vi.fn(),
   signInWithKakao: vi.fn(),
@@ -29,6 +31,7 @@ vi.mock('../lib/supabase.ts', () => ({
 vi.mock('../lib/witness-api.ts', () => ({
   joinWitness,
   getWitnessDetail,
+  leaveWitness,
   signWitness,
   WitnessApiError: class WitnessApiError extends Error { authExpired = false; },
 }));
@@ -95,6 +98,7 @@ function renderAt(path: string) {
   const router = createMemoryRouter([
     { path: ROUTE.witnessJoin, element: <ScrW05WitnessConfirm /> },
     { path: ROUTE.witness, element: <ScrW05WitnessConfirm /> },
+    { path: ROUTE.promises, element: <div>참여 약속</div> },
   ], { initialEntries: [path] });
   render(<RouterProvider router={router} />);
   return router;
@@ -107,6 +111,8 @@ beforeEach(() => {
   joinWitness.mockResolvedValue({ promise_id: PROMISE_ID, participant_id: CREATOR_ID, status: 'JOINED' });
   getWitnessDetail.mockReset();
   getWitnessDetail.mockResolvedValue(LIMITED);
+  leaveWitness.mockReset();
+  leaveWitness.mockResolvedValue({ promise_id: PROMISE_ID, status: 'WITHDRAWN' });
   signWitness.mockReset();
   signWitness.mockResolvedValue({ promise_id: PROMISE_ID, signed_at: '2026-08-16T09:03:00Z' });
   signFulfillmentEvidence.mockReset();
@@ -159,6 +165,20 @@ describe('SCR-W05 witness confirmation', () => {
     expect(screen.getByText('약속이 확정되면 전체 내용을 볼 수 있습니다')).toBeTruthy();
     expect(screen.queryByText('매주 화요일과 목요일에 함께 달린다.')).toBeNull();
     expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.getByRole('button', { name: '증인 나가기' })).toBeTruthy();
+  });
+
+  it('shows the unsigned warning and keeps the LIMITED detail when canceled', async () => {
+    renderAt(witnessPath(PROMISE_ID));
+
+    await fireEvent.click(await screen.findByRole('button', { name: '증인 나가기' }));
+    const dialog = screen.getByRole('dialog', { name: '증인 나가기' });
+    expect(within(dialog).getByText('나가면 이 약속을 더 이상 볼 수 없습니다. 계속하시겠어요?')).toBeTruthy();
+    await fireEvent.click(within(dialog).getByRole('button', { name: '계속 보기' }));
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByText('아침 러닝')).toBeTruthy();
+    expect(leaveWitness).not.toHaveBeenCalled();
   });
 
   it('FULL renders read-only content, parties, activation, and no mutation controls or ads', async () => {
@@ -192,12 +212,70 @@ describe('SCR-W05 witness confirmation', () => {
     expect(screen.queryByRole('button', { name: '내용을 확인했습니다' })).toBeNull();
   });
 
+  it('fences repeated leave confirmation and disables signing while leave is pending', async () => {
+    getWitnessDetail.mockResolvedValue(FULL);
+    let resolveLeave: ((value: { promise_id: string; status: 'WITHDRAWN' }) => void) | undefined;
+    leaveWitness.mockImplementation(async () => await new Promise((resolve) => { resolveLeave = resolve; }));
+    renderAt(witnessPath(PROMISE_ID));
+
+    await fireEvent.click(await screen.findByRole('checkbox', { name: '약속 내용을 확인했습니다' }));
+    await fireEvent.click(screen.getByRole('button', { name: '증인 나가기' }));
+    const dialog = screen.getByRole('dialog', { name: '증인 나가기' });
+    const confirm = within(dialog).getByRole('button', { name: '나가기' });
+    await fireEvent.click(confirm);
+    await fireEvent.click(confirm);
+
+    expect(leaveWitness).toHaveBeenCalledTimes(1);
+    expect(leaveWitness).toHaveBeenCalledWith(
+      'jwt',
+      PROMISE_ID,
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+    expect((screen.getByRole('button', { name: '내용을 확인했습니다' }) as HTMLButtonElement).disabled).toBe(true);
+    await act(async () => resolveLeave?.({ promise_id: PROMISE_ID, status: 'WITHDRAWN' }));
+
+    expect(await screen.findByText('증인에서 나왔습니다.')).toBeTruthy();
+    expect(screen.queryByText(FULL.content!.body)).toBeNull();
+  });
+
+  it('retains the detail and retries a failed leave with the same idempotency key', async () => {
+    getWitnessDetail.mockResolvedValue(FULL);
+    leaveWitness
+      .mockRejectedValueOnce(new Error('잠시 후 다시 시도해 주세요.'))
+      .mockResolvedValueOnce({ promise_id: PROMISE_ID, status: 'WITHDRAWN' });
+    renderAt(witnessPath(PROMISE_ID));
+
+    await fireEvent.click(await screen.findByRole('button', { name: '증인 나가기' }));
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '나가기' }));
+
+    expect((await screen.findByRole('alert')).textContent).toBe('잠시 후 다시 시도해 주세요.');
+    expect(screen.getByText(FULL.content!.body)).toBeTruthy();
+    await fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '나가기' }));
+
+    expect(leaveWitness).toHaveBeenCalledTimes(2);
+    expect(leaveWitness.mock.calls[0]?.[2]).toBe(leaveWitness.mock.calls[1]?.[2]);
+    expect(await screen.findByText('증인에서 나왔습니다.')).toBeTruthy();
+  });
+
   it('restores an existing signature without a second action', async () => {
     getWitnessDetail.mockResolvedValue({ ...FULL, signed_at: '2026-08-16T09:03:00Z' });
     renderAt(witnessPath(PROMISE_ID));
 
     expect(await screen.findByText('2026-08-16 18:03 (KST) 확인 서명')).toBeTruthy();
     expect(screen.queryByRole('button', { name: '내용을 확인했습니다' })).toBeNull();
+  });
+
+  it('warns that the signature remains and returns a left witness to promises', async () => {
+    getWitnessDetail.mockResolvedValue({ ...FULL, signed_at: '2026-08-16T09:03:00Z' });
+    const router = renderAt(witnessPath(PROMISE_ID));
+
+    await fireEvent.click(await screen.findByRole('button', { name: '증인 나가기' }));
+    const dialog = screen.getByRole('dialog', { name: '증인 나가기' });
+    expect(within(dialog).getByText('서명 기록은 지워지지 않습니다. 계속하시겠어요?')).toBeTruthy();
+    await fireEvent.click(within(dialog).getByRole('button', { name: '나가기' }));
+    await fireEvent.click(await screen.findByRole('button', { name: '참여 약속으로 이동' }));
+
+    expect(router.state.location.pathname).toBe(ROUTE.promises);
   });
 
   it('requests only AVAILABLE evidence and preserves blind and expired placeholders', async () => {

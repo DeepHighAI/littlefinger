@@ -4,10 +4,12 @@ import {
   IDEMPOTENCY_KEY_HEADER,
   asWitnessDetailResponse,
   asWitnessJoinResponse,
+  asWitnessLeaveResponse,
   asWitnessSignResponse,
   type Endpoint,
   type WitnessDetailResponse,
   type WitnessJoinResponse,
+  type WitnessLeaveResponse,
   type WitnessSignResponse,
 } from '@littlefinger/shared';
 
@@ -123,6 +125,20 @@ export function signWitness(
     accessToken,
     { promise_id: promiseId },
     asWitnessSignResponse,
+    { idempotencyKey },
+  );
+}
+
+export function leaveWitness(
+  accessToken: string,
+  promiseId: string,
+  idempotencyKey: string = crypto.randomUUID(),
+): Promise<WitnessLeaveResponse> {
+  return callWitness(
+    ENDPOINT.witnessLeave,
+    accessToken,
+    { promise_id: promiseId },
+    asWitnessLeaveResponse,
     { idempotencyKey },
   );
 }

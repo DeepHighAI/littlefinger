@@ -20,16 +20,18 @@ import { signInWithKakao } from '../lib/web-auth.ts';
 import {
   getWitnessDetail,
   joinWitness,
+  leaveWitness,
   signWitness,
   WitnessApiError,
 } from '../lib/witness-api.ts';
-import { witnessJoinPath, witnessPath } from '../routes.ts';
+import { promisesPath, witnessJoinPath, witnessPath } from '../routes.ts';
 import { SCR_W05_LABEL } from './scr-w05-labels.ts';
 
 type Phase =
   | { kind: 'LOADING' }
   | { kind: 'SIGNED_OUT'; returnPath: string }
   | { kind: 'READY'; accessToken: string; detail: WitnessDetailResponse }
+  | { kind: 'LEFT' }
   | { kind: 'ERROR'; message: string };
 
 const MIN_SIGNED_URL_REFRESH_DELAY_MS = 1_000;
@@ -194,26 +196,33 @@ function WitnessContent({
 }
 
 function WitnessActions({
+  canSign,
   signedAt,
   checked,
-  pending,
+  signPending,
+  leavePending,
   onChecked,
   onSign,
+  onLeave,
 }: {
+  canSign: boolean;
   signedAt: string | null;
   checked: boolean;
-  pending: boolean;
+  signPending: boolean;
+  leavePending: boolean;
   onChecked(value: boolean): void;
   onSign(): void;
+  onLeave(): void;
 }): React.JSX.Element {
   return (
     <div className="lf-screen__actions lf-screen__actions--web">
-      {signedAt === null ? (
+      {canSign && signedAt === null ? (
         <div className="lf-stack lf-gap-4">
           <label className="lf-row lf-gap-3">
             <input
               type="checkbox"
               checked={checked}
+              disabled={leavePending}
               onChange={(event) => onChecked(event.currentTarget.checked)}
             />
             <span>{SCR_W05_LABEL.confirmCheckbox}</span>
@@ -222,15 +231,80 @@ function WitnessActions({
           <button
             className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block"
             type="button"
-            disabled={!checked || pending}
+            disabled={!checked || signPending || leavePending}
             onClick={onSign}
           >
             {SCR_W05_LABEL.sign}
           </button>
         </div>
-      ) : (
+      ) : canSign && signedAt !== null ? (
         <p className="lf-notice">{SCR_W05_LABEL.signedAt(kst(signedAt))}</p>
-      )}
+      ) : null}
+      <button
+        className="lf-btn lf-btn--danger lf-btn--block"
+        type="button"
+        disabled={signPending || leavePending}
+        onClick={onLeave}
+      >
+        {SCR_W05_LABEL.leave}
+      </button>
+    </div>
+  );
+}
+
+function WitnessLeaveDialog({
+  signed,
+  pending,
+  error,
+  onStay,
+  onLeave,
+}: {
+  signed: boolean;
+  pending: boolean;
+  error: string | null;
+  onStay(): void;
+  onLeave(): void;
+}): React.JSX.Element {
+  return (
+    <div className="lf-witness-leave-overlay">
+      <button
+        className="lf-scrim"
+        type="button"
+        aria-label={SCR_W05_LABEL.leaveStay}
+        disabled={pending}
+        onClick={onStay}
+      />
+      <section
+        className="lf-sheet lf-witness-leave-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="witness-leave-title"
+      >
+        <div className="lf-sheet__handle" />
+        <h2 id="witness-leave-title" className="lf-sheet__title">{SCR_W05_LABEL.leave}</h2>
+        <p className="lf-body">
+          {signed ? SCR_W05_LABEL.leaveSignedWarning : SCR_W05_LABEL.leaveUnsignedWarning}
+        </p>
+        {error !== null && <p role="alert" className="lf-error-text">{error}</p>}
+        <div className="lf-screen__actions-row">
+          <button
+            className="lf-btn lf-btn--outlined lf-btn--grow"
+            type="button"
+            disabled={pending}
+            onClick={onStay}
+          >
+            {SCR_W05_LABEL.leaveStay}
+          </button>
+          <button
+            className="lf-btn lf-btn--danger lf-btn--grow"
+            type="button"
+            disabled={pending}
+            onClick={onLeave}
+          >
+            {SCR_W05_LABEL.leaveConfirm}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
@@ -243,10 +317,15 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>({ kind: 'LOADING' });
   const [checked, setChecked] = useState(false);
-  const [pending, setPending] = useState(false);
+  const [signing, setSigning] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [leaveError, setLeaveError] = useState<string | null>(null);
   const signPending = useRef(false);
+  const leavePending = useRef(false);
   const joinKey = useRef(crypto.randomUUID());
   const signKey = useRef(crypto.randomUUID());
+  const leaveKey = useRef(crypto.randomUUID());
 
   const load = useCallback(async (signal?: AbortSignal) => {
     const returnPath = token !== undefined
@@ -290,9 +369,9 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
   }, [load]);
 
   const runSign = useCallback(async () => {
-    if (phase.kind !== 'READY' || !checked || signPending.current) return;
+    if (phase.kind !== 'READY' || !checked || signPending.current || leavePending.current) return;
     signPending.current = true;
-    setPending(true);
+    setSigning(true);
     try {
       const signed = await signWitness(
         phase.accessToken,
@@ -306,9 +385,30 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
       setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
     } finally {
       signPending.current = false;
-      setPending(false);
+      setSigning(false);
     }
   }, [checked, phase]);
+
+  const runLeave = useCallback(async () => {
+    if (phase.kind !== 'READY' || !leaveOpen || leavePending.current || signPending.current) return;
+    leavePending.current = true;
+    setLeaving(true);
+    setLeaveError(null);
+    try {
+      await leaveWitness(
+        phase.accessToken,
+        phase.detail.promise_id,
+        leaveKey.current,
+      );
+      setLeaveOpen(false);
+      setPhase({ kind: 'LEFT' });
+    } catch (raised) {
+      setLeaveError(raised instanceof Error ? raised.message : INTERNAL_MESSAGE);
+    } finally {
+      leavePending.current = false;
+      setLeaving(false);
+    }
+  }, [leaveOpen, phase]);
 
   return (
     <div className="lf-screen">
@@ -337,6 +437,18 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
             </button>
           </div>
         )}
+        {phase.kind === 'LEFT' && (
+          <div className="lf-empty">
+            <p className="lf-subtitle">{SCR_W05_LABEL.leaveComplete}</p>
+            <button
+              className="lf-btn lf-btn--tonal lf-btn--block"
+              type="button"
+              onClick={() => navigate(promisesPath(), { replace: true })}
+            >
+              {SCR_W05_LABEL.leaveCompleteAction}
+            </button>
+          </div>
+        )}
         {phase.kind === 'READY' && (
           <WitnessContent
             accessToken={phase.accessToken}
@@ -344,13 +456,32 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
           />
         )}
       </div>
-      {phase.kind === 'READY' && phase.detail.visibility === 'FULL' && (
+      {phase.kind === 'READY' && (
         <WitnessActions
+          canSign={phase.detail.visibility === 'FULL'}
           signedAt={phase.detail.signed_at}
           checked={checked}
-          pending={pending}
+          signPending={signing}
+          leavePending={leaving}
           onChecked={setChecked}
           onSign={() => void runSign()}
+          onLeave={() => {
+            setLeaveError(null);
+            setLeaveOpen(true);
+          }}
+        />
+      )}
+      {phase.kind === 'READY' && leaveOpen && (
+        <WitnessLeaveDialog
+          signed={phase.detail.signed_at !== null}
+          pending={leaving}
+          error={leaveError}
+          onStay={() => {
+            if (leavePending.current) return;
+            setLeaveError(null);
+            setLeaveOpen(false);
+          }}
+          onLeave={() => void runLeave()}
         />
       )}
     </div>

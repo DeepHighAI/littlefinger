@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getWitnessDetail,
   joinWitness,
+  leaveWitness,
   signWitness,
   WitnessApiError,
 } from './witness-api.ts';
@@ -98,6 +99,23 @@ describe('F-05 witness web API', () => {
     const [, init] = lastRequest();
     expect(JSON.parse(String(init.body))).toEqual({ promise_id: PROMISE_ID });
     expect((init.headers as Record<string, string>)[IDEMPOTENCY_KEY_HEADER]).toBe('sign-key');
+  });
+
+  it('leaves with the promise body and caller idempotency key', async () => {
+    fetchMock.mockResolvedValue(response(200, {
+      promise_id: PROMISE_ID,
+      status: 'WITHDRAWN',
+    }));
+
+    await expect(leaveWitness(ACCESS_TOKEN, PROMISE_ID, 'leave-key')).resolves.toEqual({
+      promise_id: PROMISE_ID,
+      status: 'WITHDRAWN',
+    });
+
+    const [url, init] = lastRequest();
+    expect(url).toBe(`${SUPABASE_URL}/functions/v1/${ENDPOINT.witnessLeave}`);
+    expect(JSON.parse(String(init.body))).toEqual({ promise_id: PROMISE_ID });
+    expect((init.headers as Record<string, string>)[IDEMPOTENCY_KEY_HEADER]).toBe('leave-key');
   });
 
   it('rejects malformed success payloads instead of trusting the server shape', async () => {
