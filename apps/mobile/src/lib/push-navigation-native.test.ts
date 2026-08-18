@@ -74,7 +74,7 @@ function response(notificationId: string, deeplink: string): NotificationRespons
 }
 
 async function flushAsyncWork(): Promise<void> {
-  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise<void>((resolve) => setImmediate(() => resolve()));
 }
 
 function deferred<T>(): { promise: Promise<T>; reject(error: unknown): void; resolve(value: T): void } {

@@ -154,7 +154,7 @@ describe('루트 인증 게이트', () => {
     mockReadOnboardingCompletionNative.mockResolvedValue(false);
     await render(<RootLayout />);
     await act(async () => capturedEvents?.onReady());
-    await act(async () => { await new Promise((resolve) => setImmediate(resolve)); });
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
     expect(mockReplace).toHaveBeenCalledWith('/onboarding');
   });
 
@@ -164,7 +164,7 @@ describe('루트 인증 게이트', () => {
     mockLoadMinimumAppVersionNative.mockResolvedValue(true);
     await render(<RootLayout />);
     await act(async () => capturedEvents?.onReady());
-    await act(async () => { await new Promise((resolve) => setImmediate(resolve)); });
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
     expect(mockReplace).toHaveBeenCalledWith('/update-required');
     expect(mockReplace).not.toHaveBeenCalledWith('/onboarding');
   });
@@ -252,7 +252,7 @@ describe('루트 인증 게이트', () => {
     });
 
     await act(async () => {
-      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise<void>((resolve) => setImmediate(() => resolve()));
     });
 
     expect(mockPush).toHaveBeenCalledTimes(1);
