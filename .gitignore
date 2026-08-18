@@ -1,6 +1,7 @@
 # 미리보기·검증 과정에서 생기는 산출물
 .playwright-mcp/
 .superpowers/
+.worktrees/
 *.png
 !design-reference/**/*.png
 !apps/mobile/assets/images/*.png
