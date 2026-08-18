@@ -15,8 +15,8 @@ export const colors = {
   // 브랜드 그린 — 새끼손가락 걸기 모티프
   primary: '#00BF40',
   primaryHover: '#00A435',
-  primaryPressed: '#008629',
-  onPrimary: '#FFFFFF',
+  primaryPressed: '#009933',
+  onPrimary: '#171719',
   primaryContainer: '#DBFBE5',
   onPrimaryContainer: '#02220C',
   primarySoft: '#F0FDF4',

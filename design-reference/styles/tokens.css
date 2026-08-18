@@ -1,7 +1,7 @@
 /* =============================================================
-   Little Finger — Design Tokens ("Pinky" concept, 컨셉 4안 / 1d)
-   Source: 리틀핑거 UI 컨셉 4안.dc.html (Turn 2, 1d 핑키 확정)
-   Material 3 role structure, rebranded to the pinky-promise rose.
+   Little Finger — Design Tokens ("Fresh Green" — Wanted green-50)
+   Canonical source for the design reference, app, and acceptance web.
+   역할 이름은 유지하고 색·곡률·그림자·모션을 Fresh Green으로 재정의한다.
    ============================================================= */
 
 /* @import 는 반드시 다른 규칙보다 먼저 와야 한다 (CSS 명세).
@@ -20,48 +20,50 @@
 
 :root {
   /* ---------------------------------------------------------
-     COLOR — 브랜드 로즈(새끼손가락 걸기 모티프)
+     COLOR — 브랜드 그린(Wanted green scale)
      --------------------------------------------------------- */
-  --lf-color-primary:              #C74B64;
-  --lf-color-on-primary:           #FFFFFF;
-  --lf-color-primary-container:    #FFD9DE;
-  --lf-color-on-primary-container: #400A18;
-  --lf-color-primary-soft:         #FEF0F2; /* 알림 pill 배경 */
-  --lf-color-primary-pale:         #F49BA6; /* 핑키 마크 보조 획 */
-  --lf-color-primary-ink:          #7A4A52; /* 컨테이너 위 보조 텍스트 */
+  --lf-color-primary:              #00BF40;
+  --lf-color-primary-hover:        #00A435;
+  --lf-color-primary-pressed:      #009933;
+  --lf-color-on-primary:           #171719;
+  --lf-color-primary-container:    #DBFBE5;
+  --lf-color-on-primary-container: #02220C;
+  --lf-color-primary-soft:         #F0FDF4; /* 알림 pill 배경 */
+  --lf-color-primary-pale:         #6FE69C; /* 핑키 마크 보조 획 */
+  --lf-color-primary-ink:          #006420; /* 컨테이너 위 보조 텍스트 */
 
   /* 표면 */
-  --lf-color-background:      #FFF8F8;
+  --lf-color-background:      #FFFFFF;
   --lf-color-surface:         #FFFFFF;
-  --lf-color-surface-chrome:  #FFFDFD; /* 브라우저 크롬 / 앱바 */
-  --lf-color-surface-muted:   #F4E4E7; /* 비활성 탭 · 보조 칩 */
+  --lf-color-surface-chrome:  #FFFFFF; /* 브라우저 크롬 / 앱바 */
+  --lf-color-surface-muted:   #F7F7F8; /* 비활성 탭 · 보조 칩 */
 
   /* 외곽선 */
-  --lf-color-outline:        #F6E0E3;
-  --lf-color-outline-strong: #DFC3C7;
-  --lf-color-outline-icon:   #B99CA1;
+  --lf-color-outline:        rgba(112, 115, 124, 0.22);
+  --lf-color-outline-strong: rgba(112, 115, 124, 0.40);
+  --lf-color-outline-icon:   #AEB0B6;
 
   /* 텍스트 */
-  --lf-color-text:           #22191A;
-  --lf-color-text-secondary: #574144;
-  --lf-color-text-muted:     #9B8286;
-  --lf-color-text-faint:     #AD9296; /* 디스클레이머 */
+  --lf-color-text:           #171719;
+  --lf-color-text-secondary: #46474C;
+  --lf-color-text-muted:     #70737C;
+  --lf-color-text-faint:     #989BA2; /* 디스클레이머 */
 
   /* 보상 / 벌칙 (§9 용어: Reward=보상, Penalty=벌칙) */
-  --lf-color-reward-container:     #FFDBC8;
-  --lf-color-on-reward-container:  #331200;
-  --lf-color-reward-label:         #7A3E12;
-  --lf-color-penalty-container:    #F4E4E7;
-  --lf-color-on-penalty-container: #3A2A2D;
-  --lf-color-penalty-label:        #7A4A52;
+  --lf-color-reward-container:     #EAF2FE;
+  --lf-color-on-reward-container:  #002566;
+  --lf-color-reward-label:         #003A91;
+  --lf-color-penalty-container:    #FFD9C2;
+  --lf-color-on-penalty-container: #3D0505;
+  --lf-color-penalty-label:        #7D2E00;
 
   /* 오류 · 불이행 강조 */
-  --lf-color-error:           #8C1D18;
-  --lf-color-error-container: #F9DEDC;
+  --lf-color-error:           #C81616;
+  --lf-color-error-container: #FFE9E9;
 
   /* 성공 · 완료 */
-  --lf-color-success:           #1B6B4A;
-  --lf-color-success-container: #CFEDDD;
+  --lf-color-success:           #008629;
+  --lf-color-success-container: #DBFBE5;
 
   /* 카카오 로그인 (공식 버튼 가이드 색) */
   --lf-color-kakao:    #FEE500;
@@ -69,7 +71,7 @@
 
   /* 디바이스 프레임 */
   --lf-color-frame-border: rgba(116, 119, 117, 0.5);
-  --lf-color-scrim:        rgba(34, 25, 26, 0.42);
+  --lf-color-scrim:        rgba(0, 0, 0, 0.40);
 
   /* ---------------------------------------------------------
      TYPE
@@ -98,14 +100,14 @@
   --lf-weight-heavy:   800;
 
   /* ---------------------------------------------------------
-     SHAPE — 핑키는 M3 기본보다 한 단계 더 둥글다
+     SHAPE — Wanted 12px 입력·버튼 기준
      --------------------------------------------------------- */
   --lf-radius-xs:    8px;
   --lf-radius-sm:   12px;
-  --lf-radius-md:   16px;
-  --lf-radius-lg:   20px;
-  --lf-radius-xl:   24px;
-  --lf-radius-2xl:  28px;
+  --lf-radius-md:   12px;
+  --lf-radius-lg:   16px;
+  --lf-radius-xl:   16px;
+  --lf-radius-2xl:  20px;
   --lf-radius-pill: 9999px;
 
   /* ---------------------------------------------------------
@@ -134,7 +136,7 @@
   --lf-browserbar-height: 44px;
   --lf-cta-height:    52px;
   --lf-action-height: 48px;
-  --lf-fab-height:    56px;
+  --lf-fab-height:    52px;
   --lf-tab-height:    38px;
 
   /* 기준 뷰포트 360×800dp (요청서 §2) */
@@ -146,17 +148,17 @@
   /* ---------------------------------------------------------
      ELEVATION
      --------------------------------------------------------- */
-  --lf-elevation-card: 0 1px 3px rgba(34, 25, 26, 0.06);
-  --lf-elevation-fab:  0 8px 20px rgba(199, 75, 100, 0.4);
-  --lf-elevation-sheet: 0 -8px 28px rgba(34, 25, 26, 0.16);
+  --lf-elevation-card: 0 1px 2px rgba(23, 23, 23, 0.06), 0 1px 3px rgba(23, 23, 23, 0.10);
+  --lf-elevation-fab:  0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --lf-elevation-sheet: 0 -8px 28px rgba(0, 0, 0, 0.12);
 
   /* ---------------------------------------------------------
      MOTION — M3 easing 토큰 유지
      --------------------------------------------------------- */
-  --lf-easing-standard:              cubic-bezier(0.2, 0, 0, 1);
+  --lf-easing-standard:              cubic-bezier(0, 0, 0, 1);
   --lf-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
-  --lf-duration-short:  200ms;
-  --lf-duration-medium: 350ms;
-  --lf-duration-long:   500ms;
+  --lf-duration-short:  120ms;
+  --lf-duration-medium: 240ms;
+  --lf-duration-long:   400ms;
   --lf-duration-hook:  3400ms; /* 새끼손가락 걸기 루프 (Q-3) */
 }

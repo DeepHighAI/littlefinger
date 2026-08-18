@@ -21,7 +21,9 @@
      COLOR — 브랜드 그린 (Wanted green scale)
      --------------------------------------------------------- */
   --lf-color-primary:              #00BF40; /* green-50 */
-  --lf-color-on-primary:           #FFFFFF;
+  --lf-color-primary-hover:        #00A435;
+  --lf-color-primary-pressed:      #009933;
+  --lf-color-on-primary:           #171719;
   --lf-color-primary-container:    #DBFBE5; /* green-95 */
   --lf-color-on-primary-container: #02220C; /* green-0 */
   --lf-color-primary-soft:         #F0FDF4; /* green-99 — 알림 pill 배경 */

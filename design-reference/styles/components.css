@@ -230,7 +230,9 @@
   transition: filter var(--lf-duration-short) var(--lf-easing-standard);
 }
 
-.lf-btn:active { filter: brightness(0.94); }
+.lf-btn--filled:hover { background: var(--lf-color-primary-hover); }
+.lf-btn--filled:active { background: var(--lf-color-primary-pressed); }
+.lf-btn:not(.lf-btn--filled):active { filter: brightness(0.94); }
 
 .lf-btn:disabled,
 .lf-btn[aria-disabled='true'] {
@@ -344,7 +346,7 @@
   padding: 0 13px;
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-primary-soft);
-  color: var(--lf-color-primary);
+  color: var(--lf-color-primary-ink);
   font-size: var(--lf-type-caption-size);
   font-weight: var(--lf-weight-bold);
   white-space: nowrap;
@@ -452,6 +454,7 @@
 
 .lf-dday--lg { font-size: 18px; }
 .lf-dday--xl { font-size: var(--lf-type-display-size); }
+.lf-card--container .lf-dday { color: var(--lf-color-success); }
 
 /* -------------------------------------------------------------
    확정 스탬프 — "제대로 기록됐다"는 신뢰감 (요청서 §8)
@@ -864,7 +867,7 @@
 }
 
 /* 읽지 않은 알림 */
-.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-primary); }
+.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-primary-ink); }
 
 /* 행 전체가 링크처럼 동작하는 진입점 (버전 이력 등) */
 .lf-row-link {

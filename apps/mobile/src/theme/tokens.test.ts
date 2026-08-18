@@ -20,15 +20,15 @@ import {
 /**
  * 근거: 04_AI-Agent_코딩가이드 §5-1.
  *
- * tokens.css 가 디자인 값의 유일한 정의다. 이 테스트는 tokens.ts 가 그 원본과
- * 어긋나지 않는지를 기계적으로 대조한다 — 토큰 90개를 눈으로 옮기면 반드시 하나는 틀린다.
+ * canonical tokens.css 가 디자인 값의 유일한 정의다. 이 테스트는 tokens.ts 가 그 원본과
+ * 어긋나지 않는지를 기계적으로 대조한다 — 토큰을 눈으로 옮기면 반드시 하나는 틀린다.
  *
  * design-reference/ 는 읽기 전용이므로, 이 테스트가 실패하면 고쳐야 하는 쪽은 항상 tokens.ts 다.
  */
 
 const TOKENS_CSS = join(
   __dirname,
-  '../../../../design-reference/styles/littlefinger-apply/tokens.css',
+  '../../../../design-reference/styles/tokens.css',
 );
 const WEB_TOKENS_CSS = join(__dirname, '../../../web/src/styles/tokens.css');
 const WEB_COMPONENTS_CSS = join(__dirname, '../../../web/src/styles/components.css');
@@ -62,9 +62,30 @@ function unitless(value: string): number {
   return Number(value.replace(/px|ms/u, ''));
 }
 
+function contrastRatio(foreground: string, background: string): number {
+  const luminance = (hex: string) => {
+    const channels = hex
+      .slice(1)
+      .match(/.{2}/gu)
+      ?.map((channel) => Number.parseInt(channel, 16) / 255);
+    if (channels === undefined) throw new Error(`Invalid color: ${hex}`);
+
+    const [red = 0, green = 0, blue = 0] = channels.map((channel) =>
+      channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+    );
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  };
+
+  const foregroundLuminance = luminance(foreground);
+  const backgroundLuminance = luminance(background);
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('tokens.css 는 90개 토큰을 정의한다', () => {
-    expect(cssTokens.size).toBe(90);
+  test('canonical tokens.css 는 hover·pressed 상태를 포함한 92개 토큰을 정의한다', () => {
+    expect(cssTokens.size).toBe(92);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -132,7 +153,7 @@ describe('Fresh Green 웹 토큰도 같은 계약을 쓴다', () => {
       expect(webCssTokens.get(name)).toBe(expected);
     }
     expect(webCssTokens.get('color-primary-hover')).toBe('#00A435');
-    expect(webCssTokens.get('color-primary-pressed')).toBe('#008629');
+    expect(webCssTokens.get('color-primary-pressed')).toBe('#009933');
   });
 
   test('그린 틴트 위 텍스트 세 곳은 대비 보정 역할을 쓴다', () => {
@@ -246,6 +267,14 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
 });
 
 describe('접근성 하한', () => {
+  test.each([
+    ['default', colors.primary],
+    ['hover', colors.primaryHover],
+    ['pressed', colors.primaryPressed],
+  ] as const)('primary 액션 %s 상태의 텍스트 대비는 WCAG AA 4.5:1 이상이다', (_, background) => {
+    expect(contrastRatio(colors.onPrimary, background)).toBeGreaterThanOrEqual(4.5);
+  });
+
   test('터치 타깃 최소치는 48 이고 줄이지 않는다', () => {
     // 04 §5-1: "touchMin: 48 은 접근성 하한. 줄이지 않는다"
     expect(size.touchMin).toBe(48);

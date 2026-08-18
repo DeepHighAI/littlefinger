@@ -7,7 +7,7 @@
 .lf-notice { color: var(--lf-color-primary-ink); }
 
 /* 임박 고정 카드의 D-Day: green-95 배경 위 green-50 → green-30 */
-.lf-card--container .lf-dday { color: #008629; }
+.lf-card--container .lf-dday { color: var(--lf-color-success); }
 
 /* 읽지 않은 알림 헤드라인: primary-soft 배경 위 green-50 → green-20 */
 .lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-primary-ink); }
