@@ -1,6 +1,6 @@
 // HTTP 응답 조립과 CORS.
 //
-// 수락 웹(`*.pages.dev`)이 함수(`*.supabase.co`)를 부르므로 언제나 교차 출처다 — preflight 를
+// 수락 웹(`*.web.app`)이 함수(`*.supabase.co`)를 부르므로 언제나 교차 출처다 — preflight 를
 // 처리하지 않으면 SCR-W02 의 세 액션이 전부 브라우저 단계에서 막힌다.
 
 import type {

@@ -15,8 +15,8 @@ schemas = ["public"]
 # `supabase config push` 는 드리프트가 하나라도 있으면 auth 설정 **전체**를 PATCH 한다 —
 # site_url·리다이렉트 허용목록·jwt_expiry 만이 아니라 disable_signup·비밀번호 규칙·
 # rate limit 까지 로컬 기본값으로 덮어쓴다. 그리고 아래 목록은 완성본이 아니다:
-# `littlefinger://**` 가 빠져 있고, pages.dev 하위 도메인은 C-3 이 아직 열려 있어 확정값이
-# 아니며, 대시보드에만 있는 "Allow users without an email"(§6-1)은 표현할 방법이 없다.
+# `littlefinger://**` 와 Firebase Hosting 리다이렉트가 Dashboard 에서 확인돼야 하며,
+# 대시보드에만 있는 "Allow users without an email"(§6-1)은 표현할 방법이 없다.
 # 부분만 적힌 config-as-code 는 없는 것보다 나쁘다 — 정본처럼 보이는데 부분집합이다.
 #
 # **정본은 Supabase Dashboard 다.** 의도값의 근거는 아래 문서에 있다:
@@ -26,7 +26,7 @@ schemas = ["public"]
 #   site_url                      littlefinger://login-callback/
 #   additional_redirect_urls      littlefinger://auth-callback
 #                                 littlefinger://**
-#                                 https://<수락웹 도메인>  및 /**
+#                                 https://littlefinger-app-philwoo.web.app 및 /**
 #   jwt_expiry                    1800        (02 §11-3 기본안: access 30분)
 #   enable_refresh_token_rotation true        (refresh 30일)
 #   Allow users without an email  ON          (§6-1 — 없으면 이메일 미제공 계정이 500)
