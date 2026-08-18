@@ -90,6 +90,19 @@ describe('SCR-A01 로그인', () => {
     ).toBeTruthy();
   });
 
+  test('EC-A03 닉네임 필수 동의 거부는 재동의를 안내한다', async () => {
+    signInWithKakaoMock.mockResolvedValue('NICKNAME_REQUIRED');
+    const view = await render(<LoginScreen />);
+
+    await act(async () => {
+      fireEvent.press(view.getByRole('button', { name: '카카오로 시작하기' }));
+    });
+
+    expect(
+      await view.findByText('닉네임 정보는 약속 기록에 꼭 필요합니다. 동의 후 이용해 주세요.'),
+    ).toBeTruthy();
+  });
+
   test('콜드 스타트 OAuth 딥링크 실패도 EC-A02 안내를 보여준다', async () => {
     // 딥링크 교환은 루트 게이트가 맡고, 화면에는 실패 여부만 내려준다.
     const view = await render(
@@ -103,6 +116,16 @@ describe('SCR-A01 로그인', () => {
         '지금 카카오 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.',
       ),
     ).toBeTruthy();
+  });
+
+  test('EC-A06 만료된 저장 세션은 다시 로그인을 안내한다', async () => {
+    const view = await render(
+      <MobileAuthGateContext.Provider value={{ callbackFailed: false, sessionExpired: true }}>
+        <LoginScreen />
+      </MobileAuthGateContext.Provider>,
+    );
+
+    expect(await view.findByText('다시 로그인해 주세요.')).toBeTruthy();
   });
 
   test('약관 동의 안내를 보여준다', async () => {

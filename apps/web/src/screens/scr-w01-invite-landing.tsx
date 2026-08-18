@@ -43,6 +43,7 @@ const KAKAO_CTA = '카카오 로그인하고 내용 보기';
 const CTA_CAPTION = '앱 설치 없이 3분이면 끝나요';
 const KAKAO_SILENT_ATTEMPT_KEY = 'lf:kakao-silent-attempted';
 const KAKAOTALK_USER_AGENT = /KAKAOTALK/iu;
+const EXTERNAL_BROWSER_GUIDE = '기본 브라우저에서 열어 주세요.';
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
@@ -337,7 +338,11 @@ export function ScrW01InviteLanding(): React.JSX.Element {
             붙이면 대부분의 스크린리더가 로그인 실패를 놓치고, 버튼은 잠겨 있어 무반응으로만
             느껴진다. 그래서 빈 채로 항상 렌더한다. */}
         <p className="lf-caption lf-text-center" role="alert">
-          {signInFailed ? INTERNAL_MESSAGE : ''}
+          {signInFailed
+            ? KAKAOTALK_USER_AGENT.test(window.navigator.userAgent)
+              ? EXTERNAL_BROWSER_GUIDE
+              : INTERNAL_MESSAGE
+            : ''}
         </p>
       </div>
     </div>

@@ -7,7 +7,7 @@ export interface MobileSessionGateDeps {
   };
   getInitialUrl(): Promise<string | null>;
   addUrlListener(listener: (url: string) => void): { remove(): void };
-  completeKakaoSignIn(url: string): Promise<'SIGNED_IN' | 'CANCELED'>;
+  completeKakaoSignIn(url: string): Promise<'SIGNED_IN' | 'CANCELED' | 'NICKNAME_REQUIRED'>;
   registerPush(session: Session): Promise<unknown>;
   logError(error: unknown): void;
 }

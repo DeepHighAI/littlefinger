@@ -111,6 +111,19 @@ describe('signInWithKakao', () => {
     expect(d.fetch).not.toHaveBeenCalled();
   });
 
+  test('EC-A03 profile_nickname 필수 동의 거부는 재동의 결과로 구분한다', async () => {
+    const d = deps();
+    d.value.parseUrl = () => ({
+      params: { error_description: 'Required consent item profile_nickname was denied' },
+      errorCode: 'access_denied',
+    });
+
+    await expect(
+      completeKakaoSignIn('littlefinger://auth-callback?error=access_denied', d.value),
+    ).resolves.toBe('NICKNAME_REQUIRED');
+    expect(d.setSession).not.toHaveBeenCalled();
+  });
+
   test('프로비저닝 실패는 저장된 로그인 세션을 실패로 바꾸지 않는다', async () => {
     // setSession 뒤 함수 호출은 별도 트랜잭션이다. 여기서 throw 하면 실제로 로그인된
     // 사용자에게 실패 화면을 보여 주고, 다음 탭에서 갑자기 로그인된 모순이 생긴다.

@@ -51,6 +51,7 @@ function detail(): PromiseDetailResponse {
     check_deadline_at: null,
     check_round_no: 0,
     my_role: 'CREATOR',
+    counterpart_push_available: true,
     creator: {
       user_id: CREATOR_ID,
       nickname: '지우',

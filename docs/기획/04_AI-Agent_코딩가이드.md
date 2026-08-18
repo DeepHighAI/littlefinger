@@ -369,6 +369,9 @@ MVP 기본안: `@expo/vector-icons`의 `MaterialIcons`를 쓴다(Expo에 내장,
 | `fulfillment-submit` | 이행 확인 응답 기록 → 종결 상태 판정 (J-01) | 양측 응답 비교 후 COMPLETED/BROKEN/DISPUTED 결정 |
 | `evidence-sign-url` | 증빙 사진 서명 URL 발급(10분) | 비공개 버킷 유지 |
 | `push-send` | Expo Push 발송 | 조용시간(21:00–08:00 KST) 규칙 적용 |
+| `account-withdraw` | 탈퇴 트랜잭션 + 계정 식별자 비식별화 + Auth 계정 삭제 시도 | 실패해도 `WITHDRAWN` 경계가 즉시 접근 차단 |
+| `profile-nickname-update` | 임시 닉네임 교체 | 정규화·길이 규칙을 서버에서 재검증 |
+| `promise-hide` / `user-block` / `safety-report` | 종결 약속 숨김·공유 관계 차단·사용자/증빙 신고 | 참여 권한과 증빙 블라인드를 DB 트랜잭션으로 강제 |
 
 **`content_hash` 생성 규칙**(세부기능명세서 §6): SHA-256, **키 순서 고정**, 문자열 **NFC 정규화**. 이 함수는 `packages/shared`에 두지 않고 **Edge Function 안에만** 둔다(클라이언트가 위조 해시를 만들 수 없게).
 
@@ -378,13 +381,16 @@ Supabase의 `pg_cron`으로 스케줄한다(Free 플랜 사용 가능). 각 배�
 
 | 배치 | 시각(KST) | 내용 |
 |---|---|---|
-| 리마인드 발송 | 매일 09:00 | `REMINDER_OFFSET_DAYS` = D-7/3/1/0 |
-| 종료일 도래 → CHECKING | 매일 00:05 | 상태 전이 |
-| 이행 확인 기한 초과 → UNRESOLVED | 매일 00:10 | J-03 |
-| 초대 링크 만료 | 매시 | J-04, 72시간 |
-| 변경 요청 자동 철회 | 매일 | 7일 |
-| DRAFT 정리 | 매일 | 90일 |
-| 증빙 만료 삭제 | 매일 | 365일 |
+| J-01 예약 알림 발송 | 매 10분 | due schedule 발송, 21:00–08:00 KST 이연 |
+| J-02 종료일 도래 → CHECKING | 매일 00:10 | 상태 전이 |
+| J-03 이행 확인 기한 초과 → UNRESOLVED | 매일 00:20 | 기한 종결 |
+| J-04 초대 링크 만료 | 매 30분 | 72시간, 약속은 PENDING 유지 |
+| J-05 변경 요청 자동 철회 | 매일 00:30 | 7일 |
+| J-06 DRAFT 알림·정리 | 매일 04:00 | NT-20/21 예약, 예고 발송 후 90일 삭제 |
+| J-07 일 지표 집계 | **현재 범위 보류** | ACTIVE 전환 시 `activated_count` 실시간 기록은 유지 |
+| J-08 증빙 만료 삭제 | 매주 일 05:00 | 365일 |
+| J-09 해시 검증 | 매주 일 05:30 | 사용자 화면 비노출 |
+| J-10 지킴율 재계산 | 매일 03:00 | 실시간 캐시 정합성 보정 |
 
 ### 7-5. Supabase 무료 플랜의 함정 — 반드시 처리
 
@@ -410,7 +416,7 @@ Supabase의 `pg_cron`으로 스케줄한다(Free 플랜 사용 가능). 각 배�
  → 앱 딥링크로 복귀 → 세션 저장
 ```
 
-세션은 `expo-secure-store`에 저장한다(`AsyncStorage`는 암호화되지 않음). 토큰 수명은 §11-3 기본안(access 30분 / refresh 30일)을 Supabase 프로젝트 설정에 반영한다.
+세션은 AES-256 키만 `expo-secure-store`에 두고 암호문을 AsyncStorage에 저장하는 `LargeSecureStore` 어댑터로 보관한다. SecureStore 단일 값 한도 때문에 Supabase 세션 JSON을 직접 넣지 않는다. 토큰 수명은 §11-3 기본안(access 30분 / refresh 30일)을 Supabase 프로젝트 설정에 반영한다.
 
 ### 수락 웹 (SCR-W01)
 
@@ -422,7 +428,7 @@ Supabase의 `pg_cron`으로 스케줄한다(Free 플랜 사용 가능). 각 배�
 
 | 제약 | 영향 | 대응 |
 |---|---|---|
-| **카카오 이메일 수집은 "비즈 앱" 등록이 필요**(사업자 정보 필요) | 이메일 리마인드(수락 웹 참여자용)를 쓸 수 없을 수 있음 | `User.email`은 이미 `string \| null`이므로 **타입 변경 불필요**. 이메일이 없으면 리마인드를 푸시·카톡 링크 재방문으로만 처리. **PO 확인 필요(C-1)** |
+| **비즈 앱은 로그인 자체에 필수** | Supabase Auth가 `account_email` scope도 요청하므로 미등록 시 KOE205 | 카카오 콘솔에는 선택 동의로 등록하되 제품은 이메일을 저장·읽지 않는다. 이메일 수집·발송은 MVP 제외(C-1 종료, 2026-07-29) |
 | 카카오 JS SDK 1.43.6 이하 지원 종료(2026-12-31) | 해당 없음 | 처음부터 v2/Supabase 경로 사용 |
 | 카카오 개발자 콘솔에 **Redirect URI를 정확히 등록**해야 함 | 등록 누락 시 로그인 전면 실패 | Supabase 콜백 URL + 앱 딥링크 + 웹 도메인 3종 등록 |
 
@@ -445,7 +451,7 @@ MVP는 **OS 기본 공유 시트**(RN `Share` API)로 초대 링크를 보낸다
 
 **절대 클라이언트에 넣지 않는 값** (Supabase Secrets / GitHub Secrets에만)
 
-`SUPABASE_SERVICE_ROLE_KEY`, `KAKAO_REST_API_KEY`, `KAKAO_CLIENT_SECRET`, `INVITE_TOKEN_PEPPER`(초대 토큰 해시용), `PII_HASH_SALT`(IP·User-Agent 해시용 — **pepper 와 다른 값**. 같은 값을 쓰면 링크 인증용 비밀이 새는 순간 저장된 IP 를 되짚는 오라클까지 함께 넘어간다), `EXPO_ACCESS_TOKEN`(푸시 발송용).
+`SUPABASE_SERVICE_ROLE_KEY`, `KAKAO_REST_API_KEY`, `KAKAO_CLIENT_SECRET`, `INVITE_TOKEN_PEPPER`(초대 토큰 해시용), `PII_HASH_SALT`(IP·User-Agent 해시용), `ACCOUNT_ID_PEPPER`(탈퇴 계정 식별자 비식별화용), `EXPO_ACCESS_TOKEN`(푸시 발송용). 세 pepper/salt는 서로 다른 값을 쓴다.
 
 `.env*`는 `.gitignore`에 포함한다. `.env.example`만 커밋한다. **키를 커밋했다면 즉시 회전(regenerate)한다.**
 
@@ -556,7 +562,7 @@ node design-reference/serve.js   # 원본 화면과 눈으로 대조
 
 | # | 확인 요청 | 기본안(무응답 시 이대로 진행) | 영향 |
 |---|---|---|---|
-| **C-1** | **사업자등록이 있으신가요?** 카카오 "비즈 앱" 등록에 필요하고, 비즈 앱이 아니면 **사용자 이메일을 받을 수 없습니다** | **이메일 없이 진행** — 리마인드는 푸시(앱)와 카톡 링크 재방문(웹)으로만. 타입 변경 불필요 | F-05 리마인드 경로, 세부기능명세서 EC-G03 |
+| ~~C-1~~ | ~~카카오 이메일 수집 여부~~ | **종료(2026-07-29): 이메일 미수집·미발송.** 비즈 앱은 로그인 자체를 위해 등록하고 `account_email`은 선택 동의로만 둔다 | EC-G03은 비적용 결정 검증 |
 | C-2 | 아이콘을 원본과 100% 같게 맞출까요? | **맞추지 않음** — Expo 내장 MaterialIcons 사용(모서리 곡률 미세 차이) | 시각 충실도만 |
 | C-3 | 수락 웹 도메인을 구입할까요? | **Cloudflare 무료 주소로 시작** | 초대 링크 주소 모양 |
 | C-4 | 초대 링크 공유를 카카오 공유 카드로 예쁘게 만들까요? | **MVP 제외** — OS 기본 공유 시트로 링크만 전송 | F-03 체감 품질 |

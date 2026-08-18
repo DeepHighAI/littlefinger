@@ -41,6 +41,11 @@ import { CompletionCelebrationSheet } from '../../components/completion-celebrat
 import { PromiseAmendSheet } from '../../components/promise-amend-sheet.tsx';
 import { WitnessInviteSheet } from '../../components/witness-invite-sheet.tsx';
 import {
+  blockUserNative,
+  hidePromiseNative,
+  reportSafetyIssueNative,
+} from '../../lib/account-safety-native.ts';
+import {
   claimCompletionCelebration,
   markCompletionCelebrationShown,
 } from '../../lib/completion-celebration-native.ts';
@@ -58,6 +63,7 @@ import {
   withdrawPromiseAmend,
 } from '../../lib/promise-amend-native.ts';
 import { getPromiseDetail } from '../../lib/promise-detail-native.ts';
+import { buildParticipantPromisesWebUrl } from '../../lib/invite-link.ts';
 import { openEndDatePicker } from '../../lib/promise-editor-native.ts';
 import {
   changedVersionRows,
@@ -122,6 +128,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: space[3],
   },
+  evidenceGroup: { width: size.evidenceThumb, gap: space[2] },
   claims: { gap: space[5] },
   claim: { flex: 1, gap: space[3], alignItems: 'center' },
   actions: { gap: space[4] },
@@ -204,7 +211,13 @@ function PersonRow({ person }: { person: PromiseDetailPerson }): React.JSX.Eleme
   );
 }
 
-function EvidenceTile({ evidence }: { evidence: EvidenceView }): React.JSX.Element {
+function EvidenceTile({
+  evidence,
+  onReport,
+}: {
+  evidence: EvidenceView;
+  onReport(evidenceId: string): void;
+}): React.JSX.Element {
   const placeholder = evidenceAvailabilityText(evidence.availability);
   if (placeholder !== null) {
     return (
@@ -214,31 +227,41 @@ function EvidenceTile({ evidence }: { evidence: EvidenceView }): React.JSX.Eleme
     );
   }
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={SCR_A05_LABEL.evidenceOpen}
-      style={styles.evidence}
-      onPress={async () => {
-        try {
-          const signed = await signFulfillmentEvidence(evidence.evidence_id, 'FULL');
-          await Linking.openURL(signed.signed_url);
-        } catch {
-          // 열람 실패는 화면의 기록 자체를 숨기지 않는다.
-        }
-      }}
-    >
-      <LfIcon name="image" color="textMuted" />
-      <LfText variant="caption">{SCR_A05_LABEL.evidenceOpen}</LfText>
-    </Pressable>
+    <View style={styles.evidenceGroup}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={SCR_A05_LABEL.evidenceOpen}
+        style={styles.evidence}
+        onPress={async () => {
+          try {
+            const signed = await signFulfillmentEvidence(evidence.evidence_id, 'FULL');
+            await Linking.openURL(signed.signed_url);
+          } catch {
+            // 열람 실패는 화면의 기록 자체를 숨기지 않는다.
+          }
+        }}
+      >
+        <LfIcon name="image" color="textMuted" />
+        <LfText variant="caption">{SCR_A05_LABEL.evidenceOpen}</LfText>
+      </Pressable>
+      <LfButton
+        label={SCR_A05_LABEL.evidenceReport}
+        variant="text"
+        size="compact"
+        onPress={() => onReport(evidence.evidence_id)}
+      />
+    </View>
   );
 }
 
 function ClaimCard({
   check,
   nickname,
+  onReportEvidence,
 }: {
   check: FulfillmentCheckView;
   nickname: string;
+  onReportEvidence(evidenceId: string): void;
 }): React.JSX.Element {
   const claim = claimPresentation(check, nickname);
   return (
@@ -256,7 +279,11 @@ function ClaimCard({
         {check.evidences.length > 0 && (
           <View style={styles.evidenceRow}>
             {check.evidences.map((evidence) => (
-              <EvidenceTile key={evidence.evidence_id} evidence={evidence} />
+              <EvidenceTile
+                key={evidence.evidence_id}
+                evidence={evidence}
+                onReport={onReportEvidence}
+              />
             ))}
           </View>
         )}
@@ -364,7 +391,13 @@ function VersionHistorySheet({
   );
 }
 
-function FulfillmentSection({ detail }: { detail: PromiseDetailResponse }): React.JSX.Element | null {
+function FulfillmentSection({
+  detail,
+  onReportEvidence,
+}: {
+  detail: PromiseDetailResponse;
+  onReportEvidence(evidenceId: string): void;
+}): React.JSX.Element | null {
   const fulfillment = detail.fulfillment;
   if (fulfillment === null) return null;
   const checks = [fulfillment.creator_check, fulfillment.partner_check].filter(
@@ -398,6 +431,7 @@ function FulfillmentSection({ detail }: { detail: PromiseDetailResponse }): Reac
                   ? detail.creator.nickname
                   : (detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL.PARTNER)
               }
+              onReportEvidence={onReportEvidence}
             />
           ))}
         </View>
@@ -419,6 +453,7 @@ function FulfillmentSection({ detail }: { detail: PromiseDetailResponse }): Reac
                         ? detail.creator.nickname
                         : (detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL.PARTNER)
                     }
+                    onReportEvidence={onReportEvidence}
                   />
                 ))}
             </LfStack>
@@ -551,6 +586,13 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     && (detail.my_role === 'CREATOR' || detail.my_role === 'PARTNER');
   const canShowVersionHistory = !['DECLINED', 'CANCELED'].includes(detail.status)
     && detail.current_version.activated_at !== null;
+  const terminal = ['COMPLETED', 'BROKEN', 'DISPUTED', 'UNRESOLVED', 'DECLINED', 'CANCELED']
+    .includes(detail.status);
+  const counterpart = detail.my_role === 'CREATOR' ? detail.partner : detail.creator;
+  const canNotifyPartner = detail.my_role === 'CREATOR'
+    && detail.partner !== null
+    && !detail.counterpart_push_available
+    && !terminal;
 
   async function reopen(): Promise<void> {
     if (promiseId === null || busy) return;
@@ -665,6 +707,104 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         { text: MOD_01_LABEL.cancelConfirmAction, style: 'destructive', onPress: () => resolve(true) },
       ], { cancelable: false });
     });
+  }
+
+  async function hideFromList(): Promise<void> {
+    const detailId = detail?.promise_id;
+    if (busy || detailId === undefined) return;
+    setBusy(true);
+    setActionError(false);
+    try {
+      await hidePromiseNative(detailId, true);
+      router.back();
+    } catch {
+      setActionError(true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function confirmBlock(): void {
+    const target = counterpart;
+    if (target === null || busy) return;
+    Alert.alert(SCR_A05_LABEL.userBlockTitle, SCR_A05_LABEL.userBlockBody, [
+      { text: SCR_A05_LABEL.cancel, style: 'cancel' },
+      {
+        text: SCR_A05_LABEL.blockAction,
+        style: 'destructive',
+        onPress: async () => {
+          setBusy(true);
+          setActionError(false);
+          try {
+            await blockUserNative(target.user_id);
+          } catch {
+            setActionError(true);
+          } finally {
+            setBusy(false);
+          }
+        },
+      },
+    ]);
+  }
+
+  function confirmUserReport(): void {
+    const target = counterpart;
+    const detailId = detail?.promise_id;
+    if (target === null || detailId === undefined || busy) return;
+    Alert.alert(SCR_A05_LABEL.userReportTitle, SCR_A05_LABEL.userReportBody, [
+      { text: SCR_A05_LABEL.cancel, style: 'cancel' },
+      {
+        text: SCR_A05_LABEL.reportAction,
+        style: 'destructive',
+        onPress: async () => {
+          setBusy(true);
+          setActionError(false);
+          try {
+            await reportSafetyIssueNative({
+              promise_id: detailId,
+              target_user_id: target.user_id,
+              evidence_id: null,
+              reason: 'ABUSE',
+              detail: null,
+            });
+          } catch {
+            setActionError(true);
+          } finally {
+            setBusy(false);
+          }
+        },
+      },
+    ]);
+  }
+
+  function confirmEvidenceReport(evidenceId: string): void {
+    const detailId = detail?.promise_id;
+    if (busy || detailId === undefined) return;
+    Alert.alert(SCR_A05_LABEL.evidenceReportTitle, SCR_A05_LABEL.evidenceReportBody, [
+      { text: SCR_A05_LABEL.cancel, style: 'cancel' },
+      {
+        text: SCR_A05_LABEL.reportAction,
+        style: 'destructive',
+        onPress: async () => {
+          setBusy(true);
+          setActionError(false);
+          try {
+            await reportSafetyIssueNative({
+              promise_id: detailId,
+              target_user_id: null,
+              evidence_id: evidenceId,
+              reason: 'ABUSE',
+              detail: null,
+            });
+            await refresh();
+          } catch {
+            setActionError(true);
+          } finally {
+            setBusy(false);
+          }
+        },
+      },
+    ]);
   }
 
   function acknowledgeCelebrationShown(): void {
@@ -805,7 +945,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           </LfStack>
         )}
 
-        <FulfillmentSection detail={detail} />
+        <FulfillmentSection detail={detail} onReportEvidence={confirmEvidenceReport} />
 
         <LfStack gap={4}>
           <LfText variant="sectionTitle">{SCR_A05_LABEL.record}</LfText>
@@ -854,6 +994,26 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               disabled={busy}
               onPress={() => setAmendSheetOpen(true)}
             />
+          ) : null}
+          {canNotifyPartner ? (
+            <LfCard variant="container">
+              <LfStack gap={3}>
+                <LfText variant="caption">{SCR_A05_LABEL.notifyPartnerHint}</LfText>
+                <LfButton
+                  label={SCR_A05_LABEL.notifyPartnerAction}
+                  variant="outlined"
+                  block
+                  onPress={() => void Share.share({
+                    message: SCR_A05_LABEL.notifyPartnerMessage(
+                      detail.title,
+                      buildParticipantPromisesWebUrl(
+                        process.env['EXPO_PUBLIC_WEB_BASE_URL'] ?? '',
+                      ),
+                    ),
+                  })}
+                />
+              </LfStack>
+            </LfCard>
           ) : null}
           {detail.status === 'PENDING' && (
             <LfButton
@@ -907,6 +1067,33 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               block
               onPress={() => setWitnessSheetOpen(true)}
             />
+          )}
+          {terminal && (
+            <LfButton
+              label={SCR_A05_LABEL.hideAction}
+              variant="outlined"
+              block
+              disabled={busy}
+              onPress={() => void hideFromList()}
+            />
+          )}
+          {counterpart !== null && (
+            <LfRow>
+              <LfButton
+                label={SCR_A05_LABEL.userReport}
+                variant="text"
+                grow
+                disabled={busy}
+                onPress={confirmUserReport}
+              />
+              <LfButton
+                label={SCR_A05_LABEL.userBlock}
+                variant="danger"
+                grow
+                disabled={busy}
+                onPress={confirmBlock}
+              />
+            </LfRow>
           )}
           {actionError && <LfText variant="caption" align="center">{SCR_A05_LABEL.actionFailed}</LfText>}
         </View>

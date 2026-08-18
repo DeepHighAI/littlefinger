@@ -20,6 +20,15 @@ import {
   type NotificationReadAllResponse,
   type NotificationReadRequest,
   type NotificationReadResponse,
+  type AccountWithdrawResponse,
+  type ProfileNicknameUpdateRequest,
+  type ProfileNicknameUpdateResponse,
+  type PromiseHideRequest,
+  type PromiseHideResponse,
+  type SafetyReportRequest,
+  type SafetyReportResponse,
+  type UserBlockRequest,
+  type UserBlockResponse,
   type ParticipantPromiseSummary,
   type PromiseFulfillmentDetailRequest,
   type PromiseFulfillmentDetailResponse,
@@ -188,6 +197,25 @@ const notificationReadResponse: NotificationReadResponse = {
   read_at: '2026-08-15T00:00:00Z',
 };
 const notificationReadAllResponse: NotificationReadAllResponse = { read_count: 1 };
+const accountWithdrawResponse: AccountWithdrawResponse = { status: 'WITHDRAWN' };
+const profileNicknameUpdateRequest: ProfileNicknameUpdateRequest = { nickname: '새 닉네임' };
+const profileNicknameUpdateResponse: ProfileNicknameUpdateResponse = { nickname: '새 닉네임' };
+const promiseHideRequest: PromiseHideRequest = { promise_id: 'promise-id', hidden: true };
+const promiseHideResponse: PromiseHideResponse = { promise_id: 'promise-id', hidden: true };
+const userBlockRequest: UserBlockRequest = { target_user_id: 'target-id' };
+const userBlockResponse: UserBlockResponse = { target_user_id: 'target-id', blocked: true };
+const safetyReportRequest: SafetyReportRequest = {
+  promise_id: 'promise-id',
+  target_user_id: 'target-id',
+  evidence_id: null,
+  reason: 'WRONG_PARTNER',
+  detail: null,
+};
+const safetyReportResponse: SafetyReportResponse = {
+  report_id: 'report-id',
+  status: 'RECEIVED',
+  evidence_blinded: false,
+};
 
 const validationFields: ApiValidationField[] = [
   'answer',
@@ -331,6 +359,33 @@ describe('F-07 공개 API 계약', () => {
     expect(ENDPOINT).toMatchObject({
       completionCelebrationClaim: 'completion-celebration-claim',
       completionCelebrationShown: 'completion-celebration-shown',
+    });
+  });
+
+  test('계정·안전·숨기기 API는 공개 요청·응답과 전용 endpoint를 고정한다', () => {
+    expect({
+      accountWithdrawResponse,
+      profileNicknameUpdateRequest,
+      profileNicknameUpdateResponse,
+      promiseHideRequest,
+      promiseHideResponse,
+      userBlockRequest,
+      userBlockResponse,
+      safetyReportRequest,
+      safetyReportResponse,
+    }).toMatchObject({
+      accountWithdrawResponse: { status: 'WITHDRAWN' },
+      profileNicknameUpdateResponse: { nickname: '새 닉네임' },
+      promiseHideResponse: { hidden: true },
+      userBlockResponse: { blocked: true },
+      safetyReportResponse: { status: 'RECEIVED', evidence_blinded: false },
+    });
+    expect(ENDPOINT).toMatchObject({
+      accountWithdraw: 'account-withdraw',
+      profileNicknameUpdate: 'profile-nickname-update',
+      promiseHide: 'promise-hide',
+      userBlock: 'user-block',
+      safetyReport: 'safety-report',
     });
   });
 });

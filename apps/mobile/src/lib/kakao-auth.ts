@@ -35,14 +35,20 @@ export interface KakaoAuthDeps {
   sleep(ms: number): Promise<void>;
 }
 
-export type KakaoSignInResult = 'SIGNED_IN' | 'CANCELED';
+export type KakaoSignInResult = 'SIGNED_IN' | 'CANCELED' | 'NICKNAME_REQUIRED';
 
 export async function completeKakaoSignIn(
   url: string,
   deps: KakaoAuthDeps,
 ): Promise<KakaoSignInResult> {
   const { params, errorCode } = deps.parseUrl(url);
-  if (errorCode !== null) throw new Error(errorCode);
+  if (errorCode !== null) {
+    const description = params['error_description'] ?? '';
+    if (errorCode === 'access_denied' && /profile_nickname/iu.test(description)) {
+      return 'NICKNAME_REQUIRED';
+    }
+    throw new Error(errorCode);
+  }
   const accessToken = params['access_token'];
   const refreshToken = params['refresh_token'];
   if (accessToken === undefined || refreshToken === undefined) {

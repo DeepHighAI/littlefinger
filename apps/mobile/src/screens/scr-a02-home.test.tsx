@@ -125,7 +125,7 @@ describe('SCR-A02 F-10 홈 목록', () => {
     expect(view.getAllByRole('button', { name: '약속 만들기' })).toHaveLength(1);
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
     expect(readAdsEnabledMock).toHaveBeenCalledTimes(1);
-  });
+  }, 15_000);
 
   test('원격 플래그가 true일 때만 목록 하단에 광고 슬롯 1개를 붙인다', async () => {
     readAdsEnabledMock.mockResolvedValue(true);

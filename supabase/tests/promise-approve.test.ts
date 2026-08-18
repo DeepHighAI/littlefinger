@@ -243,7 +243,7 @@ describe('성공 경로 — 열 단계가 실제로 일어난다', () => {
     expect((await approve(f)).title).toBe('매일 걷기');
   });
 
-  test('payload 가 NT-01 을 만들 재료를 담고 있다', async () => {
+  test('EC-B04 승인 payload가 작성자에게 상대 프로필을 알릴 재료를 담고 있다', async () => {
     // 9단계가 함수 밖이므로, 껍데기가 두 번째 조회 없이 알림을 만들 수 있어야 한다.
     // EC-B04 는 작성자에게 상대 닉네임·프로필을 즉시 보여 오수락을 잡게 한다.
     const f = await seed();
@@ -405,7 +405,7 @@ describe('가드 — §4-3-5 1·2단계', () => {
     expect(row.status).toBe('PENDING');
   });
 
-  test('작성자가 자기 링크로 수락하면 E_SELF_INVITE', async () => {
+  test('EC-B05 작성자가 자기 링크로 수락하면 E_SELF_INVITE', async () => {
     const f = await seed();
     await expect(approve(f, { userId: f.creatorId })).rejects.toThrow('E_SELF_INVITE');
   });

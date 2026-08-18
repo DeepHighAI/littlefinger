@@ -162,21 +162,6 @@ export function validateComment(value: string): ValidationResult {
   return checkLength(value, 0, 200, null);
 }
 
-/**
- * 리마인드 이메일 — 선택, RFC 5322.
- *
- * RFC 5322 전문을 정규식으로 옮기지 않는다. 그 문법은 주석·따옴표 문자열까지 허용해서
- * 실무에서 쓰는 정규식은 어차피 근사치이고, 최종 확인은 발송 성공 여부다.
- * 여기서는 화면에서 오타를 잡아주는 수준으로만 본다.
- */
-const EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/u;
-
-export function validateEmail(value: string): ValidationResult {
-  const { text } = normalizedLength(value);
-  if (text === '') return VALID;
-  return EMAIL.test(text) ? VALID : invalid('이메일 형식을 확인해 주세요.');
-}
-
 // ── §5-2 증빙 사진 ─────────────────────────────────────────
 
 export interface EvidenceFile {

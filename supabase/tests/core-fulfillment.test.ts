@@ -319,12 +319,31 @@ describe('이행 상세 읽기', () => {
 });
 
 describe('이행 응답 제출과 정정', () => {
-  test('CHECKING 전과 기한 경과 뒤 제출은 E_STATE_CONFLICT다', async () => {
+  test('EC-F04 keeper가 한쪽이어도 양측 응답 전에는 CHECKING에서 대기한다', async () => {
+    const fixture = await seedChecking({ keeper: 'CREATOR' });
+    const response = await submit(fixture, fixture.creatorId, 'KEPT');
+    const state = await one<{ status: string; checks: number }>(
+      `select p.status,
+              (select count(*)::int from public.fulfillment_checks
+                where promise_id = p.id) as checks
+         from public.promises p where p.id = $1`,
+      [fixture.promiseId],
+    );
+
+    expect(response).toMatchObject({ status: 'CHECKING', waiting_for_partner: true });
+    expect(state).toEqual({ status: 'CHECKING', checks: 1 });
+  });
+
+  test('EC-F07 CHECKING 전·기한 경과·종결 뒤 제출은 E_STATE_CONFLICT다', async () => {
     const active = await seedChecking({ status: 'ACTIVE' });
     expect(await codeOf(() => submit(active, active.creatorId, 'KEPT'))).toBe('E_STATE_CONFLICT');
 
     const expired = await seedChecking({ deadline: 'expired' });
     expect(await codeOf(() => submit(expired, expired.creatorId, 'KEPT'))).toBe(
+      'E_STATE_CONFLICT',
+    );
+    const completed = await seedChecking({ status: 'COMPLETED' });
+    expect(await codeOf(() => submit(completed, completed.creatorId, 'KEPT'))).toBe(
       'E_STATE_CONFLICT',
     );
   });
@@ -353,7 +372,7 @@ describe('이행 응답 제출과 정정', () => {
     ).toBe('E_VALIDATION');
   });
 
-  test('첫 제출·같은 키 재생·명시적 1회 정정만 허용한다', async () => {
+  test('EC-F02 첫 제출·같은 키 재생·명시적 1회 정정만 허용한다', async () => {
     const fixture = await seedChecking();
     await insertCheckSchedules(fixture);
     const key = randomUUID();
@@ -441,13 +460,13 @@ describe('이행 응답 제출과 정정', () => {
   });
 });
 
-describe('두 응답의 트랜잭션 판정', () => {
+describe('두 응답의 트랜잭션 판정 — EC-F01', () => {
   test.each([
     ['KEPT', 'KEPT', 'COMPLETED', 1],
     ['NOT_KEPT', 'NOT_KEPT', 'BROKEN', 0],
     ['KEPT', 'NOT_KEPT', 'DISPUTED', 0],
   ] as const)(
-    '%s + %s는 %s로 한 번만 전이하고 완료 지표 증가량은 %s다',
+    'EC-F01 %s + %s 병렬 제출은 %s로 한 번만 전이하고 완료 지표 증가량은 %s다',
     async (creatorAnswer, partnerAnswer, expectedStatus, expectedMetricDelta) => {
       const fixture = await seedChecking();
       await insertCheckSchedules(fixture);

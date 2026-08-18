@@ -38,6 +38,9 @@ const ACTIONS_BOTTOM = 28;
 const KAKAO_LOGIN_CANCELED_LABEL = '로그인을 취소했습니다. 다시 시도해 주세요.';
 const KAKAO_LOGIN_ERROR_LABEL =
   '지금 카카오 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
+const KAKAO_NICKNAME_REQUIRED_LABEL =
+  '닉네임 정보는 약속 기록에 꼭 필요합니다. 동의 후 이용해 주세요.';
+const SESSION_EXPIRED_LABEL = '다시 로그인해 주세요.';
 const LEGAL_DOCUMENT_ERROR_LABEL =
   '법적 문서를 열 수 없습니다. 잠시 후 다시 시도해 주세요.';
 const LEGAL_AGREEMENT_LABEL = '시작하면 위 문서에 동의하게 돼요';
@@ -107,13 +110,14 @@ const styles = StyleSheet.create({
 });
 
 export default function LoginScreen(): React.JSX.Element {
-  const { callbackFailed } = useMobileAuthGate();
+  const { callbackFailed, sessionExpired = false } = useMobileAuthGate();
   const [signingIn, setSigningIn] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (callbackFailed) setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
-  }, [callbackFailed]);
+    else if (sessionExpired) setAuthMessage(SESSION_EXPIRED_LABEL);
+  }, [callbackFailed, sessionExpired]);
 
   async function handleKakaoLogin(): Promise<void> {
     setSigningIn(true);
@@ -121,6 +125,7 @@ export default function LoginScreen(): React.JSX.Element {
     try {
       const result = await signInWithKakao();
       if (result === 'CANCELED') setAuthMessage(KAKAO_LOGIN_CANCELED_LABEL);
+      if (result === 'NICKNAME_REQUIRED') setAuthMessage(KAKAO_NICKNAME_REQUIRED_LABEL);
     } catch {
       setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
     } finally {

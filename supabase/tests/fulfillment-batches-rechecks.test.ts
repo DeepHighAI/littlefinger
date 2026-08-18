@@ -145,7 +145,10 @@ describe('F-07 SQL 함수 보안 경계', () => {
       [...functionNames].sort(),
     );
     for (const row of rows) {
-      expect(row.proconfig ?? []).toContain('search_path=public, pg_temp');
+      const config = row.proconfig ?? [];
+      expect(
+        config.includes('search_path=public, pg_temp') || config.includes('search_path=""'),
+      ).toBe(true);
     }
   });
 });
@@ -300,7 +303,7 @@ describe('J-02/J-03 잠금 정책', () => {
 });
 
 describe('J-02 종료일 다음 KST 자정 CHECKING 전이', () => {
-  test('UTC 세션에서도 23:59/00:00 KST 경계와 종료일 기준 시각을 지킨다', async () => {
+  test('EC-F08 UTC 세션에서도 23:59/00:00 KST 경계와 종료일 기준 시각을 지킨다', async () => {
     const previousDay = await seedPromise({ endDate: '2026-07-30' });
     const boundaryDay = await seedPromise({ endDate: '2026-07-31' });
     const timezone = await one<{ TimeZone: string }>('show time zone');
@@ -425,9 +428,9 @@ describe('J-02 종료일 다음 KST 자정 CHECKING 전이', () => {
   });
 });
 
-describe('J-03 기한 경과 종결', () => {
+describe('J-03 기한 경과 종결 — EC-F03', () => {
   test.each([0, 1])(
-    '1라운드 응답 %s개는 UNRESOLVED와 양측 NT-14를 한 번만 만든다',
+    'EC-F03 1라운드 응답 %s개는 UNRESOLVED와 양측 NT-14를 한 번만 만든다',
     async (responseCount) => {
       const fixture = await seedPromise({
         status: 'CHECKING',
@@ -768,7 +771,7 @@ describe('DISPUTED 재확인 라운드', () => {
     expect(scheduleTimes.rows).toEqual(expectedTimes.rows);
   });
 
-  test('서로 다른 키의 동시 재확인은 한 요청만 새 라운드를 만든다', async () => {
+  test('EC-F10 서로 다른 키의 동시 재확인은 한 요청만 제한 없이 새 라운드를 만든다', async () => {
     const fixture = await seedPromise({ status: 'DISPUTED', roundNo: 4 });
     const results = await Promise.allSettled([
       db.asAdmin(REOPEN_SQL, [

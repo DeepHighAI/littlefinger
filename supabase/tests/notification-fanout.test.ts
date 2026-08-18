@@ -86,6 +86,22 @@ afterAll(async () => {
 });
 
 describe('lf_notification_fanout — 논리 알림의 채널·기기 fanout', () => {
+  test('EC-G05 필수 전이 알림은 사용자가 리마인드를 모두 꺼도 발송한다', async () => {
+    const userId = await createUser(db, '필수알림수신자');
+    const promiseId = await createPromise(db, { creatorId: userId, status: 'ACTIVE' });
+    await register(userId, 'required-notification');
+    await db.asAdmin(
+      `update public.users
+          set notification_pref = '{"remind_d7":false,"remind_d3":false,"remind_d1":false,"remind_dday":false}'::jsonb
+        where id = $1`,
+      [userId],
+    );
+
+    const result = await fanout({ userId, promiseId, suffix: 'required' });
+    expect(result.push_notification_id).not.toBeNull();
+    expect(await notificationRows(promiseId)).toHaveLength(2);
+  });
+
   test('ACTIVE 수신자와 토큰 스냅샷을 변경과 재할당에서 잠근다', async () => {
     // PGlite는 단일 user/connection이라 실제 두 트랜잭션의 lock wait를 실행할 수 없다.
     // 운영 Postgres에서 필요한 두 FOR SHARE 경계가 함수에 남아 있는지를 카탈로그로 지킨다.

@@ -2,7 +2,7 @@
 import { LEGAL_DISCLAIMER } from '@littlefinger/shared';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { approvalCompletePath, invitePath, promisesPath, ROUTE } from '../routes.ts';
 import { ScrW03ApprovalComplete } from './scr-w03-approval-complete.tsx';
@@ -43,7 +43,10 @@ function visibleText(el: Element): string {
   return clone.textContent ?? '';
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe('SCR-W03 승인 완료', () => {
   it('확정 영역도 동일한 브랜드 이미지 심볼을 쓴다', () => {
@@ -89,13 +92,21 @@ describe('SCR-W03 승인 완료', () => {
     expect(screen.getByTestId('fingerprint').textContent).toBe('A3F9-77C2-01');
   });
 
-  it('아직 없는 것은 그리지 않는다', () => {
-    // 리마인드 이메일(G3) · [버전 이력 보기](G8) · 앱 설치 배너(G2/G11). 문구나 경로가
-    // 없어서 뺀 것들이라, 누군가 "일단 넣어 두자"고 되돌리면 여기서 걸린다.
+  it('이메일 입력·버전 이력은 만들지 않고 Android 앱 설치 배너를 보여준다', () => {
     const { container } = renderWith(RESULT);
     expect(container.querySelector('input')).toBeNull();
     expect(screen.queryByText('버전 이력 보기')).toBeNull();
+    expect(container.querySelector('.lf-app-hint')).not.toBeNull();
+    const link = screen.getByRole('link', { name: 'Android 앱 설치하기' });
+    expect(link.getAttribute('href')).toContain('play.google.com/store/apps/details?id=com.littlefinger.app');
+  });
+
+  it('EC-I03 iOS에서는 앱 설치 배너를 숨기고 웹 재접근만 제공한다', () => {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)');
+    const { container } = renderWith(RESULT);
     expect(container.querySelector('.lf-app-hint')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Android 앱 설치하기' })).toBeNull();
+    expect(screen.getByRole('link', { name: '참여 중인 약속 보기' })).toBeTruthy();
   });
 
   it('state 가 없어도 계정 기반 재접근 출구는 남는다', () => {

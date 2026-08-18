@@ -23,6 +23,7 @@ interface MockAndroidPushEvents {
 const mockStop = jest.fn();
 const mockPushStop = jest.fn();
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 const mockEncryptedStorageSet = jest.fn();
 const mockRestorePushNavigationNative = jest.fn(
   (navigate: (route: PushRoute) => void) => mockPushManager.restore(navigate),
@@ -31,6 +32,9 @@ let mockRootNavigationReady = false;
 let mockStoredPushValue: string | null = null;
 let mockPushManager!: PushNavigationManager;
 let mockAndroidPushEvents: MockAndroidPushEvents | null = null;
+let mockPathname = '/';
+const mockReadOnboardingCompletionNative = jest.fn().mockResolvedValue(true);
+const mockLoadMinimumAppVersionNative = jest.fn().mockResolvedValue(false);
 const mockStartMobileSessionGateNative = jest.fn(
   (_events: MobileSessionGateEvents) => mockStop,
 );
@@ -61,7 +65,8 @@ jest.mock('expo-router', () => {
   return {
     Stack,
     useRootNavigationState: () => (mockRootNavigationReady ? { key: 'root' } : undefined),
-    useRouter: () => ({ push: mockPush }),
+    usePathname: () => mockPathname,
+    useRouter: () => ({ push: mockPush, replace: mockReplace }),
   };
 });
 jest.mock(
@@ -74,6 +79,12 @@ jest.mock(
   }),
   { virtual: true },
 );
+jest.mock('../lib/onboarding-native.ts', () => ({
+  readOnboardingCompletionNative: () => mockReadOnboardingCompletionNative(),
+}));
+jest.mock('../lib/minimum-app-version-native.ts', () => ({
+  loadMinimumAppVersionNative: () => mockLoadMinimumAppVersionNative(),
+}));
 jest.mock(
   '../lib/push-navigation-native.ts',
   () => ({
@@ -116,6 +127,10 @@ describe('루트 인증 게이트', () => {
     mockStop.mockReset();
     mockPushStop.mockReset();
     mockPush.mockReset();
+    mockReplace.mockReset();
+    mockPathname = '/';
+    mockReadOnboardingCompletionNative.mockReset().mockResolvedValue(true);
+    mockLoadMinimumAppVersionNative.mockReset().mockResolvedValue(false);
     mockRestorePushNavigationNative.mockClear();
     startAndroidPushNavigationNative.mockClear();
     mockStartMobileSessionGateNative.mockClear();
@@ -127,9 +142,31 @@ describe('루트 인증 게이트', () => {
 
     expect(view.getByText('screen:index')).toBeTruthy();
     expect(view.getByText('screen:auth-callback')).toBeTruthy();
+    expect(view.getByText('screen:onboarding')).toBeTruthy();
+    expect(view.getByText('screen:update-required')).toBeTruthy();
     expect(view.queryByText('screen:profile')).toBeNull();
     expect(mockStartMobileSessionGateNative).toHaveBeenCalledTimes(1);
     expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
+  });
+
+  test('최초 비로그인 실행은 SCR-A00으로 한 번 교체한다', async () => {
+    mockRootNavigationReady = true;
+    mockReadOnboardingCompletionNative.mockResolvedValue(false);
+    await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    await act(async () => { await new Promise((resolve) => setImmediate(resolve)); });
+    expect(mockReplace).toHaveBeenCalledWith('/onboarding');
+  });
+
+  test('EC-I04 강제 업데이트는 온보딩보다 우선한다', async () => {
+    mockRootNavigationReady = true;
+    mockReadOnboardingCompletionNative.mockResolvedValue(false);
+    mockLoadMinimumAppVersionNative.mockResolvedValue(true);
+    await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    await act(async () => { await new Promise((resolve) => setImmediate(resolve)); });
+    expect(mockReplace).toHaveBeenCalledWith('/update-required');
+    expect(mockReplace).not.toHaveBeenCalledWith('/onboarding');
   });
 
   test('저장 세션·OAuth 성공은 모두 보호된 SCR-A02 라우트로 전환한다', async () => {

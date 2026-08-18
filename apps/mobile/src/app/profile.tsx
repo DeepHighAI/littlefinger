@@ -4,7 +4,7 @@ import {
   type ReminderPreferences,
 } from '@littlefinger/shared';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
@@ -20,6 +20,7 @@ import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfSwitch } from '../components/LfSwitch';
 import { LfText } from '../components/LfText';
+import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
 import {
@@ -96,6 +97,8 @@ export default function ProfileScreen(): React.JSX.Element {
   const [state, dispatch] = useReducer(profileReducer, undefined, createInitialProfileState);
   const nextLoadId = useRef(0);
   const nextUpdateId = useRef(0);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawFailed, setWithdrawFailed] = useState(false);
 
   const load = useCallback(async () => {
     const loadId = ++nextLoadId.current;
@@ -153,6 +156,32 @@ export default function ProfileScreen(): React.JSX.Element {
     ]);
   }, []);
 
+  const confirmWithdraw = useCallback((activeCount: number) => {
+    setWithdrawFailed(false);
+    Alert.alert(LABEL.withdrawTitle, LABEL.withdrawWarning(activeCount), [
+      { text: LABEL.cancel, style: 'cancel' },
+      {
+        text: LABEL.withdrawContinue,
+        onPress: () => Alert.alert(LABEL.withdrawFinalTitle, LABEL.withdrawFinalBody, [
+          { text: LABEL.cancel, style: 'cancel' },
+          {
+            text: LABEL.withdraw,
+            style: 'destructive',
+            onPress: async () => {
+              setWithdrawing(true);
+              try {
+                await withdrawAccountNative();
+              } catch {
+                setWithdrawing(false);
+                setWithdrawFailed(true);
+              }
+            },
+          },
+        ]),
+      },
+    ]);
+  }, []);
+
   const body = state.loading || (state.profile === null && !state.loadFailed) ? (
     <View style={styles.centered}><LfText secondary>{LABEL.loading}</LfText></View>
   ) : state.profile === null ? (
@@ -176,6 +205,14 @@ export default function ProfileScreen(): React.JSX.Element {
         <View style={styles.profileText}>
           <LfText variant="subtitle">{state.profile.nickname}</LfText>
           <LfText variant="caption">{LABEL.connected}</LfText>
+          {/^사용자(?:[0-9a-f]{4})?$/iu.test(state.profile.nickname) && (
+            <LfButton
+              label={LABEL.nicknameSetup}
+              variant="text"
+              size="compact"
+              onPress={() => router.push('/profile-nickname')}
+            />
+          )}
         </View>
       </LfRow>
 
@@ -272,6 +309,13 @@ export default function ProfileScreen(): React.JSX.Element {
       <LfDisclaimer />
       <LfButton label={LABEL.logout} variant="danger" disabled={state.loggingOut} onPress={confirmLogout} />
       {state.logoutFailed && <LfText secondary>{LABEL.logoutError}</LfText>}
+      <LfButton
+        label={LABEL.withdraw}
+        variant="danger"
+        disabled={withdrawing}
+        onPress={() => confirmWithdraw(state.profile!.active_count)}
+      />
+      {withdrawFailed && <LfText secondary>{LABEL.withdrawError}</LfText>}
     </ScrollView>
   );
 

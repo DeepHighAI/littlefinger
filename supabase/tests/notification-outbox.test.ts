@@ -90,7 +90,7 @@ describe('notification_outbox 내구성 경계', () => {
     await expect(enqueue({ userId, promiseId, event })).resolves.toEqual(expect.any(String));
   });
 
-  test('같은 논리 이벤트를 두 번 enqueue해도 intent는 하나다', async () => {
+  test('EC-G04 같은 논리 이벤트를 두 번 enqueue해도 dedupe intent는 하나다', async () => {
     const userId = await createUser(db, '아웃박스중복');
     const promiseId = await createPromise(db, { creatorId: userId });
     const scope = randomUUID();

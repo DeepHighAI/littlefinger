@@ -35,6 +35,13 @@ function createSecrets(): Secrets {
   };
 }
 
+const ACTIVE_ACTOR_EXEMPT_RPCS = new Set(['lf_account_withdraw']);
+
+function actorArgument(args: Record<string, unknown>): string | null {
+  const actor = args['p_actor'] ?? args['p_user_id'];
+  return typeof actor === 'string' ? actor : null;
+}
+
 export function createAdminClient(): SupabaseClient {
   return createClient(requireEnv('SUPABASE_URL'), requireEnv('SUPABASE_SERVICE_ROLE_KEY'), {
     // 서버 프로세스다. 세션을 들고 있을 이유도, 갱신할 이유도 없다.
@@ -47,6 +54,11 @@ export function createDeps(): Deps {
 
   return {
     rpc: async (fn, args) => {
+      const actor = actorArgument(args);
+      if (actor !== null && !ACTIVE_ACTOR_EXEMPT_RPCS.has(fn)) {
+        const { error } = await admin.rpc('lf_assert_actor', { p_user_id: actor });
+        if (error !== null) throw new Error(error.message);
+      }
       const { data, error } = await admin.rpc(fn, args);
       // RPC 가 raise 한 문자열이 `error.message` 로 그대로 온다. 여기서 코드로 바꾸지 않는다 —
       // 아는 코드인지 판정하는 곳은 한 군데(`toErrorCode`)여야 한다.

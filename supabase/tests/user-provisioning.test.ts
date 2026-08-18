@@ -345,7 +345,7 @@ describe('primary_surface 는 최초 가입 표면이다 — 먼저 쓴 값이 �
 });
 
 describe('kakao_id 는 계정 동일성의 기준이라 덮이지 않는다', () => {
-  test('실값이 들어간 뒤에는 다른 신원으로 바뀌지 않는다', async () => {
+  test('EC-A05 실값이 들어간 뒤에는 다른 카카오 신원으로 바뀌지 않는다', async () => {
     const id = await createAuthUser();
     await linkKakao(id, '9234567890');
     await provision(id, 'APP', '지우');
@@ -405,13 +405,16 @@ describe('서버 전용이다', () => {
     // status·email_verified·primary_surface 를 PostgREST 로 직접 쓸 수 있게 한다 —
     // 이 파일이 지키는 규칙 전부(먼저 쓴 값이 이긴다, 실값은 덮이지 않는다, ACTIVE 만)를
     // 우회하는 구멍이다. 클라이언트 쓰기 경로는 user-provision 하나여야 하므로 정책째
-    // 드랍한다(20260730000012). 정책이 없는 UPDATE 는 raise 없이 0행이다 — 값으로 판정한다.
+    // 드랍한다(20260730000012). 계정 안전 경계는 테이블 권한도 회수하므로 명시적으로 거부돼야 한다.
     const id = await createAuthUser();
     await linkKakao(id, '4534567890');
     await provision(id, 'APP', '지우');
 
-    await db.asUser(id, `update public.users set kakao_id = 'forged' where id = $1`, [id]);
+    const message = await messageOf(() =>
+      db.asUser(id, `update public.users set kakao_id = 'forged' where id = $1`, [id]),
+    );
 
+    expect(message).toContain('permission denied');
     expect((await userRow(id))?.kakao_id).toBe('4534567890');
   });
 

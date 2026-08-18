@@ -160,7 +160,7 @@ describe('F-11 notification intent and reminder lifecycle', () => {
 });
 
 describe('J-05 amend request expiry', () => {
-  test('expires both request types, preserves proposals, returns ACTIVE, and enqueues NT-17 for both parties once', async () => {
+  test('EC-E04 7일 무응답 변경 요청을 자동 철회하고 NT-17을 한 번만 만든다', async () => {
     const amendFixture = await seed();
     const current = await db.asAdmin(
       `select jsonb_build_object(

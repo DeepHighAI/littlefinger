@@ -4,9 +4,14 @@ import type {
 } from '@littlefinger/shared';
 import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Linking, Share } from 'react-native';
+import { Alert, Linking, Share } from 'react-native';
 
 import PromiseDetailScreen from '../app/promise/[promise_id]';
+import {
+  blockUserNative,
+  hidePromiseNative,
+  reportSafetyIssueNative,
+} from '../lib/account-safety-native.ts';
 import {
   claimCompletionCelebration,
   markCompletionCelebrationShown,
@@ -31,6 +36,11 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 jest.mock('../lib/promise-detail-native.ts', () => ({ getPromiseDetail: jest.fn() }));
+jest.mock('../lib/account-safety-native.ts', () => ({
+  blockUserNative: jest.fn(),
+  hidePromiseNative: jest.fn(),
+  reportSafetyIssueNative: jest.fn(),
+}));
 jest.mock('../lib/completion-celebration-native.ts', () => ({
   claimCompletionCelebration: jest.fn(),
   markCompletionCelebrationShown: jest.fn(),
@@ -152,6 +162,9 @@ const respondAmendMock = jest.mocked(respondPromiseAmend);
 const withdrawAmendMock = jest.mocked(withdrawPromiseAmend);
 const claimCelebrationMock = jest.mocked(claimCompletionCelebration);
 const markCelebrationShownMock = jest.mocked(markCompletionCelebrationShown);
+const blockUserMock = jest.mocked(blockUserNative);
+const hidePromiseMock = jest.mocked(hidePromiseNative);
+const reportSafetyMock = jest.mocked(reportSafetyIssueNative);
 
 const VERSION = {
   version_no: 1,
@@ -241,6 +254,7 @@ function makeDetail(overrides: Partial<PromiseDetailResponse> = {}): PromiseDeta
     check_deadline_at: null,
     check_round_no: 1,
     my_role: 'CREATOR',
+    counterpart_push_available: true,
     creator: {
       user_id: CREATOR_ID,
       nickname: '지우',
@@ -370,6 +384,14 @@ describe('SCR-A05 약속 상세', () => {
     });
     jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
     jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    blockUserMock.mockReset().mockResolvedValue({ target_user_id: PARTNER_ID, blocked: true });
+    hidePromiseMock.mockReset().mockResolvedValue({ promise_id: PROMISE_ID, hidden: true });
+    reportSafetyMock.mockReset().mockResolvedValue({
+      report_id: '99999999-9999-4999-8999-999999999999',
+      status: 'RECEIVED',
+      evidence_blinded: false,
+    });
     createAmendKeyMock.mockReset();
     createAmendKeyMock.mockReturnValue('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
     requestAmendMock.mockReset();
@@ -900,6 +922,69 @@ describe('SCR-A05 약속 상세', () => {
     expect(shared).not.toContain(VERSION.penalty);
     await fireEvent.press(view.getByRole('button', { name: '새 약속 만들기' }));
     expect(push).toHaveBeenCalledWith('/promise/edit');
+  });
+
+  test('EC-H03 종결 약속은 삭제하지 않고 내 목록에서만 숨긴다', async () => {
+    loadDetailMock.mockResolvedValue(terminalDetail('COMPLETED'));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '목록에서 숨기기' }));
+    await settle();
+    expect(hidePromiseMock).toHaveBeenCalledWith(PROMISE_ID, true);
+    expect(back).toHaveBeenCalledTimes(1);
+  });
+
+  test('공동 기록 상대를 차단하거나 신고해도 상세 상태는 바꾸지 않는다', async () => {
+    loadDetailMock.mockResolvedValue(makeDetail());
+    const alert = jest.spyOn(Alert, 'alert');
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '상대방 차단' }));
+    await act(async () => alert.mock.calls[0]?.[2]?.find((button) => button.text === '차단')?.onPress?.());
+    await fireEvent.press(view.getByRole('button', { name: '사용자 신고' }));
+    await act(async () => alert.mock.calls[1]?.[2]?.find((button) => button.text === '신고')?.onPress?.());
+    await settle();
+    expect(blockUserMock).toHaveBeenCalledWith(PARTNER_ID);
+    expect(reportSafetyMock).toHaveBeenCalledWith({
+      promise_id: PROMISE_ID,
+      target_user_id: PARTNER_ID,
+      evidence_id: null,
+      reason: 'ABUSE',
+      detail: null,
+    });
+  });
+
+  test('EC-G01 상대가 푸시를 받을 수 없으면 카카오톡 직접 알림 경로를 제공한다', async () => {
+    process.env.EXPO_PUBLIC_WEB_BASE_URL = 'https://littlefinger.pages.dev';
+    loadDetailMock.mockResolvedValue(makeDetail({ counterpart_push_available: false }));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    expect(view.getByText('상대는 앱 알림을 받을 수 없어요. 직접 알려주세요.')).toBeTruthy();
+    await fireEvent.press(view.getByRole('button', { name: '상대에게 카톡으로 알리기' }));
+    expect(Share.share).toHaveBeenCalledWith({
+      message: `${VERSION.title} 약속을 확인해 주세요.\nhttps://littlefinger.pages.dev/promises`,
+    });
+  });
+
+  test('EC-F06 AVAILABLE 증빙 신고는 evidence 대상과 약속 권한을 함께 보낸다', async () => {
+    loadDetailMock.mockResolvedValue(terminalDetail('COMPLETED'));
+    const alert = jest.spyOn(Alert, 'alert');
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '증빙 신고' }));
+    await act(async () => alert.mock.calls[0]?.[2]?.find((button) => button.text === '신고')?.onPress?.());
+    await settle();
+    expect(reportSafetyMock).toHaveBeenCalledWith({
+      promise_id: PROMISE_ID,
+      target_user_id: null,
+      evidence_id: creatorCheck.evidences[0]!.evidence_id,
+      reason: 'ABUSE',
+      detail: null,
+    });
   });
 
   test.each([

@@ -75,6 +75,7 @@ beforeEach(() => {
 // vitest `globals` 를 켜지 않으므로 직접 부른다.
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
@@ -279,7 +280,7 @@ describe('SCR-W01 초대 랜딩', () => {
     expect(signInWithOAuth).not.toHaveBeenCalled();
   });
 
-  it('카카오톡 인앱 브라우저는 prompt=none 실패 뒤 수동 CTA 로 돌아온다', async () => {
+  it('EC-I02 카카오톡 인앱 브라우저 OAuth 실패 뒤 기본 브라우저 안내로 돌아온다', async () => {
     // 자동 시도가 빠지면 카카오톡에 이미 로그인한 상대도 버튼을 한 번 더 눌러야 한다.
     // 실패 뒤 signingIn 이 풀리지 않으면 일반 로그인으로 폴백할 방법도 사라진다.
     vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
@@ -303,6 +304,7 @@ describe('SCR-W01 초대 랜딩', () => {
       },
     });
     expect((button as HTMLButtonElement).disabled).toBe(false);
+    expect(await screen.findByText('기본 브라우저에서 열어 주세요.')).toBeTruthy();
 
     fireEvent.click(button);
     await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(2));

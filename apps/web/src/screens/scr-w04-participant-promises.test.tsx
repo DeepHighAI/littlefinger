@@ -148,6 +148,7 @@ function agreementDetail(
     check_deadline_at: null,
     check_round_no: 1,
     my_role: 'PARTNER',
+    counterpart_push_available: true,
     creator: { user_id: CREATOR_ID, nickname: '지우', profile_image_url: null, role: 'CREATOR', status: 'JOINED', joined_at: AGREEMENT_VERSION.activated_at },
     partner: { user_id: PARTNER_ID, nickname: '민준', profile_image_url: null, role: 'PARTNER', status: 'JOINED', joined_at: AGREEMENT_VERSION.activated_at },
     witnesses: [],
@@ -1144,7 +1145,7 @@ describe('SCR-W04 참여 약속', () => {
     expect(await screen.findByText('업로드 완료')).toBeTruthy();
   });
 
-  it('부분 실패 뒤 같은 업로드 키로 재시도하고 READY 제거·unmount에서 object URL을 정리한다', async () => {
+  it('EC-F05 업로드 부분 실패 뒤 같은 키로 재시도하고 텍스트 초안을 유지한다', async () => {
     installServer([summary()], { [PROMISE_A]: detail() });
     const server = fetchMock.getMockImplementation();
     let uploadAttempts = 0;

@@ -45,6 +45,7 @@ const RESPONSE = {
   check_deadline_at: null,
   check_round_no: 1,
   my_role: 'CREATOR',
+  counterpart_push_available: false,
   creator: {
     user_id: ACTOR_ID,
     nickname: '작성자',
@@ -119,7 +120,7 @@ describe('SCR-A05 promise-detail Edge Function', () => {
     expect(module?.createPromiseDetailHandler).toBeTypeOf('function');
   });
 
-  test('JWT actor와 promise_id만 전용 RPC에 전달한다', async () => {
+  test('EC-G01 상대의 푸시 수신 가능 여부를 포함한 공개 snapshot을 반환한다', async () => {
     const spy = createSpy({ payload: RESPONSE });
     const response = await module!.createPromiseDetailHandler(spy.deps)(
       request({ body: { promise_id: PROMISE_ID } }),
@@ -128,6 +129,7 @@ describe('SCR-A05 promise-detail Edge Function', () => {
     expect(response.status).toBe(200);
     const payload = await response.json() as Record<string, unknown>;
     expect(payload).toEqual(PUBLIC_RESPONSE);
+    expect(payload.counterpart_push_available).toBe(false);
     expect(payload).not.toHaveProperty('integrity_status');
     expect(spy.rpcCalls).toEqual([
       { fn: 'lf_promise_detail', args: { p_actor: ACTOR_ID, p_promise_id: PROMISE_ID } },

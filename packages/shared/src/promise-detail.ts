@@ -380,6 +380,7 @@ export function asPromiseDetailResponse(value: unknown): PromiseDetailResponse |
     'check_deadline_at',
     'check_round_no',
     'my_role',
+    'counterpart_push_available',
     'creator',
     'partner',
     'witnesses',
@@ -416,6 +417,7 @@ export function asPromiseDetailResponse(value: unknown): PromiseDetailResponse |
     !Number.isInteger(record['check_round_no']) ||
     (record['check_round_no'] as number) < 1 ||
     !ROLES.includes(record['my_role'] as ParticipantRole) ||
+    typeof record['counterpart_push_available'] !== 'boolean' ||
     creator === null ||
     creator.role !== 'CREATOR' ||
     (record['partner'] !== null && (partner === null || partner.role !== 'PARTNER')) ||

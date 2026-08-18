@@ -281,7 +281,7 @@ describe('T-07 request', () => {
     ).rejects.toThrow('E_VALIDATION');
   });
 
-  test('only joined parties in ACTIVE can request and one promise has one pending request', async () => {
+  test('EC-E02·EC-E05 진행 요청 또는 CHECKING이면 새 변경·파기를 차단한다', async () => {
     const fixture = await seed();
     const proposal = await changedProposal(fixture.promiseId);
     await expect(
@@ -301,7 +301,7 @@ describe('T-07 request', () => {
     ).rejects.toThrow('E_STATE_CONFLICT');
   });
 
-  test('AMEND rejects no-op, invalid fields, past end date, and reason over 200 code points', async () => {
+  test('EC-E03 변경 종료일이 과거이면 제안을 저장하지 않는다', async () => {
     const noChange = await seed();
     await expect(
       request({
@@ -345,7 +345,7 @@ describe('T-07 request', () => {
     ).rejects.toThrow('E_VALIDATION');
   });
 
-  test('overlapping request attempts leave exactly one pending row', async () => {
+  test('EC-E01 양측 병렬 변경 요청은 PENDING 한 건만 남긴다', async () => {
     const fixture = await seed();
     const proposal = await changedProposal(fixture.promiseId);
     const run = (actor: string, type: 'AMEND' | 'CANCEL', proposed: Proposal | null) =>

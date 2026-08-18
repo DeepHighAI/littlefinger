@@ -31,6 +31,27 @@ const APPROVAL_SUFFIX = ' 승인 ';
 const FINGERPRINT_LABEL = '기록 지문';
 const REVISIT_COPY = '이 약속은 카카오 로그인으로 언제든 다시 볼 수 있어요';
 const REVISIT_CTA = '참여 중인 약속 보기';
+const ANDROID_STORE_CTA = 'Android 앱 설치하기';
+const ANDROID_STORE_COPY = '앱에서는 푸시로 약속을 챙겨드려요';
+const ANDROID_STORE_URL =
+  'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=littlefinger_web&utm_medium=approval_complete';
+const IOS_USER_AGENT = /iPhone|iPad|iPod/iu;
+
+function AndroidAppHint(): React.JSX.Element | null {
+  if (IOS_USER_AGENT.test(window.navigator.userAgent)) return null;
+  return (
+    <a
+      aria-label={ANDROID_STORE_CTA}
+      className="lf-card lf-card--web lf-app-hint"
+      href={ANDROID_STORE_URL}
+      rel="noreferrer"
+    >
+      <LfPinky size="sm" />
+      <span className="lf-app-hint__text">{ANDROID_STORE_COPY}</span>
+      <LfIcon name="east" />
+    </a>
+  );
+}
 
 function RevisitCard(): React.JSX.Element {
   return (
@@ -130,15 +151,11 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
 
         <LfDisclaimer />
         <RevisitCard />
+        <AndroidAppHint />
 
-        {/* 여기서 **일부러 빼는 것** — 문구나 경로가 없어서지 잊어서가 아니다.
-            · 리마인드 이메일 카드(§4-4-4 2항) — 미해결 항목 **G3**. 저장할 엔드포인트가 없고,
-              `users update own` 정책은 email 만이 아니라 모든 컬럼을 연다.
+        {/* 여기서 **일부러 빼는 것**:
+            · 리마인드 이메일 카드(§4-4-4 2항) — PO 결정으로 MVP 미수집·미발송.
             · [버전 이력 보기](§4-4-3) — 미해결 항목 **G8**. 버전 이력을 읽는 슬러그가 없다.
-            · 앱 설치 유도 배너(§4-4-4 4항) — 미해결 항목 **G2/G11**. Play 스토어 URL 이 없고,
-              EC-I03 은 iOS 에서 이 배너를 아예 띄우지 말라고 한다.
-            · 주 CTA [앱에서 계속하기](보조: [웹으로 볼게요], 디자인요청서 §5-2) — 둘 다 갈 곳이
-              없다. 앞은 Play 스토어 URL(G11), 뒤는 SCR-W04 다. **PO 확인 필요**.
             증인 서명 현황(§4-4-3)도 없다 — 확정 직후에는 증인이 존재하지 않는다(F-05 는 M3). */}
       </div>
     </div>

@@ -54,6 +54,7 @@ const active = {
   check_deadline_at: null,
   check_round_no: 1,
   my_role: 'CREATOR',
+  counterpart_push_available: true,
   creator: person,
   partner: {
     ...person,
@@ -128,6 +129,7 @@ describe('SCR-A05 promise detail public boundary', () => {
     ['DRAFT detail', { ...active, status: 'DRAFT' }],
     ['invalid promise UUID', { ...active, promise_id: 'not-a-uuid' }],
     ['invalid end date', { ...active, end_date: '2026-02-30' }],
+    ['invalid counterpart push availability', { ...active, counterpart_push_available: 'yes' }],
     [
       'non-HTTPS profile image',
       { ...active, creator: { ...active.creator, profile_image_url: 'http://example.com/a.jpg' } },

@@ -134,8 +134,6 @@ export interface User {
   id: string;
   /** 카카오 계정 기준 표시 이름 */
   name: string;
-  /** 리마인드 이메일. 카카오 비즈 앱 미등록이면 수집할 수 없어 null 이다(C-1). */
-  email: string | null;
 }
 
 export interface Participant {

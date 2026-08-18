@@ -318,7 +318,7 @@ describe('fenced Expo push delivery RPC', () => {
     expect(state.rows[0]).toEqual({ status: 'LEASED', receipt_checked_at: null });
   });
 
-  test('DeviceNotRegistered는 claim 당시 같은 사용자의 같은 토큰만 삭제한다', async () => {
+  test('EC-G02 DeviceNotRegistered는 claim 당시 같은 사용자의 같은 토큰만 삭제한다', async () => {
     const item = await makeDelivery('token-reassigned');
     const claimed = (await claimDeliveries())[0]!;
     const newOwner = await createUser(db, 'new-token-owner');

@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
 
 import ProfileScreen from '../app/profile';
+import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
 import {
@@ -19,6 +20,7 @@ import {
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
 jest.mock('../lib/legal-native.ts', () => ({ openLegalDocument: jest.fn() }));
 jest.mock('../lib/mobile-api-native.ts', () => ({ currentMobileUserId: jest.fn() }));
+jest.mock('../lib/account-safety-native.ts', () => ({ withdrawAccountNative: jest.fn() }));
 jest.mock('../lib/trust-profile-native.ts', () => ({
   loadTrustProfile: jest.fn(),
   logoutCurrentDeviceNative: jest.fn(),
@@ -51,7 +53,9 @@ const updateMock = jest.mocked(updateTrustProfileSettings);
 const logoutMock = jest.mocked(logoutCurrentDeviceNative);
 const userIdMock = jest.mocked(currentMobileUserId);
 const openLegalMock = jest.mocked(openLegalDocument);
+const withdrawMock = jest.mocked(withdrawAccountNative);
 const back = jest.fn();
+const push = jest.fn();
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -100,12 +104,14 @@ describe('SCR-A08 fenced profile state', () => {
 describe('SCR-A08 마이·신뢰 프로필', () => {
   beforeEach(() => {
     back.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ back } as never);
+    push.mockReset();
+    jest.mocked(useRouter).mockReturnValue({ back, push } as never);
     loadMock.mockReset();
     updateMock.mockReset();
     logoutMock.mockReset().mockResolvedValue(undefined);
     userIdMock.mockReset().mockResolvedValue(USER_ID);
     openLegalMock.mockReset().mockResolvedValue(undefined);
+    withdrawMock.mockReset().mockResolvedValue(undefined);
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   });
 
@@ -233,6 +239,44 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(logoutMock).toHaveBeenCalledWith(USER_ID);
     expect(back).not.toHaveBeenCalled();
     expect(view.queryByText('로그아웃하지 못했어요. 다시 시도해 주세요.')).toBeNull();
+  });
+
+  test('EC-A04 임시 닉네임은 직접 설정 화면으로 갈 수 있다', async () => {
+    loadMock.mockResolvedValue({ ...PROFILE, nickname: '사용자1234' });
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '닉네임 설정' }));
+    expect(push).toHaveBeenCalledWith('/profile-nickname');
+  });
+
+  test('탈퇴는 진행 중 기록 경고와 최종 확인을 거친 뒤 서버 요청한다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    const alert = jest.spyOn(Alert, 'alert');
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '탈퇴' }));
+    expect(alert.mock.calls[0]?.[1]).toContain('진행 중인 약속 5건');
+    await act(async () => alert.mock.calls[0]?.[2]?.find((button) => button.text === '계속')?.onPress?.());
+    expect(alert.mock.calls[1]?.[1]).toContain('개인정보는 비식별 처리됩니다');
+    await act(async () => alert.mock.calls[1]?.[2]?.find((button) => button.text === '탈퇴')?.onPress?.());
+    await settle();
+    expect(withdrawMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('탈퇴 요청 실패는 세션을 유지하고 재시도 안내를 표시한다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    withdrawMock.mockRejectedValue(new Error('offline'));
+    const alert = jest.spyOn(Alert, 'alert');
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '탈퇴' }));
+    await act(async () => alert.mock.calls[0]?.[2]?.find((button) => button.text === '계속')?.onPress?.());
+    await act(async () => alert.mock.calls[1]?.[2]?.find((button) => button.text === '탈퇴')?.onPress?.());
+    await settle();
+    expect(view.getByText('탈퇴하지 못했어요. 다시 시도해 주세요.')).toBeTruthy();
   });
 
   test('뒤로·법적 문서·설정·로그아웃 control은 모두 48dp 이상이다', async () => {

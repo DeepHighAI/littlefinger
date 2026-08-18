@@ -119,7 +119,7 @@ describe('isImminent', () => {
 });
 
 describe('checkingStartsAt', () => {
-  test('종료일 익일 00:00 KST 다', () => {
+  test('EC-F09 기기 타임존과 무관하게 종료일 익일 00:00 KST다', () => {
     // 2026-07-26 00:00 KST = 2026-07-25 15:00 UTC
     expect(checkingStartsAt('2026-07-25').toISOString()).toBe('2026-07-25T15:00:00.000Z');
   });

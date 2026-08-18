@@ -96,6 +96,13 @@ describe('F-06 알림 계약', () => {
     });
   });
 
+  test('EC-B09 NT-20·21은 작성 중 초안으로 돌아가는 예약 알림이다', () => {
+    expect(NOTIFICATION_TITLE['NT-20']('무시')).toBe('작성 중인 약속이 있어요');
+    expect(NOTIFICATION_TITLE['NT-21']('무시')).toBe('작성 중인 약속이 7일 뒤 삭제돼요');
+    expect(NOTIFICATION_DEEPLINK['NT-20']).toBe('SCR-A03');
+    expect(NOTIFICATION_DEEPLINK['NT-21']).toBe('SCR-A03');
+  });
+
   test('NT-18 증인 확인은 증인 닉네임과 SCR-A05를 사용한다', () => {
     expect(NOTIFICATION_TITLE['NT-18']('하영')).toBe('하영님이 내용을 확인했어요');
     expect(NOTIFICATION_DEEPLINK['NT-18']).toBe('SCR-A05');

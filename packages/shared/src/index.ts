@@ -10,6 +10,8 @@
  */
 
 export * from './api.ts';
+export * from './account-safety.ts';
+export * from './app-version.ts';
 export * from './completion-celebration.ts';
 export * from './config.ts';
 export * from './datetime.ts';

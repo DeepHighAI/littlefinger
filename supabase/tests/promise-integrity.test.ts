@@ -139,7 +139,7 @@ describe('J-09 record integrity', () => {
     await verify('2026-08-16T21:31:00Z');
   });
 
-  test('records hash and cache mismatch without repairing source records', async () => {
+  test('EC-H06 해시·캐시 불일치를 원본 수정 없이 내부 사고로 기록한다', async () => {
     const item = await createActivated('CHECKING');
     const before = await db.asAdmin(
       `select p.title as cache_title, v.title as version_title, v.content_hash

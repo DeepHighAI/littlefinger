@@ -170,7 +170,7 @@ describe('토큰 상태 판정 — §4-3-3 · EC-B01~B03', () => {
     await expect(resolve('too-short')).rejects.toThrow('E_NOT_FOUND');
   });
 
-  test('무효화된 토큰은 E_INVITE_REVOKED', async () => {
+  test('EC-B03 무효화된 토큰은 E_INVITE_REVOKED', async () => {
     const { tokenHash } = await seed({ status: 'REVOKED' });
     await expect(resolve(tokenHash)).rejects.toThrow('E_INVITE_REVOKED');
   });

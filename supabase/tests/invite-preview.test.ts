@@ -436,7 +436,7 @@ describe('판정 순서 — 가드를 겹쳐서 건다', () => {
   });
 });
 
-describe('실패 응답은 아무것도 흘리지 않는다 — EC-B01·B11', () => {
+describe('실패 응답은 아무것도 흘리지 않는다 — EC-B01·EC-B11', () => {
   test.each(['USED', 'EXPIRED', 'REVOKED'] as const)(
     '%s 토큰의 에러에 약속 내용이 섞이지 않는다',
     async (status) => {

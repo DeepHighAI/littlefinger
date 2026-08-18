@@ -8,6 +8,7 @@ import * as Crypto from 'expo-crypto';
 import { Platform } from 'react-native';
 
 import { callMobileFunctionNative } from './mobile-api-native.ts';
+import { runIntentionalSignOut } from './intentional-sign-out.ts';
 import { logoutCurrentDevice as logoutCurrentDeviceWith } from './profile-session.ts';
 import { resolveCurrentAndroidPushToken } from './push-registration-native.ts';
 import { getMobileEncryptedStorage, getMobileSupabaseClient } from './supabase-native.ts';
@@ -56,9 +57,10 @@ export async function logoutCurrentDeviceNative(userId: string): Promise<void> {
     unregister: async (token, idempotencyKey) =>
       await unregisterDeviceTokenWith(token, idempotencyKey, deps),
     randomUuid: createTrustProfileIdempotencyKey,
-    signOut: async () => {
-      const { error } = await client.auth.signOut({ scope: 'local' });
-      if (error !== null) throw error;
-    },
+    signOut: async () =>
+      await runIntentionalSignOut(async () => {
+        const { error } = await client.auth.signOut({ scope: 'local' });
+        if (error !== null) throw error;
+      }),
   });
 }

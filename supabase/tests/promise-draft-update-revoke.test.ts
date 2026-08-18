@@ -303,6 +303,20 @@ describe('DRAFT 수정 (§4-2-2.4)', () => {
 });
 
 describe('현재 PARTNER 초대 무효화 (§4-3-2)', () => {
+  test('EC-C03 승인과 무효화는 같은 초대 행을 잠가 경합 순서를 확정한다', async () => {
+    const { rows } = await db.asAdmin(
+      `select proname, pg_get_functiondef(oid) as definition
+         from pg_proc
+        where proname in ('lf_invite_revoke', 'lf_promise_approve')
+        order by proname`,
+    );
+
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      expect(String(row['definition'])).toMatch(/for update/iu);
+    }
+  });
+
   test('초대와 만료 예정 알림만 닫고 약속은 PENDING으로 유지한다', async () => {
     const creator = await createUser(db, '초대무효화');
     const promiseId = await createPromise(db, { creatorId: creator });

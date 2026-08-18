@@ -45,6 +45,7 @@ const RESPONSE = {
   check_deadline_at: null,
   check_round_no: 1,
   my_role: 'CREATOR',
+  counterpart_push_available: true,
   creator: {
     user_id: '22222222-2222-4222-8222-222222222222',
     nickname: '작성자',

@@ -689,6 +689,8 @@ describe('SCR-A07 알림함', () => {
     ['NT-17', { semanticType: 'AMEND', icon: 'sync-alt', tone: 'default', label: '변경 요청' }],
     ['NT-18', { semanticType: 'CONFIRMATION', icon: 'pinky', tone: 'accent', label: '약속 확정' }],
     ['NT-19', { semanticType: 'FULFILLMENT', icon: 'notification-important', tone: 'urgent', label: '이행 확인' }],
+    ['NT-20', { semanticType: 'AMEND', icon: 'sync-alt', tone: 'default', label: '변경 요청' }],
+    ['NT-21', { semanticType: 'REMINDER', icon: 'alarm', tone: 'default', label: '리마인드' }],
   ] as const)('%s는 승인된 의미 유형과 아이콘을 사용한다', (event, expected) => {
     expect(notificationAppearance(event)).toEqual(expected);
   });

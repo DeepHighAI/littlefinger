@@ -118,7 +118,7 @@ describe('lf_device_token_register — 앱 로그인 뒤 Expo 푸시 토큰 등�
     expect(delivery.rows).toEqual([{ device_token_id: null }]);
   });
 
-  test(`네 번째 기기는 가장 오래된 토큰을 지우고 최신 ${DEVICE_TOKEN_MAX}개만 둔다`, async () => {
+  test(`EC-H04 네 번째 기기는 가장 오래된 토큰을 지우고 최신 ${DEVICE_TOKEN_MAX}개만 둔다`, async () => {
     const userId = await createUser(db, '다기기');
     for (const [index, token] of ['oldest', 'middle', 'newest'].entries()) {
       await register(userId, `ExponentPushToken[${token}]`);

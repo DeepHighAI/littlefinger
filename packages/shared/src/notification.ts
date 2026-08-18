@@ -36,7 +36,22 @@ export type NotificationEvent =
   | 'NT-16'
   | 'NT-17'
   | 'NT-18'
-  | 'NT-19';
+  | 'NT-19'
+  | 'NT-20'
+  | 'NT-21';
+
+export type ReminderKind =
+  | 'D7'
+  | 'D3'
+  | 'D1'
+  | 'DDAY'
+  | 'CHECK_REQ'
+  | 'CHECK_R1'
+  | 'CHECK_R2'
+  | 'AMEND_REMIND'
+  | 'INVITE_EXPIRE_SOON'
+  | 'DRAFT_RESUME'
+  | 'DRAFT_DELETE_SOON';
 
 export type FulfillmentNotificationEvent = Extract<
   NotificationEvent,
@@ -73,6 +88,8 @@ export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: str
   'NT-17': () => '변경 요청이 자동 철회됐어요',
   'NT-18': (n) => `${n}님이 내용을 확인했어요`,
   'NT-19': () => '다시 확인해 달라는 요청이 왔어요',
+  'NT-20': () => '작성 중인 약속이 있어요',
+  'NT-21': () => '작성 중인 약속이 7일 뒤 삭제돼요',
 };
 
 /**
@@ -105,6 +122,8 @@ export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, NotificationDeepli
   'NT-17': 'SCR-A05',
   'NT-18': 'SCR-A05',
   'NT-19': 'SCR-A06',
+  'NT-20': 'SCR-A03',
+  'NT-21': 'SCR-A03',
 };
 
 export interface NotificationTemplateArgs {

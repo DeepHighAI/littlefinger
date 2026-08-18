@@ -91,7 +91,10 @@ export type ApiValidationField =
   | 'proposed'
   | 'reason'
   | 'request_id'
-  | 'decision';
+  | 'decision'
+  | 'target_user_id'
+  | 'hidden'
+  | 'detail';
 
 export type ApiErrorAction = 'AMEND_SUGGEST';
 
@@ -649,6 +652,8 @@ export interface PromiseDetailResponse {
   check_deadline_at: IsoDateTime | null;
   check_round_no: number;
   my_role: ParticipantRole;
+  /** 현재 사용자의 반대편 당사자가 앱 푸시를 받을 기기를 등록했는지 여부. */
+  counterpart_push_available: boolean;
   creator: PromiseDetailPerson;
   partner: PromiseDetailPerson | null;
   witnesses: readonly PromiseDetailPerson[];
@@ -837,6 +842,49 @@ export interface NotificationReadAllResponse {
   read_count: number;
 }
 
+export interface AccountWithdrawResponse {
+  status: 'WITHDRAWN';
+}
+
+export interface ProfileNicknameUpdateRequest {
+  nickname: string;
+}
+
+export interface ProfileNicknameUpdateResponse {
+  nickname: string;
+}
+
+export interface PromiseHideRequest {
+  promise_id: string;
+  hidden: boolean;
+}
+
+export interface PromiseHideResponse extends PromiseHideRequest {}
+
+export interface UserBlockRequest {
+  target_user_id: string;
+}
+
+export interface UserBlockResponse extends UserBlockRequest {
+  blocked: true;
+}
+
+export type SafetyReportReason = 'ABUSE' | 'SPAM' | 'IMPERSONATION' | 'WRONG_PARTNER' | 'ETC';
+
+export interface SafetyReportRequest {
+  promise_id: string;
+  target_user_id: string | null;
+  evidence_id: string | null;
+  reason: SafetyReportReason;
+  detail: string | null;
+}
+
+export interface SafetyReportResponse {
+  report_id: string;
+  status: 'RECEIVED';
+  evidence_blinded: boolean;
+}
+
 /**
  * Edge Function 슬러그. `04` §7-3 의 이름을 그대로 쓴다.
  *
@@ -883,6 +931,11 @@ export const ENDPOINT = {
   notificationReadAll: 'notification-read-all',
   completionCelebrationClaim: 'completion-celebration-claim',
   completionCelebrationShown: 'completion-celebration-shown',
+  accountWithdraw: 'account-withdraw',
+  profileNicknameUpdate: 'profile-nickname-update',
+  promiseHide: 'promise-hide',
+  userBlock: 'user-block',
+  safetyReport: 'safety-report',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];

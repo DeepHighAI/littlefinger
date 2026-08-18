@@ -171,6 +171,21 @@ verify_jwt = true
 [functions.completion-celebration-shown]
 verify_jwt = true
 
+[functions.account-withdraw]
+verify_jwt = true
+
+[functions.profile-nickname-update]
+verify_jwt = true
+
+[functions.promise-hide]
+verify_jwt = true
+
+[functions.user-block]
+verify_jwt = true
+
+[functions.safety-report]
+verify_jwt = true
+
 # J-08가 내부 비밀 헤더로 인증하므로 플랫폼 JWT는 사용하지 않는다.
 [functions.evidence-purge]
 verify_jwt = false

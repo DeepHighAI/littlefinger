@@ -3,10 +3,12 @@
 두 사람이 합의한 약속을 기록하고, 잊지 않게 하고, 지켜지도록 돕는 상호 약속 관리 서비스.
 일정 조율 앱이 아니라 **합의 내용 그 자체**를 기록하는 앱이다. 브랜드 모티프는 새끼손가락 걸기.
 
-## 현재 단계: 이식 대기
+## 현재 단계: 로컬 MVP 완성 검증
 
-Claude Design에서 확정된 "핑키" 컨셉을 프레임워크 없는 HTML/CSS 화면 라이브러리로 구현해 두었고
-(27개 화면), 앱 프레임워크(오픈 포인트 N-3)가 **확정됐다.**
+승인된 "핑키" 디자인을 기준으로 Android Expo 앱, Vite 수락 웹, Supabase DB·Edge Function을
+구현했다. 핵심 흐름(로그인 → 작성 → 초대 → 웹 승인 → 이행 확인), 증인·변경·파기·알림·
+지킴율·증빙·완료 축하·광고 플래그에 더해 온보딩, 최소 버전 차단, 계정 탈퇴, 숨기기·차단·
+신고, J-04/J-06까지 로컬 코드와 자동 테스트가 있다.
 
 | 항목 | 확정 |
 |---|---|
@@ -20,16 +22,33 @@ Claude Design에서 확정된 "핑키" 컨셉을 프레임워크 없는 HTML/CSS
 이식 규칙은 [04_AI-Agent_코딩가이드](docs/기획/04_AI-Agent_코딩가이드.md),
 배경은 [ADR 0002](docs/adr/0002-react-native-expo-and-port-strategy.md).
 
-**진행 상황.** 저장소는 npm workspaces 모노레포로 재구성됐고, 화면 라이브러리는
-`design-reference/`로 옮겨져 **읽기 전용 시각 기준**이 됐다. 공유 도메인 패키지
-`packages/shared`는 TDD로 구현 중이다 — 상태·라벨·정책 상수·에러 코드·입력 정규화·KST 날짜
-계산·지킴율·상태 전이표까지 완료(111개 테스트). 남은 것은 `validation.ts`와 `api.ts`.
+`design-reference/`는 계속 **읽기 전용 시각 기준**이다. 구현·배포·수동 E2E의 실제 상태와
+남은 외부 게이트는 [개발 현황](docs/DEVELOPMENT_STATUS.md)에 기록한다. 현재 다음 단계는
+Android development build와 로컬 Vite 웹을 두 카카오 테스트 계정으로 완주하는 것이다.
 
-**다음 작업은 앱·웹 이식이다.** `apps/mobile`(Expo)과 `apps/web`(Vite)은 아직 없다.
-이식 규칙(토큰 변환 표, 컴포넌트 매핑, 폰트·아이콘 주의점)은 04 문서 §3~§5에 전부 있다.
-추측하지 말고 그 문서를 따른다.
+## 로컬 실행과 검증
 
-## 미리보기
+```bash
+npm install
+npm test
+npm run typecheck
+npm run build:web
+```
+
+수락 웹 개발 서버:
+
+```bash
+npm run dev --workspace=@littlefinger/web
+```
+
+Android는 Expo Go가 아니라 `apps/mobile/eas.json`의 development build를 사용한다. Supabase
+환경값은 루트 `.env`와 각 앱의 공개 환경변수에 둔다. 비밀값은 저장소가 아니라 Supabase Edge
+Secrets에만 둔다.
+
+57개 EC 추적은 [EC traceability](docs/qa/EC_TRACEABILITY.md), 두 계정 수동 시나리오는
+[manual E2E runbook](docs/qa/MANUAL_E2E.md)을 따른다.
+
+동결 디자인 미리보기:
 
 ```bash
 npm run preview
@@ -40,10 +59,9 @@ npm run preview
 | `http://localhost:4173/` | 전체 화면 갤러리 (27개 화면) |
 | `http://localhost:4173/docs/flows.html` | 화면 간 플로우 연결도 |
 
-의존성이 없다. Node만 있으면 된다. **이식 중에는 이 갤러리가 정답지다** — 옮긴 화면과
-원본을 나란히 놓고 눈으로 대조한다.
+**이식 중에는 이 갤러리가 정답지다** — 옮긴 화면과 원본을 나란히 놓고 눈으로 대조한다.
 
-## 구조 (현재)
+## 구조
 
 ```
 littlefinger/                      # npm workspaces
@@ -54,7 +72,12 @@ littlefinger/                      # npm workspaces
 │   ├── text.ts                    # 입력 정규화·코드포인트 길이
 │   ├── datetime.ts                # KST D-Day·임박·이행확인 창·조용시간
 │   ├── keep-rate.ts               # 약속 지킴율 (02 §4-9-1)
-│   └── transitions.ts             # 상태 전이표 T-01~T-18 (02 §7-1)
+│   ├── transitions.ts             # 상태 전이표 T-01~T-18 (02 §7-1)
+│   ├── api.ts                     # 앱·웹·Edge Function 공개 HTTP 계약
+│   └── notification.ts            # NT-01~NT-21 및 예약 알림 계약
+├── apps/mobile/                   # Expo Android — SCR-A*, MOD-*, App Links
+├── apps/web/                      # Vite 수락 웹 — SCR-W01~W06
+├── supabase/                      # migrations, Edge Functions, DB 통합 테스트
 ├── design-reference/              # ★ 읽기 전용 — 확정 UI의 시각 기준
 │   ├── screens/{app,web}/         # 27개 화면
 │   ├── styles/                    # tokens.css(90종) · base · components(lf-* 110개)
@@ -75,13 +98,16 @@ littlefinger/                      # npm workspaces
 `CLAUDE.md`와 `AGENTS.md`는 헤더만 다르고 나머지는 완전히 같다. **`CLAUDE.md`만 고치고**
 `npm run sync:agents`로 재생성한다. `npm run check:agents`는 어긋나 있으면 실패한다.
 
-## 아직 없는 것
+## 남은 출시 게이트
 
-```
-apps/mobile/     # Expo — 앱 화면 (SCR-A*, MOD-*)
-apps/web/        # Vite — 수락 웹 (SCR-W01~W06, CSS 그대로 재사용)
-supabase/        # migrations + Edge Functions
-```
+- 두 카카오 계정으로 Android development build ↔ 수락 웹 수동 E2E
+- 실제 Cloudflare 도메인의 `assetlinks.json` 검증과 App Links 실기기 확인
+- 최종 약관·개인정보처리방침 법무 검토 및 운영자 정보 확정
+- 실제 AdMob 설정, Play 비공개 테스트 12명×14일, 상표·스토어명 확인
+- 물리 기기 전체 TalkBack·운영 푸시 도달 확인
+
+J-07 자동 집계·운영자 경보는 PO 결정으로 현재 범위에서 제외했다. ACTIVE 전환 시
+`daily_metrics.activated_count` 실시간 기록과 `ads_enabled=false` 기본값은 유지한다.
 
 ## 화면 인벤토리
 
@@ -107,7 +133,7 @@ DRAFT → PENDING → ACTIVE → CHECKING → COMPLETED | BROKEN | DISPUTED | UN
         PENDING → DECLINED
 ```
 
-상태 정의와 상태별 정책은 `src/types/promise.ts`에 있다.
+상태 정의와 상태별 정책은 `packages/shared/src/promise.ts`에 있다.
 COMPLETED·BROKEN만 약속 지킴율에 반영되고, DISPUTED·UNRESOLVED·DECLINED·CANCELED는
 비율에서 빠진 채 건수만 따로 표기된다. 지킴율 분모는 **"내가 지킬 사람인 약속"만** 포함하며
 최소 표본 3건 미만이면 "집계 중"으로 표시한다.

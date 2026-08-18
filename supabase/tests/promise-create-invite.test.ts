@@ -778,23 +778,27 @@ describe('권한 — 서버 전용', () => {
 // ══════════════════════════════════════════════════════════════
 
 describe('클라이언트 쓰기 경로가 닫혔다', () => {
-  test('promises 에 남은 정책은 읽기와 DRAFT 삭제뿐이다', async () => {
+  test('promises에는 읽기·DRAFT 삭제와 탈퇴 계정 차단 경계만 남는다', async () => {
     const { rows } = await db.asAdmin(
-      `select cmd, count(*)::int as n from pg_policies
-        where schemaname = 'public' and tablename = 'promises' group by cmd order by cmd`,
+      `select policyname, permissive, cmd from pg_policies
+        where schemaname = 'public' and tablename = 'promises' order by policyname`,
     );
     expect(rows).toEqual([
-      { cmd: 'DELETE', n: 1 },
-      { cmd: 'SELECT', n: 1 },
+      { policyname: 'active account boundary', permissive: 'RESTRICTIVE', cmd: 'ALL' },
+      { policyname: 'promises delete own draft', permissive: 'PERMISSIVE', cmd: 'DELETE' },
+      { policyname: 'promises read participants', permissive: 'PERMISSIVE', cmd: 'SELECT' },
     ]);
   });
 
-  test('promise_versions 에 남은 정책은 읽기뿐이다', async () => {
+  test('promise_versions에는 읽기와 탈퇴 계정 차단 경계만 남는다', async () => {
     const { rows } = await db.asAdmin(
-      `select cmd from pg_policies
-        where schemaname = 'public' and tablename = 'promise_versions'`,
+      `select policyname, permissive, cmd from pg_policies
+        where schemaname = 'public' and tablename = 'promise_versions' order by policyname`,
     );
-    expect(rows).toEqual([{ cmd: 'SELECT' }]);
+    expect(rows).toEqual([
+      { policyname: 'active account boundary', permissive: 'RESTRICTIVE', cmd: 'ALL' },
+      { policyname: 'promise versions read participants', permissive: 'PERMISSIVE', cmd: 'SELECT' },
+    ]);
   });
 
   test('작성자도 약속을 직접 INSERT 할 수 없다 — EC-H05 한도를 우회할 경로가 없어야 한다', async () => {

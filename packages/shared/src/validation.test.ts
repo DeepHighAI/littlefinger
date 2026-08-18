@@ -7,7 +7,6 @@ import {
   validateCategory,
   validateComment,
   validateDeclineReason,
-  validateEmail,
   validateEndDate,
   validateEvidences,
   validateKeeper,
@@ -266,26 +265,9 @@ describe('validateAmendReason — F-11 변경·파기 이유 0~200자', () => {
   });
 });
 
-describe('validateEmail — RFC 5322, 선택', () => {
-  test('빈 값을 허용한다 — 이메일은 선택이다', () => {
-    expect(ok(validateEmail(''))).toBe(true);
-  });
-
-  test('평범한 주소를 통과시킨다', () => {
-    expect(ok(validateEmail('batisututu@gmail.com'))).toBe(true);
-    expect(ok(validateEmail('a.b+tag@sub.example.co.kr'))).toBe(true);
-  });
-
-  test('형식이 틀리면 명세 문구를 돌려준다', () => {
-    const result = validateEmail('not-an-email');
-    expect(result.valid).toBe(false);
-    expect(result.message).toBe('이메일 형식을 확인해 주세요.');
-  });
-
-  test('흔한 오입력을 잡는다', () => {
-    for (const bad of ['a@', '@b.com', 'a b@c.com', 'a@b', 'a@@b.com']) {
-      expect(ok(validateEmail(bad)), bad).toBe(false);
-    }
+describe('EC-G03 이메일 경로 제외', () => {
+  test('공용 검증 계약에 이메일 입력 경로를 노출하지 않는다', () => {
+    expect(validationRuntime).not.toHaveProperty('validateEmail');
   });
 });
 

@@ -142,7 +142,7 @@ describe('F-05 witness invitation transactions', () => {
     expect(JSON.stringify(rows[0]?.['result'])).not.toMatch(/token|hash/u);
   });
 
-  test('allowed states issue while terminal and DISPUTED states fail closed', async () => {
+  test('EC-D04 허용 상태만 발급하고 종결 및 DISPUTED에서는 차단한다', async () => {
     const creator = await createUser(db, '증인상태작성자');
     for (const status of ['PENDING', 'ACTIVE', 'AMEND_PENDING', 'CHECKING'] as const) {
       const promiseId = await createPromise(db, { creatorId: creator, status });
@@ -154,7 +154,7 @@ describe('F-05 witness invitation transactions', () => {
     }
   });
 
-  test('capacity counts joined and valid invited slots and rejects a third slot', async () => {
+  test('EC-D01 참여·유효 초대 슬롯을 합산해 세 번째 증인을 차단한다', async () => {
     const creator = await createUser(db, '증인상한작성자');
     const partner = await createUser(db, '증인상한상대');
     const joinedWitness = await createUser(db, '기존증인');
@@ -245,7 +245,7 @@ describe('F-05 witness invitation transactions', () => {
     expect(String((results.find((result) => result.status === 'rejected') as PromiseRejectedResult).reason)).toContain('E_INVITE_USED');
   });
 
-  test('creator partner and an existing witness cannot take another witness slot', async () => {
+  test('EC-D02 작성자·상대·기존 증인은 다른 증인 역할을 가질 수 없다', async () => {
     const creator = await createUser(db, '증인중복작성자');
     const partner = await createUser(db, '증인중복상대');
     const existingWitness = await createUser(db, '증인중복기존');
@@ -434,7 +434,7 @@ describe('F-05 witness invitation transactions', () => {
     }
   });
 
-  test('leave preserves the existing witness signature exactly', async () => {
+  test('EC-D03 증인 나가기는 기존 append-only 서명을 그대로 보존한다', async () => {
     const creator = await createUser(db, '증인나가기로깅작성자');
     const partner = await createUser(db, '증인나가기로깅상대');
     const witness = await createUser(db, '증인나가기로깅증인');
