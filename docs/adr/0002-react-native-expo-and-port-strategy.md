@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-07-25
 - Supersedes: the "N-3 stays open" consequence of [ADR 0001](0001-pinky-design-system-in-plain-html.md)
+- Amended by: [ADR 0005](0005-use-existing-firebase-hosting.md) for web hosting only
 - Deciders: PO (대표)
 
 ## Context
@@ -44,7 +45,7 @@ than a throwaway.**
 | App (SCR-A*, MOD-*) | React Native + **Expo SDK 57** (RN 0.86) · TypeScript 5.9+ · Expo Router |
 | Acceptance web (SCR-W*) | **Vite + React + React Router** — reusing the existing CSS verbatim |
 | DB · Auth · Storage · server logic · batch | **Supabase Free** (Postgres · Auth · Storage · Edge Functions · pg_cron) |
-| Web hosting | **Cloudflare Pages** |
+| Web hosting | **Cloudflare Pages** — superseded by Firebase Hosting Spark in ADR 0005 |
 | Push | expo-notifications + Expo Push Service |
 | Ads | `react-native-google-mobile-ads` (AdMob), SCR-A02 only |
 
@@ -52,7 +53,7 @@ Kakao login goes through **Supabase Auth's official Kakao provider**. The unoffi
 Kakao SDK is not used.
 
 Explicitly rejected: **Vercel** (the Hobby plan forbids ad-monetized commercial use), **Firebase Blaze**
-(usage billing; Expo Push Service removes the need), **Next.js** for the acceptance web (no SSR need,
+(usage billing; ADR 0005 uses Firebase Hosting on Spark), **Next.js** for the acceptance web (no SSR need,
 heavier bundle against the 3s target), **react-native-web / Expo Web** for the acceptance web
 (discards finished CSS and hits layout limits), and Render / Railway / Fly.io (no viable free tier).
 

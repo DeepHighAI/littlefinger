@@ -32,8 +32,8 @@ describe('draft legal metadata', () => {
   });
 
   it('builds canonical HTTP URLs', () => {
-    expect(buildLegalDocumentUrl('https://littlefinger.pages.dev/', 'TERMS')).toBe(
-      'https://littlefinger.pages.dev/legal/terms',
+    expect(buildLegalDocumentUrl('https://littlefinger-app-philwoo.web.app/', 'TERMS')).toBe(
+      'https://littlefinger-app-philwoo.web.app/legal/terms',
     );
     expect(buildLegalDocumentUrl('http://localhost:4174/promises', 'PRIVACY')).toBe(
       'http://localhost:4174/legal/privacy',

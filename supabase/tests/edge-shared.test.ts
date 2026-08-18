@@ -73,7 +73,7 @@ describe('해시 — 원본 미보관 (§13 · 04 §12-8)', () => {
 
 describe('표면 판정 (§2-1)', () => {
   test('Origin 이 있으면 WEB 이다 — 브라우저는 교차 출처 POST 에 항상 붙인다', () => {
-    expect(surfaceOf(post({ headers: { origin: 'https://littlefinger.pages.dev' } }))).toBe('WEB');
+    expect(surfaceOf(post({ headers: { origin: 'https://littlefinger-app-philwoo.web.app' } }))).toBe('WEB');
   });
 
   test('Origin 이 없으면 APP 이다 — RN 의 fetch 는 붙이지 않는다', () => {

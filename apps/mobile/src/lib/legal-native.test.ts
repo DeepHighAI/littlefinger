@@ -5,11 +5,11 @@ describe('native legal document links', () => {
     const openUrl = jest.fn().mockResolvedValue(undefined);
 
     await openLegalDocument('TERMS', {
-      baseUrl: 'https://littlefinger.pages.dev/',
+      baseUrl: 'https://littlefinger-app-philwoo.web.app/',
       openUrl,
     });
 
-    expect(openUrl).toHaveBeenCalledWith('https://littlefinger.pages.dev/legal/terms');
+    expect(openUrl).toHaveBeenCalledWith('https://littlefinger-app-philwoo.web.app/legal/terms');
   });
 
   test('rejects a missing web origin without opening anything', async () => {

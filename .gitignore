@@ -12,6 +12,7 @@ dist/
 coverage/
 .expo/
 .vite/
+.firebase/
 
 # 환경변수 — .env.example 만 커밋한다 (04 §9)
 .env

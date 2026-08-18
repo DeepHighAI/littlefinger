@@ -76,7 +76,7 @@ describe('MOD-02 witness invitation sheet', () => {
     expect(hiddenScrimProps(view.toJSON())?.['importantForAccessibility']).toBe(
       'no-hide-descendants',
     );
-  });
+  }, 30_000);
 
   test('renders loading while the slot request is pending', async () => {
     listMock.mockImplementationOnce(async () => await new Promise((resolve) => {

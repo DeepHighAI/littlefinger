@@ -22,8 +22,8 @@ describe('EC-I01 /i App Link routing contract', () => {
 
 describe('EC-G01 직접 알림 링크 계약', () => {
   test('웹 참여 약속 목록 URL은 origin 아래 /promises로 고정한다', () => {
-    expect(buildParticipantPromisesWebUrl('https://littlefinger.pages.dev/i/token')).toBe(
-      'https://littlefinger.pages.dev/promises',
+    expect(buildParticipantPromisesWebUrl('https://littlefinger-app-philwoo.web.app/i/token')).toBe(
+      'https://littlefinger-app-philwoo.web.app/promises',
     );
     expect(buildParticipantPromisesWebUrl('http://localhost:5173')).toBe(
       'http://localhost:5173/promises',

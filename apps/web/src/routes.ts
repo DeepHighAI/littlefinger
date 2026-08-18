@@ -3,7 +3,7 @@ import { legalDocumentPath, type LegalDocumentKind } from '@littlefinger/shared'
 /**
  * 수락 웹의 경로표.
  *
- * 초대 링크는 `https://littlefinger.pages.dev/i/{token}` 이다(PO 2026-07-27, C-3 종결).
+ * 초대 링크는 `https://littlefinger-app-philwoo.web.app/i/{token}` 이다(PO 2026-08-18, ADR 0005).
  * **이 형태는 바꿀 수 없다** — 서버는 발송한 URL 을 기록하지 않고 토큰은 72시간 살아 있어서,
  * 경로가 달라지면 이미 카카오톡에 뿌려진 링크를 찾을 방법도 되살릴 방법도 없다.
  */

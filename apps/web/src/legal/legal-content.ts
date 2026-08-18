@@ -118,7 +118,7 @@ export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> =
       {
         title: '처리위탁과 국외 처리',
         paragraphs: [
-          '카카오 로그인, Supabase 인증·데이터·파일 저장, Expo와 Firebase Cloud Messaging의 푸시 전달, Cloudflare의 웹 제공 과정에서 처리가 이루어질 수 있습니다.',
+          '카카오 로그인, Supabase 인증·데이터·파일 저장, Expo와 Firebase Cloud Messaging의 푸시 전달, Firebase Hosting의 웹 제공 과정에서 처리가 이루어질 수 있습니다.',
           LEGAL_DRAFT_LABELS.missingTransfers,
         ],
       },

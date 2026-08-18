@@ -42,7 +42,7 @@
 | 앱 라우팅 | **Expo Router** (파일 기반) | SDK 57 내장 | 오픈소스 |
 | 수락 웹 (SCR-W01~W06) | **Vite + React + React Router** | Vite 6+ | 오픈소스 |
 | DB · 인증 · 파일 · 서버로직 · 배치 | **Supabase Free** | — | DB 500MB / 파일 1GB / MAU 5만 / Edge Function 50만회 / 전송 5GB |
-| 수락 웹 호스팅 | **Cloudflare Pages** | — | 무료, **상업적 이용 제한 없음** |
+| 수락 웹 호스팅 | **Firebase Hosting Spark** | — | 기존 `littlefinger-app-philwoo` 프로젝트, 무료 기본 HTTPS 도메인 |
 | 푸시 알림 | **expo-notifications + Expo Push Service (FCM 경유)** | SDK 57 | 무료 |
 | 광고 | `react-native-google-mobile-ads` 16.3.3 (AdMob) | — | 무료 SDK |
 | 저장소 | GitHub (+ Actions) | — | 공개 저장소 무료 |
@@ -52,8 +52,8 @@
 
 | 금지 | 이유 |
 |---|---|
-| **Vercel** | 무료(Hobby) 플랜이 **광고 수익 서비스를 약관상 금지**. 수락 웹은 Cloudflare Pages에 올린다 |
-| **Firebase Blaze(유료)** | 사용량 과금. 푸시는 Expo Push Service로 해결되므로 Firebase 콘솔 자체가 불필요 |
+| **Vercel** | 무료(Hobby) 플랜이 **광고 수익 서비스를 약관상 금지**. 수락 웹은 Firebase Hosting Spark에 올린다 |
+| **Firebase Blaze(유료)** | 사용량 과금. 정적 수락 웹은 결제 수단 없는 Spark 한도 안에서 운영한다 |
 | **Next.js** | 수락 웹에 SSR이 필요 없고 번들이 무겁다. 3초 목표(상위기획서 §13)에 Vite가 유리 |
 | **react-native-web / Expo Web으로 수락 웹 구현** | 화면 크기별 대응·상단 고정·hover 미지원 + 번들 증가. 이미 완성된 수락 웹 CSS를 버리게 된다 |
 | `@react-native-kakao/*` (비공식 SDK) | **§8 참조 — Supabase Auth의 카카오 공식 연동으로 대체.** 필요해지면 그때 재검토 |
@@ -514,7 +514,7 @@ MVP는 **OS 기본 공유 시트**(RN `Share` API)로 초대 링크를 보낸다
 
 ## 스택
 Expo SDK 57 (RN 0.86) · TypeScript · Expo Router | 수락 웹: Vite + React
-백엔드: Supabase (DB/Auth/Storage/Edge Functions/pg_cron) | 웹 호스팅: Cloudflare Pages
+백엔드: Supabase (DB/Auth/Storage/Edge Functions/pg_cron) | 웹 호스팅: Firebase Hosting Spark
 공유 코드: packages/shared (플랫폼 API import 금지)
 
 ## 절대 규칙
@@ -564,7 +564,7 @@ node design-reference/serve.js   # 원본 화면과 눈으로 대조
 |---|---|---|---|
 | ~~C-1~~ | ~~카카오 이메일 수집 여부~~ | **종료(2026-07-29): 이메일 미수집·미발송.** 비즈 앱은 로그인 자체를 위해 등록하고 `account_email`은 선택 동의로만 둔다 | EC-G03은 비적용 결정 검증 |
 | C-2 | 아이콘을 원본과 100% 같게 맞출까요? | **맞추지 않음** — Expo 내장 MaterialIcons 사용(모서리 곡률 미세 차이) | 시각 충실도만 |
-| C-3 | 수락 웹 도메인을 구입할까요? | **Cloudflare 무료 주소로 시작** | 초대 링크 주소 모양 |
+| C-3 | 수락 웹 도메인을 구입할까요? | **종결: `https://littlefinger-app-philwoo.web.app` 사용** (PO, 2026-08-18; ADR 0005) | 초대 링크 주소 모양 |
 | C-4 | 초대 링크 공유를 카카오 공유 카드로 예쁘게 만들까요? | **MVP 제외** — OS 기본 공유 시트로 링크만 전송 | F-03 체감 품질 |
 
 **이미 확정된 사항** (03 보고 시 컨펌): T-1 카톡 인앱 자동 로그인 **반영** · T-2 **로컬 빌드** · T-3 N-2(iOS 시점) **v2에서 결정**.

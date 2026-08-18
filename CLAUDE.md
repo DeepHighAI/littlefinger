@@ -371,7 +371,7 @@ and the weekly `supabase db dump` backup are load-bearing, not optional.
 | App (SCR-A\*, MOD-\*) | React Native + **Expo SDK 57** (RN 0.86) · TypeScript · Expo Router |
 | Acceptance web (SCR-W\*) | **Vite + React + React Router**, existing CSS reused |
 | DB · auth · storage · server logic · batch | **Supabase Free** (Postgres · Auth · Storage · Edge Functions · pg_cron) |
-| Web hosting | **Cloudflare Pages** |
+| Web hosting | **Firebase Hosting Spark** on the existing `littlefinger-app-philwoo` project |
 | Push | expo-notifications + Expo Push Service |
 | Ads | `react-native-google-mobile-ads` (AdMob) — SCR-A02 bottom slot only |
 
@@ -508,7 +508,7 @@ Full detail: `04` §10.
 | ~~C-1~~ | ~~Business registration → email collection~~ | **Closed 2026-07-26. The PO has a business registration, and chose not to collect email anyway.** See §6-1 below — Biz App is still mandatory, for a different reason than `04` §13 assumed |
 | ~~Emoji~~ | ~~`02` §2-3 wants both "count code points" and "emoji counts as 1"~~ | **Decided 2026-07-26: code points.** A family emoji counts 5, 🇰🇷 counts 2. Grapheme counting needs `Intl.Segmenter`, an ECMA-402 surface where Hermes has gaps. Revisit at M4 if device testing allows |
 | C-2 | Match icons to the original 100%? | Default: no — Expo MaterialIcons, slight corner-curvature difference |
-| C-3 | Buy a domain for the acceptance web? | Default: start on the free Cloudflare address |
+| ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18: use `https://littlefinger-app-philwoo.web.app` (ADR 0005).** |
 | C-4 | Pretty KakaoTalk share card for invites? | Default: out of MVP scope — OS share sheet, link only |
 | N-1 | '리틀핑거' trademark / store name | Confirm before launch |
 | N-2 | iOS launch timing | Decided in v2 |

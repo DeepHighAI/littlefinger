@@ -15,7 +15,7 @@
 | 앱 (SCR-A*, MOD-*) | **React Native + Expo SDK 57** (RN 0.86) · TypeScript · Expo Router |
 | 수락 웹 (SCR-W*) | **Vite + React + React Router** — 지금의 CSS를 그대로 재사용 |
 | 백엔드 | **Supabase Free** (Postgres · Auth · Storage · Edge Functions · pg_cron) |
-| 웹 호스팅 | **Cloudflare Pages** |
+| 웹 호스팅 | **Firebase Hosting Spark** (`littlefinger-app-philwoo.web.app`) |
 
 전부 무료 플랜으로 운영 가능하고, 광고 수익 모델에서도 약관 위반이 없는 조합이다.
 결정 근거는 [03_기술스택_비교분석](docs/기획/03_기술스택_비교분석.md),
@@ -24,7 +24,8 @@
 
 `design-reference/`는 계속 **읽기 전용 시각 기준**이다. 구현·배포·수동 E2E의 실제 상태와
 남은 외부 게이트는 [개발 현황](docs/DEVELOPMENT_STATUS.md)에 기록한다. 현재 다음 단계는
-Android development build와 로컬 Vite 웹을 두 카카오 테스트 계정으로 완주하는 것이다.
+Firebase 호스트가 포함된 EAS development build와 배포 웹을 두 카카오 테스트 계정으로
+완주하는 것이다.
 
 ## 로컬 실행과 검증
 
@@ -39,6 +40,13 @@ npm run build:web
 
 ```bash
 npm run dev --workspace=@littlefinger/web
+```
+
+수락 웹 운영 배포(기존 Firebase 프로젝트만 사용):
+
+```bash
+npm run build:web
+npx firebase-tools deploy --only hosting --project littlefinger-app-philwoo
 ```
 
 Android는 Expo Go가 아니라 `apps/mobile/eas.json`의 development build를 사용한다. Supabase
@@ -101,7 +109,7 @@ littlefinger/                      # npm workspaces
 ## 남은 출시 게이트
 
 - 두 카카오 계정으로 Android development build ↔ 수락 웹 수동 E2E
-- 실제 Cloudflare 도메인의 `assetlinks.json` 검증과 App Links 실기기 확인
+- 실제 Firebase Hosting 도메인의 `assetlinks.json` 검증과 App Links 실기기 확인
 - 최종 약관·개인정보처리방침 법무 검토 및 운영자 정보 확정
 - 실제 AdMob 설정, Play 비공개 테스트 12명×14일, 상표·스토어명 확인
 - 물리 기기 전체 TalkBack·운영 푸시 도달 확인

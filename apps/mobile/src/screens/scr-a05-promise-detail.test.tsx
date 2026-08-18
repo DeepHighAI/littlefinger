@@ -957,7 +957,7 @@ describe('SCR-A05 약속 상세', () => {
   });
 
   test('EC-G01 상대가 푸시를 받을 수 없으면 카카오톡 직접 알림 경로를 제공한다', async () => {
-    process.env.EXPO_PUBLIC_WEB_BASE_URL = 'https://littlefinger.pages.dev';
+    process.env.EXPO_PUBLIC_WEB_BASE_URL = 'https://littlefinger-app-philwoo.web.app';
     loadDetailMock.mockResolvedValue(makeDetail({ counterpart_push_available: false }));
     const view = await render(<PromiseDetailScreen />);
     await settle();
@@ -965,7 +965,7 @@ describe('SCR-A05 약속 상세', () => {
     expect(view.getByText('상대는 앱 알림을 받을 수 없어요. 직접 알려주세요.')).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '상대에게 카톡으로 알리기' }));
     expect(Share.share).toHaveBeenCalledWith({
-      message: `${VERSION.title} 약속을 확인해 주세요.\nhttps://littlefinger.pages.dev/promises`,
+      message: `${VERSION.title} 약속을 확인해 주세요.\nhttps://littlefinger-app-philwoo.web.app/promises`,
     });
   });
 

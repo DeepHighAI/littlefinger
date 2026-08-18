@@ -85,7 +85,7 @@ function transitionRequest(body: Record<string, unknown> = { token: TOKEN }): Re
       'idempotency-key': KEY,
       'cf-connecting-ip': '1.2.3.4',
       'user-agent': 'KAKAOTALK/10',
-      origin: 'https://littlefinger.pages.dev',
+      origin: 'https://littlefinger-app-philwoo.web.app',
     },
     body,
   });

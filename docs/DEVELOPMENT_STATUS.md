@@ -5,9 +5,9 @@ Snapshot date: **2026-08-18 KST**.
 ## Overall result
 
 The local MVP implementation is feature-complete for the scope approved in the 2026-08-18 plan.
-The remaining work is deployment and manual/device verification, not an unimplemented local product
-flow. Remote catch-up and two-account E2E are currently blocked because the Supabase CLI account
-receives HTTP 403 for the linked project.
+The Supabase test project is caught up, all 45 Edge Functions are active, and the acceptance web is
+live on the existing Firebase project. Remaining work is interactive account/device verification,
+not an unimplemented local product flow.
 
 J-07 automatic metrics review/operator alerting remains explicitly out of scope. Real legal copy,
 real AdMob release configuration, Play closed testing, trademark/store-name confirmation, and full
@@ -47,61 +47,96 @@ physical-device accessibility/push verification remain release gates.
 
 | Gate | Result |
 |---|---|
-| `npm test` | PASS — Vitest **87 files / 1,885 tests**, mobile Jest **61 suites / 594 tests** |
+| `npm test` | PASS — Vitest **87 files / 1,885 tests**, mobile Jest **61 suites / 595 tests** |
 | `npm run typecheck` | PASS — shared, mobile, web, Edge Functions, Supabase tests |
 | `npm run build:web` | PASS — 115 modules; JS 330.63KB / gzip 100.84KB |
 | `npx expo install --check` | PASS — `Dependencies are up to date` |
 | `npm run check:agents` | PASS — CLAUDE.md and AGENTS.md synchronized |
-| Android export | PASS — 1,775 modules; 4.4MB Hermes bundle |
+| Android export | PASS — 1,776 modules; 4.4MB Hermes bundle |
 | `git diff --check` | PASS |
 
-The Android export is at
-`C:\Users\batis\AppData\Local\Temp\littlefinger-local-mvp-20260818`. It used the Cloudflare
-default URL for the App Link config and Google test ad identifiers. The iOS AdMob warning is not an
-Android export failure; iOS is outside the MVP platform scope.
+The new Android export is at `apps/mobile/.expo/firebase-export`. A local x86_64 debug APK also
+built successfully (`558 actionable tasks`, 99,172,731 bytes) and is copied to
+`C:\Users\batis\AppData\Local\Temp\littlefinger-firebase-debug-x86_64.apk`. Its compiled manifest
+contains `autoVerify=true`, host `littlefinger-app-philwoo.web.app`, and `/i/`. It uses the local
+debug certificate (`FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C`), not the EAS development certificate in the public
+Digital Asset Links file, so it is suitable for local feature testing but not final App Links
+auto-verification. Google test ad identifiers remain configured.
 
 The production web bundle no longer has a JavaScript chunk above 500KB. The full Pretendard
-variable font remains 2.06MB. It has not been subset because the required throttled measurement
-could not be completed, so there is no measured failure authorizing that optimization.
+variable font remains 2.06MB. The measured public-route LCP passes the approved 3-second target, so
+the plan does not authorize font subsetting or further chunk splitting in this pass.
 
 ## Remote deployment state
 
-The existing test project is `vepnrrmxvsytguocicfe`. Earlier deployments cover the previously
-recorded F-09/MOD-03 baseline, but the following local changes are not verified remotely:
+The test project `vepnrrmxvsytguocicfe` is linked under `batisututu@gmail.com`. All migrations
+through `20260818000004_counterpart_push_availability.sql` are applied, `ACCOUNT_ID_PEPPER` is set
+independently, and all **45/45** local Edge Functions are deployed with `--use-api` and report
+`ACTIVE`. `supabase config push` was not run.
 
-- F-11 migrations and four amend/cancel Edge Functions
-- witness self-leave migration and Edge Function
-- account/safety migrations and five Edge Functions
-- J-04/J-06 migrations, NT-20/NT-21 enum changes and cron schedules
-- counterpart push availability detail wrapper
+Read-only metadata and rollback-safe remote tests produced these results:
 
-`npx supabase link --project-ref vepnrrmxvsytguocicfe` and `npx supabase db push --dry-run` both
-return HTTP 403 for the available CLI account. No remote mutation was attempted after that denial,
-and `supabase config push` was not run.
+- J-04 `lf-invitation-expiry`: exactly one active `*/30 * * * *` cron row; two fixed-time runs
+  produced one expiry effect and no duplicate work.
+- J-06 `lf-draft-cleanup`: exactly one active `0 19 * * *` cron row; two fixed-time runs produced
+  one NT-20/NT-21 scheduling/deletion effect and no duplicate work.
+- RLS is enabled on every public table; 15 tables have the restrictive active-account boundary.
+- The batch functions deny `anon`, `authenticated`, and `public`, allow `service_role`, use
+  `security definer`, and have an empty search path.
+- ACTIVE access, WITHDRAWN denial, active nickname RPC idempotency, and withdrawn RPC rejection all
+  passed; fixtures were rolled back.
 
-Before retrying deployment, configure the new `ACCOUNT_ID_PEPPER` Edge Secret independently from
-`INVITE_TOKEN_PEPPER` and `PII_HASH_SALT`.
+Supabase Security Advisor returned no ERROR and 55 WARN findings: 30 mutable function search paths,
+4 anonymous and 4 authenticated security-definer grants, 1 leaked-password-protection setting, and
+16 RLS init-plan findings. They are a hardening backlog, not a failed result of the scoped checks.
+
+Reusable verification SQL is committed under `supabase/tests/remote/`.
+
+## Web hosting and App Links
+
+Cloudflare Pages is retired. ADR 0005 selects the existing Firebase Spark project
+`littlefinger-app-philwoo`, and the acceptance web was deployed as 31 static files to
+`https://littlefinger-app-philwoo.web.app`.
+
+- `/` and direct `/i/e2e-invalid-token` requests return HTTP 200 HTML.
+- `/.well-known/assetlinks.json` returns HTTP 200, `application/json; charset=utf-8`, and the
+  development APK SHA-256 signing fingerprint for `com.littlefinger.app`.
+- Google Digital Asset Links API returns the expected `handle_all_urls` statement.
+- Expo config resolves one `autoVerify` intent filter for HTTPS host
+  `littlefinger-app-philwoo.web.app` and path prefix `/i/`.
+- EAS development and production `EXPO_PUBLIC_WEB_BASE_URL` values are updated to the new origin.
+
+The Supabase Auth redirect allowlist is Dashboard-owned and still needs an interactive confirmation
+that the Firebase origin and callback path are present. A fresh EAS development build is needed for
+final auto-verification because App Links hosts and signing identity must both match.
 
 ## Manual and visual verification
 
-The two-account development-build E2E has not been executed because the backend cannot be caught up
-to the local contract. Account scenarios, expected outcomes, and screenshot slots are recorded in
-[`docs/qa/MANUAL_E2E.md`](qa/MANUAL_E2E.md), all currently marked `BLOCKED_REMOTE`.
+The backend and public web prerequisites are complete, but the 12 two-account scenarios have not
+been executed. The Android emulator remains `unauthorized`, no interactive pair of Kakao test
+sessions is available to the agent, and the in-app browser failed trusted-path initialization.
+Account scenarios and evidence slots are in [`docs/qa/MANUAL_E2E.md`](qa/MANUAL_E2E.md).
 
-The in-app browser connection also failed during trusted-path initialization, so this pass does not
-claim a new 360×800 pixel comparison or 4G-throttled timing result. Automated screen semantics,
-route contracts, no-ad boundaries, and Android export pass, but the following remain pending:
+Lighthouse 13 measured the deployed invalid-invite route three times at 360×800 with simulated
+slow 4G (150 ms RTT, 1,638.4 Kbps, 4× CPU). Results were Performance **92/93/93**,
+Accessibility **100/100/100**, Best Practices **100/100/100**, median FCP **1.281 s**, median LCP
+**1.431 s**, median Speed Index **1.281 s**, median TBT **14 ms**, and median transfer **2.20 MB**.
+The measured first-view LCP passes the 3-second target, so the plan does not authorize chunk or font
+changes. CLS is **0.1666** and remains a visual-quality finding; SEO is **82**. Authenticated major
+screen transitions and approval API p95 were not measurable without the two-account session.
+
+Still pending:
 
 - full app/web 360×800 comparison after the Fresh Green and brand-symbol changes;
-- first load ≤3 seconds and major screen ≤2 seconds under 4G throttling;
-- approval API p95 ≤1 second against the caught-up remote project;
-- actual HTTPS `assetlinks.json` verification and Android intent handoff;
+- authenticated major screen transition ≤2 seconds and approval API p95 ≤1 second;
+- `adb shell am start` handoff with a fresh build containing the Firebase host;
 - two Kakao accounts completing approval, witness, amend, fulfillment, safety and withdrawal flows;
 - real Expo push delivery in foreground/background/terminated states.
 
 ## Exact next step
 
-Grant the Supabase CLI account deployment access to `vepnrrmxvsytguocicfe`. Then run a dry-run
-migration review, deploy the pending migrations and Edge Functions with `--use-api`, verify the new
-cron jobs and secrets, and execute `docs/qa/MANUAL_E2E.md` with two Kakao test accounts. Record each
-PASS/FAIL and screenshot path here without storing raw identifiers or invite/device tokens.
+Authorize the Android emulator's USB-debugging prompt, create/install a freshly EAS-signed
+development build, and add the Firebase origin to the Supabase Auth redirect allowlist if it is
+absent. Then execute
+`docs/qa/MANUAL_E2E.md` interactively with two Kakao test accounts and record each PASS/FAIL and
+screenshot path without storing raw identifiers, invite tokens, or device tokens.
