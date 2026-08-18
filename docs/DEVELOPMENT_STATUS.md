@@ -1,6 +1,6 @@
 # Development Status
 
-Snapshot date: **2026-08-18 KST**.
+Snapshot date: **2026-08-19 KST**.
 
 ## Overall result
 
@@ -49,7 +49,7 @@ physical-device accessibility/push verification remain release gates.
 |---|---|
 | `npm test` | PASS — Vitest **87 files / 1,885 tests**, mobile Jest **61 suites / 595 tests** |
 | `npm run typecheck` | PASS — shared, mobile, web, Edge Functions, Supabase tests |
-| `npm run build:web` | PASS — 115 modules; JS 330.63KB / gzip 100.84KB |
+| `npm run build:web` | PASS — 115 modules; JS 535.90KB / gzip 154.02KB; 500KB chunk warning |
 | `npx expo install --check` | PASS — `Dependencies are up to date` |
 | `npm run check:agents` | PASS — CLAUDE.md and AGENTS.md synchronized |
 | Android export | PASS — 1,776 modules; 4.4MB Hermes bundle |
@@ -63,9 +63,9 @@ debug certificate (`FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:
 Digital Asset Links file, so it is suitable for local feature testing but not final App Links
 auto-verification. Google test ad identifiers remain configured.
 
-The production web bundle no longer has a JavaScript chunk above 500KB. The full Pretendard
-variable font remains 2.06MB. The measured public-route LCP passes the approved 3-second target, so
-the plan does not authorize font subsetting or further chunk splitting in this pass.
+The production web bundle has one 535.90KB JavaScript chunk and the full Pretendard variable font
+remains 2.06MB. The measured public-route LCP passes the approved 3-second target, so the plan does
+not authorize font subsetting or chunk splitting in this pass; the build warning remains recorded.
 
 ## Remote deployment state
 
