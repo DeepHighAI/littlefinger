@@ -4,55 +4,21 @@
    ============================================================= */
 
 /* -------------------------------------------------------------
-   PINKY MARK — 새끼손가락 두 개가 맞걸린 브랜드 심볼
-   viewBox 120×120 고정. 크기는 --lf-pinky-size 로 조절.
+   PINKY MARK — 승인된 새끼손가락 약속 이미지 심볼
    ------------------------------------------------------------- */
 .lf-pinky {
   --lf-pinky-size: 46px;
-  --lf-pinky-stroke: 15;
-  width: var(--lf-pinky-size);
+  width: calc(var(--lf-pinky-size) * 1.4);
   height: var(--lf-pinky-size);
+  object-fit: contain;
   flex: none;
 }
 
-.lf-pinky path {
-  fill: none;
-  stroke-width: var(--lf-pinky-stroke);
-  stroke-linecap: round;
-  transform-box: fill-box;
-  transform-origin: center;
-}
+/* 단색 PNG의 알파는 보존하고 primary 배경에서만 흰색으로 반전한다. */
+.lf-pinky--on-primary { filter: brightness(0) invert(1); }
 
-/* 기본: 진한 그린 + 연한 그린 (밝은 배경 위) */
-.lf-pinky__left  { stroke: var(--lf-color-primary); }
-.lf-pinky__right { stroke: var(--lf-color-primary-pale); }
-
-/* primary-container 위에 올릴 때 — 보조 획을 흰색으로 */
-.lf-pinky--on-container .lf-pinky__right { stroke: var(--lf-color-surface); }
-
-/* primary 위에 올릴 때 — 둘 다 흰색 */
-.lf-pinky--on-primary .lf-pinky__left  { stroke: var(--lf-color-on-primary); }
-.lf-pinky--on-primary .lf-pinky__right { stroke: var(--lf-color-on-primary); opacity: 0.65; }
-
-/* 걸었다 풀었다 반복하는 루프 애니메이션 (Q-3 홈 타이틀) */
-.lf-pinky--hooked .lf-pinky__left {
-  animation: lf-hook-left var(--lf-duration-hook) ease-in-out infinite;
-}
-.lf-pinky--hooked .lf-pinky__right {
-  animation: lf-hook-right var(--lf-duration-hook) ease-in-out infinite;
-}
-
-@keyframes lf-hook-left {
-  0%, 14%  { transform: translate(-9px, -7px) rotate(-9deg); }
-  42%, 86% { transform: translate(0, 0) rotate(0deg); }
-  100%     { transform: translate(-9px, -7px) rotate(-9deg); }
-}
-
-@keyframes lf-hook-right {
-  0%, 14%  { transform: translate(9px, 7px) rotate(-9deg); }
-  42%, 86% { transform: translate(0, 0) rotate(0deg); }
-  100%     { transform: translate(9px, 7px) rotate(-9deg); }
-}
+/* 완성된 손 모양을 훼손하지 않고 전체 마크를 짧게 반응시킨다. */
+.lf-pinky--hooked { animation: lf-pinky-hook var(--lf-duration-hook) ease-in-out infinite; }
 
 @keyframes lf-pop-in {
   from { transform: scale(0.6); opacity: 0; }
@@ -71,16 +37,15 @@
 .lf-pinky--tapped { animation: lf-pinky-hook var(--lf-duration-long) var(--lf-easing-standard); }
 
 @media (prefers-reduced-motion: reduce) {
-  .lf-pinky--hooked .lf-pinky__left,
-  .lf-pinky--hooked .lf-pinky__right,
+  .lf-pinky--hooked,
   .lf-pinky--tapped {
     animation: none;
   }
 }
 
 /* 브랜드 마크 크기 프리셋 */
-.lf-pinky--xs  { --lf-pinky-size: 20px; --lf-pinky-stroke: 16; }
-.lf-pinky--sm  { --lf-pinky-size: 26px; --lf-pinky-stroke: 16; }
+.lf-pinky--xs  { --lf-pinky-size: 20px; }
+.lf-pinky--sm  { --lf-pinky-size: 26px; }
 .lf-pinky--md  { --lf-pinky-size: 46px; }
 .lf-pinky--lg  { --lf-pinky-size: 56px; }
 .lf-pinky--xl  { --lf-pinky-size: 64px; }

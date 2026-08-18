@@ -46,6 +46,14 @@ function visibleText(el: Element): string {
 afterEach(cleanup);
 
 describe('SCR-W03 승인 완료', () => {
+  it('확정 영역도 동일한 브랜드 이미지 심볼을 쓴다', () => {
+    renderWith(RESULT);
+    const mark = screen.getByRole('img', { name: '새끼손가락 걸기' });
+
+    expect(mark.tagName).toBe('IMG');
+    expect(mark.getAttribute('src')).toContain('brand-symbol');
+  });
+
   it('확정 스탬프에 확정 시각을 KST 로 적는다', () => {
     renderWith(RESULT);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('확정된 약속');

@@ -1,17 +1,14 @@
-import Svg, { Path } from 'react-native-svg';
+import { Image } from 'react-native';
 
 import { colors } from '../theme/tokens';
 
 /**
- * 핑키 마크 — 원본 `.lf-pinky` (04 §5-2).
- *
- * 새끼손가락 두 개가 서로 걸린 형태다. path 좌표는 `design-reference` 의 SVG 원본 그대로다.
- * RN 은 SVG 를 기본 지원하지 않아 `react-native-svg` 가 필요하다
- * (04 §4-6 의존성 목록에 빠져 있던 항목).
+ * 새 브랜드 핑키 마크 — 서로 새끼손가락을 건 두 손의 단색 실루엣.
+ * 승인된 원본 하나를 tint해서 배경별 대비만 바꾸므로 화면마다 형태가 달라지지 않는다.
  */
 
 export type LfPinkySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-/** 어떤 배경 위에 얹느냐에 따라 보조 획 색이 달라진다. */
+/** primary 배경만 흰색으로 반전하고 나머지는 승인된 진한 그린을 유지한다. */
 export type LfPinkyTone = 'default' | 'onContainer' | 'onPrimary';
 
 export interface LfPinkyProps {
@@ -21,27 +18,18 @@ export interface LfPinkyProps {
   testID?: string;
 }
 
-/** 원본 `.lf-pinky--*` 의 --lf-pinky-size / --lf-pinky-stroke */
-const SIZES: Record<LfPinkySize, { box: number; stroke: number }> = {
-  xs: { box: 20, stroke: 16 },
-  sm: { box: 26, stroke: 16 },
-  md: { box: 46, stroke: 15 },
-  lg: { box: 56, stroke: 15 },
-  xl: { box: 64, stroke: 15 },
+const SIZES: Record<LfPinkySize, { width: number; height: number }> = {
+  xs: { width: 28, height: 20 },
+  sm: { width: 36, height: 26 },
+  md: { width: 64, height: 46 },
+  lg: { width: 78, height: 56 },
+  xl: { width: 90, height: 64 },
 };
 
-const LEFT_PATH = 'M40 14 L40 62 A21 21 0 0 0 82 62 L82 50';
-const RIGHT_PATH = 'M80 106 L80 58 A21 21 0 0 0 38 58 L38 70';
+const BRAND_SYMBOL = require('../../assets/images/brand-symbol.png') as number;
 
-function strokes(tone: LfPinkyTone): { left: string; right: string; rightOpacity: number } {
-  switch (tone) {
-    case 'onContainer':
-      return { left: colors.primary, right: colors.surface, rightOpacity: 1 };
-    case 'onPrimary':
-      return { left: colors.onPrimary, right: colors.onPrimary, rightOpacity: 0.65 };
-    default:
-      return { left: colors.primary, right: colors.primaryPale, rightOpacity: 1 };
-  }
+function tint(tone: LfPinkyTone): string {
+  return tone === 'onPrimary' ? colors.onPrimary : colors.brandSymbol;
 }
 
 export function LfPinky({
@@ -50,29 +38,19 @@ export function LfPinky({
   accessibilityLabel,
   testID,
 }: LfPinkyProps): React.JSX.Element {
-  const { box, stroke } = SIZES[size];
-  const { left, right, rightOpacity } = strokes(tone);
+  const dimensions = SIZES[size];
   const decorative = accessibilityLabel === undefined;
 
   return (
-    <Svg
-      width={box}
-      height={box}
-      viewBox="0 0 120 120"
+    <Image
+      source={BRAND_SYMBOL}
+      resizeMode="contain"
+      style={{ ...dimensions, tintColor: tint(tone) }}
       accessibilityElementsHidden={decorative}
       importantForAccessibility={decorative ? 'no-hide-descendants' : 'yes'}
+      accessibilityRole="image"
       {...(testID === undefined ? {} : { testID })}
       {...(decorative ? {} : { accessible: true, accessibilityLabel })}
-    >
-      <Path d={LEFT_PATH} fill="none" stroke={left} strokeWidth={stroke} strokeLinecap="round" />
-      <Path
-        d={RIGHT_PATH}
-        fill="none"
-        stroke={right}
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        opacity={rightOpacity}
-      />
-    </Svg>
+    />
   );
 }

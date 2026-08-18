@@ -9,6 +9,7 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { LfDisclaimer } from '../components/LfDisclaimer.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
+import { LfPinky } from '../components/LfPinky.tsx';
 import { promisesPath } from '../routes.ts';
 
 /**
@@ -144,17 +145,9 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
   );
 }
 
-/** 브랜드 마크(걸린 상태). 레퍼런스의 path 를 그대로 옮긴다. */
+/** 브랜드 마크(걸린 상태). 모든 표면이 승인된 동일 이미지 자산을 쓴다. */
 function PinkyHooked(): React.JSX.Element {
   return (
-    <svg
-      className="lf-pinky lf-pinky--lg lf-pinky--on-container lf-pinky--hooked"
-      viewBox="0 0 120 120"
-      role="img"
-      aria-label="새끼손가락 걸기"
-    >
-      <path className="lf-pinky__left" d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50" />
-      <path className="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70" />
-    </svg>
+    <LfPinky size="lg" tone="onContainer" hooked accessibilityLabel="새끼손가락 걸기" />
   );
 }

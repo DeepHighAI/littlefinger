@@ -14,6 +14,7 @@ import { LfIcon } from './LfIcon';
 import { LfInput } from './LfInput';
 import { LfNotice } from './LfNotice';
 import { LfPicker } from './LfPicker';
+import { LfPinky } from './LfPinky';
 import { LfRow } from './LfRow';
 import { LfStack } from './LfStack';
 import { LfSwitch } from './LfSwitch';
@@ -240,6 +241,29 @@ describe('LfFab', () => {
   test('누르는 동안 Fresh Green pressed 색을 쓴다', async () => {
     const button = LfFab({ label: '약속 만들기' });
     expect(pressedStyleOf(button).backgroundColor).toBe(colors.primaryPressed);
+  });
+});
+
+describe('LfPinky', () => {
+  test('새 브랜드 심볼은 진한 그린 토큰과 이미지 자산을 쓴다', async () => {
+    expect(colors).toHaveProperty('brandSymbol', '#006B3C');
+
+    const view = await render(
+      <LfPinky testID="pinky" size="lg" accessibilityLabel="새끼손가락 약속" />,
+    );
+    const mark = view.getByTestId('pinky');
+    const style = flatten(mark.props.style);
+
+    expect(mark.type).toBe('Image');
+    expect(style.tintColor).toBe('#006B3C');
+    expect(style.width).toBeGreaterThan(style.height as number);
+    expect(view.getByRole('image', { name: '새끼손가락 약속' })).toBeTruthy();
+  });
+
+  test('primary 배경에서는 단색 흰색으로 대비한다', async () => {
+    const view = await render(<LfPinky testID="pinky" tone="onPrimary" />);
+    const mark = view.getByTestId('pinky', { includeHiddenElements: true });
+    expect(flatten(mark.props.style).tintColor).toBe(colors.onPrimary);
   });
 });
 

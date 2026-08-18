@@ -22,6 +22,8 @@ export const colors = {
   primarySoft: '#F0FDF4',
   primaryPale: '#6FE69C',
   primaryInk: '#006420',
+  // PO 승인 브랜드 심볼 전용 단색. UI primary와 독립적으로 유지한다.
+  brandSymbol: '#006B3C',
 
   // 표면
   background: '#FFFFFF',

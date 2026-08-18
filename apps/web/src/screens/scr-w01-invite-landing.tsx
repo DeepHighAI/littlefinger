@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 
 import { LfIcon } from '../components/LfIcon.tsx';
+import { LfPinky } from '../components/LfPinky.tsx';
 import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
 import { signInWithKakao } from '../lib/web-auth.ts';
@@ -351,10 +352,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
 export function PinkyBadge(): React.JSX.Element {
   return (
     <div className="lf-pinky-badge">
-      <svg className="lf-pinky lf-pinky--xl" viewBox="0 0 120 120" role="img" aria-label="새끼손가락 걸기">
-        <path className="lf-pinky__left" d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50" />
-        <path className="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70" />
-      </svg>
+      <LfPinky size="xl" accessibilityLabel="새끼손가락 걸기" />
     </div>
   );
 }
