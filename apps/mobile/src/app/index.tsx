@@ -4,12 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LEGAL_DOCUMENT_LABELS, type LegalDocumentKind } from '@littlefinger/shared';
 
 import { LfButton } from '../components/LfButton';
+import { LfInput } from '../components/LfInput';
 import { LfNotice } from '../components/LfNotice';
 import { LfPinky } from '../components/LfPinky';
 import { LfStack } from '../components/LfStack';
 import {
   signInWithKakao,
 } from '../lib/kakao-auth-native.ts';
+import { signInWithTestAccount } from '../lib/test-auth-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
 import { brandFontFamily } from '../theme/fonts';
@@ -45,6 +47,11 @@ const LEGAL_DOCUMENT_ERROR_LABEL =
   '법적 문서를 열 수 없습니다. 잠시 후 다시 시도해 주세요.';
 const LEGAL_AGREEMENT_LABEL = '시작하면 위 문서에 동의하게 돼요';
 const LOGIN_LOGO_LABEL = '리틀핑거 로고';
+const TEST_LOGIN_TITLE_LABEL = '테스트 로그인 (개발 빌드 전용)';
+const TEST_LOGIN_EMAIL_LABEL = '테스트 이메일';
+const TEST_LOGIN_PASSWORD_LABEL = '테스트 비밀번호';
+const TEST_LOGIN_SUBMIT_LABEL = '테스트 계정으로 로그인';
+const TEST_LOGIN_ERROR_LABEL = '테스트 로그인에 실패했습니다. 계정 정보를 확인해 주세요.';
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -107,12 +114,26 @@ const styles = StyleSheet.create({
     fontFamily: brandFontFamily(weight.medium),
   },
   termsLink: { textDecorationLine: 'underline' },
+  testLogin: {
+    marginTop: space[6],
+    paddingTop: space[6],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.outlineStrong,
+  },
+  testLoginTitle: {
+    fontSize: type.caption,
+    color: colors.textMuted,
+    textAlign: 'center',
+    fontFamily: brandFontFamily(weight.bold),
+  },
 });
 
 export default function LoginScreen(): React.JSX.Element {
   const { callbackFailed, sessionExpired = false } = useMobileAuthGate();
   const [signingIn, setSigningIn] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [testEmail, setTestEmail] = useState('');
+  const [testPassword, setTestPassword] = useState('');
 
   useEffect(() => {
     if (callbackFailed) setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
@@ -128,6 +149,20 @@ export default function LoginScreen(): React.JSX.Element {
       if (result === 'NICKNAME_REQUIRED') setAuthMessage(KAKAO_NICKNAME_REQUIRED_LABEL);
     } catch {
       setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
+    } finally {
+      setSigningIn(false);
+    }
+  }
+
+  // 테스트 빌드 전용 — 카카오 계정 없이 수동 E2E 를 돌리기 위한 경로.
+  // 릴리스 번들에서는 `__DEV__` 게이트가 UI 째로 제거한다.
+  async function handleTestLogin(): Promise<void> {
+    setSigningIn(true);
+    setAuthMessage(null);
+    try {
+      await signInWithTestAccount(testEmail.trim(), testPassword);
+    } catch {
+      setAuthMessage(TEST_LOGIN_ERROR_LABEL);
     } finally {
       setSigningIn(false);
     }
@@ -197,6 +232,38 @@ export default function LoginScreen(): React.JSX.Element {
           </View>
           <Text style={styles.terms}>{LEGAL_AGREEMENT_LABEL}</Text>
         </LfStack>
+        {__DEV__ && (
+          <View style={styles.testLogin}>
+            <LfStack gap={4}>
+              <Text style={styles.testLoginTitle}>{TEST_LOGIN_TITLE_LABEL}</Text>
+              <LfInput
+                accessibilityLabel={TEST_LOGIN_EMAIL_LABEL}
+                placeholder={TEST_LOGIN_EMAIL_LABEL}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                value={testEmail}
+                onChangeText={setTestEmail}
+              />
+              <LfInput
+                accessibilityLabel={TEST_LOGIN_PASSWORD_LABEL}
+                placeholder={TEST_LOGIN_PASSWORD_LABEL}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry
+                value={testPassword}
+                onChangeText={setTestPassword}
+              />
+              <LfButton
+                variant="outlined"
+                block
+                label={TEST_LOGIN_SUBMIT_LABEL}
+                disabled={signingIn || testEmail.trim() === '' || testPassword === ''}
+                onPress={() => void handleTestLogin()}
+              />
+            </LfStack>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

@@ -13,6 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { LfIcon } from '../components/LfIcon.tsx';
+import { TestLoginForm } from '../components/test-login-form.tsx';
 import { signFulfillmentEvidence } from '../lib/fulfillment-api.ts';
 import { INTERNAL_MESSAGE } from '../lib/api-failure.ts';
 import { getSupabase } from '../lib/supabase.ts';
@@ -421,13 +422,16 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
 
         {phase.kind === 'LOADING' && <div role="status" aria-label={SCR_W05_LABEL.loading} />}
         {phase.kind === 'SIGNED_OUT' && (
-          <button
-            className="lf-btn lf-btn--kakao lf-btn--cta lf-btn--block"
-            type="button"
-            onClick={() => void signInWithKakao(phase.returnPath)}
-          >
-            {SCR_W05_LABEL.signIn}
-          </button>
+          <>
+            <button
+              className="lf-btn lf-btn--kakao lf-btn--cta lf-btn--block"
+              type="button"
+              onClick={() => void signInWithKakao(phase.returnPath)}
+            >
+              {SCR_W05_LABEL.signIn}
+            </button>
+            <TestLoginForm />
+          </>
         )}
         {phase.kind === 'ERROR' && (
           <div className="lf-empty">

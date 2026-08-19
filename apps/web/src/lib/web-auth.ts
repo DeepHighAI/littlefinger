@@ -19,3 +19,16 @@ export async function signInWithKakao(
   });
   if (error) throw error;
 }
+
+/**
+ * 테스트 전용 이메일 로그인 — dev 서버에서만 노출되는 `TestLoginForm` 이 부른다.
+ * `vite build` 산출물에서는 호출부가 제거되므로 배포 웹에는 이 경로가 없다.
+ * 프로비저닝은 카카오와 동일하게 `watchSignInProvision` 이 SIGNED_IN 에서 처리한다.
+ */
+export async function signInWithTestAccount(
+  email: string,
+  password: string,
+): Promise<void> {
+  const { error } = await getSupabase().auth.signInWithPassword({ email, password });
+  if (error) throw error;
+}

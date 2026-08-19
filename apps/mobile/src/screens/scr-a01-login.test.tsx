@@ -2,6 +2,7 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 
 import { signInWithKakao } from '../lib/kakao-auth-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
+import { signInWithTestAccount } from '../lib/test-auth-native.ts';
 import { MobileAuthGateContext } from '../lib/mobile-auth-gate.ts';
 import { colors } from '../theme/tokens';
 import LoginScreen from '../app/index';
@@ -14,8 +15,25 @@ jest.mock('../lib/legal-native.ts', () => ({
   openLegalDocument: jest.fn(),
 }));
 
+jest.mock('../lib/test-auth-native.ts', () => ({
+  signInWithTestAccount: jest.fn(),
+}));
+
 const signInWithKakaoMock = jest.mocked(signInWithKakao);
 const openLegalDocumentMock = jest.mocked(openLegalDocument);
+const signInWithTestAccountMock = jest.mocked(signInWithTestAccount);
+
+/** 릴리스 번들처럼 렌더하고 싶은 테스트가 `__DEV__` 를 잠시 끈다. 렌더가 끝날 때까지 복원을 미룬다. */
+async function withRelease<T>(run: () => Promise<T> | T): Promise<T> {
+  const globals = globalThis as unknown as { __DEV__: boolean };
+  const previous = globals.__DEV__;
+  globals.__DEV__ = false;
+  try {
+    return await run();
+  } finally {
+    globals.__DEV__ = previous;
+  }
+}
 
 /**
  * SCR-A01 로그인 — 04 §10 M0-3.
@@ -42,13 +60,46 @@ describe('SCR-A01 로그인', () => {
     expect(view.getByText('오늘도 새끼손가락 걸어볼까요?')).toBeTruthy();
   });
 
-  test('로그인 수단은 카카오 하나뿐이다', async () => {
+  test('로그인 수단은 카카오 하나뿐이다 — 릴리스 번들 기준', async () => {
     // MVP 는 카카오 로그인이 유일한 진입 경로다(02 §4 F-01).
-    const view = await render(<LoginScreen />);
+    // 테스트 로그인은 `__DEV__` 게이트 뒤라 릴리스에서는 존재하지 않는다.
+    const view = await withRelease(() => render(<LoginScreen />));
     const buttons = view.getAllByRole('button');
     expect(view.getByRole('button', { name: '카카오로 시작하기' })).toBeTruthy();
     expect(buttons).toHaveLength(1);
+    expect(view.queryByText('테스트 로그인 (개발 빌드 전용)')).toBeNull();
     expect(view.getByRole('image', { name: '리틀핑거 로고' })).toBeTruthy();
+  });
+
+  test('개발 빌드에서는 테스트 로그인 섹션이 보인다', async () => {
+    const view = await render(<LoginScreen />);
+    expect(view.getByText('테스트 로그인 (개발 빌드 전용)')).toBeTruthy();
+    expect(view.getByLabelText('테스트 이메일')).toBeTruthy();
+    expect(view.getByLabelText('테스트 비밀번호')).toBeTruthy();
+  });
+
+  test('테스트 로그인은 다듬은 이메일과 비밀번호로 로그인한다', async () => {
+    signInWithTestAccountMock.mockResolvedValue(undefined);
+    const view = await render(<LoginScreen />);
+
+    await fireEvent.changeText(view.getByLabelText('테스트 이메일'), '  tester-a@example.com  ');
+    await fireEvent.changeText(view.getByLabelText('테스트 비밀번호'), 'secret-pw');
+    await fireEvent.press(view.getByRole('button', { name: '테스트 계정으로 로그인' }));
+
+    expect(signInWithTestAccountMock).toHaveBeenCalledWith('tester-a@example.com', 'secret-pw');
+  });
+
+  test('테스트 로그인 실패는 오류 문구로 보여준다', async () => {
+    signInWithTestAccountMock.mockRejectedValue(new Error('Invalid login credentials'));
+    const view = await render(<LoginScreen />);
+
+    await fireEvent.changeText(view.getByLabelText('테스트 이메일'), 'tester-a@example.com');
+    await fireEvent.changeText(view.getByLabelText('테스트 비밀번호'), 'wrong');
+    await fireEvent.press(view.getByRole('button', { name: '테스트 계정으로 로그인' }));
+
+    expect(
+      await view.findByText('테스트 로그인에 실패했습니다. 계정 정보를 확인해 주세요.'),
+    ).toBeTruthy();
   });
 
   test('카카오 버튼은 공식 가이드 색을 쓴다', async () => {

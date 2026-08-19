@@ -39,6 +39,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { LfIcon } from '../components/LfIcon.tsx';
+import { TestLoginForm } from '../components/test-login-form.tsx';
 import {
   discardFulfillmentEvidence,
   FulfillmentApiError,
@@ -1818,6 +1819,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
             <p role="alert" className="lf-caption">
               {signInError ? INTERNAL_MESSAGE : ''}
             </p>
+            <TestLoginForm />
           </div>
         )}
 

@@ -9,6 +9,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 
 import { LfIcon } from '../components/LfIcon.tsx';
 import { LfPinky } from '../components/LfPinky.tsx';
+import { TestLoginForm } from '../components/test-login-form.tsx';
 import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
 import { signInWithKakao } from '../lib/web-auth.ts';
@@ -344,6 +345,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
               : INTERNAL_MESSAGE
             : ''}
         </p>
+        <TestLoginForm />
       </div>
     </div>
   );
