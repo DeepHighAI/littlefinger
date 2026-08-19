@@ -43,3 +43,4 @@ ios/
 # Pretendard 원본 배포판(67MB). 앱이 쓰는 4종은 apps/mobile/assets/fonts/ 에 있다.
 # 배포판 전체를 저장소에 두면 모든 클론이 그 비용을 영구히 낸다.
 /fonts/
+.gstack/
