@@ -47,21 +47,26 @@ physical-device accessibility/push verification remain release gates.
 
 | Gate | Result |
 |---|---|
-| `npm test` | PASS — Vitest **87 files / 1,885 tests**, mobile Jest **61 suites / 595 tests** |
+| `npm test` | PASS — Vitest **88 files / 1,887 tests**, mobile Jest **61 suites / 595 tests** |
 | `npm run typecheck` | PASS — shared, mobile, web, Edge Functions, Supabase tests |
 | `npm run build:web` | PASS — 115 modules; JS 535.90KB / gzip 154.02KB; 500KB chunk warning |
 | `npx expo install --check` | PASS — `Dependencies are up to date` |
 | `npm run check:agents` | PASS — CLAUDE.md and AGENTS.md synchronized |
 | Android export | PASS — 1,776 modules; 4.4MB Hermes bundle |
+| ARM64 device APK | PASS — 99,186,411 bytes; package, SDK, ABI, and signature verified |
 | `git diff --check` | PASS |
 
-The new Android export is at `apps/mobile/.expo/firebase-export`. A local x86_64 debug APK also
-built successfully (`558 actionable tasks`, 99,172,731 bytes) and is copied to
-`C:\Users\batis\AppData\Local\Temp\littlefinger-firebase-debug-x86_64.apk`. Its compiled manifest
-contains `autoVerify=true`, host `littlefinger-app-philwoo.web.app`, and `/i/`. It uses the local
+The new Android export is at `apps/mobile/.expo/firebase-export`. The earlier
+`littlefinger-firebase-debug-x86_64.apk` contains only x86_64 native libraries and is emulator-only;
+Galaxy devices correctly reject it as incompatible. A replacement ARM64 debug APK built with JDK
+21 (`558 actionable tasks`, 99,186,411 bytes) is at
+`C:\Users\batis\AppData\Local\Temp\littlefinger-firebase-debug-arm64-v8a.apk`. Its compiled manifest
+reports package `com.littlefinger.app`, minSdk 24, targetSdk 36, and native code `arm64-v8a`; the
+APK signature verifies. It uses the local
 debug certificate (`FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C`), not the EAS development certificate in the public
 Digital Asset Links file, so it is suitable for local feature testing but not final App Links
-auto-verification. Google test ad identifiers remain configured.
+auto-verification. `npm run verify:android-apk -- <apk>` now rejects x86_64-only artifacts before
+distribution. Google test ad identifiers remain configured.
 
 The production web bundle has one 535.90KB JavaScript chunk and the full Pretendard variable font
 remains 2.06MB. The measured public-route LCP passes the approved 3-second target, so the plan does

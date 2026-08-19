@@ -53,6 +53,17 @@ Android는 Expo Go가 아니라 `apps/mobile/eas.json`의 development build를 �
 환경값은 루트 `.env`와 각 앱의 공개 환경변수에 둔다. 비밀값은 저장소가 아니라 Supabase Edge
 Secrets에만 둔다.
 
+Build local APKs for Galaxy physical devices as ARM64 and verify the ABI before distribution. Use
+Android Studio's JDK 21; an `x86_64` APK is emulator-only.
+
+```powershell
+npx expo prebuild --platform android --no-install
+Set-Location apps/mobile/android
+.\gradlew.bat app:assembleDebug -PreactNativeArchitectures=arm64-v8a "-Dorg.gradle.java.home=C:\Program Files\Android\Android Studio\jbr" --no-daemon
+Set-Location ../../..
+npm run verify:android-apk -- apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
 57개 EC 추적은 [EC traceability](docs/qa/EC_TRACEABILITY.md), 두 계정 수동 시나리오는
 [manual E2E runbook](docs/qa/MANUAL_E2E.md)을 따른다.
 

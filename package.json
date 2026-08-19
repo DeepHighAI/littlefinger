@@ -15,6 +15,7 @@
     "build:web": "npm run build --workspace=@littlefinger/web",
     "sync:agents": "node tools/sync-agent-docs.js",
     "check:agents": "node tools/sync-agent-docs.js --check",
+    "verify:android-apk": "node tools/verify-android-apk-abi.js",
     "test:shared": "vitest run",
     "test:mobile": "npm run test --workspace=@littlefinger/mobile"
   },

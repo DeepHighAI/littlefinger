@@ -1,6 +1,6 @@
 # Manual end-to-end runbook
 
-Snapshot: 2026-08-18 KST. Current status: **READY — INTERACTIVE RUN NOT STARTED**.
+Snapshot: 2026-08-19 KST. Current status: **READY — INTERACTIVE RUN NOT STARTED**.
 
 The Supabase project, Edge Functions, cron jobs, RLS/RPC checks, and public acceptance web are
 ready. The scenarios below still require two interactive Kakao sessions and an authorized Android
@@ -17,10 +17,11 @@ development device; they must not be inferred from automated tests.
    Digital Asset Links JSON; Google recognizes the association statement.
 6. **PENDING (operator)** — confirm the Firebase origin in the Dashboard-owned Supabase Auth
    redirect allowlist.
-7. **PARTIAL (device/accounts)** — the Firebase-host debug APK builds locally and its manifest is
-   correct, but its local debug signature intentionally differs from the EAS certificate published
-   in Digital Asset Links. Authorize the Android device, install a fresh EAS-signed development
-   build for the App Links pass, and prepare two interactive Kakao test accounts.
+7. **PARTIAL (device/accounts)** — the ARM64 Firebase-host debug APK is compatible with Galaxy
+   physical devices and its package, SDK range, native ABI, and signature verify. Its local debug
+   signature intentionally differs from the EAS certificate published in Digital Asset Links.
+   Install the ARM64 APK for feature tests; use a fresh EAS-signed development build for the final
+   App Links pass, and prepare two interactive Kakao test accounts.
 
 ## Scenario matrix
 
