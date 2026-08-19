@@ -88,6 +88,15 @@ export default function RootLayout(): React.JSX.Element {
     if (session === null && !onboardingComplete && pathname !== '/onboarding') {
       router.replace('/onboarding');
     }
+    // 세션이 생기면 게스트 화면에서 홈으로 보낸다. 이 규칙이 없으면 Stack.Protected 의
+    // 폴백이 **가드 없는 첫 화면인 update-required** 로 떨어진다 — 로그인 직후와
+    // 세션 보유 재실행 모두에서 재현되는, 차단처럼 보이는 라우팅 오류였다.
+    if (
+      session !== null &&
+      (pathname === '/' || pathname === '/onboarding' || pathname === '/update-required')
+    ) {
+      router.replace('/home');
+    }
   }, [onboardingComplete, pathname, router, routerReady, session, sessionReady, startupReady, updateRequired]);
 
   useEffect(() => {
