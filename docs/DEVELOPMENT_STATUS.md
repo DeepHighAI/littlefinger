@@ -117,10 +117,13 @@ final auto-verification because App Links hosts and signing identity must both m
 
 ## Manual and visual verification
 
-The backend and public web prerequisites are complete, but the 12 two-account scenarios have not
-been executed. The Android emulator remains `unauthorized`, no interactive pair of Kakao test
-sessions is available to the agent, and the in-app browser failed trusted-path initialization.
-Account scenarios and evidence slots are in [`docs/qa/MANUAL_E2E.md`](qa/MANUAL_E2E.md).
+**Run 1 of the 12-scenario manual E2E executed on 2026-08-19** (emulator + local web, dev email
+test login): scenarios 1–6, 9, 12 PASS; 7, 8, 10, 11 PARTIAL; none NOT_RUN. Six findings were
+logged; the two server-side ones (fingerprint format divergence, DECLINED detail 500) are fixed
+by migration `20260819100000` — deployed and live-verified — and the logout/withdraw routing bug
+(F5) is fixed in the mobile root layout. Matrix: [`docs/qa/MANUAL_E2E.md`](qa/MANUAL_E2E.md),
+full record: [`docs/qa/E2E_RUN_2026-08-19.md`](qa/E2E_RUN_2026-08-19.md). Kakao OAuth, App Links,
+and real-device push remain untested (release checklist).
 
 Lighthouse 13 measured the deployed invalid-invite route three times at 360×800 with simulated
 slow 4G (150 ms RTT, 1,638.4 Kbps, 4× CPU). Results were Performance **92/93/93**,
@@ -140,8 +143,10 @@ Still pending:
 
 ## Exact next step
 
-Authorize the Android emulator's USB-debugging prompt, create/install a freshly EAS-signed
-development build, and add the Firebase origin to the Supabase Auth redirect allowlist if it is
-absent. Then execute
-`docs/qa/MANUAL_E2E.md` interactively with two Kakao test accounts and record each PASS/FAIL and
-screenshot path without storing raw identifiers, invite tokens, or device tokens.
+1. Close `E2E disputed test` round 2 before 2026-08-26 (convergent 재판정 or J-06 expiry).
+2. PO decisions from Run 1 observations: unblock path (F3), amend-comment surfacing, 확정 기록
+   timestamp after v2. Code fixes pending: F6 withdraw-warning count; F4 retest on release build.
+3. Release pass unchanged: EAS-signed build (needs PO approval for source upload), App Links
+   `adb shell am start` handoff, and the two interactive Kakao accounts for the flows the email
+   login cannot represent (#10 re-signup, #7 report-step capture, #11 B-side celebration,
+   real-device push, quiet hours).

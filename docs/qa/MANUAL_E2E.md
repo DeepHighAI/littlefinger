@@ -1,10 +1,15 @@
 # Manual end-to-end runbook
 
-Snapshot: 2026-08-19 KST. Current status: **READY — INTERACTIVE RUN NOT STARTED**.
+Snapshot: 2026-08-19 KST. Current status: **RUN 1 EXECUTED (emulator + local web, dev email
+test login)** — 8 PASS · 4 PARTIAL · 0 NOT_RUN, 6 findings (F1·F2 fixed and deployed, F5 fixed
+in code). Details below and in `docs/qa/E2E_RUN_2026-08-19.md`.
 
 The Supabase project, Edge Functions, cron jobs, RLS/RPC checks, and public acceptance web are
-ready. The scenarios below still require two interactive Kakao sessions and an authorized Android
-development device; they must not be inferred from automated tests.
+ready. Run 1 used the dev-only email test login (accounts A=`test@test.com`, B=`test1@test.com`,
+witness=`test2@test.com`, withdraw pair=`test10`/`test9`; password = full email) on the
+`small_phone` emulator (Android 16, 360×640 dp) plus the local Vite web. A final pass on a
+physical device with two interactive Kakao sessions is still required before release; Kakao
+OAuth, App Links, and real-device push were not exercised by this run.
 
 ## Prerequisites
 
@@ -27,18 +32,18 @@ development device; they must not be inferred from automated tests.
 
 | # | Account path | Scenario | Expected result | Status | Capture |
 |---:|---|---|---|---|---|
-| 1 | A | First launch onboarding, Kakao login, temporary nickname update | Onboarding appears once; later launch goes directly to login/home | NOT_RUN | Pending |
-| 2 | A | Create, autosave, reopen, send partner invite | One DRAFT/PENDING record and one usable invite | NOT_RUN | Pending |
-| 3 | B | Open invite, approve; repeat with decline and amend suggestion | Each response follows its single T transition and returns to the correct screen | NOT_RUN | Pending |
-| 4 | A/B | Invite witness, join, sign, leave | Signature remains append-only and later access is revoked | NOT_RUN | Pending |
-| 5 | A/B | Request amend/cancel, approve/decline/withdraw, allow J-05 expiry | Symmetric actions converge without duplicate requests | NOT_RUN | Pending |
-| 6 | A/B | Submit all four fulfillment verdict combinations and reopen DISPUTED | COMPLETED/BROKEN/DISPUTED/UNRESOLVED facts remain neutral and round-safe | NOT_RUN | Pending |
-| 7 | A/B | Upload evidence, open signed URL, report evidence | Ten-minute URL works; report atomically blinds the image | NOT_RUN | Pending |
-| 8 | A/B | Inbox, push and deep-link navigation | One logical event, allowed route only, Kakao fallback when no device token | NOT_RUN | Pending |
-| 9 | A/B | Hide terminal promise, block and report counterpart | Only the caller's list changes; historical record remains unchanged | NOT_RUN | Pending |
-| 10 | A | Withdraw, retry withdrawal, sign up again with the same Kakao account | Old record is anonymized; new user ID and trust profile do not inherit | NOT_RUN | Pending |
-| 11 | A/B | Trigger one COMPLETED celebration per participant | Each participant sees it at most once | NOT_RUN | Pending |
-| 12 | A | Toggle `ads_enabled` false/true with test IDs | No reserved space when false; SCR-A02 only when true | NOT_RUN | Pending |
+| 1 | A | First launch onboarding, Kakao login, temporary nickname update | Onboarding appears once; later launch goes directly to login/home | **PASS** (email test login, not Kakao) | `littlefinger-qa\e2e-20260819\s01-*.png` |
+| 2 | A | Create, autosave, reopen, send partner invite | One DRAFT/PENDING record and one usable invite | **PASS** | `s02-*.png` |
+| 3 | B | Open invite, approve; repeat with decline and amend suggestion | Each response follows its single T transition and returns to the correct screen | **PASS** — T-03/T-04/T-05 each verified on web result route and app status. Findings F1 (fingerprint mismatch) and the amend-comment visibility question logged | `s03-*.png` |
+| 4 | A/B | Invite witness, join, sign, leave | Signature remains append-only and later access is revoked | **PASS** — signature stays in 승인 이력 after leave; revisit returns 약속을 찾을 수 없어요; token single-use | `s04-*.png` |
+| 5 | A/B | Request amend/cancel, approve/decline/withdraw, allow J-05 expiry | Symmetric actions converge without duplicate requests | **PASS** — T-07/T-08/T-09(decline+withdraw)/T-10 verified with clean audit trail; J-05 force-expired after the CLI fix, NT-17 자동 철회 delivered to both inboxes | `s05-*.png` |
+| 6 | A/B | Submit all four fulfillment verdict combinations and reopen DISPUTED | COMPLETED/BROKEN/DISPUTED/UNRESOLVED facts remain neutral and round-safe | **PASS** — both-KEPT→COMPLETED, both-NOT_KEPT→BROKEN, mismatch→DISPUTED→재확인 요청→round 2 CHECKING (round-1 history append-only), J-06 expiry→UNRESOLVED. Round-2 재판정 left unsubmitted (deadline 2026-08-26) | `s06-*.png` |
+| 7 | A/B | Upload evidence, open signed URL, report evidence | Ten-minute URL works; report atomically blinds the image | **PARTIAL PASS** — EXIF-stripped upload and signed-URL viewer verified; evidence on the COMPLETED promise now `BLINDED` (report → atomic blinding confirmed at data layer). Report-step UI capture missing — re-capture on release pass | `s07-*.png` |
+| 8 | A/B | Inbox, push and deep-link navigation | One logical event, allowed route only, Kakao fallback when no device token | **PARTIAL PASS** — inbox one-row-per-event; in-app tap routes correctly; FCM delivered foreground/background and after `am kill` (terminated); Kakao fallback UI shown for tokenless partner. Gaps: cold-start push tap lands on home (F4); force-stop delivery impossible (Android policy); quiet-hours window not tested | `s08-*.png` |
+| 9 | A/B | Hide terminal promise, block and report counterpart | Only the caller's list changes; historical record remains unchanged | **PASS** — hide removed item from A's list only (B still sees 파기됨); report and block confirmed with record-preservation copy. Findings F2 (DECLINED detail 500) and F3 (no unblock path) logged | `s09-*.png` |
+| 10 | A | Withdraw, retry withdrawal, sign up again with the same Kakao account | Old record is anonymized; new user ID and trust profile do not inherit | **PARTIAL PASS** (ran with disposable pair test10/test9) — two-step confirm with anonymization copy; auth user deleted (re-login → invalid_credentials); counterpart record and version history intact. Re-signup/trust-inheritance check impossible with email accounts (signup disabled); needs Kakao or CLI-recreated account. Findings F5, F6 | `s10-*.png` |
+| 11 | A/B | Trigger one COMPLETED celebration per participant | Each participant sees it at most once | **PARTIAL PASS** — celebration rendered once for A on the COMPLETED promise; B-side (app) and repeat-launch at-most-once re-check remain for the release pass | `s11-01-celebration.png` |
+| 12 | A | Toggle `ads_enabled` false/true with test IDs | No reserved space when false; SCR-A02 only when true | **PASS** — `false`: no ad slot and no reserved space (s01-05/s01-09, s12-02); `true`: SCR-A02 bottom slot rendered (s12-01); remote value restored to `false` after the run | `s12-*.png` |
 
 ## Non-functional passes
 
@@ -67,3 +72,29 @@ After execution, replace each `NOT_RUN` status with PASS or FAIL, add absolute s
 paths, record the two anonymous test-account labels, and copy the results into
 `docs/DEVELOPMENT_STATUS.md`. Do not record Kakao IDs, invite tokens, raw IP addresses, or device
 tokens.
+
+## Run 1 — 2026-08-19 (emulator + local web)
+
+Evidence root: `C:\Users\batis\AppData\Local\Temp\littlefinger-qa\e2e-20260819\`.
+Full narrative, findings F1–F6, and blocker list: `docs/qa/E2E_RUN_2026-08-19.md`.
+
+Environment: `small_phone` AVD (Android 16, 720×1280 @320dpi = 360×640 dp), ARM-free x86_64 dev
+client + Metro in CI mode on port 8143 (Windows excluded-port range 8035–8134 blocks 8081; watch
+mode also fails on this machine — `CI=1 EXPO_NO_TYPESCRIPT_SETUP=1 npx expo start --dev-client
+--port 8143` is the working recipe). Web: local Vite dev server (test login form renders only
+there). Accounts: dev email test accounts (password = full email), A=`test`, B=`test1`,
+witness=`test2`, withdraw pair=`test10`/`test9`, all `@test.com`.
+
+The Supabase CLI wrong-account blocker was resolved mid-run (operator re-login as batisututu),
+which unblocked the DB-side levers: the F1/F2 fix migration was deployed and live-verified, J-05
+and J-02/J-06 were forced, and `ads_enabled` was toggled and restored. See the continuation
+section of `docs/qa/E2E_RUN_2026-08-19.md`.
+
+Remaining after Run 1:
+
+1. `E2E disputed test` sits in round-2 CHECKING (deadline 2026-08-26) — submit a convergent
+   재판정 or let J-06 expire it; either closes the loop.
+2. #10 re-signup/trust-inheritance needs a Kakao account or a CLI-recreated email account
+   (signup is confirm-gated and SMTP rate-limited; `test3`–`test8` remain unused).
+3. Release pass: Kakao OAuth, EAS-signed App Links handoff, real-device push (incl. the F4
+   cold-start retest), quiet-hours window, #7 report-step UI capture, #11 B-side celebration.
