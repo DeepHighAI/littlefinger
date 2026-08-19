@@ -274,6 +274,40 @@ describe('lf_promise_detail — SCR-A05 participant snapshot', () => {
     });
   });
 
+  test('승인 전 종결(DECLINED)은 current_version_id 없이도 최신 번호 버전으로 열린다', async () => {
+    const creator = await createUser(db, '거절전작성자');
+    const partner = await createUser(db, '거절전상대방');
+    const id = 'a2000000-0000-4000-8000-000000000014';
+    await insertFixture({ id, creator, partner, status: 'DECLINED' });
+    // 운영 재현(E2E Run 1 F2): current_version_id 는 promise_approve 만 기록하므로
+    // 승인 전에 끝난 약속은 NULL 이다 — 픽스처의 기본 세팅을 걷어낸다.
+    await db.asAdmin(`update public.promises set current_version_id = null where id = $1`, [id]);
+
+    const value = await detail(creator, id);
+    expect(value.status).toBe('DECLINED');
+    expect(value.title).toBe('함께 달리기');
+    expect(value.current_version.version_no).toBe(1);
+  });
+
+  test('상세의 지문은 확정 화면과 같은 lf_fingerprint(해시, 버전 번호) 문자열이다', async () => {
+    const creator = await createUser(db, '지문작성자');
+    const partner = await createUser(db, '지문상대방');
+    const id = 'a2000000-0000-4000-8000-000000000015';
+    const { versionId } = await insertFixture({ id, creator, partner, status: 'ACTIVE' });
+    const { rows } = await db.asAdmin(
+      `select public.lf_fingerprint(v.content_hash, v.version_no) as canonical
+         from public.promise_versions v
+        where v.id = $1`,
+      [versionId],
+    );
+    const canonical = rows[0]?.['canonical'] as string;
+
+    // 세 번째 그룹은 해시 문자가 아니라 버전 번호다(E2E Run 1 F1).
+    expect(canonical.endsWith('-01')).toBe(true);
+    const value = await detail(creator, id);
+    expect(value.current_version.fingerprint).toBe(canonical);
+  });
+
   test('AMEND_PENDING은 현재·제안 버전을, CANCELED는 승인된 파기 사유를 반환한다', async () => {
     const creator = await createUser(db, '변경작성자');
     const partner = await createUser(db, '변경상대방');
