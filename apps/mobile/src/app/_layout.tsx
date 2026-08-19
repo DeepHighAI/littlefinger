@@ -88,6 +88,20 @@ export default function RootLayout(): React.JSX.Element {
     if (session === null && !onboardingComplete && pathname !== '/onboarding') {
       router.replace('/onboarding');
     }
+    // 세션이 사라지면(로그아웃·탈퇴) 보호 화면에서 로그인으로 보낸다. 아래 로그인 방향
+    // 규칙의 역방향 — 이 규칙이 없으면 같은 폴백이 update-required 로 떨어져 로그아웃이
+    // "업데이트 후 이용해 주세요"로 보였다(E2E Run 1 F5). auth-callback 과 초대 앱링크는
+    // 세션 없이도 머물러야 하는 화면이라 제외한다.
+    if (
+      session === null &&
+      onboardingComplete &&
+      pathname !== '/' &&
+      pathname !== '/onboarding' &&
+      pathname !== '/auth-callback' &&
+      !pathname.startsWith('/i/')
+    ) {
+      router.replace('/');
+    }
     // 세션이 생기면 게스트 화면에서 홈으로 보낸다. 이 규칙이 없으면 Stack.Protected 의
     // 폴백이 **가드 없는 첫 화면인 update-required** 로 떨어진다 — 로그인 직후와
     // 세션 보유 재실행 모두에서 재현되는, 차단처럼 보이는 라우팅 오류였다.

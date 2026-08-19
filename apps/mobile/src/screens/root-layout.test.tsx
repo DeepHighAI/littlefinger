@@ -189,6 +189,38 @@ describe('루트 인증 게이트', () => {
     expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
   });
 
+  test('로그아웃·탈퇴로 세션이 사라지면 보호 화면에서 로그인으로 교체한다', async () => {
+    mockRootNavigationReady = true;
+    await render(<RootLayout />);
+    await act(async () => {
+      capturedEvents?.onSession(SESSION);
+      capturedEvents?.onReady();
+    });
+
+    // E2E Run 1 F5: 마이 화면에서 세션이 사라지면 Stack.Protected 폴백이
+    // update-required 로 떨어졌다. 로그인 화면으로 교체돼야 한다.
+    mockPathname = '/profile';
+    await act(async () => capturedEvents?.onSession(null));
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
+
+    expect(mockReplace).toHaveBeenCalledWith('/');
+    expect(mockReplace).not.toHaveBeenCalledWith('/update-required');
+  });
+
+  test('세션 없는 auth-callback과 초대 앱링크는 로그인으로 쫓아내지 않는다', async () => {
+    mockRootNavigationReady = true;
+    mockPathname = '/auth-callback';
+    await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
+    expect(mockReplace).not.toHaveBeenCalled();
+
+    mockPathname = '/i/test-token';
+    await act(async () => capturedEvents?.onSession(null));
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
   test('언마운트 시 세션·딥링크 구독을 해제한다', async () => {
     const view = await render(<RootLayout />);
     await act(async () => {
