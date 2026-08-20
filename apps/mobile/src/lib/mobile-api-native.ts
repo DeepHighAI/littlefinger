@@ -4,6 +4,7 @@ import * as Crypto from 'expo-crypto';
 import {
   MobileApiError,
   callMobileFunction,
+  callMobileFunctionPublic,
   callMobileMultipartFunction,
   type MobileApiOptions,
 } from './mobile-api.ts';
@@ -36,6 +37,19 @@ export async function callMobileFunctionNative<T>(
       if (error !== null) return null;
       return data.session?.access_token ?? null;
     },
+    randomUuid: () => Crypto.randomUUID(),
+  });
+}
+
+export async function callMobileFunctionPublicNative<T>(
+  endpoint: Endpoint,
+  body: unknown,
+): Promise<T> {
+  return await callMobileFunctionPublic<T>(endpoint, body, {
+    fetch: async (url, init) => await fetch(url, init),
+    functionUrl: getMobileFunctionUrl,
+    // 공개 호출은 세션을 읽지 않는다 — 시그니처를 채우기 위한 자리일 뿐이다.
+    getAccessToken: async () => null,
     randomUuid: () => Crypto.randomUUID(),
   });
 }

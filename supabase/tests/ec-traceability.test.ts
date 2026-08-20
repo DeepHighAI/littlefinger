@@ -57,7 +57,7 @@ const EC_EVIDENCE = {
   'EC-H04': 'supabase/tests/device-token-registration.test.ts',
   'EC-H05': 'supabase/tests/promise-create-invite.test.ts',
   'EC-H06': 'supabase/tests/promise-integrity.test.ts',
-  'EC-I01': 'apps/mobile/src/screens/invite-app-link.test.tsx',
+  'EC-I01': 'apps/mobile/src/screens/invite-review.test.tsx',
   'EC-I02': 'apps/web/src/screens/scr-w01-invite-landing.test.tsx',
   'EC-I03': 'apps/web/src/screens/scr-w03-approval-complete.test.tsx',
   'EC-I04': 'packages/shared/src/app-version.test.ts',

@@ -3,6 +3,7 @@ import { ENDPOINT } from '@littlefinger/shared';
 import {
   MobileApiError,
   callMobileFunction,
+  callMobileFunctionPublic,
   callMobileMultipartFunction,
 } from './mobile-api.ts';
 
@@ -61,6 +62,40 @@ describe('모바일 Edge Function API', () => {
       message: '다시 로그인해 주세요.',
     });
     expect(deps.fetch).not.toHaveBeenCalled();
+  });
+
+  test('공개 호출은 세션 없이도 Authorization 없이 나간다 — invite-resolve 전용', async () => {
+    deps.getAccessToken.mockResolvedValue(null);
+    deps.fetch.mockResolvedValue(
+      new Response(JSON.stringify({ title: '아침 달리기' }), { status: 200 }),
+    );
+
+    await expect(
+      callMobileFunctionPublic(ENDPOINT.inviteResolve, { token: 'tok-1' }, deps),
+    ).resolves.toEqual({ title: '아침 달리기' });
+
+    expect(deps.fetch).toHaveBeenCalledWith(
+      'https://project.supabase.co/functions/v1/invite-resolve',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: 'tok-1' }),
+      }),
+    );
+    expect(deps.getAccessToken).not.toHaveBeenCalled();
+  });
+
+  test('공개 호출의 실패도 같은 에러 봉투로 매핑된다', async () => {
+    deps.fetch.mockResolvedValue(
+      new Response(
+        JSON.stringify({ code: 'E_INVITE_EXPIRED', message: '초대 링크가 만료됐어요. (72시간)' }),
+        { status: 410 },
+      ),
+    );
+
+    await expect(
+      callMobileFunctionPublic(ENDPOINT.inviteResolve, { token: 'tok-1' }, deps),
+    ).rejects.toMatchObject({ code: 'E_INVITE_EXPIRED' });
   });
 
   test('multipart 업로드는 Content-Type 경계를 직접 지정하지 않고 별도 멱등 키를 보낸다', async () => {

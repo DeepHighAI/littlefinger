@@ -116,6 +116,27 @@ export async function callMobileFunction<T>(
   );
 }
 
+/**
+ * 로그인 전 공개 엔드포인트 호출 — 지금은 `invite-resolve`(verify_jwt=false) 하나뿐이다.
+ * anon 키도 Authorization 도 싣지 않는다: 로그인 전 화면이 가진 열쇠는 어차피 공개
+ * anon 키뿐이고, 필요 없는 것을 실으면 CORS 허용 헤더에만 의존하는 표면이 넓어진다.
+ */
+export async function callMobileFunctionPublic<T>(
+  endpoint: Endpoint,
+  body: unknown,
+  deps: MobileApiDeps,
+): Promise<T> {
+  return await readMobileResponse<T>(
+    endpoint,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+    deps,
+  );
+}
+
 export async function callMobileMultipartFunction<T>(
   endpoint: Endpoint,
   body: FormData,

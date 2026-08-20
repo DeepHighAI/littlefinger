@@ -221,6 +221,19 @@ describe('루트 인증 게이트', () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
+  test('초대 앱링크 위에서 로그인해도 홈으로 끌려가지 않는다', async () => {
+    // 앱 내 초대 검토(EC-I01)는 랜딩에서 로그인한 뒤 같은 라우트에서 검토로 이어진다.
+    // 세션 등장 시 홈 교체가 /i/ 를 덮으면 토큰이 유실되고 검토가 영영 열리지 않는다.
+    mockRootNavigationReady = true;
+    mockPathname = '/i/test-token';
+    await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    await act(async () => capturedEvents?.onSession(SESSION));
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
+
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
   test('언마운트 시 세션·딥링크 구독을 해제한다', async () => {
     const view = await render(<RootLayout />);
     await act(async () => {
