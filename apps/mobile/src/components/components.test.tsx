@@ -153,7 +153,7 @@ describe('LfStack / LfRow', () => {
 });
 
 describe('LfButton — 접근성 하한이 최우선이다', () => {
-  const variants = ['filled', 'tonal', 'outlined', 'text', 'kakao', 'danger'] as const;
+  const variants = ['filled', 'tonal', 'outlined', 'text', 'kakao', 'google', 'danger'] as const;
 
   test.each(variants)('%s 변형도 터치 타깃 48dp 를 지킨다', async (variant) => {
     // 04 §12-7 절대제약: 터치 타깃 최소 48dp. 어떤 변형에서도 줄지 않는다.
@@ -185,6 +185,14 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
   test('kakao 는 카카오 공식 버튼 색을 쓴다', async () => {
     const view = await render(<LfButton testID="b" variant="kakao" label="카카오로 시작하기" />);
     expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.kakao);
+  });
+
+  test('google 은 구글 공식 버튼 색과 1px 테두리를 쓴다', async () => {
+    const view = await render(<LfButton testID="b" variant="google" label="Google로 시작하기" />);
+    const style = styleOf(view, 'b') as ViewStyle;
+    expect(style.backgroundColor).toBe(colors.google);
+    expect(style.borderColor).toBe(colors.googleBorder);
+    expect(style.borderWidth).toBe(1);
   });
 
   test('모서리는 알약 모양이다', async () => {

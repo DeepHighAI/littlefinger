@@ -5,6 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 
 import {
   completeKakaoSignIn as completeKakaoSignInWithDeps,
+  signInWithGoogle as signInWithGoogleWithDeps,
   signInWithKakao as signInWithKakaoWithDeps,
   type KakaoAuthDeps,
   type KakaoSignInResult,
@@ -44,6 +45,12 @@ function liveKakaoAuthDeps(): KakaoAuthDeps {
 
 export function signInWithKakao(): Promise<KakaoSignInResult> {
   return signInWithKakaoWithDeps(liveKakaoAuthDeps());
+}
+
+// Google 은 임베디드 WebView 로그인을 차단하지만 expo-web-browser 는 Android
+// Custom Tabs 를 열므로 허용 대상이다. 리다이렉트·콜백 경로는 카카오와 공유한다.
+export function signInWithGoogle(): Promise<KakaoSignInResult> {
+  return signInWithGoogleWithDeps(liveKakaoAuthDeps());
 }
 
 export function completeKakaoSignIn(url: string): Promise<KakaoSignInResult> {

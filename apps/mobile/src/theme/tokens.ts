@@ -62,6 +62,11 @@ export const colors = {
   kakao: '#FEE500',
   onKakao: '#191919',
 
+  // Google 로그인 공식 버튼 가이드 색 (light)
+  google: '#FFFFFF',
+  onGoogle: '#1F1F1F',
+  googleBorder: '#747775',
+
   scrim: 'rgba(0, 0, 0, 0.40)',
 } as const;
 

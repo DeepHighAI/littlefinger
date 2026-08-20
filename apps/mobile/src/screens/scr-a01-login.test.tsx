@@ -1,6 +1,6 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 
-import { signInWithKakao } from '../lib/kakao-auth-native.ts';
+import { signInWithGoogle, signInWithKakao } from '../lib/kakao-auth-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { signInWithTestAccount } from '../lib/test-auth-native.ts';
 import { MobileAuthGateContext } from '../lib/mobile-auth-gate.ts';
@@ -8,6 +8,7 @@ import { colors } from '../theme/tokens';
 import LoginScreen from '../app/index';
 
 jest.mock('../lib/kakao-auth-native.ts', () => ({
+  signInWithGoogle: jest.fn(),
   signInWithKakao: jest.fn(),
 }));
 
@@ -20,6 +21,7 @@ jest.mock('../lib/test-auth-native.ts', () => ({
 }));
 
 const signInWithKakaoMock = jest.mocked(signInWithKakao);
+const signInWithGoogleMock = jest.mocked(signInWithGoogle);
 const openLegalDocumentMock = jest.mocked(openLegalDocument);
 const signInWithTestAccountMock = jest.mocked(signInWithTestAccount);
 
@@ -45,6 +47,8 @@ describe('SCR-A01 로그인', () => {
   beforeEach(() => {
     signInWithKakaoMock.mockReset();
     signInWithKakaoMock.mockResolvedValue('SIGNED_IN');
+    signInWithGoogleMock.mockReset();
+    signInWithGoogleMock.mockResolvedValue('SIGNED_IN');
     openLegalDocumentMock.mockReset();
     openLegalDocumentMock.mockResolvedValue(undefined);
   });
@@ -60,13 +64,14 @@ describe('SCR-A01 로그인', () => {
     expect(view.getByText('오늘도 새끼손가락 걸어볼까요?')).toBeTruthy();
   });
 
-  test('로그인 수단은 카카오 하나뿐이다 — 릴리스 번들 기준', async () => {
-    // MVP 는 카카오 로그인이 유일한 진입 경로다(02 §4 F-01).
+  test('로그인 수단은 카카오와 Google 뿐이다 — 릴리스 번들 기준', async () => {
+    // 프로덕션 진입 경로는 카카오 + Google SSO 둘뿐이다(PO 2026-08-20, N-4).
     // 테스트 로그인은 `__DEV__` 게이트 뒤라 릴리스에서는 존재하지 않는다.
     const view = await withRelease(() => render(<LoginScreen />));
     const buttons = view.getAllByRole('button');
     expect(view.getByRole('button', { name: '카카오로 시작하기' })).toBeTruthy();
-    expect(buttons).toHaveLength(1);
+    expect(view.getByRole('button', { name: 'Google로 시작하기' })).toBeTruthy();
+    expect(buttons).toHaveLength(2);
     expect(view.queryByText('테스트 로그인 (개발 빌드 전용)')).toBeNull();
     expect(view.getByRole('image', { name: '리틀핑거 로고' })).toBeTruthy();
   });
@@ -109,6 +114,43 @@ describe('SCR-A01 로그인', () => {
       ? Object.assign({}, ...button.props.style.filter(Boolean))
       : button.props.style;
     expect(style.backgroundColor).toBe(colors.kakao);
+  });
+
+  test('Google 버튼은 공식 가이드 색과 G 마크를 쓴다', async () => {
+    const view = await render(<LoginScreen />);
+    const button = view.getByRole('button', { name: 'Google로 시작하기' });
+    const style = Array.isArray(button.props.style)
+      ? Object.assign({}, ...button.props.style.filter(Boolean))
+      : button.props.style;
+    expect(style.backgroundColor).toBe(colors.google);
+    expect(style.borderColor).toBe(colors.googleBorder);
+    expect(view.getByTestId('google-mark')).toBeTruthy();
+  });
+
+  test('Google 로그인 취소는 EC-A01 안내를 보여준다', async () => {
+    signInWithGoogleMock.mockResolvedValue('CANCELED');
+    const view = await render(<LoginScreen />);
+
+    await act(async () => {
+      fireEvent.press(view.getByRole('button', { name: 'Google로 시작하기' }));
+    });
+
+    expect(
+      await view.findByText('로그인을 취소했습니다. 다시 시도해 주세요.'),
+    ).toBeTruthy();
+  });
+
+  test('Google 로그인 오류는 Google 문구로 평탄화한다', async () => {
+    signInWithGoogleMock.mockRejectedValue(new Error('provider details'));
+    const view = await render(<LoginScreen />);
+
+    await act(async () => {
+      fireEvent.press(view.getByRole('button', { name: 'Google로 시작하기' }));
+    });
+
+    expect(
+      await view.findByText('지금 Google 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.'),
+    ).toBeTruthy();
   });
 
   test('카카오 로그인 취소는 EC-A01 안내를 보여준다', async () => {

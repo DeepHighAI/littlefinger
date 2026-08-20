@@ -11,9 +11,11 @@ interface SetSessionResponse {
   error: Error | null;
 }
 
+export type MobileOAuthProvider = 'kakao' | 'google';
+
 export interface MobileAuthClient {
   signInWithOAuth(input: {
-    provider: 'kakao';
+    provider: MobileOAuthProvider;
     options: { redirectTo: string; skipBrowserRedirect: true };
   }): Promise<OAuthResponse>;
   setSession(tokens: { access_token: string; refresh_token: string }): Promise<SetSessionResponse>;
@@ -96,19 +98,32 @@ export async function completeKakaoSignIn(
   return 'SIGNED_IN';
 }
 
-export async function signInWithKakao(deps: KakaoAuthDeps): Promise<KakaoSignInResult> {
+async function startOAuthSignIn(
+  provider: MobileOAuthProvider,
+  deps: KakaoAuthDeps,
+): Promise<KakaoSignInResult> {
   const { data: oauth, error: oauthError } = await deps.auth.signInWithOAuth({
-    provider: 'kakao',
+    provider,
     options: {
       redirectTo: deps.redirectTo,
       skipBrowserRedirect: true,
     },
   });
   if (oauthError !== null) throw oauthError;
-  if (oauth.url === null) throw new Error('Kakao OAuth URL is missing.');
+  if (oauth.url === null) throw new Error(`${provider} OAuth URL is missing.`);
 
   const browserResult = await deps.openAuthSession(oauth.url, deps.redirectTo);
   if (browserResult.type !== 'success' || browserResult.url === undefined) return 'CANCELED';
 
+  // 콜백 처리(토큰 파싱·세션 저장·프로비저닝)는 프로바이더 중립이다 — NICKNAME_REQUIRED
+  // 분기만 카카오 전용 동의 항목(profile_nickname)이라 Google 에서는 절대 나오지 않는다.
   return completeKakaoSignIn(browserResult.url, deps);
+}
+
+export async function signInWithKakao(deps: KakaoAuthDeps): Promise<KakaoSignInResult> {
+  return startOAuthSignIn('kakao', deps);
+}
+
+export async function signInWithGoogle(deps: KakaoAuthDeps): Promise<KakaoSignInResult> {
+  return startOAuthSignIn('google', deps);
 }

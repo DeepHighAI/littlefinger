@@ -84,8 +84,8 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 hover·pressed 상태를 포함한 92개 토큰을 정의한다', () => {
-    expect(cssTokens.size).toBe(92);
+  test('canonical tokens.css 는 hover·pressed 상태를 포함한 95개 토큰을 정의한다', () => {
+    expect(cssTokens.size).toBe(95);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {

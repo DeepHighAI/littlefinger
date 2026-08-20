@@ -69,6 +69,11 @@
   --lf-color-kakao:    #FEE500;
   --lf-color-on-kakao: #191919;
 
+  /* Google 로그인 공식 버튼 가이드 색 (light) — 테두리가 배경과 흰 버튼을 가른다 */
+  --lf-color-google:        #FFFFFF;
+  --lf-color-on-google:     #1F1F1F;
+  --lf-color-google-border: #747775;
+
   /* 디바이스 프레임 */
   --lf-color-frame-border: rgba(116, 119, 117, 0.5);
   --lf-color-scrim:        rgba(0, 0, 0, 0.40);

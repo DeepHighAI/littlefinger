@@ -3,12 +3,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LEGAL_DOCUMENT_LABELS, type LegalDocumentKind } from '@littlefinger/shared';
 
+import { GoogleMark } from '../components/GoogleMark';
 import { LfButton } from '../components/LfButton';
 import { LfInput } from '../components/LfInput';
 import { LfNotice } from '../components/LfNotice';
 import { LfPinky } from '../components/LfPinky';
 import { LfStack } from '../components/LfStack';
 import {
+  signInWithGoogle,
   signInWithKakao,
 } from '../lib/kakao-auth-native.ts';
 import { signInWithTestAccount } from '../lib/test-auth-native.ts';
@@ -42,6 +44,9 @@ const KAKAO_LOGIN_ERROR_LABEL =
   '지금 카카오 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
 const KAKAO_NICKNAME_REQUIRED_LABEL =
   '닉네임 정보는 약속 기록에 꼭 필요합니다. 동의 후 이용해 주세요.';
+const GOOGLE_LOGIN_LABEL = 'Google로 시작하기';
+const GOOGLE_LOGIN_ERROR_LABEL =
+  '지금 Google 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
 const SESSION_EXPIRED_LABEL = '다시 로그인해 주세요.';
 const LEGAL_DOCUMENT_ERROR_LABEL =
   '법적 문서를 열 수 없습니다. 잠시 후 다시 시도해 주세요.';
@@ -154,6 +159,22 @@ export default function LoginScreen(): React.JSX.Element {
     }
   }
 
+  async function handleGoogleLogin(): Promise<void> {
+    setSigningIn(true);
+    setAuthMessage(null);
+    try {
+      const result = await signInWithGoogle();
+      if (result === 'CANCELED') setAuthMessage(KAKAO_LOGIN_CANCELED_LABEL);
+      // NICKNAME_REQUIRED 는 카카오 동의 항목 전용이라 Google 에서는 나올 수 없다 —
+      // 만약 나오면 알 수 없는 실패로 취급한다.
+      if (result === 'NICKNAME_REQUIRED') setAuthMessage(GOOGLE_LOGIN_ERROR_LABEL);
+    } catch {
+      setAuthMessage(GOOGLE_LOGIN_ERROR_LABEL);
+    } finally {
+      setSigningIn(false);
+    }
+  }
+
   // 테스트 빌드 전용 — 카카오 계정 없이 수동 E2E 를 돌리기 위한 경로.
   // 릴리스 번들에서는 `__DEV__` 게이트가 UI 째로 제거한다.
   async function handleTestLogin(): Promise<void> {
@@ -206,6 +227,15 @@ export default function LoginScreen(): React.JSX.Element {
             label="카카오로 시작하기"
             disabled={signingIn}
             onPress={() => void handleKakaoLogin()}
+          />
+          <LfButton
+            variant="google"
+            size="cta"
+            block
+            leading={<GoogleMark />}
+            label={GOOGLE_LOGIN_LABEL}
+            disabled={signingIn}
+            onPress={() => void handleGoogleLogin()}
           />
           {authMessage !== null && (
             <Text accessibilityRole="alert" style={styles.authMessage}>

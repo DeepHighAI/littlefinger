@@ -11,7 +11,8 @@ import { colors, radius, size, space, type, weight } from '../theme/tokens';
  * 이긴다. 여기서도 `minHeight` 를 항상 걸어 같은 결과를 만든다.
  */
 
-export type LfButtonVariant = 'filled' | 'tonal' | 'outlined' | 'text' | 'kakao' | 'danger';
+export type LfButtonVariant =
+  | 'filled' | 'tonal' | 'outlined' | 'text' | 'kakao' | 'google' | 'danger';
 export type LfButtonSize = 'default' | 'cta' | 'compact';
 
 export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children'> {
@@ -20,11 +21,15 @@ export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children'
   size?: LfButtonSize;
   block?: boolean;
   grow?: boolean;
+  /** 라벨 앞 브랜드 마크 자리 (Google G 등). 장식이라 접근성 라벨에는 들어가지 않는다. */
+  leading?: React.JSX.Element;
 }
 
 const DISABLED_OPACITY = 0.38;
 const PRESSED_OPACITY = 0.94;
 const OUTLINE_WIDTH = 1.5;
+// Google 버튼 가이드는 1px 고정 테두리다 — 내부 outlined(1.5)와 다르다.
+const GOOGLE_OUTLINE_WIDTH = 1;
 
 const container = StyleSheet.create({
   base: {
@@ -47,6 +52,11 @@ const container = StyleSheet.create({
   },
   text: { backgroundColor: 'transparent' },
   kakao: { backgroundColor: colors.kakao },
+  google: {
+    backgroundColor: colors.google,
+    borderWidth: GOOGLE_OUTLINE_WIDTH,
+    borderColor: colors.googleBorder,
+  },
   danger: { backgroundColor: 'transparent', borderWidth: OUTLINE_WIDTH, borderColor: colors.error },
 });
 
@@ -56,6 +66,7 @@ const labelColor: Record<LfButtonVariant, string> = {
   outlined: colors.primary,
   text: colors.textMuted,
   kakao: colors.onKakao,
+  google: colors.onGoogle,
   danger: colors.error,
 };
 
@@ -66,6 +77,7 @@ const labelWeight: Record<LfButtonVariant, PretendardWeight> = {
   outlined: weight.bold,
   text: weight.medium,
   kakao: weight.medium,
+  google: weight.medium,
   danger: weight.bold,
 };
 
@@ -81,14 +93,17 @@ export function LfButton({
   size: buttonSize = 'default',
   block = false,
   grow = false,
+  leading,
   disabled,
   ...rest
 }: LfButtonProps): React.JSX.Element {
   // PressableProps 의 disabled 는 null 도 허용해서 그대로는 accessibilityState 에 못 넣는다.
   const isDisabled = disabled ?? false;
-  // kakao 만 기본 크기에서도 한 단계 큰 글자를 쓴다 (원본 .lf-btn--kakao).
+  // 로그인 버튼 두 종만 기본 크기에서도 한 단계 큰 글자를 쓴다 (원본 .lf-btn--kakao).
   const fontSize =
-    buttonSize === 'default' && variant === 'kakao' ? type.bodyLg : labelSize[buttonSize];
+    buttonSize === 'default' && (variant === 'kakao' || variant === 'google')
+      ? type.bodyLg
+      : labelSize[buttonSize];
 
   return (
     <Pressable
@@ -110,6 +125,7 @@ export function LfButton({
         isDisabled && { opacity: DISABLED_OPACITY },
       ]}
     >
+      {leading}
       <Text
         style={{
           fontSize,

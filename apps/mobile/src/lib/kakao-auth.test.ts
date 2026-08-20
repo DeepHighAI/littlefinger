@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js';
 
 import {
   completeKakaoSignIn,
+  signInWithGoogle,
   signInWithKakao,
   type KakaoAuthDeps,
   type MobileAuthClient,
@@ -110,7 +111,39 @@ describe('signInWithKakao', () => {
     expect(d.setSession).not.toHaveBeenCalled();
     expect(d.fetch).not.toHaveBeenCalled();
   });
+});
 
+describe('signInWithGoogle', () => {
+  test('provider 만 다르고 콜백·세션·프로비저닝 경로는 카카오와 같다', async () => {
+    const d = deps();
+
+    await expect(signInWithGoogle(d.value)).resolves.toBe('SIGNED_IN');
+
+    expect(d.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: {
+        redirectTo: 'littlefinger://auth-callback',
+        skipBrowserRedirect: true,
+      },
+    });
+    expect(d.setSession).toHaveBeenCalledWith({
+      access_token: 'access-token',
+      refresh_token: 'refresh-token',
+    });
+    expect(d.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('브라우저 취소는 카카오와 같은 CANCELED 로 끝난다', async () => {
+    const d = deps();
+    d.openAuthSession.mockResolvedValue({ type: 'cancel' });
+
+    await expect(signInWithGoogle(d.value)).resolves.toBe('CANCELED');
+
+    expect(d.setSession).not.toHaveBeenCalled();
+  });
+});
+
+describe('OAuth 콜백 공통 경로', () => {
   test('EC-A03 profile_nickname 필수 동의 거부는 재동의 결과로 구분한다', async () => {
     const d = deps();
     d.value.parseUrl = () => ({

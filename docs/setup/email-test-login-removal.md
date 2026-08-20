@@ -19,12 +19,12 @@ a production build:
 Both gates are locked by tests. Verify:
 
 ```bash
-cd apps/mobile && npx jest src/screens/scr-a01-login.test.tsx -t "카카오 하나뿐"
+cd apps/mobile && npx jest src/screens/scr-a01-login.test.tsx -t "카카오와 Google 뿐"
 ```
 
 That test renders SCR-A01 with `__DEV__` forced off (release-bundle conditions) and asserts the
-only login affordance is Kakao. `apps/web/src/components/test-login-form.test.tsx` covers the
-web gate the same way.
+only login affordances are Kakao and Google. `apps/web/src/components/test-login-form.test.tsx`
+covers the web gate the same way.
 
 Optional belt-and-braces check on the web artifact — the label string must not survive the build:
 
