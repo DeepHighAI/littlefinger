@@ -10,7 +10,7 @@ vi.mock('./supabase.ts', () => ({
   getSupabase: () => ({ auth: { signInWithOAuth, signInWithPassword } }),
 }));
 
-import { signInWithKakao, signInWithTestAccount } from './web-auth.ts';
+import { signInWithGoogle, signInWithKakao, signInWithTestAccount } from './web-auth.ts';
 
 afterEach(() => {
   signInWithOAuth.mockReset();
@@ -34,6 +34,26 @@ describe('웹 카카오 로그인', () => {
     signInWithOAuth.mockResolvedValue({ data: {}, error: failure });
 
     await expect(signInWithKakao('/promises')).rejects.toBe(failure);
+  });
+});
+
+describe('웹 Google 로그인', () => {
+  it('요청한 웹 경로로 정확히 돌아온다 — 카카오와 같은 규칙', async () => {
+    signInWithOAuth.mockResolvedValue({ data: {}, error: null });
+
+    await signInWithGoogle('/promises');
+
+    expect(signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/promises` },
+    });
+  });
+
+  it('Supabase OAuth 실패를 호출자에게 돌려준다', async () => {
+    const failure = new Error('provider unavailable');
+    signInWithOAuth.mockResolvedValue({ data: {}, error: failure });
+
+    await expect(signInWithGoogle('/promises')).rejects.toBe(failure);
   });
 });
 

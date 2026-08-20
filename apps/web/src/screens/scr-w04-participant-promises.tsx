@@ -38,6 +38,7 @@ import {
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import {
@@ -60,13 +61,14 @@ import {
   withdrawPromiseAmend,
 } from '../lib/promise-amend-api.ts';
 import { getSupabase } from '../lib/supabase.ts';
-import { signInWithKakao } from '../lib/web-auth.ts';
+import { signInWithGoogle, signInWithKakao } from '../lib/web-auth.ts';
 import { promisesPath } from '../routes.ts';
 import { PinkyBadge } from './scr-w01-invite-landing.tsx';
 
 const PAGE_TITLE = '참여 중인 약속';
 const RESPONSE_COUNT_PREFIX = '응답이 필요해요';
 const SIGN_IN_CTA = '카카오 로그인';
+const GOOGLE_SIGN_IN_CTA = 'Google 로그인';
 const RETRY_CTA = '다시 시도';
 const EMPTY_COPY = '참여 중인 약속이 아직 없어요';
 const MY_RESPONSE_PENDING = '내 응답 전';
@@ -1386,6 +1388,17 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
     }
   }, []);
 
+  const handleGoogleSignIn = useCallback(async (): Promise<void> => {
+    setSigningIn(true);
+    setSignInError(false);
+    try {
+      await signInWithGoogle(promisesPath());
+    } catch {
+      setSigningIn(false);
+      setSignInError(true);
+    }
+  }, []);
+
   const updateDraft = useCallback(
     (
       view: PromiseView,
@@ -1815,6 +1828,15 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
               onClick={() => void handleSignIn()}
             >
               {SIGN_IN_CTA}
+            </button>
+            <button
+              className="lf-btn lf-btn--google lf-btn--cta lf-btn--block"
+              type="button"
+              disabled={signingIn}
+              onClick={() => void handleGoogleSignIn()}
+            >
+              <GoogleMark />
+              <span>{GOOGLE_SIGN_IN_CTA}</span>
             </button>
             <p role="alert" className="lf-caption">
               {signInError ? INTERNAL_MESSAGE : ''}

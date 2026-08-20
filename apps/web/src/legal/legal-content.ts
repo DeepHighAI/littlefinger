@@ -31,13 +31,13 @@ export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> =
       {
         title: '서비스 이용계약',
         paragraphs: [
-          '리틀핑거는 두 사람이 합의한 약속의 내용과 진행 상태를 기록하고 확인하도록 돕는 서비스입니다. 사용자가 카카오로 시작하면 이 약관에 동의한 것으로 기록됩니다.',
+          '리틀핑거는 두 사람이 합의한 약속의 내용과 진행 상태를 기록하고 확인하도록 돕는 서비스입니다. 사용자가 카카오 또는 Google로 시작하면 이 약관에 동의한 것으로 기록됩니다.',
         ],
       },
       {
         title: '계정',
         paragraphs: [
-          '계정은 Supabase Auth의 카카오 OAuth로 생성합니다. 사용자는 자신의 계정과 로그인 수단을 안전하게 관리해야 하며, 다른 사람의 계정을 이용해서는 안 됩니다.',
+          '계정은 Supabase Auth의 카카오·Google OAuth로 생성합니다. 사용자는 자신의 계정과 로그인 수단을 안전하게 관리해야 하며, 다른 사람의 계정을 이용해서는 안 됩니다.',
         ],
       },
       {
@@ -94,7 +94,7 @@ export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> =
       {
         title: '처리하는 개인정보',
         paragraphs: [
-          '카카오 회원번호, 선택 동의한 닉네임과 프로필 이미지, 약속 내용과 승인·이행 기록, 해시 처리한 IP와 User-Agent, 기기 푸시 토큰, 선택한 증빙 사진을 처리합니다. 이메일과 전화번호는 수집하지 않습니다.',
+          '카카오 회원번호 또는 Google 계정 식별자, 선택 동의한 닉네임과 프로필 이미지, 약속 내용과 승인·이행 기록, 해시 처리한 IP와 User-Agent, 기기 푸시 토큰, 선택한 증빙 사진을 처리합니다. 서비스는 이메일과 전화번호를 이용하지 않으며, 인증 제공자가 전달한 이메일은 인증 시스템 외부에 저장하지 않습니다.',
         ],
       },
       {
@@ -118,7 +118,7 @@ export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> =
       {
         title: '처리위탁과 국외 처리',
         paragraphs: [
-          '카카오 로그인, Supabase 인증·데이터·파일 저장, Expo와 Firebase Cloud Messaging의 푸시 전달, Firebase Hosting의 웹 제공 과정에서 처리가 이루어질 수 있습니다.',
+          '카카오 로그인, Google 로그인, Supabase 인증·데이터·파일 저장, Expo와 Firebase Cloud Messaging의 푸시 전달, Firebase Hosting의 웹 제공 과정에서 처리가 이루어질 수 있습니다.',
           LEGAL_DRAFT_LABELS.missingTransfers,
         ],
       },

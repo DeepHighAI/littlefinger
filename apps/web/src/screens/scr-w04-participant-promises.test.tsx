@@ -394,6 +394,19 @@ describe('SCR-W04 참여 약속', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('Google 로그인 CTA 도 /promises 로 돌아온다', async () => {
+    getSession.mockResolvedValue({ data: { session: null } });
+    renderAt();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Google 로그인/u }));
+
+    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
+    expect(signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/promises` },
+    });
+  });
+
   it.each(['CREATOR', 'PARTNER'] as const)('%s ACTIVE 당사자는 일곱 필드가 프리필된 변경 요청을 연다', async (myRole) => {
     installServer(
       [summary({ status: 'ACTIVE', needs_response: false, check_deadline_at: null })],

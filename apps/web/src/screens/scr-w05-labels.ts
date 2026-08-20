@@ -6,6 +6,7 @@ export const SCR_W05_LABEL = {
   loadError: '약속을 불러오지 못했어요. 다시 시도해 주세요.',
   retry: '다시 시도',
   signIn: '카카오 로그인하고 확인하기',
+  signInGoogle: 'Google 로그인하고 확인하기',
   limitedCreator: (nickname: string) => `${nickname}님의 약속`,
   limitedWait: '약속이 확정되면 전체 내용을 볼 수 있습니다',
   parties: (creator: string, partner: string) => `${creator} · ${partner}의 약속`,

@@ -126,7 +126,7 @@ describe('SCR-W01 초대 랜딩', () => {
       fakeResponse(200, { ...INVITE, expires_at: new Date(Date.now() - 1000).toISOString() }),
     );
     renderAt();
-    expect(await screen.findByRole('button')).toBeTruthy();
+    expect(await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u })).toBeTruthy();
     expect(screen.queryByTestId('countdown')).toBeNull();
   });
 
@@ -254,7 +254,7 @@ describe('SCR-W01 초대 랜딩', () => {
   it('카카오 CTA 가 이 초대 URL 로 되돌아오게 로그인시킨다', async () => {
     fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
     renderAt();
-    fireEvent.click(await screen.findByRole('button'));
+    fireEvent.click(await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u }));
 
     await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
     expect(signInWithOAuth).toHaveBeenCalledWith({
@@ -266,6 +266,18 @@ describe('SCR-W01 초대 랜딩', () => {
     const [request] = signInWithOAuth.mock.calls[0] as [{ options: { redirectTo: string } }];
     const { redirectTo } = request.options;
     expect(new URL(redirectTo).pathname).toBe(invitePath(TOKEN));
+  });
+
+  it('Google CTA 도 이 초대 URL 로 되돌아오게 로그인시킨다', async () => {
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+    renderAt();
+    fireEvent.click(await screen.findByRole('button', { name: /Google 로그인하고 내용 보기/u }));
+
+    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
+    expect(signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}` },
+    });
   });
 
   it.each([
@@ -294,7 +306,7 @@ describe('SCR-W01 초대 랜딩', () => {
 
     renderAt();
 
-    const button = await screen.findByRole('button');
+    const button = await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u });
     await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
     expect(signInWithOAuth).toHaveBeenNthCalledWith(1, {
       provider: 'kakao',
@@ -319,14 +331,14 @@ describe('SCR-W01 초대 랜딩', () => {
     signInWithOAuth.mockResolvedValue({ data: {}, error: new Error('provider not enabled') });
     fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
     renderAt();
-    fireEvent.click(await screen.findByRole('button'));
+    fireEvent.click(await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u }));
 
     // 라이브 리전은 실패 **전부터** 붙어 있어야 읽힌다. 문구와 함께 나타나면 놓친다.
     const live = screen.getByRole('alert');
     await waitFor(() =>
       expect(live.textContent).toBe('처리 중 문제가 발생했습니다. 다시 시도해 주세요.'),
     );
-    expect(screen.getByRole('button')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /카카오 로그인하고 내용 보기/u })).toBeTruthy();
   });
 
   it('광고 슬롯이 없다', async () => {

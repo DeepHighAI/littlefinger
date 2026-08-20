@@ -25,7 +25,7 @@ describe('public draft legal documents', () => {
 
   it('states the MVP collection boundary on the privacy draft', () => {
     render(<LegalDocument kind="PRIVACY" />);
-    expect(screen.getByText(/이메일과 전화번호는 수집하지 않습니다/u)).toBeTruthy();
+    expect(screen.getByText(/이메일과 전화번호를 이용하지 않으며/u)).toBeTruthy();
   });
 
   it('lists every approved draft section', () => {

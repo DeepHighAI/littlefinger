@@ -7,12 +7,13 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 
+import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
 import { LfPinky } from '../components/LfPinky.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
-import { signInWithKakao } from '../lib/web-auth.ts';
+import { signInWithGoogle, signInWithKakao } from '../lib/web-auth.ts';
 import { invitePath, legalPath, reviewPath, witnessJoinPath } from '../routes.ts';
 import {
   isLinkUnavailableReason,
@@ -41,6 +42,7 @@ const PREVIEW_SECTION_TITLE = '약속 미리보기';
 const PREVIEW_HINT = '자세한 내용은 로그인 후 볼 수 있어요';
 const SERVICE_INTRO_LINES = ['리틀핑거는 둘이 합의한 약속을 기록하고', '지키게 돕는 서비스예요'];
 const KAKAO_CTA = '카카오 로그인하고 내용 보기';
+const GOOGLE_CTA = 'Google 로그인하고 내용 보기';
 const CTA_CAPTION = '앱 설치 없이 3분이면 끝나요';
 const KAKAO_SILENT_ATTEMPT_KEY = 'lf:kakao-silent-attempted';
 const KAKAOTALK_USER_AGENT = /KAKAOTALK/iu;
@@ -219,6 +221,17 @@ export function ScrW01InviteLanding(): React.JSX.Element {
     }
   }, [token]);
 
+  const handleGoogleLogin = useCallback(async (): Promise<void> => {
+    setSigningIn(true);
+    setSignInFailed(false);
+    try {
+      await signInWithGoogle(invitePath(token ?? ''));
+    } catch {
+      setSigningIn(false);
+      setSignInFailed(true);
+    }
+  }, [token]);
+
   useEffect(() => {
     if (
       phase.kind !== 'READY' ||
@@ -329,6 +342,15 @@ export function ScrW01InviteLanding(): React.JSX.Element {
         >
           <KakaoMark />
           <span>{KAKAO_CTA}</span>
+        </button>
+        <button
+          className="lf-btn lf-btn--google lf-btn--cta lf-btn--block"
+          type="button"
+          disabled={signingIn}
+          onClick={() => void handleGoogleLogin()}
+        >
+          <GoogleMark />
+          <span>{GOOGLE_CTA}</span>
         </button>
         {!signInFailed && <p className="lf-caption lf-text-center">{CTA_CAPTION}</p>}
         <nav className="lf-login-legal" aria-label="법적 문서">

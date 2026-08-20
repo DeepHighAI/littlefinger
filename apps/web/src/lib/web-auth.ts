@@ -21,6 +21,20 @@ export async function signInWithKakao(
 }
 
 /**
+ * Google OAuth 시작점 — 리다이렉트·세션 감지·프로비저닝 경로 전부 카카오와 같다.
+ * prompt:'none' 사일런트 재인증은 카카오톡 인앱 브라우저 전용이라 이식하지 않는다.
+ */
+export async function signInWithGoogle(redirectPath: string): Promise<void> {
+  const { error } = await getSupabase().auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}${redirectPath}`,
+    },
+  });
+  if (error) throw error;
+}
+
+/**
  * 테스트 전용 이메일 로그인 — dev 서버에서만 노출되는 `TestLoginForm` 이 부른다.
  * `vite build` 산출물에서는 호출부가 제거되므로 배포 웹에는 이 경로가 없다.
  * 프로비저닝은 카카오와 동일하게 `watchSignInProvision` 이 SIGNED_IN 에서 처리한다.

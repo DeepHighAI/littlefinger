@@ -14,6 +14,7 @@ const {
   leaveWitness,
   signWitness,
   signFulfillmentEvidence,
+  signInWithGoogle,
   signInWithKakao,
 } = vi.hoisted(() => ({
   getSession: vi.fn(),
@@ -23,6 +24,7 @@ const {
   signWitness: vi.fn(),
   signFulfillmentEvidence: vi.fn(),
   signInWithKakao: vi.fn(),
+  signInWithGoogle: vi.fn(),
 }));
 
 vi.mock('../lib/supabase.ts', () => ({
@@ -36,7 +38,7 @@ vi.mock('../lib/witness-api.ts', () => ({
   WitnessApiError: class WitnessApiError extends Error { authExpired = false; },
 }));
 vi.mock('../lib/fulfillment-api.ts', () => ({ signFulfillmentEvidence }));
-vi.mock('../lib/web-auth.ts', () => ({ signInWithKakao }));
+vi.mock('../lib/web-auth.ts', () => ({ signInWithGoogle, signInWithKakao }));
 
 const TOKEN = 'witness_raw_token';
 const PROMISE_ID = '11111111-1111-4111-8111-111111111111';
@@ -124,6 +126,8 @@ beforeEach(() => {
   });
   signInWithKakao.mockReset();
   signInWithKakao.mockResolvedValue(undefined);
+  signInWithGoogle.mockReset();
+  signInWithGoogle.mockResolvedValue(undefined);
   vi.spyOn(crypto, 'randomUUID').mockReturnValue('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
 });
 
@@ -155,6 +159,16 @@ describe('SCR-W05 witness confirmation', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: '카카오 로그인하고 확인하기' }));
     expect(signInWithKakao).toHaveBeenCalledWith(witnessPath(PROMISE_ID));
+  });
+
+  it('signed-out account revisit can start Google OAuth for the same route', async () => {
+    getSession.mockResolvedValue({ data: { session: null } });
+    renderAt(witnessPath(PROMISE_ID));
+
+    await fireEvent.click(
+      await screen.findByRole('button', { name: /Google 로그인하고 확인하기/u }),
+    );
+    expect(signInWithGoogle).toHaveBeenCalledWith(witnessPath(PROMISE_ID));
   });
 
   it('LIMITED exposes only title, creator, and the wait message', async () => {

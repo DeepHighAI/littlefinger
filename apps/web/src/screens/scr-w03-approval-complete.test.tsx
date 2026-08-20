@@ -85,7 +85,7 @@ describe('SCR-W03 승인 완료', () => {
   it('계정 기반 재접근 안내와 참여 약속 링크가 있다', () => {
     renderWith(RESULT);
     expect(
-      screen.getByText('이 약속은 카카오 로그인으로 언제든 다시 볼 수 있어요'),
+      screen.getByText('이 약속은 로그인하면 언제든 다시 볼 수 있어요'),
     ).toBeTruthy();
     const link = screen.getByRole('link', { name: '참여 중인 약속 보기' });
     expect(link.getAttribute('href')).toBe(promisesPath());

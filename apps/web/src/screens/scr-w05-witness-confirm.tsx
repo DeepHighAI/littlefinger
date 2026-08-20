@@ -12,12 +12,13 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import { signFulfillmentEvidence } from '../lib/fulfillment-api.ts';
 import { INTERNAL_MESSAGE } from '../lib/api-failure.ts';
 import { getSupabase } from '../lib/supabase.ts';
-import { signInWithKakao } from '../lib/web-auth.ts';
+import { signInWithGoogle, signInWithKakao } from '../lib/web-auth.ts';
 import {
   getWitnessDetail,
   joinWitness,
@@ -429,6 +430,14 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
               onClick={() => void signInWithKakao(phase.returnPath)}
             >
               {SCR_W05_LABEL.signIn}
+            </button>
+            <button
+              className="lf-btn lf-btn--google lf-btn--cta lf-btn--block"
+              type="button"
+              onClick={() => void signInWithGoogle(phase.returnPath)}
+            >
+              <GoogleMark />
+              <span>{SCR_W05_LABEL.signInGoogle}</span>
             </button>
             <TestLoginForm />
           </>
