@@ -6,7 +6,7 @@ import {
   type PromiseHomeCard,
   type PromiseHomeTab,
 } from '@littlefinger/shared';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
   Alert,
@@ -246,6 +246,19 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
       pagingTabs.current.delete(tab);
     }
   }, []);
+
+  // 상세·작성 화면에서 상태를 바꾸고 돌아온 경우를 위해 재포커스마다 현재 탭을 새로고침한다.
+  // 첫 포커스는 아래 mount 로딩과 겹치므로 건너뛴다.
+  const focusedOnce = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (!focusedOnce.current) {
+        focusedOnce.current = true;
+        return;
+      }
+      void loadFirstPage(stateRef.current.selectedTab, true);
+    }, [loadFirstPage]),
+  );
 
   const selected = state.tabs[state.selectedTab];
   useEffect(() => {

@@ -3,7 +3,7 @@ import {
   type ReminderHour,
   type ReminderPreferences,
 } from '@littlefinger/shared';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -110,7 +110,8 @@ export default function ProfileScreen(): React.JSX.Element {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  // 닉네임 편집 등 다른 화면에서 바꾼 값이 돌아올 때 보이도록 포커스마다 다시 읽는다.
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
 
   const save = useCallback(async (reminders: ReminderPreferences) => {
     const updateId = ++nextUpdateId.current;

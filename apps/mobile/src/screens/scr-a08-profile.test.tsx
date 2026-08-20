@@ -17,7 +17,26 @@ import {
   profileReducer,
 } from './scr-a08-profile-state.ts';
 
-jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
+// useFocusEffect 모킹: 마운트 시 1회(실제 첫 포커스와 동일) 실행하고,
+// triggerFocus() 로 재포커스를 흉내 낸다.
+const mockFocusEffects = new Set<() => undefined | (() => void)>();
+function triggerFocus(): void {
+  for (const effect of [...mockFocusEffects]) effect();
+}
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(),
+  useFocusEffect: (effect: () => undefined | (() => void)) => {
+    const { useEffect } = jest.requireActual<typeof import('react')>('react');
+    useEffect(() => {
+      mockFocusEffects.add(effect);
+      const cleanup = effect();
+      return () => {
+        mockFocusEffects.delete(effect);
+        if (typeof cleanup === 'function') cleanup();
+      };
+    }, [effect]);
+  },
+}));
 jest.mock('../lib/legal-native.ts', () => ({ openLegalDocument: jest.fn() }));
 jest.mock('../lib/mobile-api-native.ts', () => ({ currentMobileUserId: jest.fn() }));
 jest.mock('../lib/account-safety-native.ts', () => ({ withdrawAccountNative: jest.fn() }));
@@ -118,6 +137,17 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
   afterEach(async () => {
     await cleanup();
     jest.restoreAllMocks();
+  });
+
+  test('재포커스 때마다 프로필을 다시 불러온다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    await render(<ProfileScreen />);
+    await settle();
+    expect(loadMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => triggerFocus());
+    await settle();
+    expect(loadMock).toHaveBeenCalledTimes(2);
   });
 
   test('로딩과 재시도 가능한 조회 실패를 표시한다', async () => {

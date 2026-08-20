@@ -7,7 +7,26 @@ import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import { colors } from '../theme/tokens.ts';
 import HomeScreen from '../app/home';
 
-jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
+// useFocusEffect 모킹: 마운트 시 1회(실제 첫 포커스와 동일) 실행하고,
+// triggerFocus() 로 재포커스를 흉내 낸다.
+const mockFocusEffects = new Set<() => undefined | (() => void)>();
+function triggerFocus(): void {
+  for (const effect of [...mockFocusEffects]) effect();
+}
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(),
+  useFocusEffect: (effect: () => undefined | (() => void)) => {
+    const { useEffect } = jest.requireActual<typeof import('react')>('react');
+    useEffect(() => {
+      mockFocusEffects.add(effect);
+      const cleanup = effect();
+      return () => {
+        mockFocusEffects.delete(effect);
+        if (typeof cleanup === 'function') cleanup();
+      };
+    }, [effect]);
+  },
+}));
 jest.mock(
   '../lib/ads-config-native.ts',
   () => ({ readAdsEnabled: jest.fn() }),
@@ -109,6 +128,30 @@ describe('SCR-A02 F-10 홈 목록', () => {
   afterEach(async () => {
     await cleanup();
     jest.restoreAllMocks();
+  });
+
+  test('재포커스는 첫 포커스를 건너뛰고 선택한 탭을 새로고침 경로로 다시 읽는다', async () => {
+    listHomePromisesMock.mockResolvedValueOnce(
+      response({
+        items: [card({ id: ACTIVE_ID, title: '아침 달리기' })],
+        counts: { ACTIVE: 1, WAITING: 0, COMPLETED: 0 },
+      }),
+    );
+    const view = await render(<HomeScreen now={NOW} />);
+    await settle();
+    expect(listHomePromisesMock).toHaveBeenCalledTimes(1);
+
+    let resolveRefresh!: (value: unknown) => void;
+    listHomePromisesMock.mockReturnValueOnce(
+      new Promise((resolve) => { resolveRefresh = resolve; }) as never,
+    );
+    await act(async () => triggerFocus());
+    // refresh 경로: 재조회 중에도 기존 목록이 비워지지 않는다.
+    expect(view.getByText('아침 달리기')).toBeTruthy();
+    await act(async () => resolveRefresh(response()));
+    await settle();
+    expect(listHomePromisesMock).toHaveBeenCalledTimes(2);
+    expect(listHomePromisesMock).toHaveBeenLastCalledWith({ tab: 'ACTIVE' });
   });
 
   test('첫 진입은 ACTIVE 첫 페이지만 읽고 3탭·빈 상태·단일 FAB를 광고 자리 없이 보여준다', async () => {
