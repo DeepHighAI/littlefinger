@@ -41,7 +41,7 @@ in §4-1 of this file), then read that range only.
 | Code comments | **Korean (한글)** |
 | Guidelines, docs, ADRs, plans, commit messages, PR text | English |
 | **Every report, status update, question, and summary to the PO** | **Korean (한글)** |
-| User-facing strings in the product | Korean, always via label constants — never hardcoded |
+| User-facing strings in the product | **Korean + English** (PO, 2026-08-20) via `Localized<T>` typed catalogs (`const ko = {…}; const en = {…} satisfies typeof ko`) — never hardcoded. Server-rendered copy (notification rows, error envelopes) stays Korean in phase 1. See ADR 0006 |
 
 ### 1-3. Code style
 
@@ -210,6 +210,8 @@ Port rules are fully specified in `04` §3–§5. **Follow them; do not improvis
 | `transitions.ts` | the T-01…T-18 table + `canTransition` | `02` §7-1 |
 | `api.ts` | the Edge Function HTTP contract — error body, request shapes, endpoint slugs | `02` §2-3·§7-3.6 |
 | `notification.ts` | NT event codes, titles, deeplinks, `dedupe_key` builders | `02` §8-1·§6-2 |
+| `i18n.ts` | `Locale`/`Localized<T>`, `resolveLocale`, `resolveInitialLocale`, `catalogKeyPaths`, **`LOCALE_DETECTION_ENABLED`** (the single ko/en rollout switch) | ADR 0006 |
+| `app-links.ts` | `ANDROID_PACKAGE_NAME`, Play Store URL builder, `invitePathOf`, `buildInviteAppIntentUri` (intent:// with store fallback) | ADR 0007 |
 
 Naming follows **`02`, not `04`** where they conflict (PO, 2026-07-26): `keeper` not `obligor`,
 `INVITE_TTL_HOURS` not `INVITE_EXPIRY_HOURS`, `CHECK_DEADLINE_DAYS`, `WITNESS_MAX`,
@@ -449,9 +451,12 @@ verbatim in code, DB, and design; screen labels **always** go through `PROMISE_S
 1. **No ads at moments of trust.** Creation, review, approval, confirmation and fulfillment screens,
    plus **the entire acceptance web**, carry no ads. The only slot is the SCR-A02 bottom. When
    `ads_enabled=false`, the component is **not rendered at all** — no reserved empty space.
-2. **`LEGAL_DISCLAIMER` is verbatim and immutable.** `LfDisclaimer` renders the constant and does not
-   accept text as a prop. It appears in **4 places**: SCR-W02 · SCR-A05/ACTIVE confirmation area ·
-   SCR-W03 · SCR-A08 terms area.
+2. **`LEGAL_DISCLAIMER` is verbatim and immutable.** Since 2026-08-20 it is a per-locale pair
+   (`LEGAL_DISCLAIMER_BY_LOCALE`): the **ko text stays verbatim-immutable** (same object as the
+   legacy const), the **en text is a DRAFT pending 법무 검토**. `LfDisclaimer` renders the pair by
+   current locale and still does not accept text as a prop. It appears in **5 places**: SCR-W02 ·
+   SCR-A05/ACTIVE confirmation area · SCR-W03 · SCR-A08 terms area · the in-app invite review
+   screen (`/i/[token]`, EC-I01).
 3. **It must not look like a legal contract.** No stamp/document/courtroom metaphors — but the
    confirmation stamp area must still feel like "this was properly recorded".
 4. **DISPUTED never indicates who is right** (principle P1 — recorder, not judge). Not through
