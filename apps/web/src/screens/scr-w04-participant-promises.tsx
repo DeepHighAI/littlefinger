@@ -2,11 +2,11 @@ import {
   EVIDENCE_MAX_COUNT,
   EVIDENCE_MAX_MB,
   FULFILLMENT_COMMENT_MAX,
-  KEEPER_LABEL,
+  KEEPER_LABEL_BY_LOCALE,
   KST_MARK,
-  PARTICIPANT_ROLE_LABEL,
-  PROMISE_CATEGORY_LABEL,
-  PROMISE_STATUS_LABEL,
+  PARTICIPANT_ROLE_LABEL_BY_LOCALE,
+  PROMISE_CATEGORY_LABEL_BY_LOCALE,
+  PROMISE_STATUS_LABEL_BY_LOCALE,
   changedPromiseFields,
   codepointLength,
   evidenceMimeOf,
@@ -35,6 +35,7 @@ import {
   type PromiseFulfillmentDetailResponse,
   type PromiseVersionListResponse,
   type Keeper,
+  type Locale,
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -51,7 +52,13 @@ import {
   submitFulfillment,
   uploadFulfillmentEvidence,
 } from '../lib/fulfillment-api.ts';
-import { INTERNAL_MESSAGE } from '../lib/api-failure.ts';
+import {
+  INTERNAL_MESSAGE_BY_LOCALE,
+  messageForFailure,
+  NO_RESPONSE,
+  type ApiFailure,
+} from '../lib/api-failure.ts';
+import { useLabels, useLocale } from '../lib/locale.tsx';
 import {
   getPromiseAmendDetail,
   listPromiseVersions,
@@ -63,85 +70,17 @@ import {
 import { getSupabase } from '../lib/supabase.ts';
 import { signInWithGoogle, signInWithKakao } from '../lib/web-auth.ts';
 import { promisesPath } from '../routes.ts';
+import { SCR_W04_LABEL } from './scr-w04-labels.ts';
 import { PinkyBadge } from './scr-w01-invite-landing.tsx';
 
-const PAGE_TITLE = '참여 중인 약속';
-const RESPONSE_COUNT_PREFIX = '응답이 필요해요';
-const SIGN_IN_CTA = '카카오 로그인';
-const GOOGLE_SIGN_IN_CTA = 'Google 로그인';
-const RETRY_CTA = '다시 시도';
-const EMPTY_COPY = '참여 중인 약속이 아직 없어요';
-const MY_RESPONSE_PENDING = '내 응답 전';
-const COUNTERPART_RESPONSE_PENDING = '상대방 응답 전';
-const COUNTERPART_SUBMITTED = '상대방이 먼저 응답했어요';
-const WAITING_COPY = '상대방의 응답을 기다리고 있어요';
-const RESPONSE_QUESTION = '약속이 지켜졌나요?';
-const COMMENT_LABEL = '한 줄 의견';
-const SUBMIT_CTA = '응답 제출';
-const REVISE_CTA = '응답 수정';
-const REVISE_SUBMIT_CTA = '수정 제출';
-const REOPEN_CTA = '다시 확인 요청하기';
-const DISPUTED_COPY = '두 분의 확인이 서로 달라요. 대화로 다시 정해보세요.';
-const COMMENT_LIMIT_COPY = `의견은 ${FULFILLMENT_COMMENT_MAX}자 이하로 입력해 주세요.`;
-const EVIDENCE_LABEL = '증빙 사진';
-const EVIDENCE_INPUT_LABEL = '증빙 사진 선택';
-const EVIDENCE_ADD = '사진 추가';
-const EVIDENCE_HINT = '상대와 증인에게 공개돼요';
-const EVIDENCE_TYPE_COPY = 'JPEG, PNG, WEBP, HEIC 사진만 올릴 수 있어요.';
-const EVIDENCE_SIZE_COPY = `사진은 장당 ${EVIDENCE_MAX_MB}MB까지 올릴 수 있어요.`;
-const EVIDENCE_COUNT_COPY = `사진은 최대 ${EVIDENCE_MAX_COUNT}장까지 올릴 수 있어요.`;
-const EVIDENCE_UPLOADING = '업로드 중';
-const EVIDENCE_READY = '업로드 완료';
-const EVIDENCE_FAILED = '업로드 실패';
-const EVIDENCE_RETRY = '다시 시도';
-const EVIDENCE_BLINDED = '신고 접수로 가려진 이미지입니다';
-const EVIDENCE_EXPIRED = '보관 기간이 만료된 증빙입니다';
-const AMEND_REQUEST_CTA = '변경·파기 요청';
-const AMEND_TAB = '내용 변경';
-const CANCEL_TAB = '파기 요청';
-const AMEND_SUBMIT_CTA = '요청 보내기';
-const AMEND_COMMON_NOTICE = '상대가 승인하면 적용돼요. 승인 전까지는 지금 약속이 그대로 유지돼요.';
-const CANCEL_NOTICE = '두 사람 모두 동의하면 약속이 파기돼요';
-const NO_AMEND_CHANGES = '변경된 내용이 없어요.';
-const AMEND_REASON_LABEL = '변경 이유';
-const AMEND_REASON_PLACEHOLDER = '변경이나 파기를 요청하는 이유를 남겨주세요.';
-const AMEND_CLOSE = '변경·파기 요청 닫기';
-const AMEND_WITHDRAW = '요청 철회';
-const AMEND_APPROVE = '변경 승인';
-const CANCEL_APPROVE = '파기 승인';
-const AMEND_DECLINE = '거절';
-const VERSION_HISTORY_CTA = '버전 이력 보기';
-const VERSION_HISTORY_TITLE = '버전 이력';
-const VERSION_HISTORY_CLOSE = '버전 이력 닫기';
-const VERSION_HISTORY_LOADING = '버전 이력을 불러오는 중이에요';
-const CANCEL_CONFIRM = '상대방이 승인하면 약속이 파기되고 되돌릴 수 없어요. 파기를 요청할까요?';
-const OPTIONAL_LABEL = '선택';
-const REQUESTER_LABEL = '요청자';
-const REQUESTED_AT_LABEL = '요청 시각';
-const BEFORE_LABEL = '변경 전';
-const AFTER_LABEL = '변경 후';
-const NO_REWARD_LABEL = '보상 없음';
-const NO_PENALTY_LABEL = '벌칙 없음';
+// 문구는 scr-w04-labels.ts 로 옮겼다(이중언어 카탈로그). 라벨 출처 주석도 그곳에.
+type Labels = (typeof SCR_W04_LABEL)['ko'];
+
+// 'v' 는 버전 표기 관례라 로케일과 무관하다 — 카탈로그에 넣지 않는다.
 const VERSION_PREFIX = 'v';
-const cancelRequestLabel = (nickname: string): string => `${nickname}님이 파기를 요청했어요`;
 
-const AMEND_FIELD_LABEL = {
-  title: '제목',
-  body: '약속 내용',
-  category: '카테고리',
-  end_date: '종료일',
-  keeper: '지킬 사람',
-  reward: '보상',
-  penalty: '벌칙',
-} as const;
-
-const CATEGORIES = Object.keys(PROMISE_CATEGORY_LABEL) as PromiseCategory[];
-const KEEPERS = Object.keys(KEEPER_LABEL) as Keeper[];
-
-const ANSWER_LABEL: Record<Answer, string> = {
-  KEPT: '지켰어요',
-  NOT_KEPT: '안 지켜졌어요',
-};
+const CATEGORIES = Object.keys(PROMISE_CATEGORY_LABEL_BY_LOCALE.ko) as PromiseCategory[];
+const KEEPERS = Object.keys(KEEPER_LABEL_BY_LOCALE.ko) as Keeper[];
 
 interface PromiseView {
   summary: ParticipantPromiseSummary;
@@ -159,7 +98,8 @@ type AmendIntentStore = Record<string, AmendIntent>;
 type Phase =
   | { kind: 'LOADING' }
   | { kind: 'SIGNED_OUT' }
-  | { kind: 'ERROR'; message: string }
+  // 실패는 렌더된 문구가 아니라 ApiFailure 로 저장한다 — 언어 전환 시 문구가 따라 바뀐다(W02 와 같은 규칙).
+  | { kind: 'ERROR'; failure: ApiFailure }
   | {
       kind: 'READY';
       accessToken: string;
@@ -168,6 +108,16 @@ type Phase =
     };
 
 type EvidenceUploadStatus = 'UPLOADING' | 'READY' | 'FAILED';
+
+// 증빙 힌트도 키로 저장한다. 문자열로 굳히면 언어를 바꿔도 이전 로케일 문구가 남는다.
+type EvidenceMessageKey = 'COUNT' | 'SIZE' | 'TYPE' | 'INTERNAL';
+
+function evidenceMessageCopy(key: EvidenceMessageKey, L: Labels, locale: Locale): string {
+  if (key === 'COUNT') return L.evidenceCountLimit(EVIDENCE_MAX_COUNT);
+  if (key === 'SIZE') return L.evidenceSizeLimit(EVIDENCE_MAX_MB);
+  if (key === 'TYPE') return L.evidenceTypeCopy;
+  return INTERNAL_MESSAGE_BY_LOCALE[locale];
+}
 
 interface EvidenceUploadDraft {
   localId: string;
@@ -185,7 +135,7 @@ interface ResponseDraft {
   revising: boolean;
   uploads: EvidenceUploadDraft[];
   retainedEvidenceIds: string[];
-  evidenceMessages: string[];
+  evidenceMessages: EvidenceMessageKey[];
 }
 
 interface StoredResponseDraft {
@@ -315,6 +265,14 @@ function clearStoredDraft(
   } catch {
     // 브라우저 저장소 실패가 서버 응답을 막지 않게 한다.
   }
+}
+
+/** API 계층 밖에서 던져진 예외는 EC-C02 로 뭉갠다 — 원문 메시지는 §2-3 의 어휘가 아니다. */
+function failureOf(raised: unknown): ApiFailure {
+  if (raised instanceof FulfillmentApiError || raised instanceof PromiseAmendApiError) {
+    return raised.failure;
+  }
+  return NO_RESPONSE;
 }
 
 function submitSlot(promiseId: string): string {
@@ -460,10 +418,10 @@ function statusChipClass(status: PromiseFulfillmentDetailResponse['status']): st
   return 'lf-chip--status';
 }
 
-function deadlineCopy(deadline: string): string {
+function deadlineCopy(L: Labels, deadline: string): string {
   const remainingMs = Date.parse(deadline) - Date.now();
   const remainingDays = Math.max(0, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
-  return `응답 기한 ${remainingDays}일 · ${formatKstDateTime(new Date(deadline))}${KST_MARK}`;
+  return L.deadline(remainingDays, `${formatKstDateTime(new Date(deadline))}${KST_MARK}`);
 }
 
 interface ClaimProps {
@@ -483,6 +441,7 @@ function EvidenceTile({
   onRemove?: () => void;
   compact?: boolean;
 }): React.JSX.Element {
+  const L = useLabels(SCR_W04_LABEL);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
 
   const loadThumbnail = useCallback(async (): Promise<void> => {
@@ -510,7 +469,7 @@ function EvidenceTile({
           compact ? 'lf-proof lf-proof--tile lf-attach-btn' : 'lf-proof'
         }
       >
-        {EVIDENCE_BLINDED}
+        {L.evidenceBlinded}
       </div>
     );
   }
@@ -521,7 +480,7 @@ function EvidenceTile({
           compact ? 'lf-proof lf-proof--tile lf-attach-btn' : 'lf-proof'
         }
       >
-        {EVIDENCE_EXPIRED}
+        {L.evidenceExpired}
       </div>
     );
   }
@@ -537,7 +496,7 @@ function EvidenceTile({
           compact ? 'lf-proof lf-proof--tile lf-attach-btn' : 'lf-proof'
         }
         type="button"
-        aria-label={`${evidence.evidence_id} 증빙 열기`}
+        aria-label={L.evidenceOpenAria(evidence.evidence_id)}
         onClick={async () => {
           try {
             const signed = await signFulfillmentEvidence(
@@ -556,7 +515,7 @@ function EvidenceTile({
         ) : (
           <img
             src={signedUrl}
-            alt={`${evidence.evidence_id} 증빙`}
+            alt={L.evidenceAlt(evidence.evidence_id)}
             onError={() => void loadThumbnail()}
           />
         )}
@@ -565,7 +524,7 @@ function EvidenceTile({
         <button
           className="lf-evidence-remove"
           type="button"
-          aria-label={`${evidence.evidence_id} 삭제`}
+          aria-label={L.removeAria(evidence.evidence_id)}
           onClick={onRemove}
         >
           <LfIcon name="close" />
@@ -576,11 +535,13 @@ function EvidenceTile({
 }
 
 function Claim({ accessToken, role, check }: ClaimProps): React.JSX.Element {
+  const L = useLabels(SCR_W04_LABEL);
+  const { locale } = useLocale();
   return (
     <div className="lf-claim">
-      <p className="lf-claim__who">{PARTICIPANT_ROLE_LABEL[role]}</p>
+      <p className="lf-claim__who">{PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][role]}</p>
       <p className="lf-claim__answer">
-        {check === null ? '응답 없음' : ANSWER_LABEL[check.answer]}
+        {check === null ? L.noResponse : L.answer[check.answer]}
       </p>
       {check?.comment && <p className="lf-claim__comment">{check.comment}</p>}
       {check !== null && check.evidences.length > 0 && (
@@ -644,6 +605,8 @@ function ResponseForm({
   onRemoveRetained,
   onSubmit,
 }: ResponseFormProps): React.JSX.Element {
+  const L = useLabels(SCR_W04_LABEL);
+  const { locale } = useLocale();
   const normalized = normalizeInput(draft.comment);
   const tooLong = codepointLength(normalized) > FULFILLMENT_COMMENT_MAX;
   const retainedEvidences =
@@ -656,7 +619,7 @@ function ResponseForm({
   );
   return (
     <div className="lf-stack lf-gap-3 lf-mt-4">
-      <p className="lf-body lf-fulfillment-question">{RESPONSE_QUESTION}</p>
+      <p className="lf-body lf-fulfillment-question">{L.responseQuestion}</p>
       <div className="lf-row lf-gap-3">
         {(['KEPT', 'NOT_KEPT'] as const).map((answer) => (
           <button
@@ -669,12 +632,12 @@ function ResponseForm({
             onClick={() => onChange({ ...draft, answer })}
           >
             {answer === 'KEPT' && <LfIcon name="check" />}
-            {ANSWER_LABEL[answer]}
+            {L.answer[answer]}
           </button>
         ))}
       </div>
       <label className="lf-field">
-        <span className="lf-field__label">{COMMENT_LABEL}</span>
+        <span className="lf-field__label">{L.commentLabel}</span>
         <textarea
           className="lf-input lf-textarea"
           value={draft.comment}
@@ -684,12 +647,12 @@ function ResponseForm({
       </label>
       {tooLong && (
         <p className="lf-field__hint lf-field__hint--error" role="alert">
-          {COMMENT_LIMIT_COPY}
+          {L.commentLimit(FULFILLMENT_COMMENT_MAX)}
         </p>
       )}
       <div className="lf-field">
         <span className="lf-field__label">
-          {EVIDENCE_LABEL} · 선택
+          {L.evidenceLabel} · {L.optionalLabel}
         </span>
         <div className="lf-evidence-grid">
           {retainedEvidences.map((evidence) => (
@@ -709,22 +672,22 @@ function ResponseForm({
                 ) : (
                   <img
                     src={upload.previewUrl}
-                    alt={`${upload.name} 미리보기`}
+                    alt={L.previewAlt(upload.name)}
                   />
                 )}
                 <span className="lf-proof__status">
                   {upload.status === 'UPLOADING'
-                    ? EVIDENCE_UPLOADING
+                    ? L.evidenceUploading
                     : upload.status === 'READY'
-                      ? EVIDENCE_READY
-                      : EVIDENCE_FAILED}
+                      ? L.evidenceReady
+                      : L.evidenceFailed}
                 </span>
               </div>
               {upload.status === 'FAILED' ? (
                 <button
                   className="lf-evidence-remove"
                   type="button"
-                  aria-label={EVIDENCE_RETRY}
+                  aria-label={L.evidenceRetry}
                   onClick={() => onRetryUpload(upload)}
                 >
                   <LfIcon name="refresh" />
@@ -733,7 +696,7 @@ function ResponseForm({
                 <button
                   className="lf-evidence-remove"
                   type="button"
-                  aria-label={`${upload.name} 삭제`}
+                  aria-label={L.removeAria(upload.name)}
                   disabled={upload.status === 'UPLOADING'}
                   onClick={() => onRemoveUpload(upload)}
                 >
@@ -745,13 +708,13 @@ function ResponseForm({
           {evidenceCount < EVIDENCE_MAX_COUNT && (
             <label className="lf-attach-btn">
               <LfIcon name="photo_camera" />
-              <span className="lf-attach-btn__label">{EVIDENCE_ADD}</span>
+              <span className="lf-attach-btn__label">{L.evidenceAdd}</span>
               <input
                 className="lf-sr-only"
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/heic"
                 multiple
-                aria-label={EVIDENCE_INPUT_LABEL}
+                aria-label={L.evidenceInputLabel}
                 onChange={(event) => {
                   const files = Array.from(event.currentTarget.files ?? []);
                   event.currentTarget.value = '';
@@ -761,13 +724,13 @@ function ResponseForm({
             </label>
           )}
         </div>
-        <span className="lf-field__hint">{EVIDENCE_HINT}</span>
+        <span className="lf-field__hint">{L.evidenceHint}</span>
         {draft.evidenceMessages.map((message) => (
           <span
             className="lf-field__hint lf-field__hint--error"
             key={message}
           >
-            {message}
+            {evidenceMessageCopy(message, L, locale)}
           </span>
         ))}
       </div>
@@ -782,7 +745,7 @@ function ResponseForm({
         }
         onClick={onSubmit}
       >
-        {draft.revising ? REVISE_SUBMIT_CTA : SUBMIT_CTA}
+        {draft.revising ? L.reviseSubmitCta : L.submitCta}
       </button>
     </div>
   );
@@ -811,6 +774,8 @@ function AmendRequestSheet({
   onClose(): void;
   onSubmit(input: PromiseAmendCreateRequest): Promise<void>;
 }): React.JSX.Element {
+  const L = useLabels(SCR_W04_LABEL);
+  const { locale } = useLocale();
   const [mode, setMode] = useState<'AMEND' | 'CANCEL'>('AMEND');
   const [proposal, setProposal] = useState<PromiseAmendProposal>(() => proposalOf(detail));
   const [reason, setReason] = useState('');
@@ -837,7 +802,7 @@ function AmendRequestSheet({
   async function submit(): Promise<void> {
     if (disabled) return;
     if (mode === 'CANCEL') {
-      if (!window.confirm(CANCEL_CONFIRM)) return;
+      if (!window.confirm(L.cancelConfirm)) return;
       await onSubmit({
         promise_id: detail.promise_id,
         type: 'CANCEL',
@@ -862,50 +827,52 @@ function AmendRequestSheet({
   }
 
   return (
-    <div className="lf-f11-overlay" role="dialog" aria-modal="true" aria-label={AMEND_REQUEST_CTA}>
-      <button className="lf-scrim" type="button" aria-label={AMEND_CLOSE} onClick={onClose} />
+    <div className="lf-f11-overlay" role="dialog" aria-modal="true" aria-label={L.amendRequestCta}>
+      <button className="lf-scrim" type="button" aria-label={L.amendClose} onClick={onClose} />
       <section className="lf-sheet lf-f11-sheet">
         <div className="lf-sheet__handle" aria-hidden="true" />
         <div className="lf-row lf-gap-3">
-          <h3 className="lf-sheet__title lf-grow">{AMEND_REQUEST_CTA}</h3>
-          <button className="lf-btn lf-btn--text" type="button" onClick={onClose}>{AMEND_CLOSE}</button>
+          <h3 className="lf-sheet__title lf-grow">{L.amendRequestCta}</h3>
+          <button className="lf-btn lf-btn--text" type="button" onClick={onClose}>{L.amendClose}</button>
         </div>
         <div className="lf-segmented">
-          <button type="button" aria-pressed={mode === 'AMEND'} onClick={() => setMode('AMEND')}>{AMEND_TAB}</button>
-          <button type="button" aria-pressed={mode === 'CANCEL'} onClick={() => setMode('CANCEL')}>{CANCEL_TAB}</button>
+          <button type="button" aria-pressed={mode === 'AMEND'} onClick={() => setMode('AMEND')}>{L.amendTab}</button>
+          <button type="button" aria-pressed={mode === 'CANCEL'} onClick={() => setMode('CANCEL')}>{L.cancelTab}</button>
         </div>
-        <p className="lf-info-banner">{AMEND_COMMON_NOTICE}</p>
+        <p className="lf-info-banner">{L.amendCommonNotice}</p>
         {mode === 'AMEND' ? (
           <div className="lf-stack lf-gap-4">
-            <label className="lf-field">{AMEND_FIELD_LABEL.title}<input className="lf-input" value={proposal.title} onChange={(event) => update('title', event.target.value)} /></label>
-            <label className="lf-field">{AMEND_FIELD_LABEL.body}<textarea className="lf-input lf-textarea" value={proposal.body} onChange={(event) => update('body', event.target.value)} /></label>
-            <div className="lf-field"><span className="lf-field__label">{AMEND_FIELD_LABEL.category}</span><div className="lf-choices">{CATEGORIES.map((category) => <button className="lf-choice" type="button" key={category} aria-pressed={proposal.category === category} onClick={() => update('category', category)}>{PROMISE_CATEGORY_LABEL[category]}</button>)}</div></div>
-            <label className="lf-field">{AMEND_FIELD_LABEL.end_date}<input className="lf-input" type="date" value={proposal.end_date} onChange={(event) => update('end_date', event.target.value)} /></label>
-            <div className="lf-field"><span className="lf-field__label">{AMEND_FIELD_LABEL.keeper}</span><div className="lf-choices">{KEEPERS.map((keeper) => <button className="lf-choice" type="button" key={keeper} aria-pressed={proposal.keeper === keeper} onClick={() => update('keeper', keeper)}>{KEEPER_LABEL[keeper]}</button>)}</div></div>
-            <label className="lf-field">{AMEND_FIELD_LABEL.reward}<input className="lf-input" value={proposal.reward ?? ''} onChange={(event) => update('reward', event.target.value === '' ? null : event.target.value)} /></label>
-            <label className="lf-field">{AMEND_FIELD_LABEL.penalty}<input className="lf-input" value={proposal.penalty ?? ''} onChange={(event) => update('penalty', event.target.value === '' ? null : event.target.value)} /></label>
-            {!changed ? <p className="lf-field__hint">{NO_AMEND_CHANGES}</p> : null}
+            <label className="lf-field">{L.amendField.title}<input className="lf-input" value={proposal.title} onChange={(event) => update('title', event.target.value)} /></label>
+            <label className="lf-field">{L.amendField.body}<textarea className="lf-input lf-textarea" value={proposal.body} onChange={(event) => update('body', event.target.value)} /></label>
+            <div className="lf-field"><span className="lf-field__label">{L.amendField.category}</span><div className="lf-choices">{CATEGORIES.map((category) => <button className="lf-choice" type="button" key={category} aria-pressed={proposal.category === category} onClick={() => update('category', category)}>{PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][category]}</button>)}</div></div>
+            <label className="lf-field">{L.amendField.end_date}<input className="lf-input" type="date" value={proposal.end_date} onChange={(event) => update('end_date', event.target.value)} /></label>
+            <div className="lf-field"><span className="lf-field__label">{L.amendField.keeper}</span><div className="lf-choices">{KEEPERS.map((keeper) => <button className="lf-choice" type="button" key={keeper} aria-pressed={proposal.keeper === keeper} onClick={() => update('keeper', keeper)}>{KEEPER_LABEL_BY_LOCALE[locale][keeper]}</button>)}</div></div>
+            <label className="lf-field">{L.amendField.reward}<input className="lf-input" value={proposal.reward ?? ''} onChange={(event) => update('reward', event.target.value === '' ? null : event.target.value)} /></label>
+            <label className="lf-field">{L.amendField.penalty}<input className="lf-input" value={proposal.penalty ?? ''} onChange={(event) => update('penalty', event.target.value === '' ? null : event.target.value)} /></label>
+            {!changed ? <p className="lf-field__hint">{L.noAmendChanges}</p> : null}
           </div>
-        ) : <p className="lf-info-banner">{CANCEL_NOTICE}</p>}
+        ) : <p className="lf-info-banner">{L.cancelNotice}</p>}
         <label className="lf-field">
-          <span className="lf-field__label">{AMEND_REASON_LABEL} · {OPTIONAL_LABEL}</span>
-          <textarea className="lf-input lf-textarea" aria-label={AMEND_REASON_LABEL} placeholder={AMEND_REASON_PLACEHOLDER} value={reason} onChange={(event) => setReason(event.target.value)} />
+          <span className="lf-field__label">{L.amendReasonLabel} · {L.optionalLabel}</span>
+          <textarea className="lf-input lf-textarea" aria-label={L.amendReasonLabel} placeholder={L.amendReasonPlaceholder} value={reason} onChange={(event) => setReason(event.target.value)} />
         </label>
-        <button className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button" disabled={disabled} onClick={() => void submit()}>{AMEND_SUBMIT_CTA}</button>
+        <button className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button" disabled={disabled} onClick={() => void submit()}>{L.amendSubmitCta}</button>
       </section>
     </div>
   );
 }
 
 function amendFieldValue(
+  L: Labels,
+  locale: Locale,
   detail: PromiseDetailResponse['current_version'],
   field: ReturnType<typeof changedPromiseFields>[number],
 ): string {
-  if (field === 'category') return PROMISE_CATEGORY_LABEL[detail.category];
-  if (field === 'keeper') return KEEPER_LABEL[detail.keeper];
-  if (field === 'end_date') return formatKstDate(detail.end_date);
-  if (field === 'reward') return detail.reward ?? NO_REWARD_LABEL;
-  if (field === 'penalty') return detail.penalty ?? NO_PENALTY_LABEL;
+  if (field === 'category') return PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category];
+  if (field === 'keeper') return KEEPER_LABEL_BY_LOCALE[locale][detail.keeper];
+  if (field === 'end_date') return formatKstDate(detail.end_date, locale);
+  if (field === 'reward') return detail.reward ?? L.noRewardLabel;
+  if (field === 'penalty') return detail.penalty ?? L.noPenaltyLabel;
   return detail[field];
 }
 
@@ -920,6 +887,8 @@ function PendingAmendPanel({
   onWithdraw(): void;
   onRespond(decision: PromiseAmendDecision): void;
 }): React.JSX.Element | null {
+  const L = useLabels(SCR_W04_LABEL);
+  const { locale } = useLocale();
   const request = agreement.amend_request;
   if (request === null) return null;
   const proposed = request.proposed_version;
@@ -933,26 +902,26 @@ function PendingAmendPanel({
   return (
     <div className="lf-stack lf-gap-4 lf-mt-4">
       {request.type === 'CANCEL' ? (
-        <p className="lf-info-banner">{cancelRequestLabel(request.requester.nickname)}</p>
+        <p className="lf-info-banner">{L.cancelRequested(request.requester.nickname)}</p>
       ) : proposed !== null ? (
         <div className="lf-stack lf-gap-3">
           {fields.map((field) => (
             <div className="lf-compare" key={field}>
-              <div className="lf-compare__item lf-compare__item--before"><p className="lf-compare__label">{BEFORE_LABEL} · {AMEND_FIELD_LABEL[field]}</p><p className="lf-compare__value">{amendFieldValue(agreement.current_version, field)}</p></div>
-              <div className="lf-compare__item lf-compare__item--after"><p className="lf-compare__label">{AFTER_LABEL} · {AMEND_FIELD_LABEL[field]}</p><p className="lf-compare__value">{amendFieldValue(proposed, field)}</p></div>
+              <div className="lf-compare__item lf-compare__item--before"><p className="lf-compare__label">{L.beforeLabel} · {L.amendField[field]}</p><p className="lf-compare__value">{amendFieldValue(L, locale, agreement.current_version, field)}</p></div>
+              <div className="lf-compare__item lf-compare__item--after"><p className="lf-compare__label">{L.afterLabel} · {L.amendField[field]}</p><p className="lf-compare__value">{amendFieldValue(L, locale, proposed, field)}</p></div>
             </div>
           ))}
         </div>
       ) : null}
-      <p className="lf-caption">{REQUESTER_LABEL} · {request.requester.nickname}</p>
-      <p className="lf-caption">{REQUESTED_AT_LABEL} · {formatKstDateTime(new Date(request.created_at))}{KST_MARK}</p>
+      <p className="lf-caption">{L.requesterLabel} · {request.requester.nickname}</p>
+      <p className="lf-caption">{L.requestedAtLabel} · {formatKstDateTime(new Date(request.created_at))}{KST_MARK}</p>
       {request.reason !== null ? <p>{request.reason}</p> : null}
       {requester ? (
-        <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" disabled={pending} onClick={onWithdraw}>{AMEND_WITHDRAW}</button>
+        <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" disabled={pending} onClick={onWithdraw}>{L.amendWithdraw}</button>
       ) : (
         <div className="lf-row lf-gap-3">
-          <button className="lf-btn lf-btn--filled lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('APPROVE')}>{request.type === 'AMEND' ? AMEND_APPROVE : CANCEL_APPROVE}</button>
-          <button className="lf-btn lf-btn--outlined lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('DECLINE')}>{AMEND_DECLINE}</button>
+          <button className="lf-btn lf-btn--filled lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('APPROVE')}>{request.type === 'AMEND' ? L.amendApprove : L.cancelApprove}</button>
+          <button className="lf-btn lf-btn--outlined lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('DECLINE')}>{L.amendDecline}</button>
         </div>
       )}
     </div>
@@ -966,20 +935,22 @@ function VersionHistoryOverlay({
   value: PromiseVersionListResponse | null;
   onClose(): void;
 }): React.JSX.Element {
+  const L = useLabels(SCR_W04_LABEL);
+  const { locale } = useLocale();
   return (
-    <div className="lf-f11-overlay" role="dialog" aria-modal="true" aria-label={VERSION_HISTORY_TITLE}>
-      <button className="lf-scrim" type="button" aria-label={VERSION_HISTORY_CLOSE} onClick={onClose} />
+    <div className="lf-f11-overlay" role="dialog" aria-modal="true" aria-label={L.versionHistoryTitle}>
+      <button className="lf-scrim" type="button" aria-label={L.versionHistoryClose} onClick={onClose} />
       <section className="lf-sheet lf-f11-sheet">
         <div className="lf-sheet__handle" aria-hidden="true" />
-        <h3 className="lf-sheet__title">{VERSION_HISTORY_TITLE}</h3>
-        {value === null ? <p>{VERSION_HISTORY_LOADING}</p> : value.versions.map((item) => (
+        <h3 className="lf-sheet__title">{L.versionHistoryTitle}</h3>
+        {value === null ? <p>{L.versionHistoryLoading}</p> : value.versions.map((item) => (
           <article className="lf-card" key={item.version.version_no}>
             <div className="lf-stack lf-gap-3">
               <h4>{VERSION_PREFIX}{item.version.version_no}</h4>
               <p>{item.version.title}</p><p>{item.version.body}</p>
-              <p>{PROMISE_CATEGORY_LABEL[item.version.category]} · {KEEPER_LABEL[item.version.keeper]}</p>
-              <p>{formatKstDate(item.version.end_date)}</p>
-              <p>{item.version.reward ?? NO_REWARD_LABEL}</p><p>{item.version.penalty ?? NO_PENALTY_LABEL}</p>
+              <p>{PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][item.version.category]} · {KEEPER_LABEL_BY_LOCALE[locale][item.version.keeper]}</p>
+              <p>{formatKstDate(item.version.end_date, locale)}</p>
+              <p>{item.version.reward ?? L.noRewardLabel}</p><p>{item.version.penalty ?? L.noPenaltyLabel}</p>
               <p>{item.version.content_hash.slice(0, 8)}</p>
               {item.change_requester !== null ? <p>{item.change_requester.nickname}</p> : null}
               {item.approved_by !== null ? <p>{item.approved_by.nickname}</p> : null}
@@ -988,7 +959,7 @@ function VersionHistoryOverlay({
             </div>
           </article>
         ))}
-        <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" onClick={onClose}>{VERSION_HISTORY_CLOSE}</button>
+        <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" onClick={onClose}>{L.versionHistoryClose}</button>
       </section>
     </div>
   );
@@ -1041,6 +1012,8 @@ function PromiseCard({
   onRespondAmend,
   onVersionHistory,
 }: PromiseCardProps): React.JSX.Element {
+  const L = useLabels(SCR_W04_LABEL);
+  const { locale } = useLocale();
   const { detail, summary } = view;
   const currentDraft = draft ?? emptyDraft();
   const currentChecks = checksByRole(detail);
@@ -1057,19 +1030,18 @@ function PromiseCard({
       >
         <div className="lf-card__header">
           <span className={`lf-chip ${statusChipClass(detail.status)}`}>
-            {PROMISE_STATUS_LABEL[detail.status]}
+            {PROMISE_STATUS_LABEL_BY_LOCALE[locale][detail.status]}
           </span>
           <span className="lf-card__spacer" />
           {detail.status === 'CHECKING' && detail.check_deadline_at && (
-            <span className="lf-caption">{deadlineCopy(detail.check_deadline_at)}</span>
+            <span className="lf-caption">{deadlineCopy(L, detail.check_deadline_at)}</span>
           )}
         </div>
         <h2 className="lf-card__title" data-testid="promise-card-title">
           {detail.title}
         </h2>
         <p className="lf-card__meta">
-          종료일 {formatKstDate(detail.end_date)}
-          {KST_MARK}
+          {L.endDateMeta(`${formatKstDate(detail.end_date, locale)}${KST_MARK}`)}
         </p>
 
         {detail.status === 'ACTIVE' && (
@@ -1079,7 +1051,7 @@ function PromiseCard({
             disabled={pending}
             onClick={() => onOpenAmend(view)}
           >
-            {AMEND_REQUEST_CTA}
+            {L.amendRequestCta}
           </button>
         )}
 
@@ -1095,11 +1067,11 @@ function PromiseCard({
         {detail.status === 'CHECKING' && detail.my_check === null && (
           <>
             <div className="lf-info-banner lf-stack lf-gap-1 lf-mt-4">
-              <p>{MY_RESPONSE_PENDING}</p>
+              <p>{L.myResponsePending}</p>
               <p>
                 {counterpartHasSubmitted
-                  ? COUNTERPART_SUBMITTED
-                  : COUNTERPART_RESPONSE_PENDING}
+                  ? L.counterpartSubmitted
+                  : L.counterpartResponsePending}
               </p>
             </div>
             <ResponseForm
@@ -1122,9 +1094,9 @@ function PromiseCard({
         {detail.status === 'CHECKING' && detail.my_check !== null && (
           <div className="lf-stack lf-gap-3 lf-mt-4">
             <p className="lf-body--secondary">
-              내 응답: {ANSWER_LABEL[detail.my_check.answer]}
+              {L.myAnswer(L.answer[detail.my_check.answer])}
             </p>
-            {!counterpartHasSubmitted && <p className="lf-caption">{WAITING_COPY}</p>}
+            {!counterpartHasSubmitted && <p className="lf-caption">{L.waitingCopy}</p>}
             {!currentDraft.revising &&
               !counterpartHasSubmitted &&
               detail.my_check.revised_at === null && (
@@ -1145,7 +1117,7 @@ function PromiseCard({
                     })
                   }
                 >
-                  {REVISE_CTA}
+                  {L.reviseCta}
                 </button>
               )}
             {currentDraft.revising && (
@@ -1175,11 +1147,11 @@ function PromiseCard({
 
         {detail.status === 'DISPUTED' && (
           <div className="lf-stack lf-gap-4 lf-mt-4">
-            <p className="lf-body--secondary">{DISPUTED_COPY}</p>
+            <p className="lf-body--secondary">{L.disputedCopy}</p>
             <Claims accessToken={accessToken} detail={detail} />
             {detail.history.map((round) => (
               <section className="lf-history" key={round.round_no}>
-                <h3 className="lf-section-title">{round.round_no}차 확인 기록</h3>
+                <h3 className="lf-section-title">{L.roundHistoryTitle(round.round_no)}</h3>
                 <div className="lf-claims">
                   <Claim
                     accessToken={accessToken}
@@ -1200,7 +1172,7 @@ function PromiseCard({
               disabled={pending}
               onClick={() => onReopen(view)}
             >
-              {REOPEN_CTA}
+              {L.reopenCta}
             </button>
           </div>
         )}
@@ -1210,7 +1182,7 @@ function PromiseCard({
             {detail.history.map((round) => (
               <section className="lf-history" key={round.round_no}>
                 <h3 className="lf-section-title">
-                  {round.round_no}차 확인 기록
+                  {L.roundHistoryTitle(round.round_no)}
                 </h3>
                 <div className="lf-claims">
                   <Claim
@@ -1234,8 +1206,8 @@ function PromiseCard({
             {(['CREATOR', 'PARTNER'] as const).map((role) => (
               <div className="lf-claim" key={role}>
                 <p className="lf-claim__answer">
-                  {PARTICIPANT_ROLE_LABEL[role]}{' '}
-                  {currentSubmissions[role] ? '응답 완료' : '미응답'}
+                  {PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][role]}{' '}
+                  {currentSubmissions[role] ? L.responded : L.notResponded}
                 </p>
               </div>
             ))}
@@ -1248,7 +1220,7 @@ function PromiseCard({
             type="button"
             onClick={() => onVersionHistory(view)}
           >
-            {VERSION_HISTORY_CTA}
+            {L.versionHistoryCta}
           </button>
         ) : null}
 
@@ -1266,6 +1238,8 @@ function PromiseCard({
 }
 
 export function ScrW04ParticipantPromises(): React.JSX.Element {
+  const L = useLabels(SCR_W04_LABEL);
+  const { locale } = useLocale();
   const [phase, setPhase] = useState<Phase>({ kind: 'LOADING' });
   const [drafts, setDrafts] = useState<Record<string, ResponseDraft>>({});
   const [pendingPromiseId, setPendingPromiseId] = useState<string | null>(null);
@@ -1363,10 +1337,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         setPhase({ kind: 'SIGNED_OUT' });
         return null;
       }
-      setPhase({
-        kind: 'ERROR',
-        message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE,
-      });
+      setPhase({ kind: 'ERROR', failure: failureOf(raised) });
       return null;
     }
   }, []);
@@ -1467,13 +1438,13 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         EVIDENCE_MAX_COUNT -
         current.retainedEvidenceIds.length -
         current.uploads.length;
-      const messages = new Set<string>();
-      if (files.length > remaining) messages.add(EVIDENCE_COUNT_COPY);
+      const messages = new Set<EvidenceMessageKey>();
+      if (files.length > remaining) messages.add('COUNT');
 
       const accepted: File[] = [];
       for (const file of files) {
         if (file.size > EVIDENCE_MAX_MB * 1024 * 1024) {
-          messages.add(EVIDENCE_SIZE_COPY);
+          messages.add('SIZE');
           continue;
         }
         if (
@@ -1481,7 +1452,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
             { mime: evidenceMimeOf(file.type, file.name), bytes: file.size },
           ]).valid
         ) {
-          messages.add(EVIDENCE_TYPE_COPY);
+          messages.add('TYPE');
           continue;
         }
         if (accepted.length < remaining) accepted.push(file);
@@ -1542,7 +1513,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         } catch {
           updateDraft(view, (current) => ({
             ...current,
-            evidenceMessages: [INTERNAL_MESSAGE],
+            evidenceMessages: ['INTERNAL'],
           }));
           return;
         }
@@ -1639,10 +1610,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         ) {
           await load();
         } else {
-          setPhase({
-            kind: 'ERROR',
-            message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE,
-          });
+          setPhase({ kind: 'ERROR', failure: failureOf(raised) });
         }
       } finally {
         setPendingPromiseId(null);
@@ -1683,10 +1651,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         ) {
           await load();
         } else {
-          setPhase({
-            kind: 'ERROR',
-            message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE,
-          });
+          setPhase({ kind: 'ERROR', failure: failureOf(raised) });
         }
       } finally {
         setPendingPromiseId(null);
@@ -1718,7 +1683,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         ) {
           await load();
         } else {
-          setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+          setPhase({ kind: 'ERROR', failure: failureOf(raised) });
         }
       } finally {
         setPendingPromiseId(null);
@@ -1744,7 +1709,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
       } catch (raised) {
         if (raised instanceof PromiseAmendApiError && raised.authExpired) setPhase({ kind: 'SIGNED_OUT' });
         else if (raised instanceof PromiseAmendApiError && raised.failure.code === 'E_STATE_CONFLICT') await load();
-        else setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+        else setPhase({ kind: 'ERROR', failure: failureOf(raised) });
       } finally {
         setPendingPromiseId(null);
       }
@@ -1756,7 +1721,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
     async (view: PromiseView, decision: PromiseAmendDecision): Promise<void> => {
       if (phase.kind !== 'READY' || view.agreement?.amend_request === null || view.agreement === null) return;
       const requestId = view.agreement.amend_request.request_id;
-      if (decision === 'APPROVE' && view.agreement.amend_request.type === 'CANCEL' && !window.confirm(CANCEL_CONFIRM)) return;
+      if (decision === 'APPROVE' && view.agreement.amend_request.type === 'CANCEL' && !window.confirm(L.cancelConfirm)) return;
       const slot = `AMEND_RESPOND:${view.detail.promise_id}`;
       const identity = JSON.stringify([requestId, decision]);
       const key = keyForAmendIntent(amendIntents.current, slot, identity);
@@ -1778,12 +1743,12 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
           raised instanceof PromiseAmendApiError
           && (raised.failure.code === 'E_STATE_CONFLICT' || raised.failure.code === 'E_VALIDATION')
         ) await load();
-        else setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+        else setPhase({ kind: 'ERROR', failure: failureOf(raised) });
       } finally {
         setPendingPromiseId(null);
       }
     },
-    [load, phase],
+    [L, load, phase],
   );
 
   const handleVersionHistory = useCallback(
@@ -1795,7 +1760,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         setVersionHistory({ promiseId: view.detail.promise_id, value });
       } catch (raised) {
         if (raised instanceof PromiseAmendApiError && raised.authExpired) setPhase({ kind: 'SIGNED_OUT' });
-        else setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+        else setPhase({ kind: 'ERROR', failure: failureOf(raised) });
         setVersionHistory(null);
       }
     },
@@ -1810,7 +1775,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
   return (
     <div className="lf-screen">
       <div className="lf-screen__body lf-screen__body--web">
-        <h1 className="lf-title lf-title--web">{PAGE_TITLE}</h1>
+        <h1 className="lf-title lf-title--web">{L.pageTitle}</h1>
 
         {phase.kind === 'LOADING' && (
           <div className="lf-empty" role="status" aria-busy="true">
@@ -1827,7 +1792,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
               disabled={signingIn}
               onClick={() => void handleSignIn()}
             >
-              {SIGN_IN_CTA}
+              {L.kakaoSignInCta}
             </button>
             <button
               className="lf-btn lf-btn--google lf-btn--cta lf-btn--block"
@@ -1836,10 +1801,10 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
               onClick={() => void handleGoogleSignIn()}
             >
               <GoogleMark />
-              <span>{GOOGLE_SIGN_IN_CTA}</span>
+              <span>{L.googleSignInCta}</span>
             </button>
             <p role="alert" className="lf-caption">
-              {signInError ? INTERNAL_MESSAGE : ''}
+              {signInError ? INTERNAL_MESSAGE_BY_LOCALE[locale] : ''}
             </p>
             <TestLoginForm />
           </div>
@@ -1848,14 +1813,14 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
         {phase.kind === 'ERROR' && (
           <div className="lf-empty">
             <p className="lf-body--secondary" role="alert">
-              {phase.message}
+              {messageForFailure(phase.failure, locale)}
             </p>
             <button
               className="lf-btn lf-btn--tonal"
               type="button"
               onClick={() => void load()}
             >
-              {RETRY_CTA}
+              {L.retryCta}
             </button>
           </div>
         )}
@@ -1864,13 +1829,13 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
           <>
             {responseCount > 0 && (
               <p className="lf-caption lf-caption--accent">
-                {RESPONSE_COUNT_PREFIX} · {responseCount}건
+                {L.responseCountBadge(responseCount)}
               </p>
             )}
             {phase.promises.length === 0 ? (
               <div className="lf-empty">
                 <PinkyBadge />
-                <p className="lf-empty__title">{EMPTY_COPY}</p>
+                <p className="lf-empty__title">{L.emptyCopy}</p>
               </div>
             ) : (
               <ul className="lf-stack lf-gap-5">
