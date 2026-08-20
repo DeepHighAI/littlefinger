@@ -23,6 +23,7 @@ import {
 } from '../lib/fulfillment-native.ts';
 import { MobileApiError } from '../lib/mobile-api.ts';
 import { getPromiseDetail } from '../lib/promise-detail-native.ts';
+import { formatDetailInstant } from './scr-a05-detail-state.ts';
 import {
   createPromiseAmendIdempotencyKey,
   listPromiseVersions,
@@ -436,6 +437,24 @@ describe('SCR-A05 약속 상세', () => {
     expect(view.getByText(VERSION.title)).toBeTruthy();
     expect(claimCelebrationMock).toHaveBeenCalledWith(PROMISE_ID);
     expect(view.getByTestId('completion-celebration-sheet')).toBeTruthy();
+  });
+
+  test('확정 기록 시각은 최초 확정이 아니라 현재 버전 승인 시각이다', async () => {
+    // E2E Run 1 관찰: v2 지문 옆에 v1 확정 시각이 섞여 보였다(PO 2026-08-20 결정).
+    loadDetailMock.mockResolvedValue(makeDetail({
+      activated_at: '2026-08-02T03:00:00Z',
+      current_version: {
+        ...VERSION,
+        version_no: 2,
+        fingerprint: 'BBBB-BBBB-02',
+        activated_at: '2026-08-10T05:00:00Z',
+      },
+    }));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+
+    expect(view.getByText(formatDetailInstant('2026-08-10T05:00:00Z'))).toBeTruthy();
+    expect(view.queryByText(formatDetailInstant('2026-08-02T03:00:00Z'))).toBeNull();
   });
 
   test.each([

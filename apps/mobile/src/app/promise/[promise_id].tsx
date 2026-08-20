@@ -952,8 +952,10 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           <LfCard variant="container">
             <View style={styles.info}>
               <LfText variant="caption">{fingerprintText(detail.current_version.fingerprint)}</LfText>
-              {detail.activated_at !== null && (
-                <LfText variant="caption">{formatDetailInstant(detail.activated_at)}</LfText>
+              {/* 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다
+                  (PO 2026-08-20). 최초 확정 시각은 승인 이력에 그대로 남는다. */}
+              {detail.current_version.activated_at !== null && (
+                <LfText variant="caption">{formatDetailInstant(detail.current_version.activated_at)}</LfText>
               )}
             </View>
           </LfCard>
