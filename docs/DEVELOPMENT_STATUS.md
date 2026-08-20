@@ -117,6 +117,28 @@ on 2026-08-20**: EAS development build `e31110b0` (PO-approved source upload) in
 emulator reports `littlefinger-app-philwoo.web.app: verified` in `pm get-app-links`, and an
 `am start` HTTPS `/i/*` intent resolves into `com.littlefinger.app` instead of the browser.
 
+## Deep-link invites, Korean/English UI, Pretendard (2026-08-20/21)
+
+Approved plan executed in full; every phase committed and pushed (`f1cd06d`…`af6af67`), suite green
+(vitest 99 files, jest 69 suites / 658 tests, `typecheck`, `check:agents`).
+
+- **Deep link (ADR 0007)**: SCR-W01 shows an Android-only [앱에서 계속하기] `intent://` CTA
+  (opens the app when installed, Play Store when not, and escapes KakaoTalk's in-app browser);
+  the app now reviews/approves/declines/amends the invite **in-app** (EC-I01 implemented for real,
+  `surface='APP'` recorded), while witness tokens keep the browser hand-off.
+- **i18n (ADR 0006)**: no library — `Localized<T>` typed catalogs across app + acceptance web,
+  registry-driven parity tests on both surfaces plus a cross-surface copy contract test.
+  Device-locale detection is **ON** (`LOCALE_DETECTION_ENABLED`), with a manual toggle in
+  SCR-A08 and a fixed web `LocaleSwitch`. Server-rendered copy (notifications, error envelopes)
+  stays Korean in phase 1.
+- **Pretendard**: verified correct on both surfaces; branded `+not-found` screen added; OS-owned
+  surfaces (Alert, share sheet, push banner) stay system-font by design.
+- Web redeployed from a fresh build; live bundle carries the intent CTA and the locale switch,
+  `/.well-known/assetlinks.json` still 200.
+- Open: English legal texts and the English disclaimer are **DRAFT pending PO/법무 review**;
+  `docs/setup/deeplink-dev-qa.md` (PO-run manual QA) and `docs/setup/assetlinks-play-signing.md`
+  (M4 Play signing cert append) are not yet executed.
+
 ## Manual and visual verification
 
 **Run 1 (2026-08-19) + Day 2 (2026-08-20) of the 12-scenario manual E2E executed** (emulator +
