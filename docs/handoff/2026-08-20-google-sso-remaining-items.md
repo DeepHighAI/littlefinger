@@ -1,5 +1,27 @@
 # Handoff — Google SSO shipped; remaining dev items F–K pending
 
+## Progress update (2026-08-20, second session)
+
+Parts M(1/2), F, G, H are **done, verified, committed** (through `6a78a89`); tree clean.
+
+- **M**: `account-withdraw` deployed (twice — tolerant, then cleaned), `db push` applied
+  `20260820000003`. Live-verified: 2 real users backfilled `provider='kakao'`, all 23
+  provider-NULL rows are `pending:` stubs (expected). Cleanup commit `25623b4` dropped the
+  kakao_id fallback and was redeployed.
+- **F** (`d987806`): FAILED evidence tile shows retry AND remove; retry offset style
+  `evidenceRetryOffset` mirrors the remove button top-left via a right-based inset.
+- **G** (`537d155`): `expo-file-system@~57.0.4` installed; `fulfillment-evidence-file.ts` copies
+  content:// to cache with `copy(dest, {overwrite:true})`, falls back to original URI. NOTE:
+  lazy-loads via `require`, NOT dynamic `import()` — jest (no --experimental-vm-modules) throws
+  `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG` on real dynamic import, and `jest.isolateModules`
+  seals the registry against late lazy requires (both discovered here; don't rediscover).
+- **H** (`6a78a89`): profile reloads via `useFocusEffect`; home refreshes the selected tab
+  (`refresh:true` path) on refocus, first focus skipped via ref. expo-router mocks in the two
+  screen tests now carry `useFocusEffect` + `triggerFocus()`.
+
+Remaining: **Parts I, J, K + Codex gate** (steps 5–8 below). GCP OAuth setup was completed by
+the operator this session — the Google login path is live end-to-end.
+
 ## Goal and current status
 
 PO-approved plan (2026-08-20): Google login + GCP guide + remaining dev items. Parts A–E are
