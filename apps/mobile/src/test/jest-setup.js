@@ -10,3 +10,14 @@ jest.mock('@expo/vector-icons/MaterialIcons', () => {
       React.createElement(Text, { ...rest, style: { color, fontSize: size } }, name),
   };
 });
+
+// AsyncStorage 네이티브 모듈은 jest 환경에 없다 — 공식 in-memory mock 을 전역으로 쓴다.
+// 감지·저장 로직을 검증하는 테스트는 파일 단위 jest.mock 이 이 기본값을 덮는다.
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+
+// expo-localization 도 네이티브 상수를 읽는다. 기본은 한국어 기기다.
+jest.mock('expo-localization', () => ({
+  getLocales: () => [{ languageTag: 'ko-KR' }],
+}));

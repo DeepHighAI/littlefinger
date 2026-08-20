@@ -4,6 +4,8 @@ import {
   DEFAULT_LOCALE,
   LOCALES,
   catalogKeyPaths,
+  isLocale,
+  resolveInitialLocale,
   resolveLocale,
   type Localized,
 } from './i18n.ts';
@@ -34,6 +36,29 @@ describe('resolveLocale', () => {
   // "korean" 같은 이름이 ko 접두 매칭에 걸리면 안 된다 — 태그 구분자를 본다.
   test('ko 는 태그 경계로만 매칭한다', () => {
     expect(resolveLocale(['kok-IN'])).toBe('en');
+  });
+});
+
+describe('resolveInitialLocale', () => {
+  test('저장된 수동 전환이 감지보다 항상 우선이다', () => {
+    expect(resolveInitialLocale(['en-US'], 'ko', true)).toBe('ko');
+    expect(resolveInitialLocale(['ko-KR'], 'en', true)).toBe('en');
+    expect(resolveInitialLocale(['ko-KR'], 'en', false)).toBe('en');
+  });
+
+  test('감지가 꺼져 있으면 기기 언어와 무관하게 기본 로케일이다', () => {
+    expect(resolveInitialLocale(['en-US'], null, false)).toBe(DEFAULT_LOCALE);
+  });
+
+  test('감지가 켜져 있으면 기기 태그로 판정한다', () => {
+    expect(resolveInitialLocale(['en-US'], null, true)).toBe('en');
+    expect(resolveInitialLocale(['ko-KR'], null, true)).toBe('ko');
+  });
+
+  test('손상된 저장값은 무시한다', () => {
+    expect(resolveInitialLocale([], 'jp', false)).toBe(DEFAULT_LOCALE);
+    expect(isLocale('jp')).toBe(false);
+    expect(isLocale('en')).toBe(true);
   });
 });
 

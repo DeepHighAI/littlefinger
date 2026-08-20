@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { LocaleProvider } from './lib/locale.tsx';
 import { watchSignInProvision } from './lib/user-provision.ts';
 import { ROUTE } from './routes.ts';
 import { ResponseComplete } from './screens/response-complete.tsx';
@@ -26,6 +27,7 @@ export function App(): React.JSX.Element {
   useEffect(() => watchSignInProvision(), []);
 
   return (
+    <LocaleProvider>
     <Routes>
       <Route path={ROUTE.terms} element={<LegalDocument kind="TERMS" />} />
       <Route path={ROUTE.privacy} element={<LegalDocument kind="PRIVACY" />} />
@@ -42,5 +44,6 @@ export function App(): React.JSX.Element {
           만료·사용됨·취소·차단은 SCR-W01 이 invite-resolve 의 실패 코드를 그대로 넘긴다. */}
       <Route path="*" element={<ScrW06LinkExpired reason="E_NOT_FOUND" />} />
     </Routes>
+    </LocaleProvider>
   );
 }

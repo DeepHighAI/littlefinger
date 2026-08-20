@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import type { Session } from '@supabase/supabase-js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { LocaleProvider } from '../lib/locale-native';
 import { MobileAuthGateContext } from '../lib/mobile-auth-gate.ts';
 import { consumeIntentionalSignOut } from '../lib/intentional-sign-out.ts';
 import {
@@ -29,6 +30,8 @@ export default function RootLayout(): React.JSX.Element {
   const [callbackFailed, setCallbackFailed] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [startupReady, setStartupReady] = useState(false);
+  // 로케일 확정 전에 스플래시가 걷히면 언어가 바뀌며 깜빡인다.
+  const [localeReady, setLocaleReady] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(true);
   const [updateRequired, setUpdateRequired] = useState(false);
   const authenticatedRoutesReadyRef = useRef(false);
@@ -156,13 +159,16 @@ export default function RootLayout(): React.JSX.Element {
   }, [navigate, routerReady, session]);
 
   useEffect(() => {
-    // 폰트와 저장 세션을 모두 확인한 뒤 숨긴다. 뒤에서는 Stack이 첫 렌더부터 유지된다.
-    if ((loaded || error) && sessionReady && startupReady) void SplashScreen.hideAsync();
-  }, [loaded, error, sessionReady, startupReady]);
+    // 폰트·저장 세션·로케일을 모두 확인한 뒤 숨긴다. 뒤에서는 Stack이 첫 렌더부터 유지된다.
+    if ((loaded || error) && sessionReady && startupReady && localeReady) {
+      void SplashScreen.hideAsync();
+    }
+  }, [loaded, error, sessionReady, startupReady, localeReady]);
 
   // 화면 헤더는 각 화면이 직접 그린다(디자인 원본에 맞추기 위해).
   return (
     <MobileAuthGateContext.Provider value={{ callbackFailed, sessionExpired }}>
+      <LocaleProvider onReady={() => setLocaleReady(true)}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="update-required" />
         <Stack.Screen name="i/[token]" />
@@ -185,6 +191,7 @@ export default function RootLayout(): React.JSX.Element {
           <Stack.Screen name="blocked-users" />
         </Stack.Protected>
       </Stack>
+      </LocaleProvider>
     </MobileAuthGateContext.Provider>
   );
 }

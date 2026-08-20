@@ -38,6 +38,34 @@ export function resolveLocale(tags: readonly string[]): Locale {
   return DEFAULT_LOCALE;
 }
 
+/** 수동 전환 저장 키 — 앱은 AsyncStorage, 웹은 localStorage 에 같은 키로 둔다. */
+export const LOCALE_STORAGE_KEY = 'littlefinger.locale.v1';
+
+/**
+ * 기기 언어 감지 스위치. **카탈로그 전환(Phase 3–8)이 끝나기 전에는 false 로 둔다** —
+ * 켜는 순간 영어 기기에서 미번역 화면이 절반만 영어로 뜬다. Phase 9 에서 한 곳만 켜면
+ * 앱·웹이 함께 켜진다.
+ */
+export const LOCALE_DETECTION_ENABLED = false;
+
+export function isLocale(value: unknown): value is Locale {
+  return typeof value === 'string' && (LOCALES as readonly string[]).includes(value);
+}
+
+/**
+ * 시작 시점의 로케일: 저장된 수동 전환이 항상 우선이고, 그다음이 기기 언어 감지다.
+ * 감지가 꺼져 있으면 기본 로케일로 고정된다.
+ */
+export function resolveInitialLocale(
+  deviceTags: readonly string[],
+  storedOverride: string | null,
+  detectionEnabled: boolean = LOCALE_DETECTION_ENABLED,
+): Locale {
+  if (isLocale(storedOverride)) return storedOverride;
+  if (!detectionEnabled) return DEFAULT_LOCALE;
+  return resolveLocale(deviceTags);
+}
+
 /**
  * 카탈로그 값 트리의 리프 키 경로를 정렬해 나열한다 — 런타임 패리티 가드용.
  * 문자열·함수·배열이 리프다(배열은 통째로 하나의 메시지로 본다).
