@@ -1,10 +1,12 @@
 import {
   ERROR_CODES,
   ERROR_MESSAGE,
+  ERROR_MESSAGE_BY_LOCALE,
   type ApiErrorBody,
   type ApiValidationField,
   type Endpoint,
   type ErrorCode,
+  type Locale,
 } from '@littlefinger/shared';
 
 const UNKNOWN_ERROR_MESSAGE = '문제가 발생했어요. 잠시 후 다시 시도해 주세요.';
@@ -36,6 +38,17 @@ export class MobileApiError extends Error {
     super(message);
     this.name = 'MobileApiError';
   }
+}
+
+/**
+ * 에러를 현재 로케일 문구로 그린다. 코드가 있으면 클라이언트 사전이 서버 문구를
+ * 대체하고(1차: 서버 봉투는 ko 유지), 코드가 없으면 서버/기본 문구 그대로다.
+ */
+export function localizedApiMessage(error: MobileApiError, locale: Locale): string {
+  if (error.code !== null) {
+    return ERROR_MESSAGE_BY_LOCALE[locale][error.code] ?? error.message;
+  }
+  return error.message;
 }
 
 function isErrorCode(value: unknown): value is ErrorCode {

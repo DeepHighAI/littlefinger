@@ -2,16 +2,18 @@ import {
   buildPlayStoreUrl,
   formatKstDateTime,
   KST_MARK,
-  PARTICIPANT_ROLE_LABEL,
+  PARTICIPANT_ROLE_LABEL_BY_LOCALE,
   type PromiseApprovalLog,
   type PromiseApproveResponse,
 } from '@littlefinger/shared';
 import { Link, useLocation } from 'react-router-dom';
 
 import { LfDisclaimer } from '../components/LfDisclaimer.tsx';
+import { useLabels, useLocale } from '../lib/locale.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
 import { LfPinky } from '../components/LfPinky.tsx';
 import { promisesPath } from '../routes.ts';
+import { SCR_W03_LABEL } from './scr-w03-labels.ts';
 
 /**
  * SCR-W03 승인 완료 — 02 §4-4-3 · §4-4-4.
@@ -24,16 +26,7 @@ import { promisesPath } from '../routes.ts';
  * 이유를 적어 둔다 — 문구가 없거나 부를 곳이 없어서지, 잊어서가 아니다.
  */
 
-// §4-4-3 이 요구하는 "확정된 약속" 라벨. 레퍼런스 HTML 의 "딱! 약속이 성립됐어요"를
-// 대신한다 — 문서 우선순위에서 `02` 가 레퍼런스보다 위다(CLAUDE.md §4, SCR-W06 과 같은 판단).
-const STAMP_LABEL = '확정된 약속';
-const CONFIRMED_SUFFIX = ' 확정';
-const APPROVAL_SUFFIX = ' 승인 ';
-const FINGERPRINT_LABEL = '기록 지문';
-const REVISIT_COPY = '이 약속은 로그인하면 언제든 다시 볼 수 있어요';
-const REVISIT_CTA = '참여 중인 약속 보기';
-const ANDROID_STORE_CTA = 'Android 앱 설치하기';
-const ANDROID_STORE_COPY = '앱에서는 푸시로 약속을 챙겨드려요';
+// 문구는 scr-w03-labels.ts 로 옮겼다(이중언어 카탈로그). 라벨 출처 주석도 그곳에.
 // UTM 값 유지 — 설치 전환 KPI 의 시계열이 여기서 끊기면 안 된다(02 §4-4-4).
 const ANDROID_STORE_URL = buildPlayStoreUrl({
   source: 'littlefinger_web',
@@ -42,27 +35,29 @@ const ANDROID_STORE_URL = buildPlayStoreUrl({
 const IOS_USER_AGENT = /iPhone|iPad|iPod/iu;
 
 function AndroidAppHint(): React.JSX.Element | null {
+  const L = useLabels(SCR_W03_LABEL);
   if (IOS_USER_AGENT.test(window.navigator.userAgent)) return null;
   return (
     <a
-      aria-label={ANDROID_STORE_CTA}
+      aria-label={L.androidStoreCta}
       className="lf-card lf-card--web lf-app-hint"
       href={ANDROID_STORE_URL}
       rel="noreferrer"
     >
       <LfPinky size="sm" />
-      <span className="lf-app-hint__text">{ANDROID_STORE_COPY}</span>
+      <span className="lf-app-hint__text">{L.androidStoreCopy}</span>
       <LfIcon name="east" />
     </a>
   );
 }
 
 function RevisitCard(): React.JSX.Element {
+  const L = useLabels(SCR_W03_LABEL);
   return (
     <div className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-center">
-      <p className="lf-body--secondary">{REVISIT_COPY}</p>
+      <p className="lf-body--secondary">{L.revisitCopy}</p>
       <Link className="lf-btn lf-btn--tonal lf-btn--block" to={promisesPath()}>
-        {REVISIT_CTA}
+        {L.revisitCta}
       </Link>
     </div>
   );
@@ -99,6 +94,8 @@ export function parseApproveResponse(state: unknown): PromiseApproveResponse | n
 }
 
 export function ScrW03ApprovalComplete(): React.JSX.Element {
+  const L = useLabels(SCR_W03_LABEL);
+  const { locale } = useLocale();
   const { state } = useLocation();
   const result = parseApproveResponse(state);
 
@@ -122,11 +119,9 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
         {/* 확정 스탬프 — 법적 문서가 아니라 "제대로 기록됐다"는 느낌만 준다(CLAUDE.md §8-3). */}
         <div className="lf-stamp">
           <PinkyHooked />
-          <h1 className="lf-stamp__headline">{STAMP_LABEL}</h1>
+          <h1 className="lf-stamp__headline">{L.stampLabel}</h1>
           <p className="lf-stamp__time" data-testid="confirmed-at">
-            {formatKstDateTime(new Date(result.activated_at))}
-            {KST_MARK}
-            {CONFIRMED_SUFFIX}
+            {L.confirmedAt(`${formatKstDateTime(new Date(result.activated_at))}${KST_MARK}`)}
           </p>
 
           {/* 양측 승인 로그(§4-3-6). 작성자의 승인 시각은 **초대 발송 시각**이고 상대방의
@@ -135,10 +130,11 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
             {result.approvals.map((approval) => (
               <span className="lf-approval" key={approval.role} data-testid="approval-row">
                 <LfIcon name="check" />
-                {approval.nickname}({PARTICIPANT_ROLE_LABEL[approval.role]})
-                {APPROVAL_SUFFIX}
-                {formatKstDateTime(new Date(approval.acted_at))}
-                {KST_MARK}
+                {L.approvalLine(
+                  approval.nickname,
+                  PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role],
+                  `${formatKstDateTime(new Date(approval.acted_at))}${KST_MARK}`,
+                )}
               </span>
             ))}
           </div>
@@ -146,7 +142,7 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
           {/* 기록 지문 — 확정 영역에는 항상 노출한다(Q-4). "해시"라고 부르지 않는다(§7). */}
           <p className="lf-fingerprint">
             <LfIcon name="fingerprint" />
-            {FINGERPRINT_LABEL}{' '}
+            {L.fingerprintLabel}{' '}
             <span className="lf-fingerprint__code" data-testid="fingerprint">
               {result.fingerprint}
             </span>
@@ -168,7 +164,6 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
 
 /** 브랜드 마크(걸린 상태). 모든 표면이 승인된 동일 이미지 자산을 쓴다. */
 function PinkyHooked(): React.JSX.Element {
-  return (
-    <LfPinky size="lg" tone="onContainer" hooked accessibilityLabel="새끼손가락 걸기" />
-  );
+  const L = useLabels(SCR_W03_LABEL);
+  return <LfPinky size="lg" tone="onContainer" hooked accessibilityLabel={L.pinkyAlt} />;
 }

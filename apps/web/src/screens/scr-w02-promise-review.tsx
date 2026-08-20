@@ -6,11 +6,12 @@ import {
   formatKstDate,
   IDEMPOTENCY_KEY_HEADER,
   KEEPER_LABEL,
+  KEEPER_LABEL_BY_LOCALE,
   KST_MARK,
-  PARTICIPANT_ROLE_LABEL,
+  PARTICIPANT_ROLE_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL,
+  PROMISE_CATEGORY_LABEL_BY_LOCALE,
   validateAmendSuggestion,
-  WITNESS_MAX,
   type InvitePreviewResponse,
   type InviteTokenRequest,
   type PromiseAmendRequest,
@@ -27,6 +28,7 @@ import {
   readFailure,
   type ApiFailure,
 } from '../lib/api-failure.ts';
+import { useLabels, useLocale } from '../lib/locale.tsx';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
 import {
   approvalCompletePath,
@@ -36,6 +38,7 @@ import {
   type ResponseOutcome,
 } from '../routes.ts';
 import { PinkyBadge } from './scr-w01-invite-landing.tsx';
+import { SCR_W02_LABEL } from './scr-w02-labels.ts';
 import { parseApproveResponse } from './scr-w03-approval-complete.tsx';
 import {
   isLinkUnavailableReason,
@@ -53,51 +56,8 @@ import {
  * 광고 없음, 주 CTA 하나(승인하기), 스크롤 최소화 — 3분 완주가 목표다(§4-3-4).
  */
 
-// 레퍼런스 HTML(scr-w02-promise-review.html)의 헤드라인을 그대로 쓴다. SCR-W01 과 달리
-// 여기서는 작성자 닉네임을 서버가 준다.
-const HEADLINE_SUFFIX = '님과의 약속, 꼼꼼히 봐주세요';
-const END_DATE_LABEL = '종료일';
-const KEEPER_LABEL_TEXT = '지킬 사람';
-const CATEGORY_LABEL_TEXT = '카테고리';
-const REWARD_LABEL = '보상';
-const PENALTY_LABEL = '벌칙';
-const APPROVE_CTA = '승인하기';
-const AMEND_CTA = '수정 제안';
-const DECLINE_CTA = '거절하기';
-
-// 오수락 방지 확인 시트(§4-3-4 · 상위기획서 F-03). 한 문장을 질문과 결과로 끊어 놓았을 뿐
-// 문구는 명세 원문 그대로다.
-const CONFIRM_QUESTION_SUFFIX = '님이 보낸 약속이 맞나요?';
-const CONFIRM_BODY = '승인하면 두 사람의 기록으로 확정돼요.';
-const CONFIRM_YES = '네, 승인합니다';
-const CONFIRM_NO = '아니에요';
-
-/**
- * EC-B10 — 대기하는 동안 종료일이 지나 버린 경우.
- *
- * `02` 는 §4-3-4(261행)와 §10(1108행)에 서로 다른 문구를 적어 두었다. **서버가 §4-3-4 를
- * 골랐으므로**(`promise-approve/handler.ts` 의 `APPROVE_VALIDATION`) 화면도 같은 쪽을
- * 따른다 — 클라이언트 판정과 서버 거절이 다른 문장을 내면 같은 사실이 두 번 다르게 보인다.
- * 두 곳에 같은 문자열이 있는 것은 알고 있다. 수락 웹은 Edge Function 코드를 import 하지 않는다.
- */
-const END_DATE_PASSED_MESSAGE =
-  '종료일이 지난 약속은 승인할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.';
-const END_DATE_PASSED_CTA = '종료일 변경 요청하기';
-
-// §4-2-1 원문. 증인 사용 **예정** 여부는 §4-3-4 의 표시 요소인데 전용 문구가 없어서,
-// 같은 사실을 말하는 이 문장을 쓴다. 상한은 정책 상수에서 만든다.
-const WITNESS_NOTICE = `확정 후 증인을 초대할 수 있어요(최대 ${WITNESS_MAX}명)`;
-
-/**
- * 수정 제안 의견 입력(§4-3-4 필수 · 5~300자).
- *
- * 라벨은 `02` §5-3 의 필드명이고, 레퍼런스 HTML 도 같은 문자열을 `lf-sr-only` 로 달아 뒀다.
- * **여기서는 보이게 단다** — 레퍼런스는 자리표시자에 "(선택)"이라 적어 두고 라벨을 숨겼는데,
- * §4-3-4 는 이 필드를 필수로 정한다. 틀린 자리표시자를 그대로 쓸 수 없고 고쳐 쓸 문구도
- * 승인받지 않았으므로, 자리표시자를 빼고 라벨을 드러내는 쪽을 택했다. 이름 없는 빈 상자가
- * [수정 제안]이 눌리지 않는 이유를 설명해 줄 수는 없다.
- */
-const AMEND_FIELD_LABEL = '수정 제안 의견';
+// 문구는 scr-w02-labels.ts 로 옮겼다(이중언어 카탈로그). 헤드라인·확인 시트·EC-B10·
+// 증인 안내·수정 제안 라벨의 출처 주석도 그곳에 있다.
 const AMEND_FIELD_ID = 'w02-amend-note';
 const AMEND_HINT_ID = 'w02-amend-hint';
 
@@ -116,12 +76,17 @@ type Phase =
    * (카카오 CTA 는 SCR-W01 의 것이다) 문구만 띄우면 누를 것이 없는 막다른 길이 된다.
    */
   | { kind: 'SIGNED_OUT' }
-  /** SCR-W06 으로 보낼 수 없는 실패. 링크가 죽었다는 뜻이 아닌 것들이다. */
-  | { kind: 'RETRY'; message: string };
+  /**
+   * SCR-W06 으로 보낼 수 없는 실패. 링크가 죽었다는 뜻이 아닌 것들이다.
+   * 문구가 아니라 실패 자체를 담는다 — 문구는 그릴 때 로케일로 풀어야, 언어를 바꾸면
+   * 이미 떠 있는 오류도 따라 바뀐다.
+   */
+  | { kind: 'RETRY'; failure: ApiFailure };
 
 /** 액션 실패 중 화면을 유지한 채 알려야 하는 것. `endDatePassed` 는 EC-B10 의 출구다. */
 interface ActionError {
-  message: string;
+  /** RETRY 와 같은 이유로 문구가 아니라 실패를 담는다. */
+  failure: ApiFailure;
   endDatePassed: boolean;
 }
 
@@ -132,7 +97,7 @@ function phaseForFailure(failure: ApiFailure): Phase {
   // 로그인이 필요하다는 답에는 화면을 유지할 이유가 없다. 되돌려 보내는 SCR-W01 은
   // 세션이 살아 있으면 다시 여기로 보내므로, 살아 있는 세션이 랜딩에 갇히지도 않는다.
   if (failure.code === 'E_AUTH_REQUIRED') return { kind: 'SIGNED_OUT' };
-  return { kind: 'RETRY', message: messageForFailure(failure) };
+  return { kind: 'RETRY', failure };
 }
 
 function isCategory(value: unknown): value is InvitePreviewResponse['category'] {
@@ -268,6 +233,9 @@ async function callFunction(
 }
 
 export function ScrW02PromiseReview(): React.JSX.Element {
+  const L = useLabels(SCR_W02_LABEL);
+  // 카탈로그 밖 문구(실패 문구·공용 라벨 맵)는 로케일 키로 직접 푼다.
+  const { locale } = useLocale();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>({ kind: 'LOADING' });
@@ -372,7 +340,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
     // 나머지(E_STATE_CONFLICT · E_DUPLICATE_ROLE · E_VALIDATION …)는 §2-3 문구를 그대로
     // 띄우고 화면을 유지한다. 이 코드들 전용 화면은 명세에 없고, 지어내지 않는다.
     setActionError({
-      message: messageForFailure(failure),
+      failure,
       endDatePassed: failure.action === 'AMEND_SUGGEST',
     });
   }, []);
@@ -399,7 +367,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
         return;
       }
       setPending(null);
-      setActionError({ message: messageForFailure(NO_RESPONSE), endDatePassed: false });
+      setActionError({ failure: NO_RESPONSE, endDatePassed: false });
       return;
     }
 
@@ -460,7 +428,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
             <LfIcon name="refresh" />
           </div>
           <p className="lf-body--secondary" role="alert" data-testid="retry-message">
-            {phase.message}
+            {messageForFailure(phase.failure, locale)}
           </p>
         </div>
       </div>
@@ -492,7 +460,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
 
   // 5~300자는 `packages/shared` 의 §5-3 규칙 그대로다. 화면에서 다시 세면 정규화 순서가
   // 갈리고(§2-3), 서버가 통과시키는 입력을 화면이 막거나 그 반대가 된다.
-  const amend = validateAmendSuggestion(amendComment);
+  const amend = validateAmendSuggestion(amendComment, locale);
   // 하한 미달 문구는 §5-3 원문이다. 상한 초과에는 문구가 없어서(`message === null`)
   // 버튼 비활성만으로 답한다 — 지어내지 않는다.
   const amendHint = amend.valid ? null : amend.message;
@@ -511,10 +479,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
     // 실제 카카오톡 인앱 브라우저가 그 자리다. 광고는 수락 웹 전체에 없다(CLAUDE.md §8-1).
     <div className="lf-screen">
       <div className="lf-screen__body lf-screen__body--web">
-        <h1 className="lf-title lf-title--web">
-          {preview.creator.nickname}
-          {HEADLINE_SUFFIX}
-        </h1>
+        <h1 className="lf-title lf-title--web">{L.headline(preview.creator.nickname)}</h1>
 
         {/* 작성자 프로필(§4-3-4 표시 요소). 이름 옆의 역할 라벨은 PARTICIPANT_ROLE_LABEL 이다.
             이미지가 뜨지 않으면 이니셜로 되돌아간다 — 카카오 CDN 은 수락 웹이 내는 유일한
@@ -534,7 +499,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
             />
           )}
           <span className="lf-body">{preview.creator.nickname}</span>
-          <span className="lf-caption">{PARTICIPANT_ROLE_LABEL.CREATOR}</span>
+          <span className="lf-caption">{PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].CREATOR}</span>
         </div>
 
         <div className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
@@ -544,11 +509,11 @@ export function ScrW02PromiseReview(): React.JSX.Element {
           <div className="lf-meta">
             <div className="lf-meta__row">
               <LfIcon name="event" />
-              <span className="lf-meta__label">{END_DATE_LABEL}</span>
+              <span className="lf-meta__label">{L.endDate}</span>
               {/* EC-F09 — 날짜 옆 `(KST)` 고정 표기. 같은 흐름의 SCR-W03 이 지키는 규칙을
                   여기서만 빼면, 해외에서 여는 사람이 두 화면의 날짜를 다르게 읽는다. */}
               <span className="lf-meta__value">
-                {formatKstDate(preview.end_date)}
+                {formatKstDate(preview.end_date, locale)}
                 {KST_MARK}
               </span>
               <span className="lf-dday" data-testid="dday">
@@ -557,13 +522,15 @@ export function ScrW02PromiseReview(): React.JSX.Element {
             </div>
             <div className="lf-meta__row">
               <LfIcon name="person" />
-              <span className="lf-meta__label">{KEEPER_LABEL_TEXT}</span>
-              <span className="lf-meta__value">{KEEPER_LABEL[preview.keeper]}</span>
+              <span className="lf-meta__label">{L.keeper}</span>
+              <span className="lf-meta__value">{KEEPER_LABEL_BY_LOCALE[locale][preview.keeper]}</span>
             </div>
             <div className="lf-meta__row">
               <LfIcon name="sell" />
-              <span className="lf-meta__label">{CATEGORY_LABEL_TEXT}</span>
-              <span className="lf-meta__value">{PROMISE_CATEGORY_LABEL[preview.category]}</span>
+              <span className="lf-meta__label">{L.category}</span>
+              <span className="lf-meta__value">
+                {PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][preview.category]}
+              </span>
             </div>
           </div>
         </div>
@@ -572,13 +539,13 @@ export function ScrW02PromiseReview(): React.JSX.Element {
           <div className="lf-outcomes">
             {preview.reward !== null && (
               <div className="lf-outcome lf-outcome--reward">
-                <p className="lf-outcome__label">{REWARD_LABEL}</p>
+                <p className="lf-outcome__label">{L.reward}</p>
                 <p className="lf-outcome__value">{preview.reward}</p>
               </div>
             )}
             {preview.penalty !== null && (
               <div className="lf-outcome lf-outcome--penalty">
-                <p className="lf-outcome__label">{PENALTY_LABEL}</p>
+                <p className="lf-outcome__label">{L.penalty}</p>
                 <p className="lf-outcome__value">{preview.penalty}</p>
               </div>
             )}
@@ -589,7 +556,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
         {preview.witness_enabled && (
           <p className="lf-notice" data-testid="witness-notice">
             <LfIcon name="person_add" />
-            <span>{WITNESS_NOTICE}</span>
+            <span>{L.witnessNotice}</span>
           </p>
         )}
 
@@ -599,7 +566,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
             화면 하단에 고정돼 있어서, 여기에 입력창을 넣으면 버튼들이 통째로 밀린다. */}
         <div className="lf-field">
           <label className="lf-field__label" htmlFor={AMEND_FIELD_ID}>
-            {AMEND_FIELD_LABEL}
+            {L.amendFieldLabel}
           </label>
           <textarea
             id={AMEND_FIELD_ID}
@@ -620,12 +587,14 @@ export function ScrW02PromiseReview(): React.JSX.Element {
       <div className="lf-screen__actions lf-screen__actions--web">
         {endDatePassed && (
           <p className="lf-body--secondary" role="alert" data-testid="end-date-passed">
-            {actionError?.endDatePassed === true ? actionError.message : END_DATE_PASSED_MESSAGE}
+            {actionError?.endDatePassed === true
+              ? messageForFailure(actionError.failure, locale)
+              : L.endDatePassedMessage}
           </p>
         )}
         {!endDatePassed && actionError !== null && (
           <p className="lf-body--secondary" role="alert" data-testid="action-error">
-            {actionError.message}
+            {messageForFailure(actionError.failure, locale)}
           </p>
         )}
 
@@ -635,7 +604,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
           disabled={endDatePassed || pending !== null}
           onClick={() => setConfirming(true)}
         >
-          {APPROVE_CTA}
+          {L.approveCta}
         </button>
 
         {/* EC-B10 의 유일한 출구. §4-3-4 가 "= 수정 제안 처리"라고 못박았으므로 [수정 제안]과
@@ -648,7 +617,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
             disabled={amendBlocked}
             onClick={suggestAmend}
           >
-            {END_DATE_PASSED_CTA}
+            {L.endDatePassedCta}
           </button>
         )}
         <div className="lf-screen__actions-row">
@@ -658,7 +627,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
             disabled={amendBlocked}
             onClick={suggestAmend}
           >
-            {AMEND_CTA}
+            {L.amendCta}
           </button>
           {/* 거절 사유는 §5-3 에서 **선택**이다(S-4 · O-D2 기본안). 그래서 입력을 기다리지
               않고 바로 보낸다 — 레퍼런스에 사유 입력칸이 없고, 승인이 주 CTA 인 화면에
@@ -672,7 +641,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
               void handleRespond(ENDPOINT.promiseDecline, {}, RESPONSE_OUTCOME.declined);
             }}
           >
-            {DECLINE_CTA}
+            {L.declineCta}
           </button>
         </div>
       </div>
@@ -691,19 +660,18 @@ export function ScrW02PromiseReview(): React.JSX.Element {
           >
             <div className="lf-sheet__handle" aria-hidden="true" />
             <h2 className="lf-sheet__title" id="w02-confirm-title">
-              {preview.creator.nickname}
-              {CONFIRM_QUESTION_SUFFIX}
+              {L.confirmQuestion(preview.creator.nickname)}
             </h2>
-            <p className="lf-body--secondary">{CONFIRM_BODY}</p>
+            <p className="lf-body--secondary">{L.confirmBody}</p>
             <button
               className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block"
               type="button"
               onClick={() => void handleApprove()}
             >
-              {CONFIRM_YES}
+              {L.confirmYes}
             </button>
             <button className="lf-btn-link" type="button" onClick={() => setConfirming(false)}>
-              {CONFIRM_NO}
+              {L.confirmNo}
             </button>
           </div>
         </>

@@ -27,6 +27,7 @@ import {
   WitnessApiError,
 } from '../lib/witness-api.ts';
 import { promisesPath, witnessJoinPath, witnessPath } from '../routes.ts';
+import { useLabels } from '../lib/locale.tsx';
 import { SCR_W05_LABEL } from './scr-w05-labels.ts';
 
 type Phase =
@@ -49,6 +50,7 @@ function EvidenceTile({
   accessToken: string;
   evidence: EvidenceView;
 }): React.JSX.Element {
+  const L = useLabels(SCR_W05_LABEL);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const expiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
@@ -84,17 +86,17 @@ function EvidenceTile({
   }, [refresh]);
 
   if (evidence.availability === 'BLINDED') {
-    return <div className="lf-proof lf-proof--tile">{SCR_W05_LABEL.evidenceBlinded}</div>;
+    return <div className="lf-proof lf-proof--tile">{L.evidenceBlinded}</div>;
   }
   if (evidence.availability === 'EXPIRED') {
-    return <div className="lf-proof lf-proof--tile">{SCR_W05_LABEL.evidenceExpired}</div>;
+    return <div className="lf-proof lf-proof--tile">{L.evidenceExpired}</div>;
   }
 
   return (
     <button
       className="lf-proof lf-proof--tile"
       type="button"
-      aria-label={SCR_W05_LABEL.evidenceOpen}
+      aria-label={L.evidenceOpen}
       onClick={async () => {
         try {
           const signed = await signFulfillmentEvidence(
@@ -111,7 +113,7 @@ function EvidenceTile({
       {signedUrl === null ? (
         <LfIcon name="image" />
       ) : (
-        <img src={signedUrl} alt={SCR_W05_LABEL.evidencePhoto} onError={() => void refresh()} />
+        <img src={signedUrl} alt={L.evidencePhoto} onError={() => void refresh()} />
       )}
     </button>
   );
@@ -124,12 +126,13 @@ function Claim({
   accessToken: string;
   claim: WitnessFulfillmentClaim;
 }): React.JSX.Element {
+  const L = useLabels(SCR_W05_LABEL);
   return (
     <section className="lf-claim">
       <p className="lf-claim__answer">
-        {PARTICIPANT_ROLE_LABEL[claim.role]} · {SCR_W05_LABEL.answer[claim.answer]}
+        {PARTICIPANT_ROLE_LABEL[claim.role]} · {L.answer[claim.answer]}
       </p>
-      <p className="lf-body">{claim.comment ?? SCR_W05_LABEL.noComment}</p>
+      <p className="lf-body">{claim.comment ?? L.noComment}</p>
       {claim.evidences.length > 0 && (
         <div className="lf-claim__evidence">
           {claim.evidences.map((evidence) => (
@@ -152,13 +155,14 @@ function WitnessContent({
   accessToken: string;
   detail: WitnessDetailResponse;
 }): React.JSX.Element {
+  const L = useLabels(SCR_W05_LABEL);
   if (detail.visibility === 'LIMITED') {
     return (
       <article className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
-        <span className="lf-chip lf-chip--neutral">{SCR_W05_LABEL.readOnly}</span>
+        <span className="lf-chip lf-chip--neutral">{L.readOnly}</span>
         <h2 className="lf-subtitle">{detail.title}</h2>
-        <p className="lf-body--secondary">{SCR_W05_LABEL.limitedCreator(detail.creator.nickname)}</p>
-        <p className="lf-info-banner__text">{SCR_W05_LABEL.limitedWait}</p>
+        <p className="lf-body--secondary">{L.limitedCreator(detail.creator.nickname)}</p>
+        <p className="lf-info-banner__text">{L.limitedWait}</p>
       </article>
     );
   }
@@ -169,21 +173,21 @@ function WitnessContent({
     <>
       <article className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
         <div className="lf-card__header">
-          <span className="lf-chip lf-chip--neutral">{SCR_W05_LABEL.readOnly}</span>
+          <span className="lf-chip lf-chip--neutral">{L.readOnly}</span>
           <span className="lf-chip lf-chip--status">{PROMISE_STATUS_LABEL[detail.status]}</span>
         </div>
         <h2 className="lf-subtitle">{detail.title}</h2>
         <p className="lf-body">{content.body}</p>
         <hr className="lf-divider" />
         <p className="lf-body--secondary">
-          {SCR_W05_LABEL.category} {PROMISE_CATEGORY_LABEL[content.category]} ·{' '}
-          {SCR_W05_LABEL.endDate} {content.end_date} ·{' '}
-          {SCR_W05_LABEL.keeper} {KEEPER_LABEL[content.keeper]}
+          {L.category} {PROMISE_CATEGORY_LABEL[content.category]} ·{' '}
+          {L.endDate} {content.end_date} ·{' '}
+          {L.keeper} {KEEPER_LABEL[content.keeper]}
         </p>
-        <p className="lf-caption">{SCR_W05_LABEL.parties(detail.creator.nickname, partner.nickname)}</p>
+        <p className="lf-caption">{L.parties(detail.creator.nickname, partner.nickname)}</p>
         <p className="lf-caption">{kst(detail.activated_at!)}</p>
-        {content.reward !== null && <p className="lf-body">{SCR_W05_LABEL.reward} · {content.reward}</p>}
-        {content.penalty !== null && <p className="lf-body">{SCR_W05_LABEL.penalty} · {content.penalty}</p>}
+        {content.reward !== null && <p className="lf-body">{L.reward} · {content.reward}</p>}
+        {content.penalty !== null && <p className="lf-body">{L.penalty} · {content.penalty}</p>}
       </article>
 
       {detail.fulfillment !== null && (
@@ -216,6 +220,7 @@ function WitnessActions({
   onSign(): void;
   onLeave(): void;
 }): React.JSX.Element {
+  const L = useLabels(SCR_W05_LABEL);
   return (
     <div className="lf-screen__actions lf-screen__actions--web">
       {canSign && signedAt === null ? (
@@ -227,20 +232,20 @@ function WitnessActions({
               disabled={leavePending}
               onChange={(event) => onChecked(event.currentTarget.checked)}
             />
-            <span>{SCR_W05_LABEL.confirmCheckbox}</span>
+            <span>{L.confirmCheckbox}</span>
           </label>
-          <p className="lf-caption lf-text-center">{SCR_W05_LABEL.signHint}</p>
+          <p className="lf-caption lf-text-center">{L.signHint}</p>
           <button
             className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block"
             type="button"
             disabled={!checked || signPending || leavePending}
             onClick={onSign}
           >
-            {SCR_W05_LABEL.sign}
+            {L.sign}
           </button>
         </div>
       ) : canSign && signedAt !== null ? (
-        <p className="lf-notice">{SCR_W05_LABEL.signedAt(kst(signedAt))}</p>
+        <p className="lf-notice">{L.signedAt(kst(signedAt))}</p>
       ) : null}
       <button
         className="lf-btn lf-btn--danger lf-btn--block"
@@ -248,7 +253,7 @@ function WitnessActions({
         disabled={signPending || leavePending}
         onClick={onLeave}
       >
-        {SCR_W05_LABEL.leave}
+        {L.leave}
       </button>
     </div>
   );
@@ -267,12 +272,13 @@ function WitnessLeaveDialog({
   onStay(): void;
   onLeave(): void;
 }): React.JSX.Element {
+  const L = useLabels(SCR_W05_LABEL);
   return (
     <div className="lf-witness-leave-overlay">
       <button
         className="lf-scrim"
         type="button"
-        aria-label={SCR_W05_LABEL.leaveStay}
+        aria-label={L.leaveStay}
         disabled={pending}
         onClick={onStay}
       />
@@ -283,9 +289,9 @@ function WitnessLeaveDialog({
         aria-labelledby="witness-leave-title"
       >
         <div className="lf-sheet__handle" />
-        <h2 id="witness-leave-title" className="lf-sheet__title">{SCR_W05_LABEL.leave}</h2>
+        <h2 id="witness-leave-title" className="lf-sheet__title">{L.leave}</h2>
         <p className="lf-body">
-          {signed ? SCR_W05_LABEL.leaveSignedWarning : SCR_W05_LABEL.leaveUnsignedWarning}
+          {signed ? L.leaveSignedWarning : L.leaveUnsignedWarning}
         </p>
         {error !== null && <p role="alert" className="lf-error-text">{error}</p>}
         <div className="lf-screen__actions-row">
@@ -295,7 +301,7 @@ function WitnessLeaveDialog({
             disabled={pending}
             onClick={onStay}
           >
-            {SCR_W05_LABEL.leaveStay}
+            {L.leaveStay}
           </button>
           <button
             className="lf-btn lf-btn--danger lf-btn--grow"
@@ -303,7 +309,7 @@ function WitnessLeaveDialog({
             disabled={pending}
             onClick={onLeave}
           >
-            {SCR_W05_LABEL.leaveConfirm}
+            {L.leaveConfirm}
           </button>
         </div>
       </section>
@@ -312,6 +318,7 @@ function WitnessLeaveDialog({
 }
 
 export function ScrW05WitnessConfirm(): React.JSX.Element {
+  const L = useLabels(SCR_W05_LABEL);
   const { token, promise_id: promiseId } = useParams<{
     token?: string;
     promise_id?: string;
@@ -415,13 +422,13 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
   return (
     <div className="lf-screen">
       <div className="lf-screen__body lf-screen__body--web">
-        <h1 className="lf-title lf-title--web">{SCR_W05_LABEL.title}</h1>
+        <h1 className="lf-title lf-title--web">{L.title}</h1>
         <div className="lf-info-banner">
           <LfIcon name="visibility" />
-          <p className="lf-info-banner__text">{SCR_W05_LABEL.role}</p>
+          <p className="lf-info-banner__text">{L.role}</p>
         </div>
 
-        {phase.kind === 'LOADING' && <div role="status" aria-label={SCR_W05_LABEL.loading} />}
+        {phase.kind === 'LOADING' && <div role="status" aria-label={L.loading} />}
         {phase.kind === 'SIGNED_OUT' && (
           <>
             <button
@@ -429,7 +436,7 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
               type="button"
               onClick={() => void signInWithKakao(phase.returnPath)}
             >
-              {SCR_W05_LABEL.signIn}
+              {L.signIn}
             </button>
             <button
               className="lf-btn lf-btn--google lf-btn--cta lf-btn--block"
@@ -437,7 +444,7 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
               onClick={() => void signInWithGoogle(phase.returnPath)}
             >
               <GoogleMark />
-              <span>{SCR_W05_LABEL.signInGoogle}</span>
+              <span>{L.signInGoogle}</span>
             </button>
             <TestLoginForm />
           </>
@@ -446,19 +453,19 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
           <div className="lf-empty">
             <p role="alert">{phase.message}</p>
             <button className="lf-btn lf-btn--tonal" type="button" onClick={() => void load()}>
-              {SCR_W05_LABEL.retry}
+              {L.retry}
             </button>
           </div>
         )}
         {phase.kind === 'LEFT' && (
           <div className="lf-empty">
-            <p className="lf-subtitle">{SCR_W05_LABEL.leaveComplete}</p>
+            <p className="lf-subtitle">{L.leaveComplete}</p>
             <button
               className="lf-btn lf-btn--tonal lf-btn--block"
               type="button"
               onClick={() => navigate(promisesPath(), { replace: true })}
             >
-              {SCR_W05_LABEL.leaveCompleteAction}
+              {L.leaveCompleteAction}
             </button>
           </div>
         )}

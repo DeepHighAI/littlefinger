@@ -1,4 +1,8 @@
-import type { LegalDocumentKind } from '@littlefinger/shared';
+import {
+  LEGAL_DOCUMENT_LABELS_BY_LOCALE,
+  type LegalDocumentKind,
+  type Localized,
+} from '@littlefinger/shared';
 
 interface LegalSection {
   title: string;
@@ -10,7 +14,7 @@ interface LegalDraftContent {
   sections: readonly LegalSection[];
 }
 
-export const LEGAL_DRAFT_LABELS = {
+const koLabels = {
   draftBadge: '비배포용 초안',
   draftNotice:
     '이 문서는 개발 검증용 초안입니다. 실제 사업자 정보 입력과 법률 검토 전에는 배포할 수 없습니다.',
@@ -22,11 +26,35 @@ export const LEGAL_DRAFT_LABELS = {
     '[배포 전 입력 필요: 수탁자별 국가·이전 일시와 방법·보유기간 확인]',
   termsTitle: '이용약관',
   privacyTitle: '개인정보 처리방침',
-} as const;
+};
 
-export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> = {
+// 법무 검토 전 초안(PO 2026-08-20) — 검토 결과로만 바꾼다.
+const enLabels = {
+  draftBadge: 'Draft — not for distribution',
+  draftNotice:
+    'This document is a draft for development verification. It must not be distributed before the actual business information is entered and legal review is complete.',
+  missingOperator:
+    '[To be completed before release: business name, representative, business registration number, address, customer support contact]',
+  missingPrivacyOfficer:
+    '[To be completed before release: privacy officer name, title, email, phone number]',
+  missingTransfers:
+    '[To be completed before release: country per processor, timing and method of transfer, retention period]',
+  // 문서 제목은 공용 라벨이 원본 — 여기서 따로 쓰면 두 벌이 된다.
+  termsTitle: LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.TERMS,
+  privacyTitle: LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.PRIVACY,
+} satisfies typeof koLabels;
+
+export const LEGAL_DRAFT_LABELS_BY_LOCALE: Localized<typeof koLabels> = {
+  ko: koLabels,
+  en: enLabels,
+};
+
+// 기존 임포터 호환용 ko 별칭 — 기본 로케일(ko) 출력은 바이트 단위로 이전과 동일해야 한다.
+export const LEGAL_DRAFT_LABELS = koLabels;
+
+const ko: Record<LegalDocumentKind, LegalDraftContent> = {
   TERMS: {
-    title: LEGAL_DRAFT_LABELS.termsTitle,
+    title: koLabels.termsTitle,
     sections: [
       {
         title: '서비스 이용계약',
@@ -84,12 +112,12 @@ export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> =
       },
       {
         title: '운영자 정보',
-        paragraphs: [LEGAL_DRAFT_LABELS.missingOperator],
+        paragraphs: [koLabels.missingOperator],
       },
     ],
   },
   PRIVACY: {
-    title: LEGAL_DRAFT_LABELS.privacyTitle,
+    title: koLabels.privacyTitle,
     sections: [
       {
         title: '처리하는 개인정보',
@@ -119,7 +147,7 @@ export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> =
         title: '처리위탁과 국외 처리',
         paragraphs: [
           '카카오 로그인, Google 로그인, Supabase 인증·데이터·파일 저장, Expo와 Firebase Cloud Messaging의 푸시 전달, Firebase Hosting의 웹 제공 과정에서 처리가 이루어질 수 있습니다.',
-          LEGAL_DRAFT_LABELS.missingTransfers,
+          koLabels.missingTransfers,
         ],
       },
       {
@@ -136,7 +164,7 @@ export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> =
       },
       {
         title: '개인정보 보호책임자',
-        paragraphs: [LEGAL_DRAFT_LABELS.missingPrivacyOfficer, LEGAL_DRAFT_LABELS.missingOperator],
+        paragraphs: [koLabels.missingPrivacyOfficer, koLabels.missingOperator],
       },
       {
         title: '방침 변경',
@@ -147,3 +175,133 @@ export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> =
     ],
   },
 };
+
+// 법무 검토 전 초안(PO 2026-08-20) — 검토 결과로만 바꾼다.
+const en = {
+  TERMS: {
+    title: enLabels.termsTitle,
+    sections: [
+      {
+        title: 'Service agreement',
+        paragraphs: [
+          'Littlefinger is a service that helps two people record and confirm the content and progress of a promise they have agreed on. When a user starts with Kakao or Google, they are recorded as having agreed to these terms.',
+        ],
+      },
+      {
+        title: 'Accounts',
+        paragraphs: [
+          'Accounts are created through Kakao and Google OAuth on Supabase Auth. Users must keep their account and sign-in credentials secure and must not use another person’s account.',
+        ],
+      },
+      {
+        title: 'Promise records',
+        paragraphs: [
+          'A promise is confirmed after it is written, an invitation is sent, and the partner approves it. A confirmed version is never edited; later changes are recorded as a separate version with mutual consent.',
+        ],
+      },
+      {
+        title: 'Using the service',
+        paragraphs: [
+          'The service provides reminders, fulfillment checks, optional evidence photos, and participant records. Notification delivery and network connectivity are not always guaranteed, so users must check important dates themselves.',
+        ],
+      },
+      {
+        title: 'Prohibited conduct',
+        paragraphs: [
+          'Content that is illegal or infringes the rights of others, content that improperly exposes personal information, and automation, attacks, or impersonation that harm the stability of the service are prohibited.',
+        ],
+      },
+      {
+        title: 'Record retention and account deletion',
+        paragraphs: [
+          'Drafts in progress and notifications may be cleaned up after the policy period. To protect the records of other participants, confirmed records may be retained in de-identified form even after account deletion.',
+        ],
+      },
+      {
+        title: 'Service changes and suspension',
+        paragraphs: [
+          'Features may be changed or temporarily suspended for security, legal, or operational reasons. Important changes are announced within the service.',
+        ],
+      },
+      {
+        title: 'Liability and disclaimers',
+        paragraphs: [
+          'The service does not provide money escrow, automatic penalty enforcement, notarization, or any guarantee of legal effect. Rewards and penalties are text records entered by the parties.',
+        ],
+      },
+      {
+        title: 'Dispute resolution',
+        paragraphs: [
+          'Littlefinger does not judge which party is right. If a dispute arises, it is resolved through conversation between the participants and through procedures under applicable law.',
+        ],
+      },
+      {
+        title: 'Operator information',
+        paragraphs: [enLabels.missingOperator],
+      },
+    ],
+  },
+  PRIVACY: {
+    title: enLabels.privacyTitle,
+    sections: [
+      {
+        title: 'Personal information we process',
+        paragraphs: [
+          'We process the Kakao member number or Google account identifier, the nickname and profile image provided under optional consent, promise content and approval and fulfillment records, hashed IP addresses and User-Agent strings, device push tokens, and optional evidence photos. The service does not use email addresses or phone numbers, and any email passed by the authentication provider is not stored outside the authentication system.',
+        ],
+      },
+      {
+        title: 'Purposes of processing',
+        paragraphs: [
+          'We process personal information for sign-in and account identification; for writing, inviting, approving, and confirming fulfillment of promises; for delivering notifications; for verifying record integrity; and for preventing abuse and responding to security incidents.',
+        ],
+      },
+      {
+        title: 'Retention and use period',
+        paragraphs: [
+          'Drafts in progress and notifications are cleaned up after at most 90 days. Evidence files are kept for 365 days from the promise closing date and then deleted. Confirmed promise records may be kept together with a de-identified account to preserve the record between participants.',
+        ],
+      },
+      {
+        title: 'Provision to third parties',
+        paragraphs: [
+          'We do not provide personal information to third parties except where there is a legal basis or the data subject has consented.',
+        ],
+      },
+      {
+        title: 'Outsourced and overseas processing',
+        paragraphs: [
+          'Processing may occur through Kakao sign-in, Google sign-in, Supabase authentication, data, and file storage, push delivery by Expo and Firebase Cloud Messaging, and web serving by Firebase Hosting.',
+          enLabels.missingTransfers,
+        ],
+      },
+      {
+        title: 'Rights of data subjects',
+        paragraphs: [
+          'Users may request access to, correction of, deletion of, or suspension of processing of their personal information. Requests are handled under applicable law to the extent that they do not damage another participant’s confirmed records.',
+        ],
+      },
+      {
+        title: 'Security measures',
+        paragraphs: [
+          'We apply least-privilege and row-level access control, server-only integrity processing, hashed storage of invite tokens, IP addresses, and User-Agent strings, a private evidence store with 10-minute signed URLs, and removal of location metadata from photos.',
+        ],
+      },
+      {
+        title: 'Privacy officer',
+        paragraphs: [enLabels.missingPrivacyOfficer, enLabels.missingOperator],
+      },
+      {
+        title: 'Policy changes',
+        paragraphs: [
+          'When this policy changes, the effective date and the changes are announced within the service. The current document is a draft not for distribution and is not the final policy in effect.',
+        ],
+      },
+    ],
+  },
+} satisfies typeof ko;
+
+export const LEGAL_DRAFT_CONTENT_BY_LOCALE: Localized<typeof ko> = { ko, en };
+
+// 기존 임포터 호환용 ko 별칭.
+export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> = ko;

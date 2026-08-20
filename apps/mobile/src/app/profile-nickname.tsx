@@ -10,7 +10,8 @@ import { LfField } from '../components/LfField';
 import { LfIcon } from '../components/LfIcon';
 import { LfInput } from '../components/LfInput';
 import { updateProfileNicknameNative } from '../lib/account-safety-native.ts';
-import { PROFILE_NICKNAME_LABEL as LABEL } from '../screens/profile-nickname-labels.ts';
+import { useLabels } from '../lib/locale-native';
+import { PROFILE_NICKNAME_LABEL } from '../screens/profile-nickname-labels.ts';
 import { colors, gutter, size, space } from '../theme/tokens';
 
 const styles = StyleSheet.create({
@@ -26,6 +27,7 @@ const styles = StyleSheet.create({
 });
 
 export default function ProfileNicknameScreen(): React.JSX.Element {
+  const LABEL = useLabels(PROFILE_NICKNAME_LABEL);
   const router = useRouter();
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | undefined>();

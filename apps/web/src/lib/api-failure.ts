@@ -1,4 +1,11 @@
-import { ERROR_CODES, ERROR_MESSAGE, type ApiErrorAction, type ErrorCode } from '@littlefinger/shared';
+import {
+  ERROR_CODES,
+  ERROR_MESSAGE_BY_LOCALE,
+  type ApiErrorAction,
+  type ErrorCode,
+  type Locale,
+  type Localized,
+} from '@littlefinger/shared';
 
 /**
  * Edge Function 실패 응답 읽기 — 02 §2-3.
@@ -13,6 +20,12 @@ import { ERROR_CODES, ERROR_MESSAGE, type ApiErrorAction, type ErrorCode } from 
  * 네트워크가 끊겨 응답 자체가 없을 때도 이 문구를 쓴다 — 그 경우 코드가 없다.
  */
 export const INTERNAL_MESSAGE = '처리 중 문제가 발생했습니다. 다시 시도해 주세요.';
+
+/** EC-C02 문구의 로케일 쌍. ko 는 위 상수 그대로다(서버 원문과 한 몸). */
+export const INTERNAL_MESSAGE_BY_LOCALE: Localized<string> = {
+  ko: INTERNAL_MESSAGE,
+  en: 'Something went wrong. Please try again.',
+};
 
 export interface ApiFailure {
   /** §2-3 의 14개 코드. 응답이 없거나 모르는 코드면 `null` 이다. */
@@ -47,7 +60,13 @@ export function readFailure(body: unknown): ApiFailure {
  * **모르는 코드면 서버 문구를 쓰지 않는다.** 500 에 실려 오는 것은 §2-3 의 어휘가 아니고,
  * 그대로 띄우면 Postgres 가 붙인 테이블·컬럼 이름이 화면에 나갈 수 있다(§9).
  */
-export function messageForFailure(failure: ApiFailure): string {
-  if (failure.code === null) return INTERNAL_MESSAGE;
-  return ERROR_MESSAGE[failure.code] ?? failure.message ?? INTERNAL_MESSAGE;
+export function messageForFailure(failure: ApiFailure, locale: Locale = 'ko'): string {
+  if (failure.code === null) return INTERNAL_MESSAGE_BY_LOCALE[locale];
+  return (
+    ERROR_MESSAGE_BY_LOCALE[locale][failure.code] ??
+    // E_VALIDATION 의 필드별 문구는 서버가 ko 로 싣는다 — 1차에서는 로케일과 무관하게
+    // 그대로 보여 준다(PO 2026-08-20: 서버 봉투는 한국어 유지).
+    failure.message ??
+    INTERNAL_MESSAGE_BY_LOCALE[locale]
+  );
 }

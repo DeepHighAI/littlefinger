@@ -1,4 +1,10 @@
-export const SCR_W05_LABEL = {
+import type { Localized } from '@littlefinger/shared';
+
+/**
+ * SCR-W05 문구. limitedCreator·parties 처럼 조사가 붙는 항목은 함수다 — 영어는 소유격과
+ * 어순이 달라 접미 연결로는 두 언어를 다 만족할 수 없다.
+ */
+const ko = {
   title: '증인으로 약속을 확인해 주세요',
   role: '증인은 내용을 확인만 해요 — 누가 옳은지 판정하지 않아요',
   readOnly: '읽기 전용',
@@ -36,4 +42,46 @@ export const SCR_W05_LABEL = {
   endDate: '종료일',
   keeper: '지킬 사람',
   category: '카테고리',
-} as const;
+};
+
+const en = {
+  title: 'Please review this promise as a witness',
+  role: 'Witnesses only review the content — they never judge who is right',
+  readOnly: 'Read only',
+  loading: 'Loading the promise',
+  loadError: 'Could not load the promise. Please try again.',
+  retry: 'Try again',
+  signIn: 'Sign in with Kakao to review',
+  signInGoogle: 'Sign in with Google to review',
+  limitedCreator: (nickname: string) => `${nickname}'s promise`,
+  limitedWait: 'You can see the full details once the promise is confirmed',
+  parties: (creator: string, partner: string) => `A promise between ${creator} and ${partner}`,
+  activatedAt: (value: string) => `Confirmed ${value}`,
+  confirmCheckbox: 'I have reviewed this promise',
+  sign: 'I have reviewed the content',
+  signHint: 'Your review time will be recorded',
+  signedAt: (value: string) => `Confirmation signed ${value}`,
+  leave: 'Leave as witness',
+  leaveUnsignedWarning: 'If you leave, you can no longer see this promise. Continue?',
+  leaveSignedWarning: 'Your signature record will not be deleted. Continue?',
+  leaveStay: 'Keep viewing',
+  leaveConfirm: 'Leave',
+  leaveComplete: 'You have left the witness role.',
+  leaveCompleteAction: 'Go to my promises',
+  evidencePhoto: 'Evidence photo',
+  evidenceOpen: 'Open evidence photo',
+  evidenceBlinded: 'This image is hidden due to a report',
+  evidenceExpired: 'This evidence has passed its retention period',
+  noComment: 'No comment left',
+  answer: {
+    KEPT: 'Kept',
+    NOT_KEPT: 'Not kept',
+  },
+  reward: 'Reward',
+  penalty: 'Penalty',
+  endDate: 'End date',
+  keeper: 'Who keeps it',
+  category: 'Category',
+} satisfies typeof ko;
+
+export const SCR_W05_LABEL: Localized<typeof ko> = { ko, en };

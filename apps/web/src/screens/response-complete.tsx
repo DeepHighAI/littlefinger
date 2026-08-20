@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { LfIcon } from '../components/LfIcon.tsx';
-import { isResponseOutcome, RESPONSE_OUTCOME, type ResponseOutcome } from '../routes.ts';
+import { useLabels } from '../lib/locale.tsx';
+import { isResponseOutcome, RESPONSE_OUTCOME } from '../routes.ts';
+import { RESPONSE_COMPLETE_LABEL } from './response-complete-labels.ts';
 import { ScrW06LinkExpired } from './scr-w06-link-expired.tsx';
 
 /**
@@ -17,12 +19,6 @@ import { ScrW06LinkExpired } from './scr-w06-link-expired.tsx';
  * 뒤 카톡 인앱 브라우저에 남는 마지막 화면이라는 점이 같다.
  */
 
-const OUTCOME_MESSAGE: Record<ResponseOutcome, string> = {
-  [RESPONSE_OUTCOME.declined]: '거절했어요. 작성자에게 알려드릴게요.',
-  [RESPONSE_OUTCOME.amendSuggested]:
-    '수정 제안을 보냈어요. 작성자가 내용을 고쳐 다시 보내면 알림을 받게 돼요.',
-};
-
 // 아이콘은 문구의 동사를 따른다. 거절에 축하·격려 계열 장식을 붙이지 않는 것과 같은 이유로
 // (§8-1 NT-02 주석) 둘 다 사실만 말하는 기호로 둔다.
 const OUTCOME_ICON = {
@@ -31,6 +27,7 @@ const OUTCOME_ICON = {
 } as const;
 
 export function ResponseComplete(): React.JSX.Element {
+  const L = useLabels(RESPONSE_COMPLETE_LABEL);
   const { outcome } = useParams<{ outcome: string }>();
   const messageRef = useRef<HTMLHeadingElement>(null);
 
@@ -64,7 +61,7 @@ export function ResponseComplete(): React.JSX.Element {
           ref={messageRef}
           tabIndex={-1}
         >
-          {OUTCOME_MESSAGE[outcome]}
+          {L.outcomeMessage[outcome]}
         </h1>
       </div>
     </div>
