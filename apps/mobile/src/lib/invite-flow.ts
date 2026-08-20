@@ -1,4 +1,4 @@
-import type { PromiseInviteResponse } from '@littlefinger/shared';
+import { invitePathOf, type PromiseInviteResponse } from '@littlefinger/shared';
 
 export type InviteWithToken = PromiseInviteResponse & { token: string };
 
@@ -49,7 +49,7 @@ export function buildInviteLink(webBaseUrl: string, token: string): string {
   if (!base.startsWith('https://') || token.length === 0) {
     throw new Error('초대 링크 설정을 확인해 주세요.');
   }
-  return `${base}/i/${encodeURIComponent(token)}`;
+  return `${base}${invitePathOf(token)}`;
 }
 
 export function inviteShareMessage(title: string, link: string): string {

@@ -11,11 +11,13 @@
 
 export * from './api.ts';
 export * from './account-safety.ts';
+export * from './app-links.ts';
 export * from './app-version.ts';
 export * from './completion-celebration.ts';
 export * from './config.ts';
 export * from './datetime.ts';
 export * from './errors.ts';
+export * from './i18n.ts';
 export * from './keep-rate.ts';
 export * from './legal.ts';
 export * from './notification.ts';

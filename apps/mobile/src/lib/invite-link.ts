@@ -1,26 +1,3 @@
-export function buildInviteWebUrl(baseUrl: string, token: string): string | null {
-  if (token.length === 0) return null;
-  try {
-    const base = new URL(baseUrl);
-    if (base.protocol !== 'https:' && base.protocol !== 'http:') return null;
-    base.pathname = `/i/${encodeURIComponent(token)}`;
-    base.search = '';
-    base.hash = '';
-    return base.toString().replace(/\/$/u, '');
-  } catch {
-    return null;
-  }
-}
-
-export function buildParticipantPromisesWebUrl(baseUrl: string): string | null {
-  try {
-    const base = new URL(baseUrl);
-    if (base.protocol !== 'https:' && base.protocol !== 'http:') return null;
-    base.pathname = '/promises';
-    base.search = '';
-    base.hash = '';
-    return base.toString().replace(/\/$/u, '');
-  } catch {
-    return null;
-  }
-}
+// 구현은 @littlefinger/shared 의 app-links 로 이관됐다(2026-08-20) — 웹과 형태가
+// 갈리면 이미 발송된 링크가 죽기 때문이다. 기존 import 경로를 위해 재수출만 남긴다.
+export { buildInviteWebUrl, buildParticipantPromisesWebUrl } from '@littlefinger/shared';

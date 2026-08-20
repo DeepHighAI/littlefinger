@@ -1,10 +1,9 @@
+import { ANDROID_PACKAGE_NAME, PLAY_STORE_BASE_URL } from '@littlefinger/shared';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 
 import { loadMinimumAppVersion } from './minimum-app-version.ts';
 import { getMobileSupabaseClient } from './supabase-native.ts';
-
-const ANDROID_PACKAGE = 'com.littlefinger.app';
 
 export async function loadMinimumAppVersionNative(): Promise<boolean> {
   const currentVersion = Constants.expoConfig?.version ?? '';
@@ -22,8 +21,8 @@ export async function loadMinimumAppVersionNative(): Promise<boolean> {
 
 export async function openAndroidStore(): Promise<void> {
   try {
-    await Linking.openURL(`market://details?id=${ANDROID_PACKAGE}`);
+    await Linking.openURL(`market://details?id=${ANDROID_PACKAGE_NAME}`);
   } catch {
-    await Linking.openURL(`https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`);
+    await Linking.openURL(PLAY_STORE_BASE_URL);
   }
 }
