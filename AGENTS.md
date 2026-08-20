@@ -379,9 +379,14 @@ and the weekly `supabase db dump` backup are load-bearing, not optional.
 react-native-web / Expo Web for the acceptance web · `@react-native-kakao/*` (unofficial) ·
 Render / Railway / Fly.io. Rationale: `04` §2.
 
-**Kakao login goes through Supabase Auth's official Kakao OAuth provider.** No unofficial SDK.
-**Production login is Kakao + Google SSO only** (PO, 2026-08-20; Google provider is open item
-N-4). The dev-only email test login is excluded from every production build by build-time gates
+**Kakao and Google login go through Supabase Auth's official OAuth providers.** No unofficial
+SDK. **Production login is Kakao + Google SSO only** (PO, 2026-08-20). The Google client path
+(app + web) and the DB identity generalization (`users.provider_user_id` + `provider`, formerly
+`kakao_id` — 02 §6-2 amended) shipped 2026-08-20; the Google Cloud OAuth client and Dashboard
+provider setup are operator steps in
+[`docs/setup/google-oauth-setup.md`](docs/setup/google-oauth-setup.md) — one **Web application**
+client serves both surfaces, since the code flow terminates at Supabase's server.
+The dev-only email test login is excluded from every production build by build-time gates
 (`__DEV__` / `import.meta.env.DEV`), both locked by tests; the release-time server-side removal
 (Dashboard Email provider off, test accounts deleted) is scripted in
 [`docs/setup/email-test-login-removal.md`](docs/setup/email-test-login-removal.md) — execute it
@@ -472,7 +477,8 @@ ping is load-bearing — switch it on before development goes quiet.
   key only. The `anon` key is designed to be public — **RLS is what protects the data**, which is
   why every table gets RLS.
 - `KAKAO_REST_API_KEY` and `KAKAO_CLIENT_SECRET` never enter the repo in any form. They go only
-  into Supabase Dashboard → Authentication → Providers → Kakao.
+  into Supabase Dashboard → Authentication → Providers → Kakao. The Google OAuth client ID and
+  secret follow the same rule (Dashboard → Providers → Google).
 - `content_hash` is generated **only on the server**, so a client cannot forge it. SHA-256, fixed key
   order, NFC-normalized strings (`02` §6). It lives in Postgres (`lf_content_hash`), one layer deeper
   than `04` §7-3 put it — see ADR 0003.
@@ -517,7 +523,7 @@ Full detail: `04` §10.
 | ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18: use `https://littlefinger-app-philwoo.web.app` (ADR 0005).** |
 | C-4 | Pretty KakaoTalk share card for invites? | Default: out of MVP scope — OS share sheet, link only |
 | N-1 | '리틀핑거' trademark / store name | Confirm before launch |
-| N-4 | Google SSO for production login (PO, 2026-08-20) | Via Supabase Auth's Google provider, alongside Kakao. Needs a Google Cloud OAuth client, Dashboard provider setup, and the same `openAuthSessionAsync` → `setSession` app path as Kakao. Not started |
+| ~~N-4~~ | ~~Google SSO for production login~~ | **Implemented 2026-08-20** (client both surfaces + identity rename). Remaining: operator runs `docs/setup/google-oauth-setup.md` (GCP client + Dashboard provider); until then the Google button fails into EC-A02 copy |
 | N-2 | iOS launch timing | Decided in v2 |
 | Q-5 | Onboarding pages 2 and 3 | Only page 1 is implemented |
 | Q-6 | COMPLETED share card design | Out of scope |
