@@ -1,4 +1,6 @@
-export const SCR_A02_LABEL = {
+import type { Localized } from '@littlefinger/shared';
+
+const ko = {
   brand: '리틀핑거',
   notifications: '알림',
   advertisement: '광고',
@@ -32,4 +34,43 @@ export const SCR_A02_LABEL = {
   cancel: '취소',
   open: (title: string) => `${title} 열기`,
   deleteDraft: (title: string) => `${title} 초안 삭제`,
-} as const;
+};
+
+// 탭 카운트는 상태 라벨(In progress/Completed) 뒤에 숫자만 붙는 칩 표기라 단복수가 없다.
+const en = {
+  brand: 'Littlefinger',
+  notifications: 'Notifications',
+  advertisement: 'Ad',
+  profile: 'My profile',
+  activeTab: (count: number) => `In progress ${count}`,
+  completedTab: (count: number) => `Completed ${count}`,
+  waitingTab: (count: number) => `Waiting ${count}`,
+  empty: 'No promises yet. Create your first promise',
+  emptyDescription: 'Make a pinky promise with someone you care about',
+  create: 'Create a promise',
+  loading: 'Loading promises',
+  loadError: 'Could not load promises. Please try again shortly.',
+  retry: 'Try again',
+  retryListAccessibility: 'Retry loading promises',
+  retryPageAccessibility: 'Retry loading more promises',
+  pageError: 'Could not load more promises.',
+  pinnedTitle: 'Due soon',
+  needsResponse: 'Fulfillment check needed',
+  answerFulfillment: 'Was it kept? Respond',
+  witness: 'Witness',
+  partnerFallback: 'Partner',
+  endDate: (value: string) => `End date ${value}`,
+  parties: (creator: string, partner: string) => `${creator} — ${partner}`,
+  profileImage: (nickname: string) => `${nickname}'s profile photo`,
+  delete: 'Delete',
+  deleteFirstTitle: 'Delete this draft?',
+  deleteFirstBody: 'A deleted draft cannot be recovered.',
+  deleteContinue: 'Continue',
+  deleteFinalTitle: 'Really delete it?',
+  deleteFinalBody: 'The promise will be removed from this device and the server.',
+  cancel: 'Cancel',
+  open: (title: string) => `Open ${title}`,
+  deleteDraft: (title: string) => `Delete draft ${title}`,
+} satisfies typeof ko;
+
+export const SCR_A02_LABEL: Localized<typeof ko> = { ko, en };

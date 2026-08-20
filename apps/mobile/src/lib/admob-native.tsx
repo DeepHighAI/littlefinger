@@ -16,6 +16,7 @@ import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, radius, size, space, type as typography, weight } from '../theme/tokens';
 import { createNativeAdLoader } from './admob-loader.ts';
+import { useLabels } from './locale-native';
 
 export type LittlefingerNativeAd = NativeAd;
 
@@ -84,6 +85,7 @@ export function destroyNativeAd(ad: LittlefingerNativeAd): void {
 }
 
 export function NativeAdCard({ ad }: { ad: LittlefingerNativeAd }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A02_LABEL);
   return (
     <NativeAdView nativeAd={ad} style={styles.card}>
       <LfRow gap={4}>
@@ -102,7 +104,7 @@ export function NativeAdCard({ ad }: { ad: LittlefingerNativeAd }): React.JSX.El
             </NativeAsset>
           )}
         </View>
-        <LfChip label={SCR_A02_LABEL.advertisement} tone="neutral" />
+        <LfChip label={LABEL.advertisement} tone="neutral" />
       </LfRow>
       <NativeAsset assetType={NativeAssetType.BODY}>
         <LfText secondary>{ad.body}</LfText>

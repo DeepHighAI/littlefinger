@@ -1,7 +1,7 @@
-import { LEGAL_DOCUMENT_LABELS } from '@littlefinger/shared';
-import type { ReminderHour } from '@littlefinger/shared';
+import { LEGAL_DOCUMENT_LABELS_BY_LOCALE } from '@littlefinger/shared';
+import type { Localized, ReminderHour } from '@littlefinger/shared';
 
-export const SCR_A08_LABEL = {
+const ko = {
   title: '마이',
   back: '뒤로',
   connected: '카카오 계정 연결됨',
@@ -27,10 +27,12 @@ export const SCR_A08_LABEL = {
   reminderHourValue: (hour: ReminderHour) => `${hour}:00 KST`,
   reminderHourChoice: (hour: ReminderHour) => `${hour}:00`,
   legalTitle: '약관 및 개인정보',
-  terms: LEGAL_DOCUMENT_LABELS.TERMS,
-  termsAccessibility: `${LEGAL_DOCUMENT_LABELS.TERMS} 열기`,
-  privacy: LEGAL_DOCUMENT_LABELS.PRIVACY,
-  privacyAccessibility: `${LEGAL_DOCUMENT_LABELS.PRIVACY} 열기`,
+  // BY_LOCALE.ko 는 기존 LEGAL_DOCUMENT_LABELS 와 같은 객체다 — as const 리터럴 타입이
+  // en 쪽 satisfies 검사를 깨뜨리므로 string 으로 넓혀지는 이 경로를 쓴다.
+  terms: LEGAL_DOCUMENT_LABELS_BY_LOCALE.ko.TERMS,
+  termsAccessibility: `${LEGAL_DOCUMENT_LABELS_BY_LOCALE.ko.TERMS} 열기`,
+  privacy: LEGAL_DOCUMENT_LABELS_BY_LOCALE.ko.PRIVACY,
+  privacyAccessibility: `${LEGAL_DOCUMENT_LABELS_BY_LOCALE.ko.PRIVACY} 열기`,
   logout: '로그아웃',
   logoutTitle: '로그아웃할까요?',
   logoutBody: '이 기기의 알림 토큰을 해제한 뒤 로그아웃해요.',
@@ -49,4 +51,61 @@ export const SCR_A08_LABEL = {
   withdrawFinalTitle: '정말 탈퇴할까요?',
   withdrawFinalBody: '확정된 약속 기록은 상대방의 기록이기도 해서 삭제할 수 없어요. 개인정보는 비식별 처리됩니다.',
   withdrawError: '탈퇴하지 못했어요. 다시 시도해 주세요.',
-} as const;
+};
+
+// 통계 문구는 공유 상태 라벨(Completed/Not kept …)을 그대로 앞세운다 — 새 용어 발명 금지.
+const en = {
+  title: 'Profile',
+  back: 'Back',
+  connected: 'Kakao account linked',
+  nicknameSetup: 'Set nickname',
+  profileImage: (nickname: string) => `${nickname}'s profile photo`,
+  keepRate: 'Keep rate',
+  keepRatePercent: (rate: number) => `${rate}%`,
+  keepRateAccessibility: (rate: number) => `Keep rate ${rate} percent`,
+  aggregating: 'Calculating',
+  completed: (count: number) => `Completed ${count}`,
+  broken: (count: number) => `Not kept ${count}`,
+  disputed: (count: number) => `Views differ ${count}`,
+  unresolved: (count: number) => `Closed unconfirmed ${count}`,
+  active: (count: number) => `In progress ${count}`,
+  excluded: 'Views differ and closed unconfirmed promises are excluded from the keep rate',
+  reminderTitle: 'Reminder settings',
+  remindD7: 'D-7 reminder',
+  remindD3: 'D-3 reminder',
+  remindD1: 'D-1 reminder',
+  remindDday: 'D-Day reminder',
+  reminderHourTitle: 'Reminder time',
+  reminderHour: (hour: ReminderHour) => `Reminder time ${hour}:00`,
+  reminderHourValue: (hour: ReminderHour) => `${hour}:00 KST`,
+  reminderHourChoice: (hour: ReminderHour) => `${hour}:00`,
+  legalTitle: 'Terms and privacy',
+  terms: LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.TERMS,
+  termsAccessibility: `Open ${LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.TERMS}`,
+  privacy: LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.PRIVACY,
+  privacyAccessibility: `Open ${LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.PRIVACY}`,
+  logout: 'Log out',
+  logoutTitle: 'Log out?',
+  logoutBody: "This unregisters this device's notification token, then logs you out.",
+  cancel: 'Cancel',
+  loading: 'Loading your profile',
+  loadError: 'Could not load your profile. Please try again shortly.',
+  retry: 'Try again',
+  retryAccessibility: 'Retry loading profile',
+  saveError: 'Could not save your settings. Please try again.',
+  logoutError: 'Could not log out. Please try again.',
+  blockedUsers: 'Manage blocked users',
+  withdraw: 'Delete account',
+  withdrawTitle: 'Delete your account?',
+  withdrawWarning: (count: number) =>
+    count === 1
+      ? 'You have 1 promise in progress. You cannot respond to it after deleting your account.'
+      : `You have ${count} promises in progress. You cannot respond to them after deleting your account.`,
+  withdrawContinue: 'Continue',
+  withdrawFinalTitle: 'Really delete your account?',
+  withdrawFinalBody:
+    'Confirmed promise records also belong to your partner, so they cannot be deleted. Your personal data will be de-identified.',
+  withdrawError: 'Could not delete your account. Please try again.',
+} satisfies typeof ko;
+
+export const SCR_A08_LABEL: Localized<typeof ko> = { ko, en };

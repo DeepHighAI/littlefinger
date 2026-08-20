@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 
+import { useLabels } from '../lib/locale-native';
 import {
   issueWitnessInvite,
   listWitnesses,
@@ -124,24 +125,25 @@ function WitnessRow({
   busy: boolean;
   onReshare(participantId: string): void;
 }): React.JSX.Element {
+  const LABEL = useLabels(MOD_02_LABEL);
   if (slot.status === 'INVITED') {
     return (
       <View style={styles.witness}>
         <LfRow gap={5}>
           <LfAvatar
-            nickname={MOD_02_LABEL.anonymous}
+            nickname={LABEL.anonymous}
             profileImageUrl={null}
-            accessibilityLabel={MOD_02_LABEL.anonymous}
+            accessibilityLabel={LABEL.anonymous}
           />
           <View style={styles.witnessCopy}>
             <LfStack gap={2}>
-              <LfText>{MOD_02_LABEL.anonymous}</LfText>
-              <LfChip label={MOD_02_LABEL.invited} tone="neutral" />
+              <LfText>{LABEL.anonymous}</LfText>
+              <LfChip label={LABEL.invited} tone="neutral" />
             </LfStack>
           </View>
         </LfRow>
         <LfButton
-          label={MOD_02_LABEL.reshare}
+          label={LABEL.reshare}
           variant="outlined"
           size="compact"
           block
@@ -153,7 +155,7 @@ function WitnessRow({
   }
 
   const signedAt = slot.signed_at;
-  const nickname = slot.nickname ?? MOD_02_LABEL.anonymous;
+  const nickname = slot.nickname ?? LABEL.anonymous;
   return (
     <View style={styles.witness}>
       <LfRow gap={5}>
@@ -166,12 +168,12 @@ function WitnessRow({
           <LfStack gap={2}>
             <LfText>{nickname}</LfText>
             {signedAt !== null ? (
-              <LfText variant="caption">{MOD_02_LABEL.signedAt(signedAt)}</LfText>
+              <LfText variant="caption">{LABEL.signedAt(signedAt)}</LfText>
             ) : null}
           </LfStack>
         </View>
         <LfChip
-          label={signedAt !== null ? MOD_02_LABEL.signed : MOD_02_LABEL.unsigned}
+          label={signedAt !== null ? LABEL.signed : LABEL.unsigned}
           tone={signedAt !== null ? 'done' : 'neutral'}
         />
       </LfRow>
@@ -184,6 +186,7 @@ export function WitnessInviteSheet({
   promiseId,
   onClose,
 }: WitnessInviteSheetProps): React.JSX.Element {
+  const LABEL = useLabels(MOD_02_LABEL);
   const [loadState, setLoadState] = useState<LoadState>({ phase: 'LOADING' });
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState(false);
@@ -240,8 +243,8 @@ export function WitnessInviteSheet({
   const ready = loadState.phase === 'READY' ? loadState.value : null;
   const atCapacity = ready !== null && ready.occupied_count >= ready.capacity;
   const remainingLabel = ready?.occupied_count === 0
-    ? MOD_02_LABEL.twoRemaining
-    : MOD_02_LABEL.oneRemaining;
+    ? LABEL.twoRemaining
+    : LABEL.oneRemaining;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -256,32 +259,32 @@ export function WitnessInviteSheet({
           <View style={styles.handle} />
           <View style={styles.header}>
             <LfRow gap={3} grow>
-              <LfText variant="title">{MOD_02_LABEL.title}</LfText>
+              <LfText variant="title">{LABEL.title}</LfText>
               {ready !== null ? (
-                <LfChip label={MOD_02_LABEL.count(ready.occupied_count, ready.capacity)} />
+                <LfChip label={LABEL.count(ready.occupied_count, ready.capacity)} />
               ) : null}
             </LfRow>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={MOD_02_LABEL.close}
+              accessibilityLabel={LABEL.close}
               style={styles.close}
               onPress={onClose}
             >
               <LfIcon name="close" />
             </Pressable>
           </View>
-          <LfText variant="caption">{MOD_02_LABEL.description}</LfText>
+          <LfText variant="caption">{LABEL.description}</LfText>
 
           {loadState.phase === 'LOADING' ? (
             <View style={styles.centered}>
-              <LfText align="center">{MOD_02_LABEL.loading}</LfText>
+              <LfText align="center">{LABEL.loading}</LfText>
             </View>
           ) : null}
           {loadState.phase === 'ERROR' ? (
             <View style={styles.centered}>
               <LfStack gap={5} center>
-                <LfText align="center">{MOD_02_LABEL.loadError}</LfText>
-                <LfButton label={MOD_02_LABEL.retry} variant="outlined" onPress={() => void load()} />
+                <LfText align="center">{LABEL.loadError}</LfText>
+                <LfButton label={LABEL.retry} variant="outlined" onPress={() => void load()} />
               </LfStack>
             </View>
           ) : null}
@@ -300,15 +303,15 @@ export function WitnessInviteSheet({
                   <LfText variant="caption">{remainingLabel}</LfText>
                 </View>
               ) : (
-                <LfText variant="caption" align="center">{MOD_02_LABEL.atCapacity}</LfText>
+                <LfText variant="caption" align="center">{LABEL.atCapacity}</LfText>
               )}
-              <LfText variant="caption" align="center">{MOD_02_LABEL.hint}</LfText>
+              <LfText variant="caption" align="center">{LABEL.hint}</LfText>
               {actionError ? (
-                <LfText variant="caption" align="center">{MOD_02_LABEL.shareError}</LfText>
+                <LfText variant="caption" align="center">{LABEL.shareError}</LfText>
               ) : null}
               <LfButton
                 testID="witness-invite-button"
-                label={MOD_02_LABEL.invite}
+                label={LABEL.invite}
                 variant="kakao"
                 block
                 disabled={busy || atCapacity}

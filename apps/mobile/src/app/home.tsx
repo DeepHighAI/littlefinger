@@ -1,5 +1,5 @@
 import {
-  PROMISE_STATUS_LABEL,
+  PROMISE_STATUS_LABEL_BY_LOCALE,
   ddayFrom,
   formatDday,
   formatKstDate,
@@ -32,11 +32,12 @@ import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
 import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
+import { useLabels } from '../lib/locale-native';
 import {
   createInitialHomeState,
   promiseHomeReducer,
 } from '../screens/scr-a02-home-state.ts';
-import { SCR_A02_LABEL as HOME_LABEL } from '../screens/scr-a02-labels.ts';
+import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
 import { colors, gutter, size, space } from '../theme/tokens';
 
 const TABS: readonly PromiseHomeTab[] = ['ACTIVE', 'WAITING', 'COMPLETED'];
@@ -74,10 +75,14 @@ const styles = StyleSheet.create({
   listFooter: { gap: space[5] },
 });
 
-function tabLabel(tab: PromiseHomeTab, count: number): string {
-  if (tab === 'ACTIVE') return HOME_LABEL.activeTab(count);
-  if (tab === 'WAITING') return HOME_LABEL.waitingTab(count);
-  return HOME_LABEL.completedTab(count);
+function tabLabel(
+  labels: (typeof SCR_A02_LABEL)['ko'],
+  tab: PromiseHomeTab,
+  count: number,
+): string {
+  if (tab === 'ACTIVE') return labels.activeTab(count);
+  if (tab === 'WAITING') return labels.waitingTab(count);
+  return labels.completedTab(count);
 }
 
 function statusTone(status: PromiseHomeCard['status']): LfChipTone {
@@ -107,13 +112,15 @@ function PromiseCard({
   onDelete,
   pinned = false,
 }: HomeCardProps): React.JSX.Element {
-  const partnerName = item.partner?.nickname ?? HOME_LABEL.partnerFallback;
+  const LABEL = useLabels(SCR_A02_LABEL);
+  const STATUS_LABEL = useLabels(PROMISE_STATUS_LABEL_BY_LOCALE);
+  const partnerName = item.partner?.nickname ?? LABEL.partnerFallback;
   const other = counterpart(item);
   const content = (
     <LfCard variant={pinned ? 'container' : 'default'}>
       <View style={styles.cardBody}>
         <LfRow gap={4}>
-          <LfChip label={PROMISE_STATUS_LABEL[item.status]} tone={statusTone(item.status)} />
+          <LfChip label={STATUS_LABEL[item.status]} tone={statusTone(item.status)} />
           {item.end_date !== null && (
             <LfText variant={pinned ? 'containerAccent' : 'sectionTitle'}>
               {formatDday(ddayFrom(item.end_date, now))}
@@ -122,26 +129,26 @@ function PromiseCard({
         </LfRow>
         <LfText variant="subtitle">{item.title}</LfText>
         {item.end_date !== null && (
-          <LfText secondary>{HOME_LABEL.endDate(formatKstDate(item.end_date))}</LfText>
+          <LfText secondary>{LABEL.endDate(formatKstDate(item.end_date))}</LfText>
         )}
         <LfRow gap={3}>
           <LfAvatar
             nickname={other.nickname}
             profileImageUrl={other.profile_image_url}
-            accessibilityLabel={HOME_LABEL.profileImage(other.nickname)}
+            accessibilityLabel={LABEL.profileImage(other.nickname)}
           />
           <View style={styles.partyText}>
             <LfText secondary>
-              {HOME_LABEL.parties(item.creator.nickname, partnerName)}
+              {LABEL.parties(item.creator.nickname, partnerName)}
             </LfText>
           </View>
-          {item.has_witness && <LfChip label={HOME_LABEL.witness} tone="neutral" />}
+          {item.has_witness && <LfChip label={LABEL.witness} tone="neutral" />}
         </LfRow>
         {item.status === 'CHECKING' && item.needs_response && (
           <LfStack gap={3}>
-            <LfText variant="sectionTitle">{HOME_LABEL.needsResponse}</LfText>
+            <LfText variant="sectionTitle">{LABEL.needsResponse}</LfText>
             <LfButton
-              label={HOME_LABEL.answerFulfillment}
+              label={LABEL.answerFulfillment}
               onPress={() => onOpen(item)}
               block
             />
@@ -149,8 +156,8 @@ function PromiseCard({
         )}
         {item.status === 'DRAFT' && (
           <LfButton
-            accessibilityLabel={HOME_LABEL.deleteDraft(item.title)}
-            label={HOME_LABEL.delete}
+            accessibilityLabel={LABEL.deleteDraft(item.title)}
+            label={LABEL.delete}
             variant="text"
             onPress={() => onDelete(item)}
           />
@@ -164,7 +171,7 @@ function PromiseCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={HOME_LABEL.open(item.title)}
+      accessibilityLabel={LABEL.open(item.title)}
       onPress={() => onOpen(item)}
     >
       {content}
@@ -177,6 +184,7 @@ export interface HomeScreenProps {
 }
 
 export default function HomeScreen({ now = new Date() }: HomeScreenProps): React.JSX.Element {
+  const LABEL = useLabels(SCR_A02_LABEL);
   const router = useRouter();
   const [state, dispatch] = useReducer(promiseHomeReducer, undefined, createInitialHomeState);
   const [adsEnabled, setAdsEnabled] = useState(false);
@@ -284,15 +292,15 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
   }, []);
 
   const confirmDelete = useCallback((item: PromiseHomeCard) => {
-    Alert.alert(HOME_LABEL.deleteFirstTitle, HOME_LABEL.deleteFirstBody, [
-      { text: HOME_LABEL.cancel, style: 'cancel' },
+    Alert.alert(LABEL.deleteFirstTitle, LABEL.deleteFirstBody, [
+      { text: LABEL.cancel, style: 'cancel' },
       {
-        text: HOME_LABEL.deleteContinue,
+        text: LABEL.deleteContinue,
         onPress: () => {
-          Alert.alert(HOME_LABEL.deleteFinalTitle, HOME_LABEL.deleteFinalBody, [
-            { text: HOME_LABEL.cancel, style: 'cancel' },
+          Alert.alert(LABEL.deleteFinalTitle, LABEL.deleteFinalBody, [
+            { text: LABEL.cancel, style: 'cancel' },
             {
-              text: HOME_LABEL.delete,
+              text: LABEL.delete,
               style: 'destructive',
               onPress: async () => await removeDraft(item),
             },
@@ -300,7 +308,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
         },
       },
     ]);
-  }, [removeDraft]);
+  }, [LABEL, removeDraft]);
 
   const renderCard = useCallback(
     ({ item }: { item: PromiseHomeCard }) => (
@@ -311,7 +319,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
 
   const pinnedHeader = state.selectedTab === 'ACTIVE' && selected.pinned.length > 0 ? (
     <View style={styles.pinned}>
-      <LfText variant="sectionTitle">{HOME_LABEL.pinnedTitle}</LfText>
+      <LfText variant="sectionTitle">{LABEL.pinnedTitle}</LfText>
       {selected.pinned.map((item) => (
         <PromiseCard
           key={item.promise_id}
@@ -328,13 +336,13 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
   const pageFooter = selected.pagePending || selected.pageFailed ? (
     <View style={styles.footer}>
       {selected.pagePending ? (
-        <LfText align="center" secondary>{HOME_LABEL.loading}</LfText>
+        <LfText align="center" secondary>{LABEL.loading}</LfText>
       ) : (
         <LfStack gap={3} center>
-          <LfText secondary>{HOME_LABEL.pageError}</LfText>
+          <LfText secondary>{LABEL.pageError}</LfText>
           <LfButton
-            accessibilityLabel={HOME_LABEL.retryPageAccessibility}
-            label={HOME_LABEL.retry}
+            accessibilityLabel={LABEL.retryPageAccessibility}
+            label={LABEL.retry}
             variant="text"
             onPress={() => void loadNextPage(state.selectedTab)}
           />
@@ -353,13 +361,13 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
   return (
     <SafeAreaView style={styles.screen}>
       <LfAppBar
-        title={HOME_LABEL.brand}
+        title={LABEL.brand}
         brand
         action={(
           <LfRow gap={1}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={HOME_LABEL.notifications}
+              accessibilityLabel={LABEL.notifications}
               style={styles.appBarAction}
               onPress={() => router.push('/notifications')}
             >
@@ -367,7 +375,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={HOME_LABEL.profile}
+              accessibilityLabel={LABEL.profile}
               style={styles.appBarAction}
               onPress={() => router.push('/profile')}
             >
@@ -379,7 +387,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
       <View accessibilityRole="tablist" style={styles.tabs}>
         {TABS.map((tab) => {
           const selectedTab = state.selectedTab === tab;
-          const label = tabLabel(tab, state.counts[tab]);
+          const label = tabLabel(LABEL, tab, state.counts[tab]);
           return (
             <Pressable
               key={tab}
@@ -397,14 +405,14 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
       <View style={styles.body}>
         {selected.loading || selected.items === null ? (
           <View style={styles.centered}>
-            <LfText secondary>{HOME_LABEL.loading}</LfText>
+            <LfText secondary>{LABEL.loading}</LfText>
           </View>
         ) : selected.loadFailed && selected.items.length === 0 && selected.pinned.length === 0 ? (
           <LfStack grow center gap={4}>
-            <LfText secondary align="center">{HOME_LABEL.loadError}</LfText>
+            <LfText secondary align="center">{LABEL.loadError}</LfText>
             <LfButton
-              accessibilityLabel={HOME_LABEL.retryListAccessibility}
-              label={HOME_LABEL.retry}
+              accessibilityLabel={LABEL.retryListAccessibility}
+              label={LABEL.retry}
               variant="text"
               onPress={() => void loadFirstPage(state.selectedTab, false)}
             />
@@ -419,7 +427,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
             contentContainerStyle={styles.content}
             ListHeaderComponent={pinnedHeader}
             ListEmptyComponent={selected.pinned.length === 0 ? (
-              <LfEmpty title={HOME_LABEL.empty} description={HOME_LABEL.emptyDescription} />
+              <LfEmpty title={LABEL.empty} description={LABEL.emptyDescription} />
             ) : null}
             ListFooterComponent={listFooter}
             onEndReached={() => void loadNextPage(state.selectedTab)}
@@ -433,7 +441,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
           />
         )}
       </View>
-      <LfFab label={HOME_LABEL.create} onPress={() => router.push('/promise/edit')} />
+      <LfFab label={LABEL.create} onPress={() => router.push('/promise/edit')} />
     </SafeAreaView>
   );
 }

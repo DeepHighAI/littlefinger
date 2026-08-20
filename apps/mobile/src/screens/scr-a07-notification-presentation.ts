@@ -1,6 +1,7 @@
 import {
   formatKstDateTime,
   toKstDate,
+  type Locale,
   type NotificationInboxItem,
   type NotificationEvent,
 } from '@littlefinger/shared';
@@ -60,45 +61,29 @@ const NOTIFICATION_EVENT_SEMANTIC_TYPE: Record<
   'NT-21': 'REMINDER',
 };
 
+// 라벨은 로케일에 따라 호출 시점에 고르므로 아이콘·톤만 정적 표에 남긴다.
 const NOTIFICATION_SEMANTIC_APPEARANCE: Record<
   NotificationSemanticType,
-  Omit<NotificationAppearance, 'semanticType'>
+  Omit<NotificationAppearance, 'semanticType' | 'label'>
 > = {
-  CONFIRMATION: {
-    icon: 'pinky',
-    tone: 'accent',
-    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.CONFIRMATION,
-  },
-  APPROVAL: {
-    icon: 'person-off',
-    tone: 'default',
-    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.APPROVAL,
-  },
-  AMEND: {
-    icon: 'sync-alt',
-    tone: 'default',
-    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.AMEND,
-  },
-  REMINDER: {
-    icon: 'alarm',
-    tone: 'default',
-    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.REMINDER,
-  },
-  FULFILLMENT: {
-    icon: 'notification-important',
-    tone: 'urgent',
-    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.FULFILLMENT,
-  },
-  RESULT: {
-    icon: 'fact-check',
-    tone: 'default',
-    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL.RESULT,
-  },
+  CONFIRMATION: { icon: 'pinky', tone: 'accent' },
+  APPROVAL: { icon: 'person-off', tone: 'default' },
+  AMEND: { icon: 'sync-alt', tone: 'default' },
+  REMINDER: { icon: 'alarm', tone: 'default' },
+  FULFILLMENT: { icon: 'notification-important', tone: 'urgent' },
+  RESULT: { icon: 'fact-check', tone: 'default' },
 };
 
-export function notificationAppearance(event: NotificationEvent): NotificationAppearance {
+export function notificationAppearance(
+  event: NotificationEvent,
+  locale: Locale = 'ko',
+): NotificationAppearance {
   const semanticType = NOTIFICATION_EVENT_SEMANTIC_TYPE[event];
-  return { semanticType, ...NOTIFICATION_SEMANTIC_APPEARANCE[semanticType] };
+  return {
+    semanticType,
+    ...NOTIFICATION_SEMANTIC_APPEARANCE[semanticType],
+    label: SCR_A07_NOTIFICATION_SEMANTIC_LABEL[locale][semanticType],
+  };
 }
 
 export interface NotificationSection {
@@ -112,43 +97,50 @@ function kstDateParts(instant: Date): { month: string; day: string; time: string
   return { month: String(Number(month)), day: String(Number(day)), time: time ?? '' };
 }
 
-function sectionTitle(createdAt: Date, now: Date): string {
+function sectionTitle(createdAt: Date, now: Date, locale: Locale): string {
+  const labels = SCR_A07_LABEL[locale];
   const createdDate = toKstDate(createdAt);
   const today = toKstDate(now);
-  if (createdDate === today) return SCR_A07_LABEL.today;
+  if (createdDate === today) return labels.today;
 
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1_000);
-  if (createdDate === toKstDate(yesterday)) return SCR_A07_LABEL.yesterday;
+  if (createdDate === toKstDate(yesterday)) return labels.yesterday;
 
   const { month, day } = kstDateParts(createdAt);
-  return SCR_A07_LABEL.earlierDate(month, day);
+  return labels.earlierDate(month, day);
 }
 
-export function notificationTimeLabel(createdAt: string, now: Date): string {
+export function notificationTimeLabel(
+  createdAt: string,
+  now: Date,
+  locale: Locale = 'ko',
+): string {
+  const labels = SCR_A07_LABEL[locale];
   const created = new Date(createdAt);
-  const title = sectionTitle(created, now);
+  const title = sectionTitle(created, now, locale);
   const elapsedMinutes = Math.floor((now.getTime() - created.getTime()) / (60 * 1_000));
-  if (title === SCR_A07_LABEL.today) {
-    if (elapsedMinutes < 1) return SCR_A07_LABEL.justNow;
-    if (elapsedMinutes < 60) return SCR_A07_LABEL.minutesAgo(elapsedMinutes);
-    return SCR_A07_LABEL.hoursAgo(Math.floor(elapsedMinutes / 60));
+  if (title === labels.today) {
+    if (elapsedMinutes < 1) return labels.justNow;
+    if (elapsedMinutes < 60) return labels.minutesAgo(elapsedMinutes);
+    return labels.hoursAgo(Math.floor(elapsedMinutes / 60));
   }
 
   const { time } = kstDateParts(created);
-  return title === SCR_A07_LABEL.yesterday
-    ? SCR_A07_LABEL.yesterdayTime(time)
-    : SCR_A07_LABEL.earlierTime(title, time);
+  return title === labels.yesterday
+    ? labels.yesterdayTime(time)
+    : labels.earlierTime(title, time);
 }
 
 export function notificationSections(
   items: readonly NotificationInboxItem[],
   now: Date,
+  locale: Locale = 'ko',
 ): readonly NotificationSection[] {
   const sections = new Map<string, NotificationInboxItem[]>();
   [...items]
     .sort((left, right) => Date.parse(right.created_at) - Date.parse(left.created_at))
     .forEach((item) => {
-      const title = sectionTitle(new Date(item.created_at), now);
+      const title = sectionTitle(new Date(item.created_at), now, locale);
       const section = sections.get(title);
       if (section === undefined) sections.set(title, [item]);
       else section.push(item);

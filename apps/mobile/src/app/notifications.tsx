@@ -16,6 +16,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '../lib/notification-inbox-native.ts';
+import { useLabels, useLocale } from '../lib/locale-native';
 import {
   routeForNotificationDeeplink,
 } from '../lib/push-navigation.ts';
@@ -139,6 +140,8 @@ function iconFor(item: NotificationInboxItem): React.JSX.Element {
 }
 
 export default function NotificationInboxScreen(): React.JSX.Element {
+  const LABEL = useLabels(SCR_A07_LABEL);
+  const { locale } = useLocale();
   const router = useRouter();
   const [state, dispatch] = useReducer(
     notificationInboxReducer,
@@ -250,7 +253,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
     <View style={styles.headerActions}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={SCR_A07_LABEL.refresh}
+        accessibilityLabel={LABEL.refresh}
         onPress={() => void refresh()}
         style={styles.headerAction}
       >
@@ -258,11 +261,11 @@ export default function NotificationInboxScreen(): React.JSX.Element {
       </Pressable>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={SCR_A07_LABEL.readAll}
+        accessibilityLabel={LABEL.readAll}
         onPress={readAll}
         style={styles.readAll}
       >
-        <Text style={styles.readAllText}>{SCR_A07_LABEL.readAll}</Text>
+        <Text style={styles.readAllText}>{LABEL.readAll}</Text>
       </Pressable>
     </View>
   );
@@ -270,11 +273,11 @@ export default function NotificationInboxScreen(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.screen}>
       <LfAppBar
-        title={SCR_A07_LABEL.title}
+        title={LABEL.title}
         leading={
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={SCR_A07_LABEL.back}
+            accessibilityLabel={LABEL.back}
             onPress={() => router.back()}
             style={styles.back}
           >
@@ -285,37 +288,37 @@ export default function NotificationInboxScreen(): React.JSX.Element {
       />
       {items === null ? (
         <View style={styles.centered}>
-          <LfText secondary>{SCR_A07_LABEL.loading}</LfText>
+          <LfText secondary>{LABEL.loading}</LfText>
         </View>
       ) : loadFailed && items.length === 0 ? (
         <View style={styles.centered}>
           <LfText secondary align="center">
-            {SCR_A07_LABEL.loadError}
+            {LABEL.loadError}
           </LfText>
-          <LfButton label={SCR_A07_LABEL.retry} variant="outlined" onPress={() => void refresh()} />
+          <LfButton label={LABEL.retry} variant="outlined" onPress={() => void refresh()} />
         </View>
       ) : items.length === 0 ? (
-        <LfEmpty title={SCR_A07_LABEL.empty} description={SCR_A07_LABEL.emptyDescription} />
+        <LfEmpty title={LABEL.empty} description={LABEL.emptyDescription} />
       ) : (
         <ScrollView contentContainerStyle={styles.body}>
           {loadFailed && (
             <LfText secondary align="center">
-              {SCR_A07_LABEL.loadError}
+              {LABEL.loadError}
             </LfText>
           )}
-          {notificationSections(items, now).map((section) => (
+          {notificationSections(items, now, locale).map((section) => (
             <View key={section.title} style={styles.section}>
               <LfText variant="sectionTitle">{section.title}</LfText>
               <View style={styles.list}>
                 {section.items.map((item) => {
                   const unread = isNotificationUnread(state, item);
-                  const timeLabel = notificationTimeLabel(item.created_at, now);
+                  const timeLabel = notificationTimeLabel(item.created_at, now, locale);
                   return (
                     <Pressable
                       key={item.notification_id}
                       testID={`notification-${item.notification_id}`}
                       accessibilityRole="button"
-                      accessibilityLabel={SCR_A07_LABEL.item(
+                      accessibilityLabel={LABEL.item(
                         item.title,
                         item.body,
                         timeLabel,
@@ -340,7 +343,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
                             testID={`notification-unread-${item.notification_id}`}
                             variant="caption"
                           >
-                            {SCR_A07_LABEL.unread}
+                            {LABEL.unread}
                           </LfText>
                         )}
                       </View>
@@ -355,12 +358,12 @@ export default function NotificationInboxScreen(): React.JSX.Element {
             <View style={styles.pageAction}>
               {state.pageLoadFailed && (
                 <LfText secondary align="center">
-                  {SCR_A07_LABEL.pageLoadError}
+                  {LABEL.pageLoadError}
                 </LfText>
               )}
               <LfButton
                 label={
-                  state.pageLoadPending ? SCR_A07_LABEL.loadingMore : SCR_A07_LABEL.loadMore
+                  state.pageLoadPending ? LABEL.loadingMore : LABEL.loadMore
                 }
                 variant="outlined"
                 block

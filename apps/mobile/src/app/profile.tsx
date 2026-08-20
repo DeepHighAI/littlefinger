@@ -22,13 +22,14 @@ import { LfSwitch } from '../components/LfSwitch';
 import { LfText } from '../components/LfText';
 import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
+import { useLabels } from '../lib/locale-native';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
 import {
   loadTrustProfile,
   logoutCurrentDeviceNative,
   updateTrustProfileSettings,
 } from '../lib/trust-profile-native.ts';
-import { SCR_A08_LABEL as LABEL } from '../screens/scr-a08-labels.ts';
+import { SCR_A08_LABEL } from '../screens/scr-a08-labels.ts';
 import {
   createInitialProfileState,
   profileReducer,
@@ -93,6 +94,7 @@ function ReminderRow({ label, value, disabled, onChange }: ReminderRowProps): Re
 }
 
 export default function ProfileScreen(): React.JSX.Element {
+  const LABEL = useLabels(SCR_A08_LABEL);
   const router = useRouter();
   const [state, dispatch] = useReducer(profileReducer, undefined, createInitialProfileState);
   const nextLoadId = useRef(0);
@@ -137,7 +139,7 @@ export default function ProfileScreen(): React.JSX.Element {
         { text: LABEL.cancel, style: 'cancel' as const },
       ],
     );
-  }, [save, state.displayedReminders, state.saving]);
+  }, [LABEL, save, state.displayedReminders, state.saving]);
 
   const confirmLogout = useCallback(() => {
     Alert.alert(LABEL.logoutTitle, LABEL.logoutBody, [
@@ -155,7 +157,7 @@ export default function ProfileScreen(): React.JSX.Element {
         },
       },
     ]);
-  }, []);
+  }, [LABEL]);
 
   const confirmWithdraw = useCallback((activeCount: number) => {
     setWithdrawFailed(false);
@@ -181,7 +183,7 @@ export default function ProfileScreen(): React.JSX.Element {
         ]),
       },
     ]);
-  }, []);
+  }, [LABEL]);
 
   const body = state.loading || (state.profile === null && !state.loadFailed) ? (
     <View style={styles.centered}><LfText secondary>{LABEL.loading}</LfText></View>
