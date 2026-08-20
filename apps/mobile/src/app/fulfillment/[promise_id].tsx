@@ -149,6 +149,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // 제거 버튼과 좌우 대칭인 좌상단 자리. left/right 를 동시에 주면 버튼이 늘어나므로
+  // 우측 기준 오프셋 하나로 계산한다.
+  evidenceRetryOffset: {
+    right: size.evidenceThumb - size.touchMin + space[3],
+  },
   evidenceStatus: {
     position: 'absolute',
     left: space[1],
@@ -359,26 +364,25 @@ function LocalEvidenceTile({
           </LfText>
         </View>
       </View>
-      {upload.status === 'FAILED' ? (
+      {upload.status === 'FAILED' && (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={SCR_A06_LABEL.evidenceRetry}
           onPress={onRetry}
-          style={styles.evidenceRemove}
+          style={[styles.evidenceRemove, styles.evidenceRetryOffset]}
         >
           <LfIcon name="refresh" color="onPrimary" />
         </Pressable>
-      ) : (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={SCR_A06_LABEL.evidenceRemove(upload.local_id)}
-          disabled={upload.status === 'UPLOADING'}
-          onPress={onRemove}
-          style={styles.evidenceRemove}
-        >
-          <LfIcon name="close" color="onPrimary" />
-        </Pressable>
       )}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={SCR_A06_LABEL.evidenceRemove(upload.local_id)}
+        disabled={upload.status === 'UPLOADING'}
+        onPress={onRemove}
+        style={styles.evidenceRemove}
+      >
+        <LfIcon name="close" color="onPrimary" />
+      </Pressable>
     </View>
   );
 }

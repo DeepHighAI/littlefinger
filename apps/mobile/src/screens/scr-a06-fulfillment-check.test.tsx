@@ -622,6 +622,42 @@ describe('SCR-A06 이행 확인', () => {
     );
   });
 
+  test('FAILED 타일은 재시도와 제거를 함께 보여주고 제거는 서버 호출 없이 타일을 지운다', async () => {
+    pickEvidenceMock.mockResolvedValue({
+      status: 'SELECTED',
+      assets: [
+        {
+          uri: 'file:///fail.jpg',
+          file_name: 'fail.jpg',
+          mime: 'image/jpeg',
+          bytes: 1024,
+        },
+      ],
+    });
+    createKeyMock.mockReturnValue('11111111-1111-4111-8111-111111111111');
+    uploadEvidenceMock.mockRejectedValue(new Error('network'));
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
+    await settle();
+
+    expect(
+      view.getByRole('button', { name: '사진 업로드 다시 시도' }),
+    ).toBeTruthy();
+    await fireEvent.press(
+      view.getByRole('button', {
+        name: '증빙 11111111-1111-4111-8111-111111111111 삭제',
+      }),
+    );
+    await settle();
+
+    expect(
+      view.queryByRole('button', { name: '사진 업로드 다시 시도' }),
+    ).toBeNull();
+    expect(discardEvidenceMock).not.toHaveBeenCalled();
+  });
+
   test('암호화 초안을 사용자·약속·라운드 기준으로 복원하고 제출 성공 시 지운다', async () => {
     loadEvidenceDraftMock.mockResolvedValue({
       answer: 'NOT_KEPT',
