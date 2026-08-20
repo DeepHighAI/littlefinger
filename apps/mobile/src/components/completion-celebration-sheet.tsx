@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 
+import { useLabels, useLocale } from '../lib/locale-native';
 import { MOD_03_LABEL } from '../screens/mod-03-completion-celebration-labels.ts';
 import {
   colors,
@@ -92,6 +93,8 @@ export function CompletionCelebrationSheet({
   onNewPromise,
   onShare,
 }: CompletionCelebrationSheetProps): React.JSX.Element {
+  const LABEL = useLabels(MOD_03_LABEL);
+  const { locale } = useLocale();
   const open = visible && celebration !== null;
   return (
     <Modal
@@ -119,7 +122,7 @@ export function CompletionCelebrationSheet({
             <View style={styles.handle} />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={MOD_03_LABEL.close}
+              accessibilityLabel={LABEL.close}
               style={styles.close}
               onPress={onClose}
             >
@@ -130,16 +133,16 @@ export function CompletionCelebrationSheet({
                 <LfPinky
                   size="xl"
                   tone="onContainer"
-                  accessibilityLabel={MOD_03_LABEL.pinky}
+                  accessibilityLabel={LABEL.pinky}
                   testID="completion-celebration-pinky"
                 />
-                <LfText variant="title" align="center">{MOD_03_LABEL.title}</LfText>
+                <LfText variant="title" align="center">{LABEL.title}</LfText>
                 <LfStack gap={2} center>
                   <LfText secondary align="center">
-                    {MOD_03_LABEL.complete(celebration.title)}
+                    {LABEL.complete(celebration.title)}
                   </LfText>
                   <LfText secondary align="center">
-                    {MOD_03_LABEL.highFive(celebration.counterpart_nickname)}
+                    {LABEL.highFive(celebration.counterpart_nickname)}
                   </LfText>
                 </LfStack>
                 <View style={styles.rate}>
@@ -148,19 +151,20 @@ export function CompletionCelebrationSheet({
                     {completionKeepRateLabel(
                       celebration.keep_rate_before,
                       celebration.keep_rate_after,
+                      locale,
                     )}
                   </LfText>
                 </View>
                 <View style={styles.actions}>
                   <LfStack gap={2}>
                     <LfButton
-                      label={MOD_03_LABEL.newPromise}
+                      label={LABEL.newPromise}
                       size="cta"
                       block
                       onPress={onNewPromise}
                     />
                     <LfButton
-                      label={MOD_03_LABEL.share}
+                      label={LABEL.share}
                       variant="text"
                       block
                       onPress={onShare}

@@ -1,8 +1,8 @@
 import {
-  KEEPER_LABEL,
-  PARTICIPANT_ROLE_LABEL,
-  PROMISE_CATEGORY_LABEL,
-  PROMISE_STATUS_LABEL,
+  KEEPER_LABEL_BY_LOCALE,
+  PARTICIPANT_ROLE_LABEL_BY_LOCALE,
+  PROMISE_CATEGORY_LABEL_BY_LOCALE,
+  PROMISE_STATUS_LABEL_BY_LOCALE,
   type CompletionCelebrationView,
   type EvidenceView,
   type FulfillmentCheckView,
@@ -54,6 +54,7 @@ import {
   reopenFulfillment,
   signFulfillmentEvidence,
 } from '../../lib/fulfillment-native.ts';
+import { useLabels, useLocale } from '../../lib/locale-native';
 import { MobileApiError } from '../../lib/mobile-api.ts';
 import {
   createPromiseAmendIdempotencyKey,
@@ -157,10 +158,11 @@ function promiseIdOf(value: string | string[] | undefined): string | null {
 }
 
 function BackButton({ onPress }: { onPress(): void }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A05_LABEL);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={SCR_A05_LABEL.back}
+      accessibilityLabel={LABEL.back}
       onPress={onPress}
       style={styles.back}
     >
@@ -176,9 +178,10 @@ function ScreenFrame({
   onBack(): void;
   children: React.ReactNode;
 }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A05_LABEL);
   return (
     <SafeAreaView style={styles.screen}>
-      <LfAppBar title={SCR_A05_LABEL.title} leading={<BackButton onPress={onBack} />} />
+      <LfAppBar title={LABEL.title} leading={<BackButton onPress={onBack} />} />
       {children}
     </SafeAreaView>
   );
@@ -196,16 +199,18 @@ function InfoRow({ label, value }: { label: string; value: string }): React.JSX.
 }
 
 function PersonRow({ person }: { person: PromiseDetailPerson }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A05_LABEL);
+  const { locale } = useLocale();
   return (
     <LfRow>
       <LfAvatar
         nickname={person.nickname}
         profileImageUrl={person.profile_image_url}
-        accessibilityLabel={SCR_A05_LABEL.profileImage(person.nickname)}
+        accessibilityLabel={LABEL.profileImage(person.nickname)}
       />
       <View style={styles.personText}>
         <LfText variant="subtitle">{person.nickname}</LfText>
-        <LfText variant="caption">{PARTICIPANT_ROLE_LABEL[person.role]}</LfText>
+        <LfText variant="caption">{PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][person.role]}</LfText>
       </View>
     </LfRow>
   );
@@ -218,7 +223,9 @@ function EvidenceTile({
   evidence: EvidenceView;
   onReport(evidenceId: string): void;
 }): React.JSX.Element {
-  const placeholder = evidenceAvailabilityText(evidence.availability);
+  const LABEL = useLabels(SCR_A05_LABEL);
+  const { locale } = useLocale();
+  const placeholder = evidenceAvailabilityText(evidence.availability, locale);
   if (placeholder !== null) {
     return (
       <View style={styles.evidence}>
@@ -230,7 +237,7 @@ function EvidenceTile({
     <View style={styles.evidenceGroup}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={SCR_A05_LABEL.evidenceOpen}
+        accessibilityLabel={LABEL.evidenceOpen}
         style={styles.evidence}
         onPress={async () => {
           try {
@@ -242,10 +249,10 @@ function EvidenceTile({
         }}
       >
         <LfIcon name="image" color="textMuted" />
-        <LfText variant="caption">{SCR_A05_LABEL.evidenceOpen}</LfText>
+        <LfText variant="caption">{LABEL.evidenceOpen}</LfText>
       </Pressable>
       <LfButton
-        label={SCR_A05_LABEL.evidenceReport}
+        label={LABEL.evidenceReport}
         variant="text"
         size="compact"
         onPress={() => onReport(evidence.evidence_id)}
@@ -263,7 +270,9 @@ function ClaimCard({
   nickname: string;
   onReportEvidence(evidenceId: string): void;
 }): React.JSX.Element {
-  const claim = claimPresentation(check, nickname);
+  const LABEL = useLabels(SCR_A05_LABEL);
+  const { locale } = useLocale();
+  const claim = claimPresentation(check, nickname, locale);
   return (
     <LfCard testID={`detail-claim-${check.role}`}>
       <View style={styles.claim}>
@@ -271,7 +280,7 @@ function ClaimCard({
         <LfChip label={claim.answer} tone="neutral" />
         <LfText align="center">
           {check.comment === null || check.comment.length === 0
-            ? SCR_A05_LABEL.noComment
+            ? LABEL.noComment
             : check.comment}
         </LfText>
         <LfText variant="caption">{claim.submittedAt}</LfText>
@@ -299,15 +308,17 @@ function ChangedVersionSection({
   before: PromiseDetailVersion;
   after: PromiseDetailVersion;
 }): React.JSX.Element {
-  const rows = changedVersionRows(before, after);
+  const LABEL = useLabels(SCR_A05_LABEL);
+  const { locale } = useLocale();
+  const rows = changedVersionRows(before, after, locale);
   return (
     <View style={styles.compare}>
       {rows.map((row) => (
         <LfCard key={row.field}>
           <View style={styles.changePair}>
-            <LfText variant="caption">{SCR_A05_LABEL.changedBefore(row.label)}</LfText>
+            <LfText variant="caption">{LABEL.changedBefore(row.label)}</LfText>
             <LfText>{row.before}</LfText>
-            <LfText variant="caption">{SCR_A05_LABEL.changedAfter(row.label)}</LfText>
+            <LfText variant="caption">{LABEL.changedAfter(row.label)}</LfText>
             <LfText>{row.after}</LfText>
           </View>
         </LfCard>
@@ -328,50 +339,52 @@ function VersionHistorySheet({
   };
   onClose(): void;
 }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A05_LABEL);
+  const { locale } = useLocale();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.historyScrim}>
         <View style={styles.historySheet} accessibilityViewIsModal>
           <LfStack gap={5}>
-            <LfText variant="title">{SCR_A05_LABEL.versionHistoryTitle}</LfText>
+            <LfText variant="title">{LABEL.versionHistoryTitle}</LfText>
             {state.phase === 'loading' || state.phase === 'idle' ? (
-              <LfText>{SCR_A05_LABEL.versionHistoryLoading}</LfText>
+              <LfText>{LABEL.versionHistoryLoading}</LfText>
             ) : null}
-            {state.phase === 'error' ? <LfText>{SCR_A05_LABEL.loadError}</LfText> : null}
+            {state.phase === 'error' ? <LfText>{LABEL.loadError}</LfText> : null}
             {state.phase === 'ready' ? (
               <ScrollView contentContainerStyle={styles.historyContent}>
                 {state.value.versions.length === 0 ? (
-                  <LfText>{SCR_A05_LABEL.versionHistoryEmpty}</LfText>
+                  <LfText>{LABEL.versionHistoryEmpty}</LfText>
                 ) : state.value.versions.map((item) => (
                   <LfCard key={item.version.version_no}>
                     <LfStack gap={3}>
-                      <LfText variant="sectionTitle">{SCR_A05_LABEL.version(item.version.version_no)}</LfText>
+                      <LfText variant="sectionTitle">{LABEL.version(item.version.version_no)}</LfText>
                       <LfText variant="subtitle">{item.version.title}</LfText>
                       <LfText>{item.version.body}</LfText>
-                      <InfoRow label={SCR_A05_LABEL.category} value={PROMISE_CATEGORY_LABEL[item.version.category]} />
-                      <InfoRow label={SCR_A05_LABEL.endDate} value={formatDetailDate(item.version.end_date)} />
-                      <InfoRow label={SCR_A05_LABEL.keeper} value={KEEPER_LABEL[item.version.keeper]} />
-                      <InfoRow label={SCR_A05_LABEL.reward} value={item.version.reward ?? SCR_A05_LABEL.noReward} />
-                      <InfoRow label={SCR_A05_LABEL.penalty} value={item.version.penalty ?? SCR_A05_LABEL.noPenalty} />
-                      <LfText variant="caption">{SCR_A05_LABEL.contentHash}</LfText>
+                      <InfoRow label={LABEL.category} value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][item.version.category]} />
+                      <InfoRow label={LABEL.endDate} value={formatDetailDate(item.version.end_date, locale)} />
+                      <InfoRow label={LABEL.keeper} value={KEEPER_LABEL_BY_LOCALE[locale][item.version.keeper]} />
+                      <InfoRow label={LABEL.reward} value={item.version.reward ?? LABEL.noReward} />
+                      <InfoRow label={LABEL.penalty} value={item.version.penalty ?? LABEL.noPenalty} />
+                      <LfText variant="caption">{LABEL.contentHash}</LfText>
                       <LfText>{item.version.content_hash.slice(0, 8)}</LfText>
                       {item.version.activated_at !== null ? (
-                        <InfoRow label={SCR_A05_LABEL.versionActivated} value={formatDetailInstant(item.version.activated_at)} />
+                        <InfoRow label={LABEL.versionActivated} value={formatDetailInstant(item.version.activated_at)} />
                       ) : null}
                       {item.version.superseded_at !== null ? (
-                        <InfoRow label={SCR_A05_LABEL.versionSuperseded} value={formatDetailInstant(item.version.superseded_at)} />
+                        <InfoRow label={LABEL.versionSuperseded} value={formatDetailInstant(item.version.superseded_at)} />
                       ) : null}
                       {item.change_requester !== null ? (
-                        <InfoRow label={SCR_A05_LABEL.versionRequester} value={item.change_requester.nickname} />
+                        <InfoRow label={LABEL.versionRequester} value={item.change_requester.nickname} />
                       ) : null}
                       {item.approved_by !== null ? (
-                        <InfoRow label={SCR_A05_LABEL.versionApprover} value={item.approved_by.nickname} />
+                        <InfoRow label={LABEL.versionApprover} value={item.approved_by.nickname} />
                       ) : null}
                       {item.approved_at !== null ? (
-                        <InfoRow label={SCR_A05_LABEL.versionApproved} value={formatDetailInstant(item.approved_at)} />
+                        <InfoRow label={LABEL.versionApproved} value={formatDetailInstant(item.approved_at)} />
                       ) : null}
                       {item.change_reason !== null ? (
-                        <InfoRow label={SCR_A05_LABEL.versionReason} value={item.change_reason} />
+                        <InfoRow label={LABEL.versionReason} value={item.change_reason} />
                       ) : null}
                     </LfStack>
                   </LfCard>
@@ -379,7 +392,7 @@ function VersionHistorySheet({
               </ScrollView>
             ) : null}
             <LfButton
-              label={SCR_A05_LABEL.versionHistoryClose}
+              label={LABEL.versionHistoryClose}
               variant="outlined"
               block
               onPress={onClose}
@@ -398,6 +411,8 @@ function FulfillmentSection({
   detail: PromiseDetailResponse;
   onReportEvidence(evidenceId: string): void;
 }): React.JSX.Element | null {
+  const LABEL = useLabels(SCR_A05_LABEL);
+  const { locale } = useLocale();
   const fulfillment = detail.fulfillment;
   if (fulfillment === null) return null;
   const checks = [fulfillment.creator_check, fulfillment.partner_check].filter(
@@ -405,16 +420,16 @@ function FulfillmentSection({
   );
   return (
     <LfStack gap={5}>
-      <LfText variant="sectionTitle">{SCR_A05_LABEL.fulfillment}</LfText>
+      <LfText variant="sectionTitle">{LABEL.fulfillment}</LfText>
       <LfCard variant="container">
         <LfStack gap={3}>
-          <LfText>{responseFact(detail.creator.nickname, fulfillment.creator_has_submitted)}</LfText>
+          <LfText>{responseFact(detail.creator.nickname, fulfillment.creator_has_submitted, locale)}</LfText>
           <LfText>
-            {responseFact(detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL.PARTNER, fulfillment.partner_has_submitted)}
+            {responseFact(detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].PARTNER, fulfillment.partner_has_submitted, locale)}
           </LfText>
           {detail.check_deadline_at !== null && (
             <InfoRow
-              label={SCR_A05_LABEL.checkDeadline}
+              label={LABEL.checkDeadline}
               value={formatDetailInstant(detail.check_deadline_at)}
             />
           )}
@@ -429,7 +444,7 @@ function FulfillmentSection({
               nickname={
                 check.role === 'CREATOR'
                   ? detail.creator.nickname
-                  : (detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL.PARTNER)
+                  : (detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].PARTNER)
               }
               onReportEvidence={onReportEvidence}
             />
@@ -438,10 +453,10 @@ function FulfillmentSection({
       )}
       {fulfillment.history.length > 0 && (
         <LfStack gap={4}>
-          <LfText variant="sectionTitle">{SCR_A05_LABEL.history}</LfText>
+          <LfText variant="sectionTitle">{LABEL.history}</LfText>
           {fulfillment.history.map((round) => (
             <LfStack key={round.round_no} gap={3}>
-              <LfText variant="caption">{SCR_A05_LABEL.round(round.round_no)}</LfText>
+              <LfText variant="caption">{LABEL.round(round.round_no)}</LfText>
               {[round.creator_check, round.partner_check]
                 .filter((check): check is FulfillmentCheckView => check !== null)
                 .map((check) => (
@@ -451,7 +466,7 @@ function FulfillmentSection({
                     nickname={
                       check.role === 'CREATOR'
                         ? detail.creator.nickname
-                        : (detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL.PARTNER)
+                        : (detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].PARTNER)
                     }
                     onReportEvidence={onReportEvidence}
                   />
@@ -465,6 +480,9 @@ function FulfillmentSection({
 }
 
 export default function PromiseDetailScreen(): React.JSX.Element {
+  const LABEL = useLabels(SCR_A05_LABEL);
+  const MOD01_LABEL = useLabels(MOD_01_LABEL);
+  const { locale } = useLocale();
   const router = useRouter();
   const params = useLocalSearchParams<{ promise_id?: string | string[] }>();
   const promiseId = promiseIdOf(params.promise_id);
@@ -546,23 +564,23 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   if (phase !== 'ready' || detail === null) {
     const label =
       phase === 'loading'
-        ? SCR_A05_LABEL.loading
+        ? LABEL.loading
         : phase === 'not-found'
-          ? SCR_A05_LABEL.notFound
-          : SCR_A05_LABEL.loadError;
+          ? LABEL.notFound
+          : LABEL.loadError;
     return (
       <ScreenFrame onBack={() => router.back()}>
         <View style={styles.centered}>
           <LfText align="center">{label}</LfText>
           {phase === 'error' && (
-            <LfButton label={SCR_A05_LABEL.retry} variant="outlined" onPress={() => void refresh()} />
+            <LfButton label={LABEL.retry} variant="outlined" onPress={() => void refresh()} />
           )}
         </View>
       </ScreenFrame>
     );
   }
 
-  const status = detailStatusOf(detail.status);
+  const status = detailStatusOf(detail.status, locale);
   const terminalReason =
     detail.status === 'DECLINED'
       ? (detail.approvals.find((approval) => approval.action === 'DECLINE')?.comment ?? null)
@@ -702,9 +720,9 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
   function confirmCancel(): Promise<boolean> {
     return new Promise((resolve) => {
-      Alert.alert(MOD_01_LABEL.cancelConfirmTitle, MOD_01_LABEL.cancelConfirmBody, [
-        { text: MOD_01_LABEL.cancelConfirmDismiss, style: 'cancel', onPress: () => resolve(false) },
-        { text: MOD_01_LABEL.cancelConfirmAction, style: 'destructive', onPress: () => resolve(true) },
+      Alert.alert(MOD01_LABEL.cancelConfirmTitle, MOD01_LABEL.cancelConfirmBody, [
+        { text: MOD01_LABEL.cancelConfirmDismiss, style: 'cancel', onPress: () => resolve(false) },
+        { text: MOD01_LABEL.cancelConfirmAction, style: 'destructive', onPress: () => resolve(true) },
       ], { cancelable: false });
     });
   }
@@ -727,10 +745,10 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   function confirmBlock(): void {
     const target = counterpart;
     if (target === null || busy) return;
-    Alert.alert(SCR_A05_LABEL.userBlockTitle, SCR_A05_LABEL.userBlockBody, [
-      { text: SCR_A05_LABEL.cancel, style: 'cancel' },
+    Alert.alert(LABEL.userBlockTitle, LABEL.userBlockBody, [
+      { text: LABEL.cancel, style: 'cancel' },
       {
-        text: SCR_A05_LABEL.blockAction,
+        text: LABEL.blockAction,
         style: 'destructive',
         onPress: async () => {
           setBusy(true);
@@ -751,10 +769,10 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     const target = counterpart;
     const detailId = detail?.promise_id;
     if (target === null || detailId === undefined || busy) return;
-    Alert.alert(SCR_A05_LABEL.userReportTitle, SCR_A05_LABEL.userReportBody, [
-      { text: SCR_A05_LABEL.cancel, style: 'cancel' },
+    Alert.alert(LABEL.userReportTitle, LABEL.userReportBody, [
+      { text: LABEL.cancel, style: 'cancel' },
       {
-        text: SCR_A05_LABEL.reportAction,
+        text: LABEL.reportAction,
         style: 'destructive',
         onPress: async () => {
           setBusy(true);
@@ -780,10 +798,10 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   function confirmEvidenceReport(evidenceId: string): void {
     const detailId = detail?.promise_id;
     if (busy || detailId === undefined) return;
-    Alert.alert(SCR_A05_LABEL.evidenceReportTitle, SCR_A05_LABEL.evidenceReportBody, [
-      { text: SCR_A05_LABEL.cancel, style: 'cancel' },
+    Alert.alert(LABEL.evidenceReportTitle, LABEL.evidenceReportBody, [
+      { text: LABEL.cancel, style: 'cancel' },
       {
-        text: SCR_A05_LABEL.reportAction,
+        text: LABEL.reportAction,
         style: 'destructive',
         onPress: async () => {
           setBusy(true);
@@ -828,9 +846,9 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   function shareCelebration(): void {
     if (detail === null) return;
     void Share.share({
-      message: SCR_A05_LABEL.shareMessage(
+      message: LABEL.shareMessage(
         detail.title,
-        PROMISE_STATUS_LABEL.COMPLETED,
+        PROMISE_STATUS_LABEL_BY_LOCALE[locale].COMPLETED,
       ),
     });
   }
@@ -842,7 +860,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           <LfChip label={status.label} tone={status.tone} />
           <LfText variant="headline" align="center">{status.headline}</LfText>
           <LfText variant="caption" align="center">
-            {SCR_A05_LABEL.statusSubtitle[detail.status]}
+            {LABEL.statusSubtitle[detail.status]}
           </LfText>
         </View>
 
@@ -851,21 +869,21 @@ export default function PromiseDetailScreen(): React.JSX.Element {
             <LfText variant="title">{detail.title}</LfText>
             <LfText>{detail.body}</LfText>
             <LfRow>
-              <LfChip label={`${SCR_A05_LABEL.category} · ${PROMISE_CATEGORY_LABEL[detail.category]}`} />
-              <LfChip label={`${SCR_A05_LABEL.keeper} · ${KEEPER_LABEL[detail.keeper]}`} />
+              <LfChip label={`${LABEL.category} · ${PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category]}`} />
+              <LfChip label={`${LABEL.keeper} · ${KEEPER_LABEL_BY_LOCALE[locale][detail.keeper]}`} />
             </LfRow>
-            <InfoRow label={SCR_A05_LABEL.endDate} value={formatDetailDate(detail.end_date)} />
-            <InfoRow label={SCR_A05_LABEL.dday} value={formatDetailDday(detail.end_date, new Date())} />
+            <InfoRow label={LABEL.endDate} value={formatDetailDate(detail.end_date, locale)} />
+            <InfoRow label={LABEL.dday} value={formatDetailDday(detail.end_date, new Date())} />
           </View>
         </LfCard>
 
         <LfStack gap={4}>
-          <LfText variant="sectionTitle">{SCR_A05_LABEL.people}</LfText>
+          <LfText variant="sectionTitle">{LABEL.people}</LfText>
           <LfCard>
             <View style={styles.people}>
               <PersonRow person={detail.creator} />
               {detail.partner === null ? (
-                <LfText>{SCR_A05_LABEL.partnerPending}</LfText>
+                <LfText>{LABEL.partnerPending}</LfText>
               ) : (
                 <PersonRow person={detail.partner} />
               )}
@@ -875,21 +893,21 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         </LfStack>
 
         <LfStack gap={4}>
-          <LfText variant="sectionTitle">{SCR_A05_LABEL.reward}</LfText>
-          <LfCard variant="container"><LfText>{detail.reward ?? SCR_A05_LABEL.noReward}</LfText></LfCard>
-          <LfText variant="sectionTitle">{SCR_A05_LABEL.penalty}</LfText>
-          <LfCard><LfText>{detail.penalty ?? SCR_A05_LABEL.noPenalty}</LfText></LfCard>
+          <LfText variant="sectionTitle">{LABEL.reward}</LfText>
+          <LfCard variant="container"><LfText>{detail.reward ?? LABEL.noReward}</LfText></LfCard>
+          <LfText variant="sectionTitle">{LABEL.penalty}</LfText>
+          <LfCard><LfText>{detail.penalty ?? LABEL.noPenalty}</LfText></LfCard>
         </LfStack>
 
         {detail.status === 'PENDING' && detail.invitation !== null && (
           <LfCard variant="container">
             <View style={styles.info}>
               <InfoRow
-                label={SCR_A05_LABEL.invitation}
-                value={SCR_A05_LABEL.invitationStatus[detail.invitation.status]}
+                label={LABEL.invitation}
+                value={LABEL.invitationStatus[detail.invitation.status]}
               />
               <InfoRow
-                label={SCR_A05_LABEL.invitationExpires}
+                label={LABEL.invitationExpires}
                 value={formatDetailInstant(detail.invitation.expires_at)}
               />
             </View>
@@ -898,7 +916,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         {pendingAmend !== null && (
           <LfStack gap={4}>
-            <LfText variant="sectionTitle">{SCR_A05_LABEL.amend}</LfText>
+            <LfText variant="sectionTitle">{LABEL.amend}</LfText>
             {pendingAmend.type === 'AMEND' && pendingAmend.proposed_version !== null ? (
               <ChangedVersionSection
                 before={detail.current_version}
@@ -906,17 +924,17 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               />
             ) : (
               <LfCard variant="container">
-                <LfText>{SCR_A05_LABEL.cancelRequested(pendingAmend.requester.nickname)}</LfText>
+                <LfText>{LABEL.cancelRequested(pendingAmend.requester.nickname)}</LfText>
               </LfCard>
             )}
-            <InfoRow label={SCR_A05_LABEL.amendRequester} value={pendingAmend.requester.nickname} />
-            <InfoRow label={SCR_A05_LABEL.amendRequestedAt} value={formatDetailInstant(pendingAmend.created_at)} />
+            <InfoRow label={LABEL.amendRequester} value={pendingAmend.requester.nickname} />
+            <InfoRow label={LABEL.amendRequestedAt} value={formatDetailInstant(pendingAmend.created_at)} />
             {pendingAmend.reason !== null ? (
-              <InfoRow label={SCR_A05_LABEL.amendReason} value={pendingAmend.reason} />
+              <InfoRow label={LABEL.amendReason} value={pendingAmend.reason} />
             ) : null}
             {isAmendRequester ? (
               <LfButton
-                label={SCR_A05_LABEL.amendWithdrawAction}
+                label={LABEL.amendWithdrawAction}
                 variant="outlined"
                 block
                 disabled={busy}
@@ -927,14 +945,14 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               <LfRow>
                 <LfButton
                   label={pendingAmend.type === 'AMEND'
-                    ? SCR_A05_LABEL.amendApproveAction
-                    : SCR_A05_LABEL.cancelApproveAction}
+                    ? LABEL.amendApproveAction
+                    : LABEL.cancelApproveAction}
                   grow
                   disabled={busy}
                   onPress={() => void respondAmend('APPROVE')}
                 />
                 <LfButton
-                  label={SCR_A05_LABEL.amendDeclineAction}
+                  label={LABEL.amendDeclineAction}
                   variant="outlined"
                   grow
                   disabled={busy}
@@ -948,10 +966,10 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         <FulfillmentSection detail={detail} onReportEvidence={confirmEvidenceReport} />
 
         <LfStack gap={4}>
-          <LfText variant="sectionTitle">{SCR_A05_LABEL.record}</LfText>
+          <LfText variant="sectionTitle">{LABEL.record}</LfText>
           <LfCard variant="container">
             <View style={styles.info}>
-              <LfText variant="caption">{fingerprintText(detail.current_version.fingerprint)}</LfText>
+              <LfText variant="caption">{fingerprintText(detail.current_version.fingerprint, locale)}</LfText>
               {/* 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다
                   (PO 2026-08-20). 최초 확정 시각은 승인 이력에 그대로 남는다. */}
               {detail.current_version.activated_at !== null && (
@@ -961,12 +979,12 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           </LfCard>
           {detail.approvals.length > 0 && (
             <LfStack gap={3}>
-              <LfText variant="sectionTitle">{SCR_A05_LABEL.approvals}</LfText>
+              <LfText variant="sectionTitle">{LABEL.approvals}</LfText>
               {detail.approvals.map((approval, index) => (
                 <LfCard key={`${approval.acted_at}.${approval.role}.${index}`}>
                   <InfoRow
-                    label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL[approval.role]}`}
-                    value={SCR_A05_LABEL.approvalAction[approval.action]}
+                    label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]}`}
+                    value={LABEL.approvalAction[approval.action]}
                   />
                   <LfText variant="caption">{formatDetailInstant(approval.acted_at)}</LfText>
                   {approval.comment !== null && <LfText>{approval.comment}</LfText>}
@@ -977,7 +995,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           {detail.status === 'ACTIVE' && <LfDisclaimer />}
           {canShowVersionHistory ? (
             <LfButton
-              label={SCR_A05_LABEL.versionHistoryAction}
+              label={LABEL.versionHistoryAction}
               variant="outlined"
               block
               onPress={() => void openVersionHistory()}
@@ -990,7 +1008,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         <View style={styles.actions}>
           {canRequestAmend ? (
             <LfButton
-              label={SCR_A05_LABEL.amendRequestAction}
+              label={LABEL.amendRequestAction}
               variant="outlined"
               block
               disabled={busy}
@@ -1000,13 +1018,13 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           {canNotifyPartner ? (
             <LfCard variant="container">
               <LfStack gap={3}>
-                <LfText variant="caption">{SCR_A05_LABEL.notifyPartnerHint}</LfText>
+                <LfText variant="caption">{LABEL.notifyPartnerHint}</LfText>
                 <LfButton
-                  label={SCR_A05_LABEL.notifyPartnerAction}
+                  label={LABEL.notifyPartnerAction}
                   variant="outlined"
                   block
                   onPress={() => void Share.share({
-                    message: SCR_A05_LABEL.notifyPartnerMessage(
+                    message: LABEL.notifyPartnerMessage(
                       detail.title,
                       buildParticipantPromisesWebUrl(
                         process.env['EXPO_PUBLIC_WEB_BASE_URL'] ?? '',
@@ -1019,7 +1037,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           ) : null}
           {detail.status === 'PENDING' && (
             <LfButton
-              label={SCR_A05_LABEL.pendingAction}
+              label={LABEL.pendingAction}
               variant="outlined"
               block
               onPress={() => router.push({ pathname: '/invite', params: { promise_id: detail.promise_id } })}
@@ -1027,14 +1045,14 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           )}
           {detail.status === 'CHECKING' && (
             <LfButton
-              label={SCR_A05_LABEL.checkingAction}
+              label={LABEL.checkingAction}
               block
               onPress={() => router.push({ pathname: '/fulfillment/[promise_id]', params: { promise_id: detail.promise_id } })}
             />
           )}
           {detail.status === 'DISPUTED' && (
             <LfButton
-              label={SCR_A05_LABEL.disputedAction}
+              label={LABEL.disputedAction}
               block
               disabled={busy}
               onPress={() => void reopen()}
@@ -1043,20 +1061,20 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           {detail.status === 'COMPLETED' && (
             <LfRow>
               <LfButton
-                label={SCR_A05_LABEL.shareAction}
+                label={LABEL.shareAction}
                 variant="outlined"
                 grow
                 onPress={() =>
                   void Share.share({
-                    message: SCR_A05_LABEL.shareMessage(
+                    message: LABEL.shareMessage(
                       detail.title,
-                      PROMISE_STATUS_LABEL.COMPLETED,
+                      PROMISE_STATUS_LABEL_BY_LOCALE[locale].COMPLETED,
                     ),
                   })
                 }
               />
               <LfButton
-                label={SCR_A05_LABEL.newPromiseAction}
+                label={LABEL.newPromiseAction}
                 grow
                 onPress={() => router.push('/promise/edit')}
               />
@@ -1064,7 +1082,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           )}
           {canInviteWitness && (
             <LfButton
-              label={SCR_A05_LABEL.witnessInviteAction}
+              label={LABEL.witnessInviteAction}
               variant="tonal"
               block
               onPress={() => setWitnessSheetOpen(true)}
@@ -1072,7 +1090,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           )}
           {terminal && (
             <LfButton
-              label={SCR_A05_LABEL.hideAction}
+              label={LABEL.hideAction}
               variant="outlined"
               block
               disabled={busy}
@@ -1082,14 +1100,14 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           {counterpart !== null && (
             <LfRow>
               <LfButton
-                label={SCR_A05_LABEL.userReport}
+                label={LABEL.userReport}
                 variant="text"
                 grow
                 disabled={busy}
                 onPress={confirmUserReport}
               />
               <LfButton
-                label={SCR_A05_LABEL.userBlock}
+                label={LABEL.userBlock}
                 variant="danger"
                 grow
                 disabled={busy}
@@ -1097,7 +1115,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               />
             </LfRow>
           )}
-          {actionError && <LfText variant="caption" align="center">{SCR_A05_LABEL.actionFailed}</LfText>}
+          {actionError && <LfText variant="caption" align="center">{LABEL.actionFailed}</LfText>}
         </View>
       </ScrollView>
       <WitnessInviteSheet

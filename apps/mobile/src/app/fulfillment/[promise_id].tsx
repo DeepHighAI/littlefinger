@@ -52,6 +52,7 @@ import {
   uploadFulfillmentEvidence,
   type PickedFulfillmentEvidence,
 } from '../../lib/fulfillment-native.ts';
+import { useLabels, useLocale } from '../../lib/locale-native';
 import { MobileApiError } from '../../lib/mobile-api.ts';
 import { SCR_A06_LABEL } from '../../screens/scr-a06-labels.ts';
 import {
@@ -183,10 +184,11 @@ function promiseIdOf(value: string | string[] | undefined): string | null {
 }
 
 function BackButton({ onPress }: { onPress(): void }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A06_LABEL);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={SCR_A06_LABEL.back}
+      accessibilityLabel={LABEL.back}
       onPress={onPress}
       style={styles.back}
     >
@@ -202,10 +204,11 @@ function ScreenFrame({
   onBack(): void;
   children: React.ReactNode;
 }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A06_LABEL);
   return (
     <SafeAreaView style={styles.screen}>
       <LfAppBar
-        title={SCR_A06_LABEL.title}
+        title={LABEL.title}
         leading={<BackButton onPress={onBack} />}
       />
       {children}
@@ -222,10 +225,11 @@ function AnswerChoice({
   selected: boolean;
   onPress(): void;
 }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A06_LABEL);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={SCR_A06_LABEL.answer[answer]}
+      accessibilityLabel={LABEL.answer[answer]}
       accessibilityState={{ selected }}
       onPress={onPress}
       style={[styles.answer, selected && styles.answerSelected]}
@@ -235,9 +239,9 @@ function AnswerChoice({
         color={selected ? 'primary' : 'textMuted'}
       />
       <View style={styles.answerText}>
-        <LfText variant="subtitle">{SCR_A06_LABEL.answer[answer]}</LfText>
+        <LfText variant="subtitle">{LABEL.answer[answer]}</LfText>
         <LfText variant="disclaimer">
-          {SCR_A06_LABEL.answerSubtitle[answer]}
+          {LABEL.answerSubtitle[answer]}
         </LfText>
       </View>
       <LfIcon
@@ -255,6 +259,7 @@ function EvidenceViewTile({
   evidence: EvidenceView;
   onRemove?: () => void;
 }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A06_LABEL);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
   const loadThumbnail = useCallback(async () => {
@@ -278,7 +283,7 @@ function EvidenceViewTile({
     return (
       <View style={[styles.evidenceTile, styles.evidencePlaceholder]}>
         <LfText variant="disclaimer" align="center">
-          {SCR_A06_LABEL.evidenceBlinded}
+          {LABEL.evidenceBlinded}
         </LfText>
       </View>
     );
@@ -287,7 +292,7 @@ function EvidenceViewTile({
     return (
       <View style={[styles.evidenceTile, styles.evidencePlaceholder]}>
         <LfText variant="disclaimer" align="center">
-          {SCR_A06_LABEL.evidenceExpired}
+          {LABEL.evidenceExpired}
         </LfText>
       </View>
     );
@@ -297,7 +302,7 @@ function EvidenceViewTile({
     <View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={SCR_A06_LABEL.evidenceOpen(evidence.evidence_id)}
+        accessibilityLabel={LABEL.evidenceOpen(evidence.evidence_id)}
         style={styles.evidenceTile}
         onPress={async () => {
           try {
@@ -326,7 +331,7 @@ function EvidenceViewTile({
       {onRemove !== undefined && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={SCR_A06_LABEL.evidenceRemove(evidence.evidence_id)}
+          accessibilityLabel={LABEL.evidenceRemove(evidence.evidence_id)}
           onPress={onRemove}
           style={styles.evidenceRemove}
         >
@@ -346,6 +351,7 @@ function LocalEvidenceTile({
   onRemove(): void;
   onRetry(): void;
 }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A06_LABEL);
   return (
     <View>
       <View style={styles.evidenceTile}>
@@ -357,17 +363,17 @@ function LocalEvidenceTile({
         <View style={styles.evidenceStatus}>
           <LfText variant="disclaimer" align="center">
             {upload.status === 'UPLOADING'
-              ? SCR_A06_LABEL.evidenceUploading
+              ? LABEL.evidenceUploading
               : upload.status === 'READY'
-                ? SCR_A06_LABEL.evidenceReady
-                : SCR_A06_LABEL.evidenceFailed}
+                ? LABEL.evidenceReady
+                : LABEL.evidenceFailed}
           </LfText>
         </View>
       </View>
       {upload.status === 'FAILED' && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={SCR_A06_LABEL.evidenceRetry}
+          accessibilityLabel={LABEL.evidenceRetry}
           onPress={onRetry}
           style={[styles.evidenceRemove, styles.evidenceRetryOffset]}
         >
@@ -376,7 +382,7 @@ function LocalEvidenceTile({
       )}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={SCR_A06_LABEL.evidenceRemove(upload.local_id)}
+        accessibilityLabel={LABEL.evidenceRemove(upload.local_id)}
         disabled={upload.status === 'UPLOADING'}
         onPress={onRemove}
         style={styles.evidenceRemove}
@@ -388,23 +394,24 @@ function LocalEvidenceTile({
 }
 
 function ClaimCard({ check }: { check: FulfillmentCheckView }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A06_LABEL);
   return (
     <LfCard testID={`claim-${check.role}`}>
       <View style={styles.claim}>
         <LfRow>
           <View style={styles.answerText}>
             <LfText variant="sectionTitle">
-              {SCR_A06_LABEL.role(check.role)}
+              {LABEL.role(check.role)}
             </LfText>
           </View>
           <LfChip
-            label={SCR_A06_LABEL.answer[check.answer]}
+            label={LABEL.answer[check.answer]}
             tone="status"
           />
         </LfRow>
         <LfText>
           {check.comment === null || check.comment.length === 0
-            ? SCR_A06_LABEL.noComment
+            ? LABEL.noComment
             : check.comment}
         </LfText>
         {check.evidences.length > 0 && (
@@ -416,7 +423,7 @@ function ClaimCard({ check }: { check: FulfillmentCheckView }): React.JSX.Elemen
         )}
         <LfRow>
           <View style={styles.answerText}>
-            <LfText variant="caption">{SCR_A06_LABEL.submittedAt}</LfText>
+            <LfText variant="caption">{LABEL.submittedAt}</LfText>
           </View>
           <LfText variant="caption">
             {`${formatKstDateTime(new Date(check.submitted_at))}${KST_MARK}`}
@@ -450,10 +457,11 @@ function submissionsByRole(
 }
 
 function RoundHistory({ round }: { round: FulfillmentRoundView }): React.JSX.Element {
+  const LABEL = useLabels(SCR_A06_LABEL);
   return (
     <LfStack gap={4}>
       <LfText variant="sectionTitle">
-        {SCR_A06_LABEL.roundHistory(round.round_no)}
+        {LABEL.roundHistory(round.round_no)}
       </LfText>
       {round.creator_check !== null && <ClaimCard check={round.creator_check} />}
       {round.partner_check !== null && <ClaimCard check={round.partner_check} />}
@@ -462,6 +470,8 @@ function RoundHistory({ round }: { round: FulfillmentRoundView }): React.JSX.Ele
 }
 
 export default function FulfillmentScreen(): React.JSX.Element {
+  const LABEL = useLabels(SCR_A06_LABEL);
+  const { locale } = useLocale();
   const router = useRouter();
   const params = useLocalSearchParams<{ promise_id?: string | string[] }>();
   const promiseId = promiseIdOf(params.promise_id);
@@ -657,11 +667,11 @@ export default function FulfillmentScreen(): React.JSX.Element {
     try {
       picked = await pickFulfillmentEvidence(remaining);
     } catch {
-      setActionMessage(SCR_A06_LABEL.actionError);
+      setActionMessage(LABEL.actionError);
       return;
     }
     if (picked.status === 'DENIED') {
-      setEvidenceMessages([SCR_A06_LABEL.evidencePermissionDenied]);
+      setEvidenceMessages([LABEL.evidencePermissionDenied]);
       return;
     }
     if (picked.status !== 'SELECTED') return;
@@ -673,7 +683,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
         asset.bytes < 0 ||
         asset.bytes > EVIDENCE_MAX_MB * 1024 * 1024
       ) {
-        messages.add(SCR_A06_LABEL.evidenceSize(EVIDENCE_MAX_MB));
+        messages.add(LABEL.evidenceSize(EVIDENCE_MAX_MB));
         continue;
       }
       if (
@@ -684,7 +694,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
           },
         ]).valid
       ) {
-        messages.add(SCR_A06_LABEL.evidenceType);
+        messages.add(LABEL.evidenceType);
         continue;
       }
       accepted.push(asset);
@@ -715,7 +725,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
           createFulfillmentIdempotencyKey(),
         );
       } catch {
-        setActionMessage(SCR_A06_LABEL.actionError);
+        setActionMessage(LABEL.actionError);
         return;
       }
     }
@@ -793,8 +803,8 @@ export default function FulfillmentScreen(): React.JSX.Element {
       if (error instanceof MobileApiError && error.code === 'E_STATE_CONFLICT') {
         setActionMessage(
           detail?.status === 'ACTIVE' || detail?.checking_started_at === null
-            ? SCR_A06_LABEL.beforeChecking
-            : SCR_A06_LABEL.alreadyClosed,
+            ? LABEL.beforeChecking
+            : LABEL.alreadyClosed,
         );
         const nextDetail = await refresh();
         if (
@@ -804,7 +814,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
           submitIdempotencyKey.current = null;
         }
       } else {
-        setActionMessage(SCR_A06_LABEL.actionError);
+        setActionMessage(LABEL.actionError);
       }
     } finally {
       setBusy(false);
@@ -833,7 +843,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
           reopenIdempotencyKey.current = null;
         }
       } else {
-        setActionMessage(SCR_A06_LABEL.actionError);
+        setActionMessage(LABEL.actionError);
       }
     } finally {
       setBusy(false);
@@ -844,7 +854,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
     return (
       <ScreenFrame onBack={() => router.back()}>
         <View style={styles.centered}>
-          <LfText secondary>{SCR_A06_LABEL.loading}</LfText>
+          <LfText secondary>{LABEL.loading}</LfText>
         </View>
       </ScreenFrame>
     );
@@ -855,7 +865,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
       <ScreenFrame onBack={() => router.back()}>
         <View style={styles.centered}>
           <LfText secondary align="center">
-            {SCR_A06_LABEL.notFound}
+            {LABEL.notFound}
           </LfText>
         </View>
       </ScreenFrame>
@@ -868,10 +878,10 @@ export default function FulfillmentScreen(): React.JSX.Element {
         <View style={styles.centered}>
           <LfStack gap={5} center>
             <LfText secondary align="center">
-              {SCR_A06_LABEL.loadError}
+              {LABEL.loadError}
             </LfText>
             <LfButton
-              label={SCR_A06_LABEL.retry}
+              label={LABEL.retry}
               variant="outlined"
               onPress={() => {
                 setPhase('loading');
@@ -916,11 +926,11 @@ export default function FulfillmentScreen(): React.JSX.Element {
           <LfStack gap={3}>
             <LfText variant="subtitle">{detail.title}</LfText>
             <LfText variant="caption">
-              {SCR_A06_LABEL.endDate(formatKstDate(detail.end_date))}
+              {LABEL.endDate(formatKstDate(detail.end_date, locale))}
               {KST_MARK}
             </LfText>
             <LfText variant="caption">
-              {SCR_A06_LABEL.keeper(detail.keeper)}
+              {LABEL.keeper(detail.keeper)}
             </LfText>
           </LfStack>
         </LfCard>
@@ -935,16 +945,16 @@ export default function FulfillmentScreen(): React.JSX.Element {
           <>
             <View style={styles.question}>
               <LfText variant="headline" align="center">
-                {SCR_A06_LABEL.question}
+                {LABEL.question}
               </LfText>
               <LfText variant="caption" align="center">
-                {SCR_A06_LABEL.sameQuestion}
+                {LABEL.sameQuestion}
               </LfText>
             </View>
             <LfStack
               gap={4}
               accessibilityRole="radiogroup"
-              accessibilityLabel={SCR_A06_LABEL.answerLegend}
+              accessibilityLabel={LABEL.answerLegend}
             >
               {(['KEPT', 'NOT_KEPT'] as const).map((value) => (
                 <AnswerChoice
@@ -959,17 +969,17 @@ export default function FulfillmentScreen(): React.JSX.Element {
               ))}
             </LfStack>
             <LfField
-              label={SCR_A06_LABEL.comment}
+              label={LABEL.comment}
               optional
               error={
                 commentInvalid
-                  ? SCR_A06_LABEL.commentLimit(FULFILLMENT_COMMENT_MAX)
+                  ? LABEL.commentLimit(FULFILLMENT_COMMENT_MAX)
                   : undefined
               }
             >
               <LfTextarea
-                accessibilityLabel={SCR_A06_LABEL.comment}
-                placeholder={SCR_A06_LABEL.commentPlaceholder}
+                accessibilityLabel={LABEL.comment}
+                placeholder={LABEL.commentPlaceholder}
                 value={comment}
                 onChangeText={(value) => {
                   const normalized = normalizeInput(value);
@@ -983,7 +993,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
                 </LfText>
               </View>
             </LfField>
-            <LfField label={SCR_A06_LABEL.evidence} optional>
+            <LfField label={LABEL.evidence} optional>
               <View style={styles.evidenceRow}>
                 {retainedEvidences.map((evidence) => (
                   <EvidenceViewTile
@@ -1009,18 +1019,18 @@ export default function FulfillmentScreen(): React.JSX.Element {
                   <Pressable
                     testID="evidence-picker"
                     accessibilityRole="button"
-                    accessibilityLabel={SCR_A06_LABEL.evidenceAdd}
+                    accessibilityLabel={LABEL.evidenceAdd}
                     style={[styles.evidenceTile, styles.evidenceAdd]}
                     onPress={() => void addEvidence()}
                   >
                     <LfIcon name="photo-camera" color="textMuted" />
                     <LfText variant="caption">
-                      {SCR_A06_LABEL.evidenceAdd}
+                      {LABEL.evidenceAdd}
                     </LfText>
                   </Pressable>
                 )}
               </View>
-              <LfText variant="caption">{SCR_A06_LABEL.evidenceHint}</LfText>
+              <LfText variant="caption">{LABEL.evidenceHint}</LfText>
               {evidenceMessages.map((message) => (
                 <LfText key={message} variant="caption">
                   {message}
@@ -1028,13 +1038,13 @@ export default function FulfillmentScreen(): React.JSX.Element {
               ))}
               {failedUploadCount > 0 && (
                 <LfText variant="caption">
-                  {SCR_A06_LABEL.evidenceUploadFailed(failedUploadCount)}
+                  {LABEL.evidenceUploadFailed(failedUploadCount)}
                 </LfText>
               )}
             </LfField>
             {canAnswer && counterpartHasSubmitted && (
               <LfCard variant="container">
-                <LfText align="center">{SCR_A06_LABEL.counterpartFirst}</LfText>
+                <LfText align="center">{LABEL.counterpartFirst}</LfText>
               </LfCard>
             )}
           </>
@@ -1043,13 +1053,13 @@ export default function FulfillmentScreen(): React.JSX.Element {
         {isChecking && detail.my_check !== null && !editing && (
           <LfStack gap={5}>
             <LfCard variant="container">
-              <LfText align="center">{SCR_A06_LABEL.waiting}</LfText>
+              <LfText align="center">{LABEL.waiting}</LfText>
             </LfCard>
             <ClaimCard check={detail.my_check} />
             {detail.my_check.revised_at === null &&
             !counterpartHasSubmitted ? (
               <LfButton
-                label={SCR_A06_LABEL.revise}
+                label={LABEL.revise}
                 variant="outlined"
                 block
                 disabled={busy}
@@ -1057,7 +1067,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
               />
             ) : (
               <LfText variant="caption" align="center">
-                {SCR_A06_LABEL.revisionUsed}
+                {LABEL.revisionUsed}
               </LfText>
             )}
           </LfStack>
@@ -1067,24 +1077,24 @@ export default function FulfillmentScreen(): React.JSX.Element {
           <LfStack gap={5}>
             <View style={styles.statusCard}>
               <LfChip
-                label={SCR_A06_LABEL.status(detail.status)}
+                label={LABEL.status(detail.status)}
                 tone="status"
               />
             </View>
             {detail.status === 'DISPUTED' && (
               <LfCard variant="container">
-                <LfText align="center">{SCR_A06_LABEL.disputed}</LfText>
+                <LfText align="center">{LABEL.disputed}</LfText>
               </LfCard>
             )}
             <LfText variant="sectionTitle">
-              {SCR_A06_LABEL.currentResult}
+              {LABEL.currentResult}
             </LfText>
             {isUnresolved
               ? CLAIM_ROLES.map((role) => (
                   <LfText key={role}>
                     {currentSubmissions[role]
-                      ? SCR_A06_LABEL.responseDone(role)
-                      : SCR_A06_LABEL.responseMissing(role)}
+                      ? LABEL.responseDone(role)
+                      : LABEL.responseMissing(role)}
                   </LfText>
                 ))
               : CLAIM_ROLES.map((role) =>
@@ -1094,7 +1104,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
                 )}
             {detail.status === 'DISPUTED' && (
               <LfButton
-                label={SCR_A06_LABEL.reopen}
+                label={LABEL.reopen}
                 variant="filled"
                 block
                 disabled={busy}
@@ -1106,7 +1116,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
 
         {detail.history.length > 0 && (
           <LfStack gap={5}>
-            <LfText variant="subtitle">{SCR_A06_LABEL.history}</LfText>
+            <LfText variant="subtitle">{LABEL.history}</LfText>
             {[...detail.history]
               .sort((left, right) => left.round_no - right.round_no)
               .map((round) => (
@@ -1119,7 +1129,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
       {showForm && (
         <View style={styles.actions}>
           <LfButton
-            label={editing ? SCR_A06_LABEL.reviseSubmit : SCR_A06_LABEL.submit}
+            label={editing ? LABEL.reviseSubmit : LABEL.submit}
             size="cta"
             block
             disabled={

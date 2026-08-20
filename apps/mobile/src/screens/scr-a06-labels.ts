@@ -1,14 +1,22 @@
 import {
   KEEPER_LABEL,
+  KEEPER_LABEL_BY_LOCALE,
   PARTICIPANT_ROLE_LABEL,
+  PARTICIPANT_ROLE_LABEL_BY_LOCALE,
   PROMISE_STATUS_LABEL,
+  PROMISE_STATUS_LABEL_BY_LOCALE,
   type Answer,
   type Keeper,
+  type Localized,
   type ParticipantRole,
   type PromiseStatus,
 } from '@littlefinger/shared';
 
-export const SCR_A06_LABEL = {
+/**
+ * 수치·역할이 끼는 문구는 함수다 — 영어는 단복수와 어순이 갈리므로 문자열 접합으로는
+ * 두 문법을 한 형태로 담을 수 없다. 한도 수치는 인자로 받는다(config 상수가 출처).
+ */
+const ko = {
   title: '이행 확인',
   back: '뒤로가기',
   loading: '이행 확인을 불러오는 중이에요',
@@ -72,4 +80,72 @@ export const SCR_A06_LABEL = {
   status: (status: PromiseStatus) => PROMISE_STATUS_LABEL[status],
   role: (role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>) =>
     PARTICIPANT_ROLE_LABEL[role],
-} as const;
+};
+
+// DISPUTED 계열 en 문구도 P1(기록자, 판정자 아님)을 지킨다 — 누가 옳은지 암시하지 않는다.
+const en = {
+  title: 'Fulfillment check',
+  back: 'Back',
+  loading: 'Loading the fulfillment check',
+  loadError: 'Could not load the fulfillment check.',
+  notFound: 'Promise not found.',
+  retry: 'Try again',
+  question: 'Was the promise kept?',
+  sameQuestion: 'Your partner gets the same question',
+  answerLegend: 'Choose whether the promise was kept',
+  answer: {
+    KEPT: 'Kept it',
+    NOT_KEPT: "Wasn't kept",
+  } satisfies Record<Answer, string>,
+  answerSubtitle: {
+    KEPT: 'The proud one',
+    NOT_KEPT: 'The honest one',
+  } satisfies Record<Answer, string>,
+  comment: 'Comment',
+  optional: 'Optional',
+  commentPlaceholder: 'Leave a note for each other',
+  commentLimit: (max: number) => `Comments can be up to ${max} characters.`,
+  submit: 'Submit',
+  reviseSubmit: 'Submit revision',
+  evidence: 'Evidence photos',
+  evidenceAdd: 'Add photo',
+  evidenceHint: 'Visible to your partner and witnesses',
+  evidencePermissionDenied: 'Allow photo access to choose photos.',
+  evidenceSize: (maxMb: number) => `Each photo can be up to ${maxMb}MB.`,
+  evidenceType: 'Only JPEG, PNG, WEBP, or HEIC photos can be uploaded.',
+  evidenceUploadFailed: (count: number) =>
+    count === 1 ? 'Could not upload 1 photo.' : `Could not upload ${count} photos.`,
+  evidenceUploading: 'Uploading',
+  evidenceReady: 'Uploaded',
+  evidenceFailed: 'Upload failed',
+  evidenceRetry: 'Retry photo upload',
+  evidenceRemove: (id: string) => `Delete evidence ${id}`,
+  evidenceOpen: (id: string) => `Open evidence ${id}`,
+  evidenceBlinded: 'This image is hidden because of a report',
+  evidenceExpired: 'This evidence has passed its retention period',
+  counterpartFirst: 'Your partner has already responded',
+  waiting: "Waiting for your partner's confirmation.",
+  revise: 'Revise response',
+  revisionUsed: "You've used your one revision.",
+  beforeChecking: 'Checks open the day after the end date.',
+  alreadyClosed: 'This promise is already closed.',
+  actionError: 'Could not process the request. Please try again.',
+  disputed: "Your answers don't match. Talk it over and decide together.",
+  reopen: 'Request another check',
+  currentResult: 'Result of this check',
+  history: 'Past check records',
+  roundHistory: (roundNo: number) => `Round ${roundNo} check record`,
+  submittedAt: 'Responded at',
+  noComment: 'No comment',
+  responseDone: (role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>) =>
+    `${PARTICIPANT_ROLE_LABEL_BY_LOCALE.en[role]} responded`,
+  responseMissing: (role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>) =>
+    `${PARTICIPANT_ROLE_LABEL_BY_LOCALE.en[role]} did not respond`,
+  endDate: (date: string) => `End date ${date}`,
+  keeper: (keeper: Keeper) => `Kept by ${KEEPER_LABEL_BY_LOCALE.en[keeper]}`,
+  status: (status: PromiseStatus) => PROMISE_STATUS_LABEL_BY_LOCALE.en[status],
+  role: (role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>) =>
+    PARTICIPANT_ROLE_LABEL_BY_LOCALE.en[role],
+} satisfies typeof ko;
+
+export const SCR_A06_LABEL: Localized<typeof ko> = { ko, en };

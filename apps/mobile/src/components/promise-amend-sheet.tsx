@@ -1,6 +1,8 @@
 import {
   KEEPER_LABEL,
+  KEEPER_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL,
+  PROMISE_CATEGORY_LABEL_BY_LOCALE,
   changedPromiseFields,
   normalizeInput,
   validateAmendReason,
@@ -20,6 +22,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { useLabels, useLocale } from '../lib/locale-native';
 import { MOD_01_LABEL } from '../screens/scr-a05-labels.ts';
 import { colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
@@ -118,6 +121,8 @@ export function PromiseAmendSheet({
   pickEndDate,
   confirmCancel,
 }: PromiseAmendSheetProps): React.JSX.Element {
+  const LABEL = useLabels(MOD_01_LABEL);
+  const { locale } = useLocale();
   const [mode, setMode] = useState<Mode>('AMEND');
   const [proposal, setProposal] = useState<PromiseAmendProposal>(() => proposalOf(detail));
   const [reason, setReason] = useState('');
@@ -136,15 +141,15 @@ export function PromiseAmendSheet({
   }, [detail, visible]);
 
   const validation = useMemo(() => ({
-    title: validateTitle(proposal.title),
-    body: validateBody(proposal.body),
+    title: validateTitle(proposal.title, locale),
+    body: validateBody(proposal.body, locale),
     category: validateCategory(proposal.category),
-    endDate: validateEndDate(proposal.end_date, now),
+    endDate: validateEndDate(proposal.end_date, now, locale),
     keeper: validateKeeper(proposal.keeper),
     reward: validateReward(proposal.reward ?? ''),
     penalty: validatePenalty(proposal.penalty ?? ''),
     reason: validateAmendReason(reason),
-  }), [now, proposal, reason]);
+  }), [locale, now, proposal, reason]);
   const changed = changedPromiseFields(detail.current_version, proposal).length > 0;
   const proposalValid = Object.values(validation).every((result) => result.valid);
   const submitEnabled = !busy && validation.reason.valid && (mode === 'CANCEL' || (changed && proposalValid));
@@ -205,10 +210,10 @@ export function PromiseAmendSheet({
         <View style={styles.sheet} accessibilityViewIsModal>
           <View style={styles.handle} />
           <View style={styles.header}>
-            <LfText variant="title">{MOD_01_LABEL.title}</LfText>
+            <LfText variant="title">{LABEL.title}</LfText>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={MOD_01_LABEL.close}
+              accessibilityLabel={LABEL.close}
               onPress={onClose}
               style={styles.close}
             >
@@ -218,14 +223,14 @@ export function PromiseAmendSheet({
           <ScrollView contentContainerStyle={styles.content}>
             <LfRow>
               <LfButton
-                label={MOD_01_LABEL.amendTab}
+                label={LABEL.amendTab}
                 variant={mode === 'AMEND' ? 'tonal' : 'text'}
                 accessibilityState={{ selected: mode === 'AMEND' }}
                 grow
                 onPress={() => setMode('AMEND')}
               />
               <LfButton
-                label={MOD_01_LABEL.cancelTab}
+                label={LABEL.cancelTab}
                 variant={mode === 'CANCEL' ? 'danger' : 'text'}
                 accessibilityState={{ selected: mode === 'CANCEL' }}
                 grow
@@ -234,90 +239,90 @@ export function PromiseAmendSheet({
             </LfRow>
 
             <View style={styles.notice}>
-              <LfText>{MOD_01_LABEL.commonNotice}</LfText>
+              <LfText>{LABEL.commonNotice}</LfText>
             </View>
 
             {mode === 'AMEND' ? (
               <>
-                <LfField label={MOD_01_LABEL.titleField} required error={validation.title.message ?? undefined}>
+                <LfField label={LABEL.titleField} required error={validation.title.message ?? undefined}>
                   <LfInput
-                    accessibilityLabel={MOD_01_LABEL.titleField}
+                    accessibilityLabel={LABEL.titleField}
                     value={proposal.title}
                     onChangeText={(value) => update('title', value)}
                   />
                 </LfField>
-                <LfField label={MOD_01_LABEL.bodyField} required error={validation.body.message ?? undefined}>
+                <LfField label={LABEL.bodyField} required error={validation.body.message ?? undefined}>
                   <LfTextarea
-                    accessibilityLabel={MOD_01_LABEL.bodyField}
+                    accessibilityLabel={LABEL.bodyField}
                     value={proposal.body}
                     onChangeText={(value) => update('body', value)}
                   />
                 </LfField>
-                <LfField label={MOD_01_LABEL.categoryField} required>
+                <LfField label={LABEL.categoryField} required>
                   <View style={styles.choices}>
                     {CATEGORIES.map((category) => (
                       <LfChoice
                         key={category}
-                        label={PROMISE_CATEGORY_LABEL[category]}
+                        label={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][category]}
                         selected={proposal.category === category}
                         onPress={() => update('category', category)}
                       />
                     ))}
                   </View>
                 </LfField>
-                <LfField label={MOD_01_LABEL.endDateField} required error={validation.endDate.message ?? undefined}>
+                <LfField label={LABEL.endDateField} required error={validation.endDate.message ?? undefined}>
                   <LfPicker
-                    accessibilityLabel={MOD_01_LABEL.endDateSelect}
+                    accessibilityLabel={LABEL.endDateSelect}
                     value={proposal.end_date}
-                    placeholder={MOD_01_LABEL.endDateSelect}
+                    placeholder={LABEL.endDateSelect}
                     onPress={() => pickEndDate(proposal.end_date, (value) => update('end_date', value))}
                   />
                 </LfField>
-                <LfField label={MOD_01_LABEL.keeperField} required>
+                <LfField label={LABEL.keeperField} required>
                   <View style={styles.choices}>
                     {KEEPERS.map((keeper) => (
                       <LfChoice
                         key={keeper}
-                        label={KEEPER_LABEL[keeper]}
+                        label={KEEPER_LABEL_BY_LOCALE[locale][keeper]}
                         selected={proposal.keeper === keeper}
                         onPress={() => update('keeper', keeper)}
                       />
                     ))}
                   </View>
                 </LfField>
-                <LfField label={MOD_01_LABEL.rewardField} optional>
+                <LfField label={LABEL.rewardField} optional>
                   <LfInput
-                    accessibilityLabel={MOD_01_LABEL.rewardField}
+                    accessibilityLabel={LABEL.rewardField}
                     value={proposal.reward ?? ''}
                     onChangeText={(value) => update('reward', value === '' ? null : value)}
                   />
                 </LfField>
-                <LfField label={MOD_01_LABEL.penaltyField} optional>
+                <LfField label={LABEL.penaltyField} optional>
                   <LfInput
-                    accessibilityLabel={MOD_01_LABEL.penaltyField}
+                    accessibilityLabel={LABEL.penaltyField}
                     value={proposal.penalty ?? ''}
                     onChangeText={(value) => update('penalty', value === '' ? null : value)}
                   />
                 </LfField>
-                {!changed ? <LfText variant="caption">{MOD_01_LABEL.noChanges}</LfText> : null}
+                {!changed ? <LfText variant="caption">{LABEL.noChanges}</LfText> : null}
               </>
             ) : (
               <View style={styles.notice}>
-                <LfText>{MOD_01_LABEL.cancelNotice}</LfText>
+                <LfText>{LABEL.cancelNotice}</LfText>
               </View>
             )}
 
-            <LfField label={MOD_01_LABEL.reasonField} optional>
+            <LfField label={LABEL.reasonField} optional>
               <LfTextarea
-                accessibilityLabel={MOD_01_LABEL.reasonField}
-                placeholder={MOD_01_LABEL.reasonPlaceholder}
+                accessibilityLabel={LABEL.reasonField}
+                placeholder={LABEL.reasonPlaceholder}
                 value={reason}
                 onChangeText={setReason}
               />
             </LfField>
-            {actionError ? <LfText variant="caption" align="center">{MOD_01_LABEL.submitError}</LfText> : null}
+            {actionError ? <LfText variant="caption" align="center">{LABEL.submitError}</LfText> : null}
             <LfButton
-              label={MOD_01_LABEL.submit}
+              label={LABEL.submit}
               size="cta"
               block
               disabled={!submitEnabled}
