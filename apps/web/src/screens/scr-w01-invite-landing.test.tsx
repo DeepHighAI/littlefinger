@@ -326,6 +326,41 @@ describe('SCR-W01 초대 랜딩', () => {
     });
   });
 
+  it('안드로이드에서는 앱으로 계속하기가 스토어 폴백을 품은 인텐트 링크로 뜬다', async () => {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
+      'Mozilla/5.0 (Linux; Android 14) Chrome/120',
+    );
+    vi.stubGlobal('location', { origin: 'https://littlefinger-app-philwoo.web.app' });
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+
+    renderAt();
+
+    const cta = await screen.findByTestId('continue-in-app');
+    const store = encodeURIComponent(
+      'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=littlefinger_web&utm_medium=invite_landing',
+    );
+    expect(cta.getAttribute('href')).toBe(
+      `intent://littlefinger-app-philwoo.web.app/i/${TOKEN}` +
+        `#Intent;scheme=https;package=com.littlefinger.app;S.browser_fallback_url=${store};end`,
+    );
+    // 웹 승인 경로는 보조 동선으로 남는다(01 P6).
+    expect(screen.getByText('웹으로 계속하기')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /카카오 로그인하고 내용 보기/u })).toBeTruthy();
+  });
+
+  it('아이폰에서는 앱 유도 없이 웹 로그인만 보인다 (EC-I03)', async () => {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+    );
+    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
+
+    renderAt();
+
+    expect(await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u })).toBeTruthy();
+    expect(screen.queryByTestId('continue-in-app')).toBeNull();
+    expect(screen.queryByText('웹으로 계속하기')).toBeNull();
+  });
+
   it('로그인이 실패해도 CTA 는 남고 안내만 바뀐다', async () => {
     // 카카오 프로바이더가 아직 대시보드에 없어서 오늘은 이 경로가 실제로 돈다.
     signInWithOAuth.mockResolvedValue({ data: {}, error: new Error('provider not enabled') });

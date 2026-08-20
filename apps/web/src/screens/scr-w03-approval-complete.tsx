@@ -1,4 +1,5 @@
 import {
+  buildPlayStoreUrl,
   formatKstDateTime,
   KST_MARK,
   PARTICIPANT_ROLE_LABEL,
@@ -33,8 +34,11 @@ const REVISIT_COPY = '이 약속은 로그인하면 언제든 다시 볼 수 있
 const REVISIT_CTA = '참여 중인 약속 보기';
 const ANDROID_STORE_CTA = 'Android 앱 설치하기';
 const ANDROID_STORE_COPY = '앱에서는 푸시로 약속을 챙겨드려요';
-const ANDROID_STORE_URL =
-  'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=littlefinger_web&utm_medium=approval_complete';
+// UTM 값 유지 — 설치 전환 KPI 의 시계열이 여기서 끊기면 안 된다(02 §4-4-4).
+const ANDROID_STORE_URL = buildPlayStoreUrl({
+  source: 'littlefinger_web',
+  medium: 'approval_complete',
+});
 const IOS_USER_AGENT = /iPhone|iPad|iPod/iu;
 
 function AndroidAppHint(): React.JSX.Element | null {

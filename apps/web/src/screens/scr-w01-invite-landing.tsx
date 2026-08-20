@@ -1,4 +1,6 @@
 import {
+  buildInviteAppIntentUri,
+  buildPlayStoreUrl,
   ENDPOINT,
   LEGAL_DOCUMENT_LABELS,
   type InviteResolveResponse,
@@ -12,9 +14,11 @@ import { LfIcon } from '../components/LfIcon.tsx';
 import { LfPinky } from '../components/LfPinky.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
+import { useLabels } from '../lib/locale.tsx';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
 import { signInWithGoogle, signInWithKakao } from '../lib/web-auth.ts';
 import { invitePath, legalPath, reviewPath, witnessJoinPath } from '../routes.ts';
+import { SCR_W01_LABEL } from './scr-w01-labels.ts';
 import {
   isLinkUnavailableReason,
   ScrW06LinkExpired,
@@ -32,21 +36,11 @@ import {
  * 그 넷과 대상 역할만 돌려준다. 화면은 받은 것을 다 그린다.
  */
 
-// 레퍼런스 HTML(scr-w01-invite-landing.html)의 문구를 그대로 옮긴다. 다만 헤드라인만은
-// 디자인 요청서 §5-2 의 "○○님이 약속을 보냈어요"를 쓴다 — 레퍼런스의
-// "민준님, 지우님이 새끼손가락을 내밀었어요!"는 **받는 사람 이름**을 부르는데,
-// 로그인 전인 이 화면은 그 이름을 알 수 없고 서버도 주지 않는다.
-const HEADLINE_SUFFIX = '님이 약속을 보냈어요';
-const COUNTDOWN_SUFFIX = '안에 확인해 주세요';
-const PREVIEW_SECTION_TITLE = '약속 미리보기';
-const PREVIEW_HINT = '자세한 내용은 로그인 후 볼 수 있어요';
-const SERVICE_INTRO_LINES = ['리틀핑거는 둘이 합의한 약속을 기록하고', '지키게 돕는 서비스예요'];
-const KAKAO_CTA = '카카오 로그인하고 내용 보기';
-const GOOGLE_CTA = 'Google 로그인하고 내용 보기';
-const CTA_CAPTION = '앱 설치 없이 3분이면 끝나요';
+// 문구는 scr-w01-labels.ts 로 옮겼다(첫 이중언어 카탈로그). 헤드라인 출처 주석도 그곳에.
 const KAKAO_SILENT_ATTEMPT_KEY = 'lf:kakao-silent-attempted';
 const KAKAOTALK_USER_AGENT = /KAKAOTALK/iu;
-const EXTERNAL_BROWSER_GUIDE = '기본 브라우저에서 열어 주세요.';
+// 스토어 유도는 안드로이드에서만 의미가 있다 — 아이폰은 앱이 없다(EC-I03, 배너 미노출).
+const ANDROID_USER_AGENT = /Android/iu;
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
@@ -151,6 +145,7 @@ async function resolveInvite(token: string, signal: AbortSignal): Promise<Phase>
 }
 
 export function ScrW01InviteLanding(): React.JSX.Element {
+  const L = useLabels(SCR_W01_LABEL);
   const { token } = useParams<{ token: string }>();
   const [phase, setPhase] = useState<Phase>({ kind: 'LOADING' });
   const [now, setNow] = useState(() => Date.now());
@@ -295,6 +290,17 @@ export function ScrW01InviteLanding(): React.JSX.Element {
 
   const remainingMs = Date.parse(phase.invite.expires_at) - now;
 
+  // 설치면 앱이 열리고 미설치면 스토어로 가는 단일 인텐트 URI (PO 2026-08-20: 스토어 강한
+  // 유도). 카카오톡 인앱 브라우저는 App Links 검증을 타지 않으므로 이 버튼이 유일한
+  // 앱 진입로다. dev(http)에서는 null 이라 버튼 자체가 없다.
+  const appIntentUri = ANDROID_USER_AGENT.test(window.navigator.userAgent)
+    ? buildInviteAppIntentUri(
+        window.location.origin,
+        token ?? '',
+        buildPlayStoreUrl({ source: 'littlefinger_web', medium: 'invite_landing' }),
+      )
+    : null;
+
   return (
     // 레퍼런스의 lf-device / lf-device__viewport / lf-browserbar 는 옮기지 않는다 —
     // 실제 카카오톡 인앱 브라우저가 그 자리다. 광고는 수락 웹 전체에 없다(CLAUDE.md §8-1).
@@ -309,31 +315,41 @@ export function ScrW01InviteLanding(): React.JSX.Element {
             <span className="lf-notice__timer" data-testid="countdown">
               {formatRemaining(remainingMs)}
             </span>
-            <span>{COUNTDOWN_SUFFIX}</span>
+            <span>{L.countdownSuffix}</span>
           </p>
         )}
 
         <PinkyBadge />
 
-        <h1 className="lf-headline">
-          {phase.invite.creator_nickname}
-          {HEADLINE_SUFFIX}
-        </h1>
+        <h1 className="lf-headline">{L.headline(phase.invite.creator_nickname)}</h1>
 
         <div className="lf-card lf-card--web lf-text-left">
-          <p className="lf-section-title">{PREVIEW_SECTION_TITLE}</p>
+          <p className="lf-section-title">{L.previewSectionTitle}</p>
           <p className="lf-preview__title">{phase.invite.title}</p>
-          <p className="lf-preview__hint">{PREVIEW_HINT}</p>
+          <p className="lf-preview__hint">{L.previewHint}</p>
         </div>
 
         <p className="lf-body--secondary">
-          {SERVICE_INTRO_LINES[0]}
+          {L.serviceIntroLines[0]}
           <br />
-          {SERVICE_INTRO_LINES[1]}
+          {L.serviceIntroLines[1]}
         </p>
       </div>
 
       <div className="lf-screen__actions lf-screen__actions--web lf-screen__actions--plain">
+        {appIntentUri !== null && (
+          <>
+            <a
+              className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block"
+              href={appIntentUri}
+              data-testid="continue-in-app"
+            >
+              {L.continueInApp}
+            </a>
+            {/* 웹 승인 경로는 남는다(01 P6) — 로그인 버튼들이 이 캡션 아래의 보조 동선이다. */}
+            <p className="lf-caption lf-text-center">{L.continueOnWeb}</p>
+          </>
+        )}
         <button
           className="lf-btn lf-btn--kakao lf-btn--cta lf-btn--block"
           type="button"
@@ -341,7 +357,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
           onClick={() => void handleKakaoLogin()}
         >
           <KakaoMark />
-          <span>{KAKAO_CTA}</span>
+          <span>{L.kakaoCta}</span>
         </button>
         <button
           className="lf-btn lf-btn--google lf-btn--cta lf-btn--block"
@@ -350,10 +366,10 @@ export function ScrW01InviteLanding(): React.JSX.Element {
           onClick={() => void handleGoogleLogin()}
         >
           <GoogleMark />
-          <span>{GOOGLE_CTA}</span>
+          <span>{L.googleCta}</span>
         </button>
-        {!signInFailed && <p className="lf-caption lf-text-center">{CTA_CAPTION}</p>}
-        <nav className="lf-login-legal" aria-label="법적 문서">
+        {!signInFailed && <p className="lf-caption lf-text-center">{L.ctaCaption}</p>}
+        <nav className="lf-login-legal" aria-label={L.legalNav}>
           <Link to={legalPath('TERMS')}>{LEGAL_DOCUMENT_LABELS.TERMS}</Link>
           <Link to={legalPath('PRIVACY')}>{LEGAL_DOCUMENT_LABELS.PRIVACY}</Link>
         </nav>
@@ -363,7 +379,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
         <p className="lf-caption lf-text-center" role="alert">
           {signInFailed
             ? KAKAOTALK_USER_AGENT.test(window.navigator.userAgent)
-              ? EXTERNAL_BROWSER_GUIDE
+              ? L.externalBrowserGuide
               : INTERNAL_MESSAGE
             : ''}
         </p>
@@ -379,9 +395,10 @@ export function ScrW01InviteLanding(): React.JSX.Element {
  * 아니라 끊긴 것처럼 보인다.
  */
 export function PinkyBadge(): React.JSX.Element {
+  const L = useLabels(SCR_W01_LABEL);
   return (
     <div className="lf-pinky-badge">
-      <LfPinky size="xl" accessibilityLabel="새끼손가락 걸기" />
+      <LfPinky size="xl" accessibilityLabel={L.pinkyBadge} />
     </div>
   );
 }
