@@ -86,19 +86,16 @@ mode also fails on this machine — `CI=1 EXPO_NO_TYPESCRIPT_SETUP=1 npx expo st
 there). Accounts: dev email test accounts (password = full email), A=`test`, B=`test1`,
 witness=`test2`, withdraw pair=`test10`/`test9`, all `@test.com`.
 
-The Supabase CLI wrong-account blocker was resolved mid-run (operator re-login as batisututu),
-which unblocked the DB-side levers — then **flipped back to the wrong account on 2026-08-20**,
-mid-session, blocking the deploy of the F6/F3 fix migrations and the two new Edge Functions.
-See `docs/qa/E2E_RUN_2026-08-19.md` (continuation + day 2) for the full sequence.
+The recurring Supabase CLI wrong-account flips are neutralized: a batisututu PAT now lives in
+the gitignored root `.env` as `SUPABASE_ACCESS_TOKEN` — export it before CLI commands. With it,
+migrations `20260820000001`(F6) + `20260820000002`(F3) and Edge Functions
+`user-unblock`/`user-block-list` were **deployed and live-verified on 2026-08-20**. See
+`docs/qa/E2E_RUN_2026-08-19.md` (continuation + day 2 + deploy) for the full sequence.
 
 Remaining after Day 2 (2026-08-20):
 
-1. Operator: fix the CLI account again (private window → `npx supabase login` as batisututu,
-   or export a `SUPABASE_ACCESS_TOKEN` PAT); then deploy migrations `20260820000001`(F6) +
-   `20260820000002`(F3) and Edge Functions `user-unblock`/`user-block-list`, and live-verify
-   both (unblocking A→test1 also restores the burned account pair).
-2. #10 re-signup/trust-inheritance needs a Kakao account or a CLI-recreated email account
+1. #10 re-signup/trust-inheritance needs a Kakao account or a CLI-recreated email account
    (signup is confirm-gated and SMTP rate-limited; `test3`–`test8` remain unused).
-3. Release pass: Kakao OAuth interactive, real-device push (incl. the F4 cold-start retest),
+2. Release pass: Kakao OAuth interactive, real-device push (incl. the F4 cold-start retest),
    quiet-hours window, #7 re-test on a release build (F7), TalkBack. App Links is **done**
    (EAS build `e31110b0`, domain verified + intent handoff on the emulator).

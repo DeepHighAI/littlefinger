@@ -123,9 +123,10 @@ emulator reports `littlefinger-app-philwoo.web.app: verified` in `pm get-app-lin
 local web, dev email test login): scenarios 1–6, 9, 11, 12 PASS; 7, 8, 10 PARTIAL; none NOT_RUN.
 Seven findings: F1/F2 fixed by migration `20260819100000` (deployed, live-verified); F5 fixed and
 verified on device; F6 (`20260820000001`) and F3 (`20260820000002` + `user-unblock`/
-`user-block-list` + the blocked-users screen) fixed and PGlite-tested but **deploy-blocked on the
-recurring Supabase CLI wrong-account 403**; F7 (evidence picker upload fails on the dev client;
-server path healthy) is new and needs a release-build retest. Matrix:
+`user-block-list` + the blocked-users screen) fixed, PGlite-tested, **deployed and live-verified
+on 2026-08-20** (a PAT in the root `.env` as `SUPABASE_ACCESS_TOKEN` neutralizes the recurring
+CLI account flips); F7 (evidence picker upload fails on the dev client; server path healthy) is
+new and needs a release-build retest. Matrix:
 [`docs/qa/MANUAL_E2E.md`](qa/MANUAL_E2E.md), full record:
 [`docs/qa/E2E_RUN_2026-08-19.md`](qa/E2E_RUN_2026-08-19.md). Kakao OAuth and real-device push
 remain untested (release checklist); App Links is verified.
@@ -148,11 +149,9 @@ Still pending:
 
 ## Exact next step
 
-1. Operator: fix the Supabase CLI account again (private window → `npx supabase login` as
-   batisututu, or export a `SUPABASE_ACCESS_TOKEN` PAT). Then deploy migrations
-   `20260820000001`+`20260820000002` and Edge Functions `user-unblock`/`user-block-list`
-   (`--use-api`), and live-verify F6 and F3 (unblocking A→test1 restores that account pair).
-2. Codex verification pass over the new backend surface (PO-driven).
-3. Release pass: two interactive Kakao accounts for the flows the email login cannot represent
+1. Codex verification pass over the new backend surface (PO-driven): `lf_my_trust_profile`,
+   `lf_recompute_trust_profile`, `lf_user_block_list`, `lf_user_unblock`, and the
+   `user-unblock`/`user-block-list` shells.
+2. Release pass: two interactive Kakao accounts for the flows the email login cannot represent
    (#10 re-signup, real-device push incl. F4, quiet hours), #7 evidence upload retest on a
    release build (F7), TalkBack, and the 360×800 frozen-reference comparison.
