@@ -380,6 +380,12 @@ react-native-web / Expo Web for the acceptance web · `@react-native-kakao/*` (u
 Render / Railway / Fly.io. Rationale: `04` §2.
 
 **Kakao login goes through Supabase Auth's official Kakao OAuth provider.** No unofficial SDK.
+**Production login is Kakao + Google SSO only** (PO, 2026-08-20; Google provider is open item
+N-4). The dev-only email test login is excluded from every production build by build-time gates
+(`__DEV__` / `import.meta.env.DEV`), both locked by tests; the release-time server-side removal
+(Dashboard Email provider off, test accounts deleted) is scripted in
+[`docs/setup/email-test-login-removal.md`](docs/setup/email-test-login-removal.md) — execute it
+only when the PO asks.
 
 ### 6-1. Kakao setup — three things that are not what they look like
 
@@ -511,6 +517,7 @@ Full detail: `04` §10.
 | ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18: use `https://littlefinger-app-philwoo.web.app` (ADR 0005).** |
 | C-4 | Pretty KakaoTalk share card for invites? | Default: out of MVP scope — OS share sheet, link only |
 | N-1 | '리틀핑거' trademark / store name | Confirm before launch |
+| N-4 | Google SSO for production login (PO, 2026-08-20) | Via Supabase Auth's Google provider, alongside Kakao. Needs a Google Cloud OAuth client, Dashboard provider setup, and the same `openAuthSessionAsync` → `setSession` app path as Kakao. Not started |
 | N-2 | iOS launch timing | Decided in v2 |
 | Q-5 | Onboarding pages 2 and 3 | Only page 1 is implemented |
 | Q-6 | COMPLETED share card design | Out of scope |
