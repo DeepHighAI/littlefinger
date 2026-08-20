@@ -192,7 +192,7 @@ describe('user-provision — 로그인 뒤 보정 호출', () => {
   test('모르는 실패는 500 으로 뭉개고 원문은 로그로만 남긴다', async () => {
     const failing = spy({
       rpc: async () => {
-        throw new Error('duplicate key value violates unique constraint "users_kakao_id_key"');
+        throw new Error('duplicate key value violates unique constraint "users_provider_identity_key"');
       },
     });
     const response = await createUserProvisionHandler(failing.deps)(request({ body: {} }));
@@ -200,7 +200,7 @@ describe('user-provision — 로그인 뒤 보정 호출', () => {
     const body = await jsonOf(response);
     expect(body.code).toBe('E_INTERNAL');
     // Postgres 가 붙인 테이블·컬럼 이름이 응답으로 새면 안 된다(§9 실패 경로).
-    expect(JSON.stringify(body)).not.toContain('users_kakao_id_key');
+    expect(JSON.stringify(body)).not.toContain('users_provider_identity_key');
     expect(failing.logs).toEqual(['unmapped RPC failure']);
   });
 

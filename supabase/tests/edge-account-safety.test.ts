@@ -107,7 +107,7 @@ describe('account and safety Edge Functions', () => {
       args: {
         p_idempotency_key: KEY,
         p_actor: ACTOR_ID,
-        p_anonymized_kakao_id: `withdrawn:${createHash('sha256').update('kakao-123account-pepper').digest('hex')}`,
+        p_anonymized_provider_user_id: `withdrawn:${createHash('sha256').update('kakao-123account-pepper').digest('hex')}`,
       },
     }]);
     expect(deleteAuthUser).toHaveBeenCalledWith(ACTOR_ID);

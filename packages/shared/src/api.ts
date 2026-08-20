@@ -397,7 +397,7 @@ export interface PromiseAmendRequest extends InviteTokenRequest {
  * 이긴다) 중복 호출은 무해하다.
  *
  * **여기 없는 두 값이 이 타입의 본질이다.**
- * - `kakao_id` — RPC 가 `auth.identities.provider_id` 에서 직접 읽는다. 클라이언트가
+ * - `provider_user_id` — RPC 가 `auth.identities.provider_id` 에서 직접 읽는다. 클라이언트가
  *   보내게 두면 남의 회원번호를 주장할 수 있고, EC-A05 가 계정 동일성 판정에 쓰는 값이다.
  * - `surface` — 껍데기가 `Origin` 헤더의 유무로 판정한다. `approvals.surface` 와 같은 규칙.
  *

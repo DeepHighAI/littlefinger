@@ -19,11 +19,11 @@ export function createAccountWithdrawHandler(deps: AccountWithdrawDeps) {
       const idempotencyKey = idempotencyKeyOf(request);
       emptyAccountBody(await jsonBody(request, 'nickname'));
       const identifier = await deps.accountIdentifier(actor);
-      const anonymizedKakaoId = `withdrawn:${await sha256Hex(identifier + deps.accountIdPepper)}`;
+      const anonymizedProviderUserId = `withdrawn:${await sha256Hex(identifier + deps.accountIdPepper)}`;
       const payload = asAccountWithdrawResponse(await deps.rpc('lf_account_withdraw', {
         p_idempotency_key: idempotencyKey,
         p_actor: actor,
-        p_anonymized_kakao_id: anonymizedKakaoId,
+        p_anonymized_provider_user_id: anonymizedProviderUserId,
       }));
       if (payload === null) throw new Error('INVALID_ACCOUNT_WITHDRAW_RESPONSE');
       try {

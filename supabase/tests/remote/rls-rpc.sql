@@ -1,6 +1,6 @@
 begin;
 
-insert into public.users (id, kakao_id, nickname, primary_surface, status)
+insert into public.users (id, provider_user_id, nickname, primary_surface, status)
 values
   (
     '00000000-0000-4000-8000-00000000f301',

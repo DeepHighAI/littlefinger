@@ -44,7 +44,7 @@ const AUTH_SHIM = `
     raw_user_meta_data jsonb not null default '{}'::jsonb
   );
 
-  -- 프로비저닝이 kakao_id 를 읽는 곳. provider_id 가 카카오 회원번호다.
+  -- 프로비저닝이 provider_user_id 를 읽는 곳. provider_id 가 카카오 회원번호다.
   -- 클라이언트가 쓸 수 있는 경로가 없어서 raw_user_meta_data 와 달리 신뢰할 수 있다.
   create table auth.identities (
     id uuid primary key default gen_random_uuid(),
@@ -239,10 +239,11 @@ export async function createUser(db: TestDb, nickname: string): Promise<string> 
   // `lf_user_stub` 트리거가 위 INSERT 에서 이미 대진 행을 만들어 뒀다. 덮어써서 이 함수의
   // 계약(주어진 닉네임·APP 표면)을 유지한다 — 그냥 INSERT 하면 PK 충돌로 죽는다.
   await db.asAdmin(
-    `insert into public.users (id, kakao_id, nickname, primary_surface)
-     values ($1, $2, $3, 'APP')
+    `insert into public.users (id, provider_user_id, provider, nickname, primary_surface)
+     values ($1, $2, 'kakao', $3, 'APP')
      on conflict (id) do update set
-       kakao_id = excluded.kakao_id,
+       provider_user_id = excluded.provider_user_id,
+       provider = excluded.provider,
        nickname = excluded.nickname,
        primary_surface = excluded.primary_surface`,
     [id, `kakao-${nickname}-${id.slice(0, 8)}`, nickname],

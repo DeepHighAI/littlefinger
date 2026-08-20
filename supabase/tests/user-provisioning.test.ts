@@ -15,7 +15,8 @@ import { createTestDb, type TestDb } from './harness.ts';
 let db: TestDb;
 
 interface UserRow {
-  kakao_id: string;
+  provider_user_id: string;
+  provider: string | null;
   nickname: string;
   primary_surface: string | null;
   profile_image_url: string | null;
@@ -36,21 +37,32 @@ async function createAuthUser(metadata: Record<string, unknown> = {}): Promise<s
   return String((rows[0] as { id: string }).id);
 }
 
+async function linkIdentity(
+  userId: string,
+  provider: 'kakao' | 'google',
+  providerId: string,
+  identityData: Record<string, unknown> = {},
+  lastSignInAt = 'now()',
+): Promise<void> {
+  await db.asAdmin(
+    `insert into auth.identities (user_id, provider, provider_id, identity_data, last_sign_in_at)
+     values ($1, $2, $3, $4, ${lastSignInAt})`,
+    [userId, provider, providerId, JSON.stringify(identityData)],
+  );
+}
+
 async function linkKakao(
   userId: string,
   providerId: string,
   identityData: Record<string, unknown> = {},
 ): Promise<void> {
-  await db.asAdmin(
-    `insert into auth.identities (user_id, provider, provider_id, identity_data, last_sign_in_at)
-     values ($1, 'kakao', $2, $3, now())`,
-    [userId, providerId, JSON.stringify(identityData)],
-  );
+  await linkIdentity(userId, 'kakao', providerId, identityData);
 }
 
 async function userRow(userId: string): Promise<UserRow | null> {
   const { rows } = await db.asAdmin(
-    `select kakao_id, nickname, primary_surface, profile_image_url, status::text as status
+    `select provider_user_id, provider, nickname, primary_surface, profile_image_url,
+            status::text as status
      from public.users where id = $1`,
     [userId],
   );
@@ -113,7 +125,9 @@ describe('트리거가 행의 존재를 보장한다', () => {
     const row = await userRow(id);
 
     expect(row).not.toBeNull();
-    expect(row?.kakao_id).toBe(`pending:${id}`);
+    expect(row?.provider_user_id).toBe(`pending:${id}`);
+    // 트리거 시점에는 어느 프로바이더로 왔는지 알 수 없다 — provision 이 확정한다.
+    expect(row?.provider).toBeNull();
   });
 
   test('메타데이터가 비어도 INSERT 가 죽지 않는다', async () => {
@@ -227,13 +241,40 @@ describe('약관 동의 기록은 서버가 한 번만 만든다', () => {
 });
 
 describe('lf_user_provision 이 대진값을 실값으로 보정한다', () => {
-  test('kakao_id 를 auth.identities.provider_id 에서 읽는다', async () => {
+  test('provider_user_id 를 auth.identities.provider_id 에서 읽는다', async () => {
     const id = await createAuthUser();
     await linkKakao(id, '1234567890', { name: '지우' });
 
     await provision(id, 'WEB', '지우');
 
-    expect((await userRow(id))?.kakao_id).toBe('1234567890');
+    const row = await userRow(id);
+    expect(row?.provider_user_id).toBe('1234567890');
+    expect(row?.provider).toBe('kakao');
+  });
+
+  test('Google 신원만 있어도 정체성이 확정된다 — pending 잔류 회귀 방지', async () => {
+    // Google SSO 도입(PO 2026-08-20) 전에는 provider='kakao' 고정이라 Google 사용자의
+    // 식별자가 영원히 pending 으로 남았다 — 탈퇴 해시·재가입 비승계가 무의미해지는 구멍.
+    const id = await createAuthUser();
+    await linkIdentity(id, 'google', 'google-sub-001', { name: '구글사용자' });
+
+    await provision(id, 'APP', '구글사용자');
+
+    const row = await userRow(id);
+    expect(row?.provider_user_id).toBe('google-sub-001');
+    expect(row?.provider).toBe('google');
+  });
+
+  test('카카오·구글 신원이 모두 있으면 가장 최근 로그인 쪽을 쓴다', async () => {
+    const id = await createAuthUser();
+    await linkIdentity(id, 'kakao', '1334567890', {}, `now() - interval '1 hour'`);
+    await linkIdentity(id, 'google', 'google-sub-002', {}, 'now()');
+
+    await provision(id, 'APP', '지우');
+
+    const row = await userRow(id);
+    expect(row?.provider_user_id).toBe('google-sub-002');
+    expect(row?.provider).toBe('google');
   });
 
   test('닉네임과 프로필 이미지를 채운다', async () => {
@@ -280,7 +321,7 @@ describe('lf_user_provision 이 대진값을 실값으로 보정한다', () => {
 
   test('40 코드포인트를 넘는 닉네임은 잘라서 저장한다 — 보정 전체가 죽지 않는다', async () => {
     // users.nickname 은 varchar(40)이고 Postgres 는 초과 시 22001 을 raise 한다(절삭 없음).
-    // 그 오류는 §2-3 표에 없어 500 이 되고, 문장 전체가 abort 라 kakao_id 채움까지 같이
+    // 그 오류는 §2-3 표에 없어 500 이 되고, 문장 전체가 abort 라 provider_user_id 채움까지 같이
     // 막힌다 — user_metadata.name 은 사용자가 임의로 쓸 수 있는 자리라 실재하는 경로다.
     const id = await createAuthUser();
     await linkKakao(id, '4434567890');
@@ -289,15 +330,15 @@ describe('lf_user_provision 이 대진값을 실값으로 보정한다', () => {
 
     const row = await userRow(id);
     expect(row?.nickname).toBe('가'.repeat(40));
-    expect(row?.kakao_id).toBe('4434567890');
+    expect(row?.provider_user_id).toBe('4434567890');
   });
 
-  test('카카오 신원이 아직 없으면 kakao_id 는 대진값으로 남는다', async () => {
+  test('카카오 신원이 아직 없으면 provider_user_id 는 대진값으로 남는다', async () => {
     const id = await createAuthUser();
 
     await provision(id, 'APP', '아직');
 
-    expect((await userRow(id))?.kakao_id).toBe(`pending:${id}`);
+    expect((await userRow(id))?.provider_user_id).toBe(`pending:${id}`);
   });
 
   test('행이 아예 없어도 만들어 낸다 — 트리거 이전 계정', async () => {
@@ -307,7 +348,7 @@ describe('lf_user_provision 이 대진값을 실값으로 보정한다', () => {
 
     await provision(id, 'WEB', '백필');
 
-    expect((await userRow(id))?.kakao_id).toBe('5234567890');
+    expect((await userRow(id))?.provider_user_id).toBe('5234567890');
   });
 });
 
@@ -344,18 +385,31 @@ describe('primary_surface 는 최초 가입 표면이다 — 먼저 쓴 값이 �
   });
 });
 
-describe('kakao_id 는 계정 동일성의 기준이라 덮이지 않는다', () => {
+describe('provider_user_id 는 계정 동일성의 기준이라 덮이지 않는다', () => {
   test('EC-A05 실값이 들어간 뒤에는 다른 카카오 신원으로 바뀌지 않는다', async () => {
     const id = await createAuthUser();
     await linkKakao(id, '9234567890');
     await provision(id, 'APP', '지우');
 
     // 같은 사용자에 두 번째 카카오 신원이 붙고 그쪽이 더 최근이어도(EC-A05),
-    // 이미 확정된 kakao_id 는 움직이지 않는다.
+    // 이미 확정된 provider_user_id 는 움직이지 않는다.
     await linkKakao(id, '9999999999');
     await provision(id, 'APP', '지우');
 
-    expect((await userRow(id))?.kakao_id).toBe('9234567890');
+    expect((await userRow(id))?.provider_user_id).toBe('9234567890');
+  });
+
+  test('확정된 정체성은 다른 프로바이더 로그인으로도 바뀌지 않는다', async () => {
+    const id = await createAuthUser();
+    await linkKakao(id, '9334567890');
+    await provision(id, 'APP', '지우');
+
+    await linkIdentity(id, 'google', 'google-sub-003');
+    await provision(id, 'WEB', '지우');
+
+    const row = await userRow(id);
+    expect(row?.provider_user_id).toBe('9334567890');
+    expect(row?.provider).toBe('kakao');
   });
 });
 
@@ -401,7 +455,7 @@ describe('서버 전용이다', () => {
   });
 
   test('클라이언트는 자기 users 행도 UPDATE 할 수 없다', async () => {
-    // "users update own" 은 컬럼 무제한 self-UPDATE 라 kakao_id(EC-A05 계정 동일성 키)·
+    // "users update own" 은 컬럼 무제한 self-UPDATE 라 provider_user_id(EC-A05 계정 동일성 키)·
     // status·email_verified·primary_surface 를 PostgREST 로 직접 쓸 수 있게 한다 —
     // 이 파일이 지키는 규칙 전부(먼저 쓴 값이 이긴다, 실값은 덮이지 않는다, ACTIVE 만)를
     // 우회하는 구멍이다. 클라이언트 쓰기 경로는 user-provision 하나여야 하므로 정책째
@@ -411,21 +465,21 @@ describe('서버 전용이다', () => {
     await provision(id, 'APP', '지우');
 
     const message = await messageOf(() =>
-      db.asUser(id, `update public.users set kakao_id = 'forged' where id = $1`, [id]),
+      db.asUser(id, `update public.users set provider_user_id = 'forged' where id = $1`, [id]),
     );
 
     expect(message).toContain('permission denied');
-    expect((await userRow(id))?.kakao_id).toBe('4534567890');
+    expect((await userRow(id))?.provider_user_id).toBe('4534567890');
   });
 
   test('클라이언트는 users 에 직접 INSERT 할 수 없다', async () => {
-    // 프로비저닝을 서버에 둔 이유가 이것이다 — INSERT 정책이 없어야 kakao_id 를
+    // 프로비저닝을 서버에 둔 이유가 이것이다 — INSERT 정책이 없어야 provider_user_id 를
     // 사용자가 정하지 못한다.
     const id = await createAuthUser();
     const message = await messageOf(() =>
       db.asUser(
         id,
-        `insert into public.users (id, kakao_id, nickname) values ($1, 'forged', '위조')`,
+        `insert into public.users (id, provider_user_id, nickname) values ($1, 'forged', '위조')`,
         [id],
       ),
     );

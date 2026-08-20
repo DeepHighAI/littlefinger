@@ -117,14 +117,17 @@ describe('account lifecycle completion', () => {
     expect(asAccountWithdrawResponse(second)).toEqual({ status: 'WITHDRAWN' });
 
     const { rows } = await db.asAdmin(
-      `select id, status::text, kakao_id, nickname, profile_image_url, withdrawn_at is not null as withdrawn
+      `select id, status::text, provider_user_id, provider, nickname, profile_image_url,
+              withdrawn_at is not null as withdrawn
          from public.users where id = $1`,
       [actor],
     );
     expect(rows[0]).toMatchObject({
       id: actor,
       status: 'WITHDRAWN',
-      kakao_id: anonymized,
+      provider_user_id: anonymized,
+      // 탈퇴해도 프로바이더는 남는다 — 같은 프로바이더 재가입 비승계 감지(EC-A07)용.
+      provider: 'kakao',
       nickname: '탈퇴한 사용자',
       profile_image_url: null,
       withdrawn: true,
@@ -179,8 +182,8 @@ describe('account lifecycle completion', () => {
     );
 
     expect(newId).not.toBe(oldId);
-    expect((await db.asAdmin(`select kakao_id, status::text from public.users where id = $1`, [newId])).rows).toEqual([
-      { kakao_id: providerId, status: 'ACTIVE' },
+    expect((await db.asAdmin(`select provider_user_id, status::text from public.users where id = $1`, [newId])).rows).toEqual([
+      { provider_user_id: providerId, status: 'ACTIVE' },
     ]);
     expect((await db.asAdmin(
       `select count(*)::int as count from public.promise_participants where user_id = $1`,
