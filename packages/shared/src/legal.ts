@@ -1,3 +1,4 @@
+import type { Localized } from './i18n.ts';
 import type { IsoDate } from './promise.ts';
 
 export type LegalDocumentStatus = 'DRAFT' | 'FINAL';
@@ -32,6 +33,11 @@ export const LEGAL_DOCUMENT_LABELS = {
   TERMS: '이용약관',
   PRIVACY: '개인정보 처리방침',
 } as const satisfies Record<LegalDocumentKind, string>;
+
+export const LEGAL_DOCUMENT_LABELS_BY_LOCALE: Localized<Record<LegalDocumentKind, string>> = {
+  ko: LEGAL_DOCUMENT_LABELS,
+  en: { TERMS: 'Terms of Service', PRIVACY: 'Privacy Policy' },
+};
 
 export function legalDocumentPath(kind: LegalDocumentKind): LegalDocumentMetadata['path'] {
   return LEGAL_DOCUMENTS[kind].path;

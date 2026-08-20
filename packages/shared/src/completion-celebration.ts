@@ -1,4 +1,5 @@
 import { isIsoInstant } from './datetime.ts';
+import type { Locale } from './i18n.ts';
 import type { IsoDateTime } from './promise.ts';
 
 export interface CompletionCelebrationClaimRequest {
@@ -106,7 +107,17 @@ export function asCompletionCelebrationShownResponse(
   return record as unknown as CompletionCelebrationShownResponse;
 }
 
-export function completionKeepRateLabel(before: number | null, after: number | null): string {
+export function completionKeepRateLabel(
+  before: number | null,
+  after: number | null,
+  locale: Locale = 'ko',
+): string {
+  if (locale === 'en') {
+    if (after === null) return 'Keep rate: gathering data';
+    if (before === null) return `Keep rate tracking started · ${after}%`;
+    if (before === after) return `Keep rate held at ${after}%`;
+    return `Keep rate ${before}% → ${after}%`;
+  }
   if (after === null) return '약속 지킴율 집계 중';
   if (before === null) return `지킴율 집계가 시작됐어요 · ${after}%`;
   if (before === after) return `약속 지킴율 ${after}% 유지`;

@@ -11,6 +11,8 @@
  * 그 외(필드·함수·문서)에서는 promise 를 그대로 쓴다.
  */
 
+import type { Localized } from './i18n.ts';
+
 // ── 상태 (02 §2-4 — 변경 금지) ─────────────────────────────
 
 export const PROMISE_STATUSES = [
@@ -42,6 +44,28 @@ export const PROMISE_STATUS_LABEL: Record<PromiseStatus, string> = {
   UNRESOLVED: '미확정 종결',
   DECLINED: '거절됨',
   CANCELED: '파기됨',
+};
+
+/**
+ * 로케일별 상태 라벨 (PO 2026-08-20: MVP ko/en). ko 는 위 상수 그대로다 — 서버·기존
+ * 호출부는 계속 ko 별칭을 쓰고, 화면만 로케일로 고른다. DISPUTED 의 영문도 P1(기록자,
+ * 판정자 아님)을 지킨다 — 누가 옳은지 암시하는 단어를 쓰지 않는다.
+ */
+export const PROMISE_STATUS_LABEL_BY_LOCALE: Localized<Record<PromiseStatus, string>> = {
+  ko: PROMISE_STATUS_LABEL,
+  en: {
+    DRAFT: 'Draft',
+    PENDING: 'Awaiting approval',
+    ACTIVE: 'In progress',
+    AMEND_PENDING: 'Change under discussion',
+    CHECKING: 'Confirming fulfillment',
+    COMPLETED: 'Completed',
+    BROKEN: 'Not kept',
+    DISPUTED: 'Views differ',
+    UNRESOLVED: 'Closed unconfirmed',
+    DECLINED: 'Declined',
+    CANCELED: 'Canceled',
+  },
 };
 
 /**
@@ -79,6 +103,11 @@ export const PROMISE_CATEGORY_LABEL: Record<PromiseCategory, string> = {
   ETC: '기타',
 };
 
+export const PROMISE_CATEGORY_LABEL_BY_LOCALE: Localized<Record<PromiseCategory, string>> = {
+  ko: PROMISE_CATEGORY_LABEL,
+  en: { HABIT: 'Habit', BET: 'Bet', MONEY: 'Money', ETC: 'Other' },
+};
+
 /** 참여자 역할. 증인은 열람·확인 서명만 가능하며 판정 권한이 없다. */
 export type ParticipantRole = 'CREATOR' | 'PARTNER' | 'WITNESS';
 
@@ -86,6 +115,11 @@ export const PARTICIPANT_ROLE_LABEL: Record<ParticipantRole, string> = {
   CREATOR: '작성자',
   PARTNER: '상대방',
   WITNESS: '증인',
+};
+
+export const PARTICIPANT_ROLE_LABEL_BY_LOCALE: Localized<Record<ParticipantRole, string>> = {
+  ko: PARTICIPANT_ROLE_LABEL,
+  en: { CREATOR: 'Creator', PARTNER: 'Partner', WITNESS: 'Witness' },
 };
 
 export type ParticipantStatus = 'INVITED' | 'JOINED' | 'DECLINED' | 'WITHDRAWN';
@@ -104,6 +138,11 @@ export const KEEPER_LABEL: Record<Keeper, string> = {
   CREATOR: '작성자',
   PARTNER: '상대방',
   BOTH: '둘 다',
+};
+
+export const KEEPER_LABEL_BY_LOCALE: Localized<Record<Keeper, string>> = {
+  ko: KEEPER_LABEL,
+  en: { CREATOR: 'Creator', PARTNER: 'Partner', BOTH: 'Both' },
 };
 
 /** 이행 확인 응답 (02 §6-3 Answer) */
@@ -280,3 +319,16 @@ export interface TrustProfile {
 export const LEGAL_DISCLAIMER =
   '리틀핑거의 약속 기록은 공증이나 전자계약 서비스가 아니며, 법적 효력을 보증하지 않습니다. ' +
   '다만 양측의 승인 이력과 시각 정보는 분쟁 시 참고 자료로 활용될 수 있습니다.';
+
+/**
+ * 로케일별 고지 문구. **ko 는 위 확정 문구 그대로이며 여전히 변경 금지다.**
+ * en 은 법무 검토 전 초안(DRAFT, PO 2026-08-20) — 검토가 끝나면 그 결과 문구로만 바꾼다.
+ * 렌더는 여전히 LfDisclaimer 만 하고, 문구를 props 로 받지 않는다.
+ */
+export const LEGAL_DISCLAIMER_BY_LOCALE: Localized<string> = {
+  ko: LEGAL_DISCLAIMER,
+  en:
+    'Littlefinger promise records are not notarization or an electronic contract service, ' +
+    'and no legal effect is guaranteed. However, both parties’ approval history and ' +
+    'timestamps may serve as reference material in a dispute.',
+};

@@ -14,6 +14,7 @@
 
 import { END_DATE_MAX_DAYS, EVIDENCE_MAX_COUNT, EVIDENCE_MAX_MB } from './config.ts';
 import { toKstDate } from './datetime.ts';
+import type { Locale, Localized } from './i18n.ts';
 import type { Keeper, PromiseCategory } from './promise.ts';
 import { codepointLength, normalizeInput } from './text.ts';
 
@@ -50,12 +51,15 @@ function checkLength(
 const TITLE_MIN = 2;
 const TITLE_MAX = 40;
 /** §5-1 의 이 문구는 **최소 길이 위반 전용**이다. 상한·개행 위반에 재사용하면 틀린 안내가 된다. */
-const TITLE_TOO_SHORT = '제목을 2자 이상 입력해 주세요.';
+const TITLE_TOO_SHORT: Localized<string> = {
+  ko: '제목을 2자 이상 입력해 주세요.',
+  en: 'Please enter a title of at least 2 characters.',
+};
 
-/** 제목 — 2~40자, 개행 불가 */
-export function validateTitle(value: string): ValidationResult {
+/** 제목 — 2~40자, 개행 불가. locale 기본값 ko — 서버 재검증 호출부는 그대로다. */
+export function validateTitle(value: string, locale: Locale = 'ko'): ValidationResult {
   const { text, length } = normalizedLength(value);
-  if (length < TITLE_MIN) return invalid(TITLE_TOO_SHORT);
+  if (length < TITLE_MIN) return invalid(TITLE_TOO_SHORT[locale]);
   // 상한 초과와 개행은 §5-1 에 문구가 없다. 지어내지 않고 CTA 비활성으로 처리한다(§2-3).
   if (length > TITLE_MAX || text.includes('\n')) return invalid(null);
   return VALID;
@@ -65,12 +69,15 @@ const BODY_MIN = 5;
 const BODY_MAX = 1000;
 const BODY_MAX_LINES = 20;
 /** 최소 길이 위반 전용 문구. 상한·줄 수 위반에는 쓰지 않는다. */
-const BODY_TOO_SHORT = '어떤 약속인지 5자 이상 적어주세요.';
+const BODY_TOO_SHORT: Localized<string> = {
+  ko: '어떤 약속인지 5자 이상 적어주세요.',
+  en: 'Please describe the promise in at least 5 characters.',
+};
 
 /** 약속 내용 — 5~1000자, 개행 허용하되 최대 20줄 */
-export function validateBody(value: string): ValidationResult {
+export function validateBody(value: string, locale: Locale = 'ko'): ValidationResult {
   const { text, length } = normalizedLength(value);
-  if (length < BODY_MIN) return invalid(BODY_TOO_SHORT);
+  if (length < BODY_MIN) return invalid(BODY_TOO_SHORT[locale]);
   // 줄 수는 개행 축약이 끝난 뒤 센다. 축약 전 기준으로 세면 빈 줄만으로 상한에 걸린다.
   if (length > BODY_MAX || text.split('\n').length > BODY_MAX_LINES) return invalid(null);
   return VALID;
@@ -92,7 +99,10 @@ export function validateKeeper(value: string): ValidationResult {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const END_DATE_MESSAGE = '종료일은 내일부터 1년 안으로 정해주세요.';
+const END_DATE_MESSAGE: Localized<string> = {
+  ko: '종료일은 내일부터 1년 안으로 정해주세요.',
+  en: 'Choose an end date between tomorrow and one year from today.',
+};
 
 /** `YYYY-MM-DD` 가 실제로 존재하는 날짜인지 — 2026-13-01 같은 값을 거른다. */
 function isRealIsoDate(value: string): boolean {
@@ -112,8 +122,12 @@ function isRealIsoDate(value: string): boolean {
  * `now` 를 인자로 받는 이유: 기기 시계를 신뢰하지 않고, 승인 시점에 서버가
  * 같은 함수로 재검증할 수 있어야 하기 때문이다(T-03·T-08).
  */
-export function validateEndDate(value: string, now: Date): ValidationResult {
-  if (!isRealIsoDate(value)) return invalid(END_DATE_MESSAGE);
+export function validateEndDate(
+  value: string,
+  now: Date,
+  locale: Locale = 'ko',
+): ValidationResult {
+  if (!isRealIsoDate(value)) return invalid(END_DATE_MESSAGE[locale]);
 
   const todayKst = Date.parse(`${toKstDate(now)}T00:00:00Z`);
   const endDate = Date.parse(`${value}T00:00:00Z`);
@@ -121,7 +135,7 @@ export function validateEndDate(value: string, now: Date): ValidationResult {
 
   return daysFromToday >= 1 && daysFromToday <= END_DATE_MAX_DAYS
     ? VALID
-    : invalid(END_DATE_MESSAGE);
+    : invalid(END_DATE_MESSAGE[locale]);
 }
 
 const STAKE_MAX = 100;
@@ -139,9 +153,17 @@ export function validatePenalty(value: string): ValidationResult {
 // ── §5-3 초대·응답 필드 ────────────────────────────────────
 
 /** 수정 제안 의견 — 수정 제안 시 필수, 5~300자 (T-05) */
-export function validateAmendSuggestion(value: string): ValidationResult {
+const AMEND_SUGGESTION_TOO_SHORT: Localized<string> = {
+  ko: '어떤 부분을 바꾸고 싶은지 알려주세요.',
+  en: 'Tell us what you would like to change.',
+};
+
+export function validateAmendSuggestion(
+  value: string,
+  locale: Locale = 'ko',
+): ValidationResult {
   const { length } = normalizedLength(value);
-  if (length < 5) return invalid('어떤 부분을 바꾸고 싶은지 알려주세요.');
+  if (length < 5) return invalid(AMEND_SUGGESTION_TOO_SHORT[locale]);
   return length <= 300 ? VALID : invalid(null);
 }
 

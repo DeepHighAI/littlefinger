@@ -7,6 +7,7 @@
  */
 
 import { INVITE_TTL_HOURS, WITNESS_MAX } from './config.ts';
+import type { Localized } from './i18n.ts';
 
 export const ERROR_CODES = [
   'E_AUTH_REQUIRED',
@@ -65,4 +66,29 @@ export const ERROR_MESSAGE: Record<ErrorCode, string | null> = {
   E_BLOCKED: '초대를 받을 수 없습니다.',
   E_RATE_LIMIT: '잠시 후 다시 시도해 주세요.',
   E_UPLOAD_FAILED: '사진을 올리지 못했어요. 다시 시도해 주세요.',
+};
+
+/**
+ * 로케일별 사용자 노출 문구 (PO 2026-08-20: 클라이언트 렌더만 로케일을 탄다).
+ * ko 는 위 상수 그대로 — 서버 봉투는 1차에서 계속 ko 문구를 싣고, 클라이언트가
+ * 코드로 다시 그릴 수 있는 경우에만 로케일 문구가 보인다.
+ */
+export const ERROR_MESSAGE_BY_LOCALE: Localized<Record<ErrorCode, string | null>> = {
+  ko: ERROR_MESSAGE,
+  en: {
+    E_AUTH_REQUIRED: 'Please sign in again.',
+    E_FORBIDDEN: 'You do not have access to this promise.',
+    E_NOT_FOUND: 'Promise not found.',
+    E_INVITE_EXPIRED: `This invite link has expired. (${INVITE_TTL_HOURS} hours)`,
+    E_INVITE_USED: 'This invite link has already been used.',
+    E_INVITE_REVOKED: 'The creator sent a new invite. Please use the latest link.',
+    E_STATE_CONFLICT: 'The promise has changed. Refresh and try again.',
+    E_VALIDATION: null,
+    E_SELF_INVITE: 'You cannot be your own partner.',
+    E_DUPLICATE_ROLE: 'You are already part of this promise.',
+    E_WITNESS_LIMIT: `Up to ${WITNESS_MAX} witnesses are allowed.`,
+    E_BLOCKED: 'This invite cannot be accepted.',
+    E_RATE_LIMIT: 'Please try again in a moment.',
+    E_UPLOAD_FAILED: 'The photo could not be uploaded. Please try again.',
+  },
 };

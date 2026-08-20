@@ -10,6 +10,7 @@
  */
 
 import { CHECK_DEADLINE_DAYS, IMMINENT_THRESHOLD_DAYS } from './config.ts';
+import type { Locale, Localized } from './i18n.ts';
 import type { IsoDate, IsoDateTime, PromiseStatus } from './promise.ts';
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -88,19 +89,23 @@ export function ddayFrom(endDate: IsoDate, now: Date): number {
 /**
  * 요일 라벨. 인덱스는 `Date.getUTCDay()` 와 같은 순서(일=0)다.
  * KST 로 민 시각에서 읽으므로 기기 타임존과 무관하다.
+ * 로케일이 바뀌어도 **날짜 자체는 계속 KST 기준**이다(EC-F09) — 표기 언어만 다르다.
  */
-const WEEKDAY_LABEL = ['일', '월', '화', '수', '목', '금', '토'] as const;
+const WEEKDAY_LABEL: Localized<readonly string[]> = {
+  ko: ['일', '월', '화', '수', '목', '금', '토'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+};
 
 /**
  * 종료일 표시 — `2026-08-11 (화)`.
  *
  * `YYYY-MM-DD` 는 이미 KST 기준 날짜라(§2-2) 시각 개념이 없다. 그래서 UTC 자정으로 읽고
  * `getUTCDay()` 로 요일을 뽑는다 — `new Date('2026-08-11')` 을 로컬로 읽으면 서쪽
- * 타임존에서 하루 전 요일이 나온다(EC-F09).
+ * 타임존에서 하루 전 요일이 나온다(EC-F09). locale 기본값 ko — 서버 호출부는 그대로다.
  */
-export function formatKstDate(date: IsoDate): string {
+export function formatKstDate(date: IsoDate, locale: Locale = 'ko'): string {
   const day = new Date(parseIsoDateAsUtcMidnight(date)).getUTCDay();
-  return `${date} (${WEEKDAY_LABEL[day] ?? ''})`;
+  return `${date} (${WEEKDAY_LABEL[locale][day] ?? ''})`;
 }
 
 /**
