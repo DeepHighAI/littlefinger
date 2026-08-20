@@ -1,8 +1,8 @@
 import {
   EMPTY_PROMISE_DRAFT,
-  PENALTY_PRESETS,
-  REWARD_PRESETS,
   containsSensitiveNumber,
+  penaltyPresets,
+  rewardPresets,
   validatePromiseDraft,
 } from './promise-draft.ts';
 
@@ -20,20 +20,24 @@ describe('SCR-A03 약속 초안 규칙', () => {
       penalty: '',
       witness_enabled: false,
     });
-    expect(REWARD_PRESETS).toEqual([
+    // 기본값(ko)은 명세 문구 그대로다 — 로케일 인자를 안 넘기는 기존 호출부의 동결 검증.
+    expect(rewardPresets()).toEqual([
       '커피 한 잔 사주기',
       '다음 메뉴 선택권',
       '소원권 1장',
       '주말 계획 결정권',
       '칭찬 세 가지',
     ]);
-    expect(PENALTY_PRESETS).toEqual([
+    expect(penaltyPresets()).toEqual([
       '커피 한 잔 사기',
       '설거지 1주일',
       '다음 데이트 비용',
       '노래방 한 곡',
       '소원권 1장 주기',
     ]);
+    // en 은 ko 와 같은 개수의 칩을 제공한다 — 화면 구성이 로케일에 따라 변하지 않는다.
+    expect(rewardPresets('en')).toHaveLength(rewardPresets('ko').length);
+    expect(penaltyPresets('en')).toHaveLength(penaltyPresets('ko').length);
   });
 
   test('8개 필드가 유효해야 전송할 수 있고 명세 실패 문구를 그대로 돌려준다', () => {

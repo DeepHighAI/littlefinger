@@ -4,16 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfButton } from '../components/LfButton';
 import { LfPinky } from '../components/LfPinky';
+import { useLabels } from '../lib/locale-native';
+import { NOT_FOUND_LABEL } from '../screens/not-found-labels.ts';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, line, space, type, weight } from '../theme/tokens';
-
-// 딥링크가 어긋났을 때의 첫인상이다. expo-router 기본 화면은 영어·시스템 폰트라
-// 브랜드 화면으로 대체한다. 루트로 보내면 _layout 의 세션 규칙이 로그인/홈을 가른다.
-const LABEL = {
-  title: '화면을 찾을 수 없어요',
-  copy: '주소가 바뀌었거나 만료된 링크일 수 있어요.',
-  action: '처음으로',
-};
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background, padding: space[8] },
@@ -22,12 +16,15 @@ const styles = StyleSheet.create({
   copy: { color: colors.textSecondary, fontSize: type.body, lineHeight: line.body, fontFamily: brandFontFamily(weight.regular), textAlign: 'center' },
 });
 
+// 딥링크가 어긋났을 때의 첫인상이다. expo-router 기본 화면은 영어·시스템 폰트라
+// 브랜드 화면으로 대체한다. 루트로 보내면 _layout 의 세션 규칙이 로그인/홈을 가른다.
 export default function NotFoundScreen(): React.JSX.Element {
+  const LABEL = useLabels(NOT_FOUND_LABEL);
   const router = useRouter();
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.body}>
-        <LfPinky size="xl" accessibilityLabel="새끼손가락 걸기" />
+        <LfPinky size="xl" accessibilityLabel={LABEL.badge} />
         <View>
           <Text style={styles.title}>{LABEL.title}</Text>
           <Text style={styles.copy}>{LABEL.copy}</Text>

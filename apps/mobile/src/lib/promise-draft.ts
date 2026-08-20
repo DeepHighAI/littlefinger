@@ -7,6 +7,8 @@ import {
   validateReward,
   validateTitle,
   type Keeper,
+  type Locale,
+  type Localized,
   type PromiseCategory,
   type ValidationResult,
 } from '@littlefinger/shared';
@@ -40,21 +42,51 @@ export const EMPTY_PROMISE_DRAFT: PromiseDraftFields = {
   witness_enabled: false,
 };
 
-export const REWARD_PRESETS = [
-  '커피 한 잔 사주기',
-  '다음 메뉴 선택권',
-  '소원권 1장',
-  '주말 계획 결정권',
-  '칭찬 세 가지',
-] as const;
+/**
+ * 프리셋은 칩 라벨이자 선택 즉시 저장되는 본문이다 — 로케일은 고르는 순간의 문구만
+ * 정하고, 저장된 텍스트는 이후 로케일 전환과 무관하게 그대로 남는다.
+ */
+const REWARD_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
+  ko: [
+    '커피 한 잔 사주기',
+    '다음 메뉴 선택권',
+    '소원권 1장',
+    '주말 계획 결정권',
+    '칭찬 세 가지',
+  ],
+  en: [
+    'A coffee treat',
+    'Pick the next menu',
+    'One wish coupon',
+    'Decide the weekend plan',
+    'Three compliments',
+  ],
+};
 
-export const PENALTY_PRESETS = [
-  '커피 한 잔 사기',
-  '설거지 1주일',
-  '다음 데이트 비용',
-  '노래방 한 곡',
-  '소원권 1장 주기',
-] as const;
+const PENALTY_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
+  ko: [
+    '커피 한 잔 사기',
+    '설거지 1주일',
+    '다음 데이트 비용',
+    '노래방 한 곡',
+    '소원권 1장 주기',
+  ],
+  en: [
+    'Buy a coffee',
+    'Dishes for a week',
+    'Pay for the next date',
+    'Sing one karaoke song',
+    'Give one wish coupon',
+  ],
+};
+
+export function rewardPresets(locale: Locale = 'ko'): readonly string[] {
+  return REWARD_PRESETS_BY_LOCALE[locale];
+}
+
+export function penaltyPresets(locale: Locale = 'ko'): readonly string[] {
+  return PENALTY_PRESETS_BY_LOCALE[locale];
+}
 
 function addResult(
   fields: Partial<Record<PromiseDraftField, string>>,
@@ -69,13 +101,14 @@ function addResult(
 export function validatePromiseDraft(
   draft: PromiseDraftFields,
   now: Date,
+  locale: Locale = 'ko',
 ): PromiseDraftValidation {
   const fields: Partial<Record<PromiseDraftField, string>> = {};
   const results = [
-    addResult(fields, 'title', validateTitle(draft.title)),
-    addResult(fields, 'body', validateBody(draft.body)),
+    addResult(fields, 'title', validateTitle(draft.title, locale)),
+    addResult(fields, 'body', validateBody(draft.body, locale)),
     addResult(fields, 'category', validateCategory(draft.category)),
-    addResult(fields, 'end_date', validateEndDate(draft.end_date, now)),
+    addResult(fields, 'end_date', validateEndDate(draft.end_date, now, locale)),
     addResult(fields, 'keeper', validateKeeper(draft.keeper)),
     addResult(fields, 'reward', validateReward(draft.reward)),
     addResult(fields, 'penalty', validatePenalty(draft.penalty)),

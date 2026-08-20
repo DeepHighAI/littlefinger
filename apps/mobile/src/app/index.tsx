@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LEGAL_DOCUMENT_LABELS, type LegalDocumentKind } from '@littlefinger/shared';
+import { LEGAL_DOCUMENT_LABELS_BY_LOCALE, type LegalDocumentKind } from '@littlefinger/shared';
 
 import { GoogleMark } from '../components/GoogleMark';
 import { LfButton } from '../components/LfButton';
@@ -15,7 +15,9 @@ import {
 } from '../lib/kakao-auth-native.ts';
 import { signInWithTestAccount } from '../lib/test-auth-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
+import { useLabels } from '../lib/locale-native';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
+import { LOGIN_LABEL } from '../screens/login-labels.ts';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, line, size, space, type, weight } from '../theme/tokens';
 
@@ -39,24 +41,6 @@ const WORDMARK_LINE = 38;
 const WORDMARK_TRACKING = -0.5;
 const SUBTITLE_SIZE = 15;
 const ACTIONS_BOTTOM = 28;
-const KAKAO_LOGIN_CANCELED_LABEL = '로그인을 취소했습니다. 다시 시도해 주세요.';
-const KAKAO_LOGIN_ERROR_LABEL =
-  '지금 카카오 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
-const KAKAO_NICKNAME_REQUIRED_LABEL =
-  '닉네임 정보는 약속 기록에 꼭 필요합니다. 동의 후 이용해 주세요.';
-const GOOGLE_LOGIN_LABEL = 'Google로 시작하기';
-const GOOGLE_LOGIN_ERROR_LABEL =
-  '지금 Google 로그인이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
-const SESSION_EXPIRED_LABEL = '다시 로그인해 주세요.';
-const LEGAL_DOCUMENT_ERROR_LABEL =
-  '법적 문서를 열 수 없습니다. 잠시 후 다시 시도해 주세요.';
-const LEGAL_AGREEMENT_LABEL = '시작하면 위 문서에 동의하게 돼요';
-const LOGIN_LOGO_LABEL = '리틀핑거 로고';
-const TEST_LOGIN_TITLE_LABEL = '테스트 로그인 (개발 빌드 전용)';
-const TEST_LOGIN_EMAIL_LABEL = '테스트 이메일';
-const TEST_LOGIN_PASSWORD_LABEL = '테스트 비밀번호';
-const TEST_LOGIN_SUBMIT_LABEL = '테스트 계정으로 로그인';
-const TEST_LOGIN_ERROR_LABEL = '테스트 로그인에 실패했습니다. 계정 정보를 확인해 주세요.';
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -134,6 +118,8 @@ const styles = StyleSheet.create({
 });
 
 export default function LoginScreen(): React.JSX.Element {
+  const LABEL = useLabels(LOGIN_LABEL);
+  const LEGAL_LABEL = useLabels(LEGAL_DOCUMENT_LABELS_BY_LOCALE);
   const { callbackFailed, sessionExpired = false } = useMobileAuthGate();
   const [signingIn, setSigningIn] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
@@ -141,8 +127,10 @@ export default function LoginScreen(): React.JSX.Element {
   const [testPassword, setTestPassword] = useState('');
 
   useEffect(() => {
-    if (callbackFailed) setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
-    else if (sessionExpired) setAuthMessage(SESSION_EXPIRED_LABEL);
+    if (callbackFailed) setAuthMessage(LABEL.kakaoError);
+    else if (sessionExpired) setAuthMessage(LABEL.sessionExpired);
+    // LABEL 은 의존성에 넣지 않는다 — 로케일 전환이 지나간 실패 문구를 되살리면 안 된다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [callbackFailed, sessionExpired]);
 
   async function handleKakaoLogin(): Promise<void> {
@@ -150,10 +138,10 @@ export default function LoginScreen(): React.JSX.Element {
     setAuthMessage(null);
     try {
       const result = await signInWithKakao();
-      if (result === 'CANCELED') setAuthMessage(KAKAO_LOGIN_CANCELED_LABEL);
-      if (result === 'NICKNAME_REQUIRED') setAuthMessage(KAKAO_NICKNAME_REQUIRED_LABEL);
+      if (result === 'CANCELED') setAuthMessage(LABEL.kakaoCanceled);
+      if (result === 'NICKNAME_REQUIRED') setAuthMessage(LABEL.nicknameRequired);
     } catch {
-      setAuthMessage(KAKAO_LOGIN_ERROR_LABEL);
+      setAuthMessage(LABEL.kakaoError);
     } finally {
       setSigningIn(false);
     }
@@ -164,12 +152,12 @@ export default function LoginScreen(): React.JSX.Element {
     setAuthMessage(null);
     try {
       const result = await signInWithGoogle();
-      if (result === 'CANCELED') setAuthMessage(KAKAO_LOGIN_CANCELED_LABEL);
+      if (result === 'CANCELED') setAuthMessage(LABEL.kakaoCanceled);
       // NICKNAME_REQUIRED 는 카카오 동의 항목 전용이라 Google 에서는 나올 수 없다 —
       // 만약 나오면 알 수 없는 실패로 취급한다.
-      if (result === 'NICKNAME_REQUIRED') setAuthMessage(GOOGLE_LOGIN_ERROR_LABEL);
+      if (result === 'NICKNAME_REQUIRED') setAuthMessage(LABEL.googleError);
     } catch {
-      setAuthMessage(GOOGLE_LOGIN_ERROR_LABEL);
+      setAuthMessage(LABEL.googleError);
     } finally {
       setSigningIn(false);
     }
@@ -183,7 +171,7 @@ export default function LoginScreen(): React.JSX.Element {
     try {
       await signInWithTestAccount(testEmail.trim(), testPassword);
     } catch {
-      setAuthMessage(TEST_LOGIN_ERROR_LABEL);
+      setAuthMessage(LABEL.testLoginError);
     } finally {
       setSigningIn(false);
     }
@@ -194,7 +182,7 @@ export default function LoginScreen(): React.JSX.Element {
     try {
       await openLegalDocument(kind);
     } catch {
-      setAuthMessage(LEGAL_DOCUMENT_ERROR_LABEL);
+      setAuthMessage(LABEL.legalDocumentError);
     }
   }
 
@@ -205,16 +193,16 @@ export default function LoginScreen(): React.JSX.Element {
           style={styles.badge}
           accessible
           accessibilityRole="image"
-          accessibilityLabel={LOGIN_LOGO_LABEL}
+          accessibilityLabel={LABEL.logo}
         >
           <LfPinky size="xl" tone="onContainer" />
         </View>
 
-        <Text style={styles.wordmark}>리틀핑거</Text>
-        <Text style={styles.subtitle}>새끼손가락 걸고, 약속!</Text>
+        <Text style={styles.wordmark}>{LABEL.wordmark}</Text>
+        <Text style={styles.subtitle}>{LABEL.subtitle}</Text>
         {/* 여백은 화면의 몫이다. 컴포넌트는 style 을 받지 않아 디자인 값이 새지 않는다. */}
         <View style={styles.hook}>
-          <LfNotice label="오늘도 새끼손가락 걸어볼까요?" />
+          <LfNotice label={LABEL.hook} />
         </View>
       </View>
 
@@ -224,7 +212,7 @@ export default function LoginScreen(): React.JSX.Element {
             variant="kakao"
             size="cta"
             block
-            label="카카오로 시작하기"
+            label={LABEL.kakaoCta}
             disabled={signingIn}
             onPress={() => void handleKakaoLogin()}
           />
@@ -233,7 +221,7 @@ export default function LoginScreen(): React.JSX.Element {
             size="cta"
             block
             leading={<GoogleMark />}
-            label={GOOGLE_LOGIN_LABEL}
+            label={LABEL.googleCta}
             disabled={signingIn}
             onPress={() => void handleGoogleLogin()}
           />
@@ -245,30 +233,30 @@ export default function LoginScreen(): React.JSX.Element {
           <View style={styles.termsLinks}>
             <Pressable
               accessibilityRole="link"
-              accessibilityLabel={LEGAL_DOCUMENT_LABELS.TERMS}
+              accessibilityLabel={LEGAL_LABEL.TERMS}
               style={styles.termsLinkTarget}
               onPress={() => void handleLegalDocument('TERMS')}
             >
-              <Text style={[styles.terms, styles.termsLink]}>{LEGAL_DOCUMENT_LABELS.TERMS}</Text>
+              <Text style={[styles.terms, styles.termsLink]}>{LEGAL_LABEL.TERMS}</Text>
             </Pressable>
             <Pressable
               accessibilityRole="link"
-              accessibilityLabel={LEGAL_DOCUMENT_LABELS.PRIVACY}
+              accessibilityLabel={LEGAL_LABEL.PRIVACY}
               style={styles.termsLinkTarget}
               onPress={() => void handleLegalDocument('PRIVACY')}
             >
-              <Text style={[styles.terms, styles.termsLink]}>{LEGAL_DOCUMENT_LABELS.PRIVACY}</Text>
+              <Text style={[styles.terms, styles.termsLink]}>{LEGAL_LABEL.PRIVACY}</Text>
             </Pressable>
           </View>
-          <Text style={styles.terms}>{LEGAL_AGREEMENT_LABEL}</Text>
+          <Text style={styles.terms}>{LABEL.legalAgreement}</Text>
         </LfStack>
         {__DEV__ && (
           <View style={styles.testLogin}>
             <LfStack gap={4}>
-              <Text style={styles.testLoginTitle}>{TEST_LOGIN_TITLE_LABEL}</Text>
+              <Text style={styles.testLoginTitle}>{LABEL.testLoginTitle}</Text>
               <LfInput
-                accessibilityLabel={TEST_LOGIN_EMAIL_LABEL}
-                placeholder={TEST_LOGIN_EMAIL_LABEL}
+                accessibilityLabel={LABEL.testLoginEmail}
+                placeholder={LABEL.testLoginEmail}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"
@@ -276,8 +264,8 @@ export default function LoginScreen(): React.JSX.Element {
                 onChangeText={setTestEmail}
               />
               <LfInput
-                accessibilityLabel={TEST_LOGIN_PASSWORD_LABEL}
-                placeholder={TEST_LOGIN_PASSWORD_LABEL}
+                accessibilityLabel={LABEL.testLoginPassword}
+                placeholder={LABEL.testLoginPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
                 secureTextEntry
@@ -287,7 +275,7 @@ export default function LoginScreen(): React.JSX.Element {
               <LfButton
                 variant="outlined"
                 block
-                label={TEST_LOGIN_SUBMIT_LABEL}
+                label={LABEL.testLoginSubmit}
                 disabled={signingIn || testEmail.trim() === '' || testPassword === ''}
                 onPress={() => void handleTestLogin()}
               />

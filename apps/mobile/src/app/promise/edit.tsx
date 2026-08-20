@@ -1,6 +1,8 @@
 import {
   KEEPER_LABEL,
+  KEEPER_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL,
+  PROMISE_CATEGORY_LABEL_BY_LOCALE,
   WITNESS_MAX,
   type Keeper,
   type PromiseCategory,
@@ -32,7 +34,8 @@ import { LfSwitch } from '../../components/LfSwitch';
 import { LfText } from '../../components/LfText';
 import { LfTextarea } from '../../components/LfTextarea';
 import { DraftAutosave } from '../../lib/draft-autosave.ts';
-import { MobileApiError } from '../../lib/mobile-api.ts';
+import { useLabels, useLocale } from '../../lib/locale-native';
+import { localizedApiMessage, MobileApiError } from '../../lib/mobile-api.ts';
 import {
   clearEditorLocalDraft,
   loadAmendSuggestComment,
@@ -43,43 +46,15 @@ import {
 } from '../../lib/promise-editor-native.ts';
 import {
   EMPTY_PROMISE_DRAFT,
-  PENALTY_PRESETS,
-  REWARD_PRESETS,
   containsSensitiveNumber,
+  penaltyPresets,
+  rewardPresets,
   validatePromiseDraft,
   type PromiseDraftField,
   type PromiseDraftFields,
 } from '../../lib/promise-draft.ts';
+import { PROMISE_EDIT_LABEL } from '../../screens/promise-edit-labels.ts';
 import { colors, gutter, size, space } from '../../theme/tokens';
-
-const EDITOR_LABEL = {
-  title: '약속 만들기',
-  editing: '작성 중',
-  close: '닫기',
-  titleField: '제목',
-  bodyField: '약속 내용',
-  category: '카테고리',
-  endDate: '종료일',
-  endDatePicker: '종료일 선택',
-  keeper: '지킬 사람',
-  reward: '보상',
-  penalty: '벌칙',
-  witness: '증인 초대하기',
-  witnessDescription: `확정 후 증인을 초대할 수 있어요(최대 ${WITNESS_MAX}명)`,
-  moneyNotice:
-    '금전 약속도 기록할 수 있지만, 리틀핑거는 차용증·공증 서비스가 아니에요.',
-  save: '임시저장',
-  send: '상대에게 보내기',
-  saved: '임시저장했어요',
-  loading: '초안을 불러오는 중이에요',
-  loadError: '초안을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-  amendComment: '상대방의 수정 제안 의견',
-  privacyTitle: '개인정보가 포함돼 있어요',
-  privacyBody: '그대로 기록할까요?',
-  privacyContinue: '그대로 기록',
-  cancel: '취소',
-  genericError: '문제가 발생했어요. 잠시 후 다시 시도해 주세요.',
-} as const;
 
 const CATEGORIES = Object.keys(PROMISE_CATEGORY_LABEL) as PromiseCategory[];
 const KEEPERS = Object.keys(KEEPER_LABEL) as Keeper[];
@@ -121,6 +96,8 @@ function routePromiseId(value: string | string[] | undefined): string | null {
 }
 
 export default function PromiseEditorScreen(): React.JSX.Element {
+  const LABEL = useLabels(PROMISE_EDIT_LABEL);
+  const { locale } = useLocale();
   const router = useRouter();
   const params = useLocalSearchParams<{ promise_id?: string | string[] }>();
   const promiseId = routePromiseId(params.promise_id);
@@ -176,7 +153,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     };
   }, [autosave, promiseId]);
 
-  const validation = validatePromiseDraft(draft, new Date());
+  const validation = validatePromiseDraft(draft, new Date(), locale);
 
   function updateDraft<K extends PromiseDraftField>(
     field: K,
@@ -204,7 +181,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
 
   async function closeEditor(): Promise<void> {
     await autosave.flush();
-    ToastAndroid.show(EDITOR_LABEL.saved, ToastAndroid.SHORT);
+    ToastAndroid.show(LABEL.saved, ToastAndroid.SHORT);
     router.back();
   }
 
@@ -230,10 +207,13 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       }
     } catch (error) {
       if (error instanceof MobileApiError && error.field !== undefined) {
+        // 필드 오류는 서버가 만든 필드 맞춤 문구라 코드 사전으로 갈아끼우지 않는다.
         const field = error.field as PromiseDraftField;
         setServerErrors((current) => ({ ...current, [field]: error.message }));
+      } else if (error instanceof MobileApiError) {
+        setSubmitError(localizedApiMessage(error, locale));
       } else {
-        setSubmitError(error instanceof Error ? error.message : EDITOR_LABEL.genericError);
+        setSubmitError(error instanceof Error ? error.message : LABEL.genericError);
       }
     } finally {
       setSubmitting(false);
@@ -242,10 +222,10 @@ export default function PromiseEditorScreen(): React.JSX.Element {
 
   function submit(send: boolean): void {
     if (containsSensitiveNumber(draft.body) && !privacyConfirmed) {
-      Alert.alert(EDITOR_LABEL.privacyTitle, EDITOR_LABEL.privacyBody, [
-        { text: EDITOR_LABEL.cancel, style: 'cancel' },
+      Alert.alert(LABEL.privacyTitle, LABEL.privacyBody, [
+        { text: LABEL.cancel, style: 'cancel' },
         {
-          text: EDITOR_LABEL.privacyContinue,
+          text: LABEL.privacyContinue,
           onPress: async () => {
             setPrivacyConfirmed(true);
             await performSubmit(send);
@@ -261,7 +241,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     return (
       <SafeAreaView style={styles.screen}>
         <View style={styles.loading}>
-          <LfText secondary>{EDITOR_LABEL.loading}</LfText>
+          <LfText secondary>{LABEL.loading}</LfText>
         </View>
       </SafeAreaView>
     );
@@ -272,7 +252,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       <SafeAreaView style={styles.screen}>
         <View style={styles.loading}>
           <LfText secondary align="center">
-            {EDITOR_LABEL.loadError}
+            {LABEL.loadError}
           </LfText>
         </View>
       </SafeAreaView>
@@ -282,18 +262,18 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.screen}>
       <LfAppBar
-        title={EDITOR_LABEL.title}
+        title={LABEL.title}
         leading={
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={EDITOR_LABEL.close}
+            accessibilityLabel={LABEL.close}
             onPress={() => void closeEditor()}
             style={styles.close}
           >
             <LfIcon name="close" />
           </Pressable>
         }
-        action={<LfChip label={EDITOR_LABEL.editing} tone="neutral" />}
+        action={<LfChip label={LABEL.editing} tone="neutral" />}
       />
 
       <ScrollView
@@ -303,19 +283,19 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         {amendComment !== null && (
           <LfCard variant="container" testID="amend-comment-banner">
             <LfStack gap={2}>
-              <LfText variant="caption" secondary>{EDITOR_LABEL.amendComment}</LfText>
+              <LfText variant="caption" secondary>{LABEL.amendComment}</LfText>
               <LfText>{amendComment}</LfText>
             </LfStack>
           </LfCard>
         )}
 
         <LfField
-          label={EDITOR_LABEL.titleField}
+          label={LABEL.titleField}
           required
           error={errorFor('title')}
         >
           <LfInput
-            accessibilityLabel={EDITOR_LABEL.titleField}
+            accessibilityLabel={LABEL.titleField}
             value={draft.title}
             maxLength={40}
             onBlur={() => touch('title')}
@@ -324,12 +304,12 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         </LfField>
 
         <LfField
-          label={EDITOR_LABEL.bodyField}
+          label={LABEL.bodyField}
           required
           error={errorFor('body')}
         >
           <LfTextarea
-            accessibilityLabel={EDITOR_LABEL.bodyField}
+            accessibilityLabel={LABEL.bodyField}
             value={draft.body}
             maxLength={1000}
             onBlur={() => touch('body')}
@@ -337,31 +317,31 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           />
         </LfField>
 
-        <LfField label={EDITOR_LABEL.category} required>
+        <LfField label={LABEL.category} required>
           <View style={styles.choices}>
             {CATEGORIES.map((category) => (
               <LfChoice
                 key={category}
-                label={PROMISE_CATEGORY_LABEL[category]}
+                label={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][category]}
                 selected={draft.category === category}
                 onPress={() => updateDraft('category', category)}
               />
             ))}
           </View>
           {draft.category === 'MONEY' && (
-            <LfText variant="caption">{EDITOR_LABEL.moneyNotice}</LfText>
+            <LfText variant="caption">{LABEL.moneyNotice}</LfText>
           )}
         </LfField>
 
         <LfField
-          label={EDITOR_LABEL.endDate}
+          label={LABEL.endDate}
           required
           error={errorFor('end_date')}
         >
           <LfPicker
-            accessibilityLabel={EDITOR_LABEL.endDatePicker}
+            accessibilityLabel={LABEL.endDatePicker}
             value={draft.end_date === '' ? undefined : draft.end_date}
-            placeholder={EDITOR_LABEL.endDatePicker}
+            placeholder={LABEL.endDatePicker}
             onPress={() => {
               touch('end_date');
               openEndDatePicker(draft.end_date, (value) =>
@@ -371,12 +351,12 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           />
         </LfField>
 
-        <LfField label={EDITOR_LABEL.keeper} required>
+        <LfField label={LABEL.keeper} required>
           <View style={styles.choices}>
             {KEEPERS.map((keeper) => (
               <LfChoice
                 key={keeper}
-                label={KEEPER_LABEL[keeper]}
+                label={KEEPER_LABEL_BY_LOCALE[locale][keeper]}
                 selected={draft.keeper === keeper}
                 onPress={() => updateDraft('keeper', keeper)}
               />
@@ -384,9 +364,9 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           </View>
         </LfField>
 
-        <LfField label={EDITOR_LABEL.reward} optional error={errorFor('reward')}>
+        <LfField label={LABEL.reward} optional error={errorFor('reward')}>
           <View style={styles.choices}>
-            {REWARD_PRESETS.map((preset) => (
+            {rewardPresets(locale).map((preset) => (
               <LfChoice
                 key={preset}
                 label={preset}
@@ -396,7 +376,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             ))}
           </View>
           <LfInput
-            accessibilityLabel={EDITOR_LABEL.reward}
+            accessibilityLabel={LABEL.reward}
             value={draft.reward}
             maxLength={100}
             onBlur={() => touch('reward')}
@@ -404,9 +384,9 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           />
         </LfField>
 
-        <LfField label={EDITOR_LABEL.penalty} optional error={errorFor('penalty')}>
+        <LfField label={LABEL.penalty} optional error={errorFor('penalty')}>
           <View style={styles.choices}>
-            {PENALTY_PRESETS.map((preset) => (
+            {penaltyPresets(locale).map((preset) => (
               <LfChoice
                 key={preset}
                 label={preset}
@@ -416,7 +396,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             ))}
           </View>
           <LfInput
-            accessibilityLabel={EDITOR_LABEL.penalty}
+            accessibilityLabel={LABEL.penalty}
             value={draft.penalty}
             maxLength={100}
             onBlur={() => touch('penalty')}
@@ -428,14 +408,14 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           <LfRow gap={5}>
             <View style={styles.cardText}>
               <LfStack gap={2}>
-                <LfText variant="subtitle">{EDITOR_LABEL.witness}</LfText>
+                <LfText variant="subtitle">{LABEL.witness}</LfText>
                 {draft.witness_enabled && (
-                  <LfText variant="caption">{EDITOR_LABEL.witnessDescription}</LfText>
+                  <LfText variant="caption">{LABEL.witnessDescription(WITNESS_MAX)}</LfText>
                 )}
               </LfStack>
             </View>
             <LfSwitch
-              accessibilityLabel={EDITOR_LABEL.witness}
+              accessibilityLabel={LABEL.witness}
               value={draft.witness_enabled}
               onValueChange={(value) => updateDraft('witness_enabled', value)}
             />
@@ -450,14 +430,14 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           </LfText>
         )}
         <LfButton
-          label={EDITOR_LABEL.save}
+          label={LABEL.save}
           variant="text"
           block
           disabled={!validation.valid || submitting}
           onPress={() => submit(false)}
         />
         <LfButton
-          label={EDITOR_LABEL.send}
+          label={LABEL.send}
           size="cta"
           block
           disabled={!validation.valid || submitting}

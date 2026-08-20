@@ -3,7 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfButton } from '../components/LfButton';
 import { LfPinky } from '../components/LfPinky';
+import { useLabels } from '../lib/locale-native';
 import { openAndroidStore } from '../lib/minimum-app-version-native.ts';
+import { UPDATE_REQUIRED_LABEL } from '../screens/update-required-labels.ts';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, line, space, type, weight } from '../theme/tokens';
 
@@ -15,16 +17,17 @@ const styles = StyleSheet.create({
 });
 
 export default function UpdateRequiredScreen(): React.JSX.Element {
+  const LABEL = useLabels(UPDATE_REQUIRED_LABEL);
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.body}>
-        <LfPinky size="xl" accessibilityLabel="새끼손가락 걸기" />
+        <LfPinky size="xl" accessibilityLabel={LABEL.badge} />
         <View>
-          <Text style={styles.title}>업데이트 후 이용해 주세요.</Text>
-          <Text style={styles.copy}>안전하게 약속을 이어가려면 최신 버전이 필요해요.</Text>
+          <Text style={styles.title}>{LABEL.title}</Text>
+          <Text style={styles.copy}>{LABEL.copy}</Text>
         </View>
       </View>
-      <LfButton label="스토어로 이동" size="cta" block onPress={() => void openAndroidStore()} />
+      <LfButton label={LABEL.store} size="cta" block onPress={() => void openAndroidStore()} />
     </SafeAreaView>
   );
 }

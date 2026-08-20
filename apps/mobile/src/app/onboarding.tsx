@@ -6,7 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LfButton } from '../components/LfButton';
 import { LfIcon } from '../components/LfIcon';
 import { LfPinky } from '../components/LfPinky';
+import { useLabels } from '../lib/locale-native';
 import { completeOnboardingNative } from '../lib/onboarding-native.ts';
+import { ONBOARDING_LABEL } from '../screens/onboarding-labels.ts';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, line, radius, size, space, type, weight } from '../theme/tokens';
 
@@ -38,6 +40,7 @@ const styles = StyleSheet.create({
 });
 
 export default function OnboardingScreen(): React.JSX.Element {
+  const LABEL = useLabels(ONBOARDING_LABEL);
   const router = useRouter();
   const [saving, setSaving] = useState(false);
 
@@ -53,25 +56,25 @@ export default function OnboardingScreen(): React.JSX.Element {
   }
 
   const steps = [
-    { icon: 'edit' as const, label: '작성' },
-    { icon: 'forum' as const, label: '카톡 초대' },
-    { icon: null, label: '걸고 지키기' },
+    { icon: 'edit' as const, label: LABEL.stepWrite },
+    { icon: 'forum' as const, label: LABEL.stepInvite },
+    { icon: null, label: LABEL.stepKeep },
   ];
 
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.skipRow}>
         <Pressable accessibilityRole="button" style={styles.skip} disabled={saving} onPress={() => void finish()}>
-          <Text style={styles.skipText}>건너뛰기</Text>
+          <Text style={styles.skipText}>{LABEL.skip}</Text>
         </Pressable>
       </View>
       <View style={styles.body}>
-        <View style={styles.badge} accessible accessibilityRole="image" accessibilityLabel="새끼손가락 걸기">
+        <View style={styles.badge} accessible accessibilityRole="image" accessibilityLabel={LABEL.badge}>
           <LfPinky size="xl" tone="onContainer" />
         </View>
         <View>
-          <Text style={styles.headline}>약속하고, 걸고,{`\n`}지키는 재미</Text>
-          <Text style={styles.subcopy}>둘이 정한 약속을 기록하고{`\n`}잊지 않게 챙겨드려요</Text>
+          <Text style={styles.headline}>{LABEL.headline}</Text>
+          <Text style={styles.subcopy}>{LABEL.subcopy}</Text>
         </View>
         <View style={styles.steps}>
           {steps.map((step, index) => (
@@ -86,14 +89,14 @@ export default function OnboardingScreen(): React.JSX.Element {
             </View>
           ))}
         </View>
-        <View accessible accessibilityRole="image" accessibilityLabel="1/3 단계" style={styles.dots}>
+        <View accessible accessibilityRole="image" accessibilityLabel={LABEL.pageIndicator} style={styles.dots}>
           <View style={[styles.dot, styles.activeDot]} />
           <View style={styles.dot} />
           <View style={styles.dot} />
         </View>
       </View>
       <View style={styles.actions}>
-        <LfButton label="시작하기" size="cta" block disabled={saving} onPress={() => void finish()} />
+        <LfButton label={LABEL.start} size="cta" block disabled={saving} onPress={() => void finish()} />
       </View>
     </SafeAreaView>
   );

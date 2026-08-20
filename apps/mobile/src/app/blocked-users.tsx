@@ -16,26 +16,10 @@ import {
   listBlockedUsersNative,
   unblockUserNative,
 } from '../lib/account-safety-native.ts';
+import { useLabels } from '../lib/locale-native';
+import { BLOCKED_USERS_LABEL } from '../screens/blocked-users-labels.ts';
 import { formatDetailInstant } from '../screens/scr-a05-detail-state.ts';
 import { colors, gutter, size, space } from '../theme/tokens';
-
-// 참조 화면 목록(SCR-ID) 밖의 안전 기능 화면 — 02 §5 SCR-A08 의 "차단 목록 관리" 항목.
-const LABEL = {
-  title: '차단 목록 관리',
-  back: '뒤로',
-  loading: '차단 목록을 불러오는 중이에요',
-  loadError: '차단 목록을 불러오지 못했어요. 다시 시도해 주세요.',
-  retry: '다시 시도',
-  empty: '차단한 사용자가 없어요',
-  emptyDescription: '차단하면 새 초대만 제한되고 기존 기록은 바뀌지 않아요.',
-  unblock: '차단 해제',
-  unblockAccessibility: (nickname: string) => `${nickname} 차단 해제`,
-  unblockTitle: '차단을 해제할까요?',
-  unblockBody: (nickname: string) => `${nickname}님이 다시 초대를 보낼 수 있게 돼요.`,
-  unblockConfirm: '해제',
-  cancel: '취소',
-  unblockError: '차단을 해제하지 못했어요. 다시 시도해 주세요.',
-} as const;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -50,7 +34,9 @@ const styles = StyleSheet.create({
   itemText: { flex: 1, minWidth: 0 },
 });
 
+// 참조 화면 목록(SCR-ID) 밖의 안전 기능 화면 — 02 §5 SCR-A08 의 "차단 목록 관리" 항목.
 export default function BlockedUsersScreen(): React.JSX.Element {
+  const LABEL = useLabels(BLOCKED_USERS_LABEL);
   const router = useRouter();
   const [items, setItems] = useState<readonly BlockedUserItem[] | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
