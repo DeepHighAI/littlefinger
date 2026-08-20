@@ -29,10 +29,11 @@ export interface PushNavigationManager {
     navigate: (route: PushRoute) => void,
     reportError?: (error: unknown) => void,
   ): Promise<boolean>;
+  /** 저장된 푸시 목적지로 실제 이동했으면 true — 루트 게이트가 홈 교체를 양보하는 근거다. */
   restore(
     navigate: (route: PushRoute) => void,
     reportError?: (error: unknown) => void,
-  ): Promise<void>;
+  ): Promise<boolean>;
 }
 
 export const PENDING_PUSH_DESTINATION_KEY = 'littlefinger.pending-push-destination.v1';
@@ -163,8 +164,8 @@ export function createPushNavigationManager(
   async function restore(
     navigate: (route: PushRoute) => void,
     reportError = deps.logError,
-  ): Promise<void> {
-    if (restorationAttempted) return;
+  ): Promise<boolean> {
+    if (restorationAttempted) return false;
     restorationAttempted = true;
 
     const pendingWrite = pendingStorageWrite;
@@ -176,9 +177,9 @@ export function createPushNavigationManager(
     } catch (error) {
       reportError(error);
       restorationAttempted = false;
-      return;
+      return false;
     }
-    if (stored === null) return;
+    if (stored === null) return false;
 
     const destination = parseStoredDestination(stored);
     if (destination === null || destination.state === 'CONSUMED') {
@@ -188,10 +189,10 @@ export function createPushNavigationManager(
         reportError(error);
         restorationAttempted = false;
       }
-      return;
+      return false;
     }
     const data = destination.data;
-    if (navigatedNotificationIds.has(data.notification_id)) return;
+    if (navigatedNotificationIds.has(data.notification_id)) return false;
 
     try {
       // 이동 직전 소비 상태를 내구화해야 종료·cleanup 실패 뒤 같은 화면을 다시 열지 않는다.
@@ -202,12 +203,12 @@ export function createPushNavigationManager(
     } catch (error) {
       reportError(error);
       restorationAttempted = false;
-      return;
+      return false;
     }
 
     try {
       const route = routeForNotificationDeeplink(data.deeplink, data.promise_id);
-      if (route === null) return;
+      if (route === null) return false;
       navigate(route);
     } catch (error) {
       reportError(error);
@@ -220,7 +221,7 @@ export function createPushNavigationManager(
         reportError(restoreError);
       }
       restorationAttempted = false;
-      return;
+      return false;
     }
     navigatedNotificationIds.add(data.notification_id);
     try {
@@ -229,6 +230,7 @@ export function createPushNavigationManager(
       reportError(error);
       restorationAttempted = false;
     }
+    return true;
   }
 
   return { handle, restore };

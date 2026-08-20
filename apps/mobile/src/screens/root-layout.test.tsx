@@ -229,6 +229,45 @@ describe('루트 인증 게이트', () => {
     expect(mockStop).toHaveBeenCalledTimes(1);
   });
 
+  test('콜드 스타트 푸시 복구 목적지는 /home 교체로 덮이지 않는다', async () => {
+    // E2E Run 1 F4: 종료 상태에서 푸시를 탭하면 목적지 대신 홈이 열렸다 — 복구 이동을
+    // stale pathname 기준의 홈 교체가 덮어썼다.
+    mockRootNavigationReady = true;
+    mockStoredPushValue = JSON.stringify({
+      state: 'PENDING',
+      data: {
+        notification_id: '99999999-9999-4999-8999-999999999999',
+        deeplink: 'SCR-A06',
+        promise_id: '88888888-8888-4888-8888-888888888888',
+      },
+    });
+    await render(<RootLayout />);
+    await act(async () => {
+      capturedEvents?.onSession(SESSION);
+      capturedEvents?.onReady();
+    });
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/fulfillment/[promise_id]',
+      params: { promise_id: '88888888-8888-4888-8888-888888888888' },
+    });
+    expect(mockReplace).not.toHaveBeenCalledWith('/home');
+  });
+
+  test('복구할 푸시가 없으면 로그인 뒤 홈으로 교체한다', async () => {
+    mockRootNavigationReady = true;
+    await render(<RootLayout />);
+    await act(async () => {
+      capturedEvents?.onSession(SESSION);
+      capturedEvents?.onReady();
+    });
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
+
+    expect(mockReplace).toHaveBeenCalledWith('/home');
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
   test('루트 라우터가 준비된 뒤 수신기를 한 번 열고 로그인 복구 목적지를 한 번 소비한다', async () => {
     const view = await render(<RootLayout />);
 

@@ -33,6 +33,9 @@ export default function RootLayout(): React.JSX.Element {
   const [updateRequired, setUpdateRequired] = useState(false);
   const authenticatedRoutesReadyRef = useRef(false);
   const hadSessionRef = useRef(false);
+  // 콜드 스타트 푸시 복구의 결과(E2E Run 1 F4). settled 전에는 홈 교체를 미룬다.
+  const [pushRestoreSettled, setPushRestoreSettled] = useState(false);
+  const restoredToPushRef = useRef(false);
   const routerRef = useRef(router);
   routerRef.current = router;
   const routerReady = typeof rootNavigationState?.key === 'string';
@@ -105,13 +108,17 @@ export default function RootLayout(): React.JSX.Element {
     // 세션이 생기면 게스트 화면에서 홈으로 보낸다. 이 규칙이 없으면 Stack.Protected 의
     // 폴백이 **가드 없는 첫 화면인 update-required** 로 떨어진다 — 로그인 직후와
     // 세션 보유 재실행 모두에서 재현되는, 차단처럼 보이는 라우팅 오류였다.
+    // 단, 콜드 스타트 푸시 복구가 끝나기 전에는 양보한다 — 복구가 연 화면을 stale한
+    // pathname 기준의 홈 교체가 덮어쓰는 것이 E2E Run 1 F4 였다.
     if (
       session !== null &&
-      (pathname === '/' || pathname === '/onboarding' || pathname === '/update-required')
+      (pathname === '/' || pathname === '/onboarding' || pathname === '/update-required') &&
+      pushRestoreSettled &&
+      !restoredToPushRef.current
     ) {
       router.replace('/home');
     }
-  }, [onboardingComplete, pathname, router, routerReady, session, sessionReady, startupReady, updateRequired]);
+  }, [onboardingComplete, pathname, pushRestoreSettled, router, routerReady, session, sessionReady, startupReady, updateRequired]);
 
   useEffect(() => {
     if (!routerReady) return;
@@ -126,11 +133,22 @@ export default function RootLayout(): React.JSX.Element {
   useEffect(() => {
     const authenticatedRoutesReady = session !== null && routerReady;
     authenticatedRoutesReadyRef.current = authenticatedRoutesReady;
-    if (!authenticatedRoutesReady) return;
+    if (!authenticatedRoutesReady) {
+      setPushRestoreSettled(false);
+      restoredToPushRef.current = false;
+      return;
+    }
 
-    void restoreAndroidPushNavigationNative(navigate).catch((pushError: unknown) => {
-      console.error('저장된 푸시 목적지 복구에 실패했습니다.', pushError);
-    });
+    void restoreAndroidPushNavigationNative(navigate)
+      .then((navigated) => {
+        restoredToPushRef.current = navigated;
+      })
+      .catch((pushError: unknown) => {
+        console.error('저장된 푸시 목적지 복구에 실패했습니다.', pushError);
+      })
+      .finally(() => {
+        setPushRestoreSettled(true);
+      });
 
     return () => {
       authenticatedRoutesReadyRef.current = false;

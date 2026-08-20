@@ -87,6 +87,6 @@ export function startAndroidPushNavigationNative(
 
 export async function restoreAndroidPushNavigationNative(
   navigate: (route: PushRoute) => void,
-): Promise<void> {
-  await manager.restore(navigate);
+): Promise<boolean> {
+  return manager.restore(navigate);
 }
