@@ -1,0 +1,79 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+import { describe, expect, test } from 'vitest';
+
+/**
+ * CLS·SEO 가드 (F 항목 K, 2026-08-20).
+ *
+ * 수락 웹은 카카오톡 인앱 브라우저에서 3초 예산으로 열린다. 폰트가 CSS 뒤에서야
+ * 발견되면 늦게 스왑되며 레이아웃이 밀리고(CLS), 메타 태그가 없으면 카카오톡 공유
+ * 미리보기가 빈 카드가 된다. 이 파일은 그 두 가지가 조용히 사라지는 것을 막는다.
+ */
+
+const WEB_ROOT = resolve(__dirname, '..');
+const REPO_ROOT = resolve(WEB_ROOT, '../..');
+const INDEX_HTML = readFileSync(resolve(WEB_ROOT, 'index.html'), 'utf8');
+
+// ADR 0005 — 도메인을 사지 않고 기존 Firebase Hosting 을 쓴다.
+const CANONICAL_ORIGIN = 'https://littlefinger-app-philwoo.web.app';
+
+describe('폰트 CLS 하드닝', () => {
+  test('브랜드 폰트는 public 에 있고 preload 와 @font-face 가 같은 경로를 가리킨다', () => {
+    // preload 는 URL 이 글자 하나만 달라도 폰트를 **두 번** 내려받는다. 경로를 한 곳에서
+    // 비교해 그 사고를 막는다.
+    const fontPath = '/fonts/PretendardVariable.woff2';
+    expect(existsSync(resolve(WEB_ROOT, `public${fontPath}`))).toBe(true);
+
+    const preload = INDEX_HTML.match(
+      /<link rel="preload" href="([^"]+)" as="font" type="font\/woff2" crossorigin/u,
+    );
+    expect(preload?.[1]).toBe(fontPath);
+
+    const tokensCss = readFileSync(resolve(WEB_ROOT, 'src/styles/tokens.css'), 'utf8');
+    expect(tokensCss).toContain(`src: url('${fontPath}') format('woff2-variations')`);
+    expect(tokensCss).not.toContain('../assets/fonts/PretendardVariable.woff2');
+  });
+
+  test('Pretendard Fallback 은 fontaine 이 실측한 메트릭을 그대로 쓴다', () => {
+    // 값의 출처: fontaine readMetrics(PretendardVariable.woff2) ÷ Arial(capsize metrics).
+    // 눈대중 보정은 CLS 를 되레 키운다 — 바꾸려면 다시 계산해서 통째로 바꾼다.
+    const fallback = readFileSync(resolve(WEB_ROOT, 'src/styles/font-fallback.css'), 'utf8');
+    expect(fallback).toContain("font-family: 'Pretendard Fallback'");
+    expect(fallback).toContain("src: local('Arial')");
+    expect(fallback).toContain('size-adjust: 100.8762%');
+    expect(fallback).toContain('ascent-override: 94.3878%');
+    expect(fallback).toContain('descent-override: 23.9116%');
+    expect(fallback).toContain('line-gap-override: 0%');
+  });
+
+  test('--lf-font-brand 는 design-reference 와 웹이 문자 그대로 같다', () => {
+    const brandLine = (file: string): string | undefined =>
+      readFileSync(file, 'utf8')
+        .split('\n')
+        .find((line) => line.includes('--lf-font-brand:'))
+        ?.trim();
+
+    const web = brandLine(resolve(WEB_ROOT, 'src/styles/tokens.css'));
+    const reference = brandLine(resolve(REPO_ROOT, 'design-reference/styles/tokens.css'));
+    expect(web).toBeDefined();
+    expect(web).toBe(reference);
+    expect(web).toContain("'Pretendard Fallback'");
+  });
+});
+
+describe('메타·공유 태그', () => {
+  test('description·theme-color·og 태그가 있다', () => {
+    expect(INDEX_HTML).toMatch(/<meta\s+name="description"\s+content="[^"]{20,}"/u);
+    expect(INDEX_HTML).toMatch(/<meta\s+name="theme-color"\s+content="#[0-9A-Fa-f]{6}"/u);
+    expect(INDEX_HTML).toMatch(/<meta\s+property="og:title"\s+content="리틀핑거"/u);
+    expect(INDEX_HTML).toMatch(/<meta\s+property="og:description"\s+content="[^"]{20,}"/u);
+    expect(INDEX_HTML).toMatch(/<meta\s+property="og:type"\s+content="website"/u);
+  });
+
+  test('og:url 은 ADR 0005 의 오리진이다', () => {
+    // 다른 오리진이 박히면 카카오톡 공유 카드가 엉뚱한 주소를 들고 다닌다.
+    const ogUrl = INDEX_HTML.match(/<meta property="og:url" content="([^"]+)"/u);
+    expect(ogUrl?.[1]).toBe(`${CANONICAL_ORIGIN}/`);
+  });
+});

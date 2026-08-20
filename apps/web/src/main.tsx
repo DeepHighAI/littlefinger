@@ -11,6 +11,7 @@ import { App } from './App.tsx';
 import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
 
+import './styles/font-fallback.css';
 import './styles/tokens.css';
 import './styles/icons.css';
 import './styles/base.css';

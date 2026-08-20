@@ -1,0 +1,16 @@
+/* Pretendard 가 내려오기 전까지 Arial 을 같은 치수로 입혀 스왑 시 레이아웃 이동(CLS)을
+   없앤다. 수치는 눈대중이 아니라 실측이다:
+     fontaine readMetrics(public/fonts/PretendardVariable.woff2)
+       → { ascent: 1950, descent: -494, lineGap: 0, unitsPerEm: 2048, xWidthAvg: 921 }
+     ÷ Arial(@capsizecss/metrics: upm 2048, xWidthAvg 913, ascent 1854, descent -434)
+   재계산 방법: scratchpad 에서 fontaine.generateFontFace(metrics, { font: 'Arial',
+   metrics: arial }). 값을 바꾸려면 반드시 다시 계산해 통째로 바꾼다 — seo.test.ts 가
+   이 수치를 그대로 고정한다. */
+@font-face {
+  font-family: 'Pretendard Fallback';
+  src: local('Arial');
+  size-adjust: 100.8762%;
+  ascent-override: 94.3878%;
+  descent-override: 23.9116%;
+  line-gap-override: 0%;
+}

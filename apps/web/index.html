@@ -6,6 +6,23 @@
          안전영역 보정은 CSS 의 env(safe-area-inset-*) 가 맡는다. -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>리틀핑거</title>
+    <meta
+      name="description"
+      content="두 사람의 약속을 기록하고 지키도록 돕는 상호 약속 관리 서비스. 카카오톡으로 받은 초대 링크에서 약속 내용을 확인하고 수락할 수 있어요."
+    />
+    <!-- 앱 크롬과 같은 surface-chrome 흰색 — 브라우저 UI 가 화면과 한 몸으로 보인다. -->
+    <meta name="theme-color" content="#FFFFFF" />
+    <meta property="og:title" content="리틀핑거" />
+    <meta
+      property="og:description"
+      content="두 사람의 약속을 기록하고 지키도록 돕는 상호 약속 관리 서비스. 카카오톡으로 받은 초대 링크에서 약속 내용을 확인하고 수락할 수 있어요."
+    />
+    <meta property="og:type" content="website" />
+    <!-- ADR 0005 의 오리진. 초대 링크 자체는 토큰 경로라 여기 못 박는 건 오리진뿐이다. -->
+    <meta property="og:url" content="https://littlefinger-app-philwoo.web.app/" />
+    <!-- CSS 가 파싱되기 전에 폰트를 내려받기 시작해야 스왑 구간이 짧다(CLS).
+         경로는 tokens.css 의 @font-face 와 같아야 한다 — seo.test.ts 가 비교한다. -->
+    <link rel="preload" href="/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>

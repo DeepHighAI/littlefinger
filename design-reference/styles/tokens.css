@@ -81,7 +81,7 @@
   /* ---------------------------------------------------------
      TYPE
      --------------------------------------------------------- */
-  --lf-font-brand: 'Pretendard', Roboto, system-ui, sans-serif;
+  --lf-font-brand: 'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
   --lf-font-mono:  'Roboto Mono', ui-monospace, Menlo, monospace;
 
   --lf-type-display-size: 28px; /* D-Day 대형 숫자 */
