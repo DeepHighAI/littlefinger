@@ -550,14 +550,16 @@ describe('F-05 witness invitation transactions', () => {
         randomUUID(), witness, promiseId,
       ]),
     ).rejects.toThrow(/permission denied/iu);
-    const direct = await db.asUser(
-      witness,
-      `update public.promise_participants
-          set status = 'WITHDRAWN'
-        where promise_id = $1 and user_id = $2 returning id`,
-      [promiseId, witness],
-    );
-    expect(direct.rows).toEqual([]);
+    // 0004 가 UPDATE grant 를 회수해 RLS 의 0행이 아니라 권한 거절이다.
+    await expect(
+      db.asUser(
+        witness,
+        `update public.promise_participants
+            set status = 'WITHDRAWN'
+          where promise_id = $1 and user_id = $2 returning id`,
+        [promiseId, witness],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
   });
 
   test('withdrawn witness cannot redeem another invitation for the same promise', async () => {

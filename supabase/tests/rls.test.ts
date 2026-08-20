@@ -141,30 +141,32 @@ describe('증인 — §9: 약속 전문은 ACTIVE 이후에만 보인다', () =>
 });
 
 describe('확정 후 불변 — 원칙 P3', () => {
-  test('작성자도 DRAFT 를 직접 고칠 수 없다 — 0009 가 UPDATE 정책을 회수했다', async () => {
+  test('작성자도 DRAFT 를 직접 고칠 수 없다 — UPDATE 는 정책도 grant 도 없다', async () => {
     // T-01 이 RPC 가 되면서 클라이언트 쓰기 경로를 닫았다(PO 결정 2026-07-27). 열어 두면
     // EC-H05 한도를 우회할 수 있고, promise_versions 에는 UPDATE 정책이 없어 캐시만 바뀐
     // 반쪽 상태가 만들어진다 — 초대 랜딩은 캐시 제목을, 승인은 버전 내용을 읽는다.
     // §4-2-2.4 의 DRAFT 수정은 전용 RPC 가 생길 때 다시 열린다.
+    // 0009 는 정책만 회수해 **0행**이었고, 0004(2026-08-20)가 grant 까지 회수해 이제
+    // RLS 이전 권한 계층에서 거절된다.
     const promiseId = await createPromise(db, { creatorId: creator, status: 'DRAFT' });
-    const updated = await db.asUser(
-      creator,
-      `update public.promises set title = '고친 제목' where id = $1 returning id`,
-      [promiseId],
-    );
-    // 정책이 없으면 에러가 아니라 **0행**이다. 조용히 실패하므로 행 수로 확인해야 한다.
-    expect(updated.rows).toEqual([]);
+    await expect(
+      db.asUser(
+        creator,
+        `update public.promises set title = '고친 제목' where id = $1 returning id`,
+        [promiseId],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
   });
 
   test('확정된 약속의 내용은 고칠 수 없다', async () => {
-    // RLS 는 에러가 아니라 0행으로 막는다.
     const promiseId = await createPromise(db, { creatorId: creator, status: 'ACTIVE' });
-    const updated = await db.asUser(
-      creator,
-      `update public.promises set title = '몰래 고침' where id = $1 returning id`,
-      [promiseId],
-    );
-    expect(updated.rows).toEqual([]);
+    await expect(
+      db.asUser(
+        creator,
+        `update public.promises set title = '몰래 고침' where id = $1 returning id`,
+        [promiseId],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
 
     const after = await db.asAdmin('select title from public.promises where id = $1', [promiseId]);
     expect(after.rows[0]?.title).toBe('매일 걷기');
@@ -176,24 +178,24 @@ describe('확정 후 불변 — 원칙 P3', () => {
       partnerId: partner,
       status: 'ACTIVE',
     });
-    const updated = await db.asUser(
-      partner,
-      `update public.promises set title = '상대가 고침' where id = $1 returning id`,
-      [promiseId],
-    );
-    expect(updated.rows).toEqual([]);
+    await expect(
+      db.asUser(
+        partner,
+        `update public.promises set title = '상대가 고침' where id = $1 returning id`,
+        [promiseId],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
   });
 
   test('DRAFT 를 ACTIVE 로 혼자 올릴 수 없다 — 확정은 서버만 한다', async () => {
     const promiseId = await createPromise(db, { creatorId: creator, status: 'DRAFT' });
-    // UPDATE 정책이 아예 없으므로 0행이다. 예외를 기대하면 안 된다 — 정책이 하나라도 남아
-    // 있을 때만 `with check` 위반이 에러가 되는데, 지금은 그 정책이 없다.
-    const updated = await db.asUser(
-      creator,
-      `update public.promises set status = 'ACTIVE' where id = $1 returning id`,
-      [promiseId],
-    );
-    expect(updated.rows).toEqual([]);
+    await expect(
+      db.asUser(
+        creator,
+        `update public.promises set status = 'ACTIVE' where id = $1 returning id`,
+        [promiseId],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
 
     const after = await db.asAdmin('select status from public.promises where id = $1', [promiseId]);
     expect(after.rows[0]?.status).toBe('DRAFT');
@@ -262,6 +264,7 @@ describe('생성 — 클라이언트는 약속을 직접 만들 수 없다', () 
   ])('%s 만들 수 없다 — 생성은 lf_promise_create 뿐이다', async (_label, actor, status) => {
     // 0009 가 INSERT 정책을 회수했다(PO 결정 2026-07-27). 열려 있으면 EC-H05 의 사용자당
     // 한도를 셀 곳이 RPC 뿐이라 그냥 우회되고, content_hash 도 클라이언트가 심을 수 있다.
+    // 0004 가 grant 까지 회수해 RLS 위반이 아니라 권한 거절로 먼저 막힌다.
     await expect(
       db.asUser(
         actor === 'creator' ? creator : stranger,
@@ -269,7 +272,7 @@ describe('생성 — 클라이언트는 약속을 직접 만들 수 없다', () 
          values ($1, $2::public.promise_status) returning id`,
         [creator, status],
       ),
-    ).rejects.toThrow(/row-level security/u);
+    ).rejects.toThrow(/permission denied/iu);
   });
 });
 
@@ -304,23 +307,25 @@ describe('append-only — 감사 로그는 고치거나 지울 수 없다', () =
   test('본인이 남긴 승인 기록도 고칠 수 없다', async () => {
     const promiseId = await createPromise(db, { creatorId: creator, status: 'ACTIVE' });
     await seedApproval(promiseId);
-    const updated = await db.asUser(
-      creator,
-      `update public.approvals set comment = '고침' where promise_id = $1 returning id`,
-      [promiseId],
-    );
-    expect(updated.rows).toEqual([]);
+    await expect(
+      db.asUser(
+        creator,
+        `update public.approvals set comment = '고침' where promise_id = $1 returning id`,
+        [promiseId],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
   });
 
   test('승인 기록을 지울 수 없다', async () => {
     const promiseId = await createPromise(db, { creatorId: creator, status: 'ACTIVE' });
     await seedApproval(promiseId);
-    const deleted = await db.asUser(
-      creator,
-      'delete from public.approvals where promise_id = $1 returning id',
-      [promiseId],
-    );
-    expect(deleted.rows).toEqual([]);
+    await expect(
+      db.asUser(
+        creator,
+        'delete from public.approvals where promise_id = $1 returning id',
+        [promiseId],
+      ),
+    ).rejects.toThrow(/permission denied/iu);
   });
 
   test('클라이언트가 승인 기록을 직접 남길 수 없다 — 서버만 쓴다', async () => {
@@ -479,10 +484,11 @@ describe('app_configs — 로그인 전에도 읽혀야 한다', () => {
   });
 
   test('클라이언트가 설정을 바꿀 수 없다', async () => {
-    const updated = await db.asUser(
-      creator,
-      `update public.app_configs set value = 'true'::jsonb where key = 'ads_enabled' returning key`,
-    );
-    expect(updated.rows).toEqual([]);
+    await expect(
+      db.asUser(
+        creator,
+        `update public.app_configs set value = 'true'::jsonb where key = 'ads_enabled' returning key`,
+      ),
+    ).rejects.toThrow(/permission denied/iu);
   });
 });

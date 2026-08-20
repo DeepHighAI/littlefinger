@@ -813,7 +813,8 @@ describe('클라이언트 쓰기 경로가 닫혔다', () => {
           [creator],
         ),
       ),
-    ).toMatch(/row-level security/i);
+      // 0004 가 grant 까지 회수해 RLS 위반이 아니라 권한 거절이 먼저 온다.
+    ).toMatch(/permission denied/i);
   });
 
   test('작성자도 버전 행을 직접 INSERT 할 수 없다 — content_hash 는 서버 생산이다', async () => {
@@ -830,19 +831,21 @@ describe('클라이언트 쓰기 경로가 닫혔다', () => {
           [promiseId, creator],
         ),
       ),
-    ).toMatch(/row-level security/i);
+    ).toMatch(/permission denied/i);
   });
 
   test('작성자도 DRAFT 내용을 직접 UPDATE 할 수 없다', async () => {
     const creator = await createUser(db, 'RLS수정');
     const { promise_id: promiseId } = await create(creator);
-    const { rows } = await db.asUser(
-      creator,
-      `update public.promises set title = '몰래 바꾼 제목' where id = $1 returning id`,
-      [promiseId],
-    );
-    // 정책이 없으면 예외가 아니라 **0행**이다. 조용히 실패하므로 행 수로 확인해야 한다.
-    expect(rows).toHaveLength(0);
+    expect(
+      await codeOf(() =>
+        db.asUser(
+          creator,
+          `update public.promises set title = '몰래 바꾼 제목' where id = $1 returning id`,
+          [promiseId],
+        ),
+      ),
+    ).toMatch(/permission denied/i);
   });
 
   test('자기 DRAFT 삭제는 남긴다 (§4-2-2.5)', async () => {

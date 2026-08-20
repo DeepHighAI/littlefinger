@@ -134,17 +134,20 @@ describe('저장소는 서버 전용이다 — 04 §7-2', () => {
   });
 
   test('로그인한 사용자도 자기 키를 읽을 수 없다', async () => {
+    // 0004 가 grant 를 회수해 RLS 의 0행이 아니라 권한 거절이다.
     const { userId, promiseId } = await freshPromise();
     const key = randomUUID();
     await callEndpoint(key, userId, promiseId);
 
-    const { rows } = await db.asUser(userId, `select key from public.idempotency_keys`);
-    expect(rows).toEqual([]);
+    await expect(
+      db.asUser(userId, `select key from public.idempotency_keys`),
+    ).rejects.toThrow(/permission denied/iu);
   });
 
   test('로그인하지 않은 방문자도 읽을 수 없다', async () => {
-    const { rows } = await db.asAnon(`select key from public.idempotency_keys`);
-    expect(rows).toEqual([]);
+    await expect(db.asAnon(`select key from public.idempotency_keys`)).rejects.toThrow(
+      /permission denied/iu,
+    );
   });
 
   test('클라이언트는 캐시 행을 심을 수 없다', async () => {
@@ -156,8 +159,8 @@ describe('저장소는 서버 전용이다 — 04 §7-2', () => {
          values ($1, $2, 'promise-approve', '{"status":"ACTIVE"}'::jsonb)`,
         [randomUUID(), userId],
       ),
-      // 막연한 실패로는 부족하다 — 테이블 오타로도 통과해 버린다. RLS 가 막았는지를 본다.
-    ).rejects.toThrow(/row-level security/iu);
+      // 막연한 실패로는 부족하다 — 테이블 오타로도 통과해 버린다. 권한 계층이 막았는지를 본다.
+    ).rejects.toThrow(/permission denied/iu);
   });
 
   test('클라이언트는 캐시 함수를 직접 부를 수 없다', async () => {
