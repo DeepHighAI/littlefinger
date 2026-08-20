@@ -71,6 +71,24 @@ export async function loadEditorDraft(
   return asDraft(data);
 }
 
+// T-05로 DRAFT에 돌아온 약속의 상대 의견(§5-3 수정 제안 의견). approvals 는 참여자 RLS 로
+// 읽히고, AMEND_SUGGEST 행의 존재 자체가 "제안으로 돌아왔다"의 증거다(PO 2026-08-20: 재열람
+// 화면 배너로 노출).
+export async function loadAmendSuggestComment(promiseId: string): Promise<string | null> {
+  const { data, error } = await getMobileSupabaseClient()
+    .from('approvals')
+    .select('comment')
+    .eq('promise_id', promiseId)
+    .eq('action', 'AMEND_SUGGEST')
+    .order('acted_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error !== null) throw error;
+  const comment = (data as { comment: unknown } | null)?.comment;
+  return typeof comment === 'string' && comment.length > 0 ? comment : null;
+}
+
 export async function saveEditorLocalDraft(
   promiseId: string | null,
   draft: PromiseDraftFields,

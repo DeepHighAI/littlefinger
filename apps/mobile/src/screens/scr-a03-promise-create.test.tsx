@@ -5,6 +5,7 @@ import { Alert } from 'react-native';
 import PromiseEditorScreen from '../app/promise/edit';
 import {
   clearEditorLocalDraft,
+  loadAmendSuggestComment,
   loadEditorDraft,
   openEndDatePicker,
   saveEditorLocalDraft,
@@ -20,6 +21,7 @@ jest.mock(
   '../lib/promise-editor-native.ts',
   () => ({
     clearEditorLocalDraft: jest.fn(),
+    loadAmendSuggestComment: jest.fn(),
     loadEditorDraft: jest.fn(),
     openEndDatePicker: jest.fn(),
     saveEditorLocalDraft: jest.fn(),
@@ -31,6 +33,7 @@ jest.mock(
 const push = jest.fn();
 const back = jest.fn();
 const loadEditorDraftMock = jest.mocked(loadEditorDraft);
+const loadAmendSuggestCommentMock = jest.mocked(loadAmendSuggestComment);
 const saveEditorLocalDraftMock = jest.mocked(saveEditorLocalDraft);
 const clearEditorLocalDraftMock = jest.mocked(clearEditorLocalDraft);
 const submitEditorDraftMock = jest.mocked(submitEditorDraft);
@@ -74,6 +77,8 @@ describe('SCR-A03 약속 작성', () => {
     jest.mocked(useLocalSearchParams).mockReturnValue({});
     loadEditorDraftMock.mockReset();
     loadEditorDraftMock.mockResolvedValue(EMPTY_PROMISE_DRAFT);
+    loadAmendSuggestCommentMock.mockReset();
+    loadAmendSuggestCommentMock.mockResolvedValue(null);
     saveEditorLocalDraftMock.mockReset();
     saveEditorLocalDraftMock.mockResolvedValue(undefined);
     clearEditorLocalDraftMock.mockReset();
@@ -171,6 +176,36 @@ describe('SCR-A03 약속 작성', () => {
     );
     expect(clearEditorLocalDraftMock).toHaveBeenCalledWith('promise-1');
     expect(push).toHaveBeenCalledWith('/home');
+  });
+
+  test('T-05로 돌아온 DRAFT는 상대 수정 제안 의견을 배너로 보여준다', async () => {
+    // PO 2026-08-20: approvals.comment 는 재열람 화면 상단 배너로 노출한다.
+    jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
+    loadEditorDraftMock.mockResolvedValue(completeDraft);
+    loadAmendSuggestCommentMock.mockResolvedValue('종료일을 한 주만 늦춰 주세요');
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+
+    expect(loadAmendSuggestCommentMock).toHaveBeenCalledWith('promise-1');
+    expect(view.getByTestId('amend-comment-banner')).toBeTruthy();
+    expect(view.getByText('상대방의 수정 제안 의견')).toBeTruthy();
+    expect(view.getByText('종료일을 한 주만 늦춰 주세요')).toBeTruthy();
+  });
+
+  test('새 약속 작성과 의견 조회 실패에는 배너를 그리지 않는다', async () => {
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+    expect(loadAmendSuggestCommentMock).not.toHaveBeenCalled();
+    expect(view.queryByTestId('amend-comment-banner')).toBeNull();
+
+    jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
+    loadEditorDraftMock.mockResolvedValue(completeDraft);
+    loadAmendSuggestCommentMock.mockRejectedValue(new Error('offline'));
+    const reopened = await render(<PromiseEditorScreen />);
+    await settle();
+    // 배너는 보조 정보 — 조회 실패가 편집을 막으면 안 된다.
+    expect(reopened.getByLabelText('제목').props.value).toBe('주 3회 달리기');
+    expect(reopened.queryByTestId('amend-comment-banner')).toBeNull();
   });
 
   test('전송은 개인정보 포함 시 한 번 확인하고 PENDING의 promise_id만 라우트에 전달한다', async () => {

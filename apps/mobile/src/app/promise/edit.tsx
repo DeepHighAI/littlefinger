@@ -35,6 +35,7 @@ import { DraftAutosave } from '../../lib/draft-autosave.ts';
 import { MobileApiError } from '../../lib/mobile-api.ts';
 import {
   clearEditorLocalDraft,
+  loadAmendSuggestComment,
   loadEditorDraft,
   openEndDatePicker,
   saveEditorLocalDraft,
@@ -72,6 +73,7 @@ const EDITOR_LABEL = {
   saved: '임시저장했어요',
   loading: '초안을 불러오는 중이에요',
   loadError: '초안을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+  amendComment: '상대방의 수정 제안 의견',
   privacyTitle: '개인정보가 포함돼 있어요',
   privacyBody: '그대로 기록할까요?',
   privacyContinue: '그대로 기록',
@@ -132,6 +134,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     Partial<Record<PromiseDraftField, string>>
   >({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [amendComment, setAmendComment] = useState<string | null>(null);
 
   const autosave = useMemo(
     () =>
@@ -156,6 +159,17 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           setLoaded(true);
         }
       });
+    if (promiseId !== null) {
+      // 배너는 보조 정보라 실패해도 편집(오프라인 로컬 초안 포함)을 막지 않는다 —
+      // 조회 실패는 배너 미표시로 수렴시킨다.
+      void loadAmendSuggestComment(promiseId)
+        .then((value) => {
+          if (active) setAmendComment(value);
+        })
+        .catch(() => {
+          if (active) setAmendComment(null);
+        });
+    }
     return () => {
       active = false;
       void autosave.flush();
@@ -286,6 +300,15 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.body}
       >
+        {amendComment !== null && (
+          <LfCard variant="container" testID="amend-comment-banner">
+            <LfStack gap={2}>
+              <LfText variant="caption" secondary>{EDITOR_LABEL.amendComment}</LfText>
+              <LfText>{amendComment}</LfText>
+            </LfStack>
+          </LfCard>
+        )}
+
         <LfField
           label={EDITOR_LABEL.titleField}
           required
