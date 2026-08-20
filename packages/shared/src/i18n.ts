@@ -42,11 +42,12 @@ export function resolveLocale(tags: readonly string[]): Locale {
 export const LOCALE_STORAGE_KEY = 'littlefinger.locale.v1';
 
 /**
- * 기기 언어 감지 스위치. **카탈로그 전환(Phase 3–8)이 끝나기 전에는 false 로 둔다** —
- * 켜는 순간 영어 기기에서 미번역 화면이 절반만 영어로 뜬다. Phase 9 에서 한 곳만 켜면
- * 앱·웹이 함께 켜진다.
+ * 기기 언어 감지 스위치. 카탈로그 전환이 끝나기 전에는 false 였다 — 켜는 순간 영어
+ * 기기에서 미번역 화면이 절반만 영어로 뜨기 때문이다. **2026-08-20 전환 완료로 켰다**
+ * (앱·웹 전 화면 카탈로그화 + 양쪽 패리티 테스트 통과). 한 곳만 끄면 다시 ko 고정으로
+ * 되돌릴 수 있고, 그것이 이 상수가 남아 있는 이유다.
  */
-export const LOCALE_DETECTION_ENABLED = false;
+export const LOCALE_DETECTION_ENABLED = true;
 
 export function isLocale(value: unknown): value is Locale {
   return typeof value === 'string' && (LOCALES as readonly string[]).includes(value);

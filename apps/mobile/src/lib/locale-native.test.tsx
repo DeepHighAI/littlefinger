@@ -47,7 +47,7 @@ describe('LocaleProvider', () => {
     mockGetLocales.mockReset().mockReturnValue([{ languageTag: 'en-US' }]);
   });
 
-  test('감지가 꺼진 동안은 영어 기기에서도 한국어가 기본이고 준비 신호를 보낸다', async () => {
+  test('영어 기기는 영어로 시작하고 준비 신호를 보낸다', async () => {
     const onReady = jest.fn();
     const view = await render(
       <LocaleProvider onReady={onReady}>
@@ -56,12 +56,26 @@ describe('LocaleProvider', () => {
     );
     await settle();
 
-    expect(view.getByText('안녕하세요')).toBeTruthy();
+    expect(view.getByText('Hello')).toBeTruthy();
     expect(onReady).toHaveBeenCalledTimes(1);
+    expect(getCurrentLocale()).toBe('en');
+  });
+
+  test('한국어 기기는 한국어로 시작한다', async () => {
+    mockGetLocales.mockReturnValue([{ languageTag: 'ko-KR' }]);
+    const view = await render(
+      <LocaleProvider>
+        <Consumer />
+      </LocaleProvider>,
+    );
+    await settle();
+
+    expect(view.getByText('안녕하세요')).toBeTruthy();
     expect(getCurrentLocale()).toBe('ko');
   });
 
   test('수동 전환은 즉시 반영되고 저장되며 getCurrentLocale 도 따라간다', async () => {
+    mockGetLocales.mockReturnValue([{ languageTag: 'ko-KR' }]);
     const view = await render(
       <LocaleProvider>
         <Consumer />
@@ -75,8 +89,9 @@ describe('LocaleProvider', () => {
     expect(getCurrentLocale()).toBe('en');
   });
 
-  test('저장된 수동 전환이 시작 로케일을 이긴다', async () => {
+  test('저장된 수동 전환이 기기 언어를 이긴다', async () => {
     mockGetItem.mockResolvedValue('en');
+    mockGetLocales.mockReturnValue([{ languageTag: 'ko-KR' }]);
     const view = await render(
       <LocaleProvider>
         <Consumer />

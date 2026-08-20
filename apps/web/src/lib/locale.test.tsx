@@ -32,7 +32,18 @@ describe('LocaleProvider (web)', () => {
     vi.restoreAllMocks();
   });
 
-  it('감지가 꺼진 동안은 영어 브라우저에서도 한국어가 기본이다', () => {
+  it('영어 브라우저는 영어로 시작하고 문서 lang 도 영어다', () => {
+    render(
+      <LocaleProvider>
+        <Consumer />
+      </LocaleProvider>,
+    );
+    expect(screen.getByText('Hello')).toBeTruthy();
+    expect(document.documentElement.lang).toBe('en');
+  });
+
+  it('한국어 브라우저는 한국어로 시작한다', () => {
+    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['ko-KR']);
     render(
       <LocaleProvider>
         <Consumer />
@@ -43,6 +54,7 @@ describe('LocaleProvider (web)', () => {
   });
 
   it('수동 전환은 즉시 반영·저장되고 문서 lang 도 따라간다', () => {
+    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['ko-KR']);
     render(
       <LocaleProvider>
         <Consumer />
@@ -54,7 +66,8 @@ describe('LocaleProvider (web)', () => {
     expect(document.documentElement.lang).toBe('en');
   });
 
-  it('저장된 수동 전환이 첫 렌더부터 이긴다', () => {
+  it('저장된 수동 전환이 브라우저 언어를 이기고 첫 렌더부터 적용된다', () => {
+    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['ko-KR']);
     window.localStorage.setItem('littlefinger.locale.v1', 'en');
     render(
       <LocaleProvider>

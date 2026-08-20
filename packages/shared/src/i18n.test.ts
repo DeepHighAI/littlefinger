@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest';
 import {
   DEFAULT_LOCALE,
   LOCALES,
+  LOCALE_DETECTION_ENABLED,
   catalogKeyPaths,
   isLocale,
   resolveInitialLocale,
@@ -59,6 +60,14 @@ describe('resolveInitialLocale', () => {
     expect(resolveInitialLocale([], 'jp', false)).toBe(DEFAULT_LOCALE);
     expect(isLocale('jp')).toBe(false);
     expect(isLocale('en')).toBe(true);
+  });
+
+  // 전환 완료 상태를 고정한다 — 이 값이 조용히 false 로 돌아가면 영어 기기가 다시
+  // 한국어로 뜨고, 그 증상은 한국어 기기에서 테스트하는 한 절대 보이지 않는다.
+  test('기본 인자는 감지 ON 이고, 인자 없는 호출도 기기 태그를 본다', () => {
+    expect(LOCALE_DETECTION_ENABLED).toBe(true);
+    expect(resolveInitialLocale(['en-US'], null)).toBe('en');
+    expect(resolveInitialLocale(['ko-KR'], null)).toBe('ko');
   });
 });
 

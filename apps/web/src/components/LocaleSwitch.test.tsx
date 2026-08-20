@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { LOCALE_STORAGE_KEY } from '@littlefinger/shared';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LocaleProvider } from '../lib/locale.tsx';
 import { LocaleSwitch } from './LocaleSwitch.tsx';
@@ -22,8 +22,14 @@ function renderSwitch(): void {
 describe('LocaleSwitch', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    // jsdom 기본 브라우저 언어는 en-US 다 — 감지가 켜진 지금은 명시해야 ko 로 시작한다.
+    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['ko-KR']);
   });
-  afterEach(cleanup);
+
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
 
   it('ko 화면에서는 English 를, 누르면 한국어를 보여 준다', () => {
     renderSwitch();

@@ -26,6 +26,11 @@ const ko = {
   reminderHour: (hour: ReminderHour) => `리마인드 발송 시각 ${hour}:00`,
   reminderHourValue: (hour: ReminderHour) => `${hour}:00 KST`,
   reminderHourChoice: (hour: ReminderHour) => `${hour}:00`,
+  // 언어 행의 제목만 두 언어를 함께 적는다 — 반대 언어 사용자가 이 행을 찾는 단서다.
+  languageTitle: '언어 / Language',
+  // 선택 상태를 색만으로 말하지 않는다(CLAUDE.md §8-7). 라벨 문구가 상태를 함께 말한다.
+  languageSelected: (name: string) => `${name} · 선택됨`,
+  languageSelect: (name: string) => `${name}(으)로 보기`,
   legalTitle: '약관 및 개인정보',
   // BY_LOCALE.ko 는 기존 LEGAL_DOCUMENT_LABELS 와 같은 객체다 — as const 리터럴 타입이
   // en 쪽 satisfies 검사를 깨뜨리므로 string 으로 넓혀지는 이 경로를 쓴다.
@@ -79,6 +84,9 @@ const en = {
   reminderHour: (hour: ReminderHour) => `Reminder time ${hour}:00`,
   reminderHourValue: (hour: ReminderHour) => `${hour}:00 KST`,
   reminderHourChoice: (hour: ReminderHour) => `${hour}:00`,
+  languageTitle: '언어 / Language',
+  languageSelected: (name: string) => `${name} · Selected`,
+  languageSelect: (name: string) => `View in ${name}`,
   legalTitle: 'Terms and privacy',
   terms: LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.TERMS,
   termsAccessibility: `Open ${LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.TERMS}`,

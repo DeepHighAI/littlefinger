@@ -6,12 +6,14 @@ import { Alert } from 'react-native';
 import ProfileScreen from '../app/profile';
 import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
+import { LocaleProvider } from '../lib/locale-native';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
 import {
   loadTrustProfile,
   logoutCurrentDeviceNative,
   updateTrustProfileSettings,
 } from '../lib/trust-profile-native.ts';
+import { SCR_A08_LABEL } from './scr-a08-labels.ts';
 import {
   createInitialProfileState,
   profileReducer,
@@ -316,6 +318,30 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     await act(async () => alert.mock.calls[1]?.[2]?.find((button) => button.text === '탈퇴')?.onPress?.());
     await settle();
     expect(view.getByText('탈퇴하지 못했어요. 다시 시도해 주세요.')).toBeTruthy();
+  });
+
+  test('언어 행은 두 언어를 각자의 이름으로 보여 주고 선택 상태를 문구로 말한다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    const view = await render(
+      <LocaleProvider>
+        <ProfileScreen />
+      </LocaleProvider>,
+    );
+    await settle();
+
+    // 기본 기기는 한국어(jest-setup) — 선택 상태가 색이 아니라 라벨로 드러난다.
+    const korean = view.getByRole('button', { name: '한국어 · 선택됨' });
+    const english = view.getByRole('button', { name: 'English(으)로 보기' });
+    expect(korean).toHaveStyle({ minHeight: 48 });
+    expect(english).toHaveStyle({ minHeight: 48 });
+
+    await fireEvent.press(english);
+    await settle();
+
+    // 전환 뒤에는 화면 전체가 영어다 — 언어 행 자신도 영어 규칙을 따른다.
+    expect(view.getByRole('button', { name: 'English · Selected' })).toBeTruthy();
+    expect(view.getByRole('button', { name: 'View in 한국어' })).toBeTruthy();
+    expect(view.getByText(SCR_A08_LABEL.en.legalTitle)).toBeTruthy();
   });
 
   test('뒤로·법적 문서·설정·로그아웃 control은 모두 48dp 이상이다', async () => {

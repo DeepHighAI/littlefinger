@@ -1,5 +1,7 @@
 import {
+  LOCALES,
   REMINDER_HOURS,
+  type Locale,
   type ReminderHour,
   type ReminderPreferences,
 } from '@littlefinger/shared';
@@ -22,7 +24,7 @@ import { LfSwitch } from '../components/LfSwitch';
 import { LfText } from '../components/LfText';
 import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
-import { useLabels } from '../lib/locale-native';
+import { useLabels, useLocale } from '../lib/locale-native';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
 import {
   loadTrustProfile,
@@ -89,6 +91,39 @@ function ReminderRow({ label, value, disabled, onChange }: ReminderRowProps): Re
         disabled={disabled}
         onValueChange={onChange}
       />
+    </LfRow>
+  );
+}
+
+/**
+ * 언어 선택 행 (PO 2026-08-20: 기기 언어 자동 + 수동 전환).
+ *
+ * 선택지 문구는 **그 언어의 이름을 그 언어로** 적는다 — 지금 화면 언어를 못 읽는
+ * 사용자가 자기 언어를 찾는 자리라, 현재 언어로 번역해 두면 정작 필요한 사람이 못 읽는다.
+ */
+const LOCALE_NAME: Record<Locale, string> = { ko: '한국어', en: 'English' };
+
+function LanguageRow(): React.JSX.Element {
+  const LABEL = useLabels(SCR_A08_LABEL);
+  const { locale, setLocale } = useLocale();
+  return (
+    <LfRow gap={3}>
+      {LOCALES.map((candidate) => {
+        const selected = candidate === locale;
+        const name = LOCALE_NAME[candidate];
+        return (
+          <LfButton
+            key={candidate}
+            grow
+            // 선택 상태를 색이 아니라 문구로도 말한다. 스크린리더에는 selected 로도 전한다.
+            label={selected ? LABEL.languageSelected(name) : name}
+            accessibilityLabel={selected ? LABEL.languageSelected(name) : LABEL.languageSelect(name)}
+            accessibilityState={{ selected }}
+            variant={selected ? 'filled' : 'outlined'}
+            onPress={() => setLocale(candidate)}
+          />
+        );
+      })}
     </LfRow>
   );
 }
@@ -292,6 +327,11 @@ export default function ProfileScreen(): React.JSX.Element {
           )}
           {state.saveFailed && <LfText secondary>{LABEL.saveError}</LfText>}
         </LfStack>
+      </LfCard>
+
+      <LfText variant="sectionTitle">{LABEL.languageTitle}</LfText>
+      <LfCard>
+        <LanguageRow />
       </LfCard>
 
       <LfText variant="sectionTitle">{LABEL.legalTitle}</LfText>

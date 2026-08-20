@@ -34,11 +34,15 @@ afterEach(() => {
   cleanup();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 beforeEach(() => {
   vi.stubEnv('VITE_SUPABASE_URL', 'https://test-project.supabase.co');
   vi.stubGlobal('fetch', fetchMock);
+  // jsdom 의 기본 브라우저 언어는 en-US 다. 이 파일은 라우팅을 한국어 문구로 확인하므로
+  // 기기 언어를 한국어로 명시한다 — 언어 자체의 검증은 locale/LocaleSwitch 테스트가 한다.
+  vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['ko-KR']);
   fetchMock.mockClear();
   watchSignInProvision.mockClear();
   unwatch.mockClear();
