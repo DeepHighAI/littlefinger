@@ -21,6 +21,7 @@ import {
   FulfillmentEvidenceDraftRepository,
   type FulfillmentEvidenceDraft,
 } from './fulfillment-evidence-draft.ts';
+import { toUploadableEvidenceUri } from './fulfillment-evidence-file.ts';
 import {
   callMobileFunctionNative,
   callMobileMultipartFunctionNative,
@@ -126,7 +127,11 @@ export async function uploadFulfillmentEvidence(
   form.append(
     'file',
     {
-      uri: asset.uri,
+      uri: await toUploadableEvidenceUri(
+        asset.uri,
+        idempotencyKey,
+        asset.file_name,
+      ),
       name: asset.file_name,
       type: asset.mime,
     } as unknown as Blob,
