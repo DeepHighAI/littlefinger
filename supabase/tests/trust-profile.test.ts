@@ -130,10 +130,35 @@ describe('F-09 trust profile transactions', () => {
       broken_count: 1,
       disputed_count: 2,
       unresolved_count: 1,
-      active_count: 4,
+      // 스냅숏에 4가 있어도 무시한다 — active_count 는 라이브 계산이다(F6).
+      active_count: 0,
       updated_at: '2026-08-17T01:00:00+00:00',
       reminders: { ...MORNING, remind_d1: false, remind_hour: '12' },
     });
+  });
+
+  test('active_count는 스냅숏이 아니라 §4-1-4의 4개 상태를 라이브로 센다(F6)', async () => {
+    const actor = await createUser(db, uniqueName('live'));
+    const other = await createUser(db, uniqueName('live-other'));
+    // 운영 재현(E2E Run 1 F6): 승인 직후 ACTIVE 는 종결 이벤트 전까지 스냅숏에 없다.
+    for (const status of [
+      'PENDING', 'ACTIVE', 'AMEND_PENDING', 'CHECKING', 'DRAFT', 'COMPLETED',
+    ]) {
+      await createPromise(db, { creatorId: actor, partnerId: other, status });
+    }
+    await db.asAdmin(
+      `insert into public.trust_profiles
+         (user_id, completed_count, broken_count, disputed_count, unresolved_count,
+          active_count, keep_rate)
+       values ($1, 0, 0, 0, 0, 99, null)`,
+      [actor],
+    );
+
+    const payload = asTrustProfileDetailResponse(
+      await oneJson(`select public.lf_my_trust_profile($1::uuid) as result`, [actor]),
+    );
+
+    expect(payload?.active_count).toBe(4);
   });
 
   test('없는 사용자와 비활성 사용자는 공개 응답 없이 거부한다', async () => {
@@ -348,6 +373,8 @@ describe('J-10 trust profile repair', () => {
     await add('DISPUTED', 'CREATOR', 'PARTNER');
     await add('UNRESOLVED', 'PARTNER', 'CREATOR');
     await add('ACTIVE', 'PARTNER', 'BOTH');
+    // §4-1-4의 "진행 중"은 PENDING 을 포함한다(F6).
+    await add('PENDING', 'CREATOR', 'BOTH');
     await db.asAdmin(
       `insert into public.trust_profiles
          (user_id, completed_count, broken_count, disputed_count, unresolved_count,
@@ -376,7 +403,7 @@ describe('J-10 trust profile repair', () => {
       broken_count: 1,
       disputed_count: 1,
       unresolved_count: 1,
-      active_count: 1,
+      active_count: 2,
       keep_rate: 67,
     }]);
     expect(second.rows).toEqual(first.rows);
