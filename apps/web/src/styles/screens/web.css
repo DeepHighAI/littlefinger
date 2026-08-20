@@ -71,6 +71,30 @@
 }
 
 /* -------------------------------------------------------------
+   LOCALE SWITCH — 우상단 고정 언어 전환 (App 셸이 모든 화면에 얹는다)
+   .lf-screen 이 absolute 전면이라 fixed 오버레이만 모든 화면 위에 남는다
+   ------------------------------------------------------------- */
+.lf-locale-switch {
+  position: fixed;
+  top: var(--lf-space-3);
+  right: var(--lf-space-3);
+  z-index: 10;
+  min-height: var(--lf-touch-min);
+  min-width: var(--lf-touch-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--lf-space-4);
+  border-radius: var(--lf-radius-pill);
+  border: 1px solid var(--lf-color-outline);
+  background: var(--lf-color-surface);
+  color: var(--lf-color-text-secondary);
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
+  box-shadow: var(--lf-elevation-card);
+}
+
+/* -------------------------------------------------------------
    APP HINT — 앱 설치 유도 카드 (핑키 아이콘 + 굵은 2줄 문구, SCR-W03)
    ------------------------------------------------------------- */
 .lf-app-hint {

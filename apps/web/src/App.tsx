@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { LocaleSwitch } from './components/LocaleSwitch.tsx';
 import { LocaleProvider } from './lib/locale.tsx';
 import { watchSignInProvision } from './lib/user-provision.ts';
 import { ROUTE } from './routes.ts';
@@ -44,6 +45,8 @@ export function App(): React.JSX.Element {
           만료·사용됨·취소·차단은 SCR-W01 이 invite-resolve 의 실패 코드를 그대로 넘긴다. */}
       <Route path="*" element={<ScrW06LinkExpired reason="E_NOT_FOUND" />} />
     </Routes>
+    {/* 모든 화면 위의 고정 오버레이 — .lf-screen 이 absolute 전면이라 여기서만 얹을 수 있다. */}
+    <LocaleSwitch />
     </LocaleProvider>
   );
 }
