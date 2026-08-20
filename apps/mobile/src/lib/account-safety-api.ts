@@ -6,7 +6,9 @@ import {
   type PromiseHideResponse,
   type SafetyReportRequest,
   type SafetyReportResponse,
+  type UserBlockListResponse,
   type UserBlockResponse,
+  type UserUnblockResponse,
 } from '@littlefinger/shared';
 
 import type { MobileApiOptions } from './mobile-api.ts';
@@ -58,6 +60,24 @@ export async function blockUser(
     { target_user_id: targetUserId },
     options(idempotencyKey),
   );
+}
+
+export async function unblockUser(
+  targetUserId: string,
+  idempotencyKey: string,
+  deps: AccountSafetyApiDeps,
+): Promise<UserUnblockResponse> {
+  return await deps.call(
+    ENDPOINT.userUnblock,
+    { target_user_id: targetUserId },
+    options(idempotencyKey),
+  );
+}
+
+export async function listBlockedUsers(
+  deps: AccountSafetyApiDeps,
+): Promise<UserBlockListResponse> {
+  return await deps.call(ENDPOINT.userBlockList, {}, { idempotent: false });
 }
 
 export async function reportSafetyIssue(

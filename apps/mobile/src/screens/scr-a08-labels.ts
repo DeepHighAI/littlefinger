@@ -41,6 +41,7 @@ export const SCR_A08_LABEL = {
   retryAccessibility: '프로필 다시 시도',
   saveError: '설정을 저장하지 못했어요. 다시 시도해 주세요.',
   logoutError: '로그아웃하지 못했어요. 다시 시도해 주세요.',
+  blockedUsers: '차단 목록 관리',
   withdraw: '탈퇴',
   withdrawTitle: '탈퇴할까요?',
   withdrawWarning: (count: number) => `진행 중인 약속 ${count}건이 있어요. 탈퇴 후에는 응답할 수 없어요.`,

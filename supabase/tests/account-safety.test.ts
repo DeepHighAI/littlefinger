@@ -5,7 +5,9 @@ import {
   asProfileNicknameUpdateResponse,
   asPromiseHideResponse,
   asSafetyReportResponse,
+  asUserBlockListResponse,
   asUserBlockResponse,
+  asUserUnblockResponse,
 } from '../../packages/shared/src/account-safety.ts';
 import { createTestDb, createUser, type TestDb } from './harness.ts';
 
@@ -226,6 +228,43 @@ describe('record visibility and safety actions', () => {
     await expect(rpc('lf_user_block', [actor, actor])).rejects.toThrow(/E_VALIDATION/u);
     await expect(rpc('lf_user_block', [actor, outsider])).rejects.toThrow(/E_NOT_FOUND/u);
     expect((await db.asAdmin(`select status::text from public.promises where id = $1`, [promise])).rows).toEqual([{ status: 'ACTIVE' }]);
+  });
+
+  test('F3 차단 목록은 닉네임과 함께 반환되고 해제는 본인 차단만 지운다', async () => {
+    const actor = await createUser(db, '해제사용자');
+    const partner = await createUser(db, '해제상대');
+    const rival = await createUser(db, '해제제3자');
+    await insertPromise({ id: 'c0000000-0000-4000-8000-000000000002', creator: actor, partner, status: 'ACTIVE' });
+    await insertPromise({ id: 'c0000000-0000-4000-8000-000000000003', creator: rival, partner, status: 'ACTIVE' });
+    await rpc('lf_user_block', [actor, partner]);
+    await rpc('lf_user_block', [rival, partner]);
+
+    const blockList = async (who: string) => asUserBlockListResponse(
+      (await db.asService(`select public.lf_user_block_list($1) as result`, [who]))
+        .rows[0]?.['result'],
+    );
+    const listed = await blockList(actor);
+    expect(listed?.items).toHaveLength(1);
+    expect(listed?.items[0]).toMatchObject({
+      target_user_id: partner,
+      nickname: '해제상대',
+      profile_image_url: null,
+    });
+
+    expect(asUserUnblockResponse(await rpc('lf_user_unblock', [actor, partner])))
+      .toEqual({ target_user_id: partner, blocked: false });
+    // 이미 풀린 차단의 재해제도 성공으로 수렴한다 — 목록 재시도에서 되튀면 할 수 있는 일이 없다.
+    expect(asUserUnblockResponse(await rpc('lf_user_unblock', [actor, partner])))
+      .toEqual({ target_user_id: partner, blocked: false });
+    await expect(rpc('lf_user_unblock', [actor, actor])).rejects.toThrow(/E_VALIDATION/u);
+
+    // 남의 차단 행은 남는다 — blocker_id 필터가 곧 권한 검사다.
+    const remaining = await db.asAdmin(
+      `select blocker_id::text as blocker_id from public.blocks where blocked_user_id = $1`,
+      [partner],
+    );
+    expect(remaining.rows).toEqual([{ blocker_id: rival }]);
+    expect((await blockList(actor))?.items).toEqual([]);
   });
 
   test('EC-F06 증빙 신고는 참여 권한 검사와 블라인드를 한 트랜잭션에서 처리한다', async () => {

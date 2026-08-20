@@ -250,6 +250,15 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(push).toHaveBeenCalledWith('/profile-nickname');
   });
 
+  test('차단 목록 관리 행은 차단 목록 화면으로 간다(F3)', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '차단 목록 관리' }));
+    expect(push).toHaveBeenCalledWith('/blocked-users');
+  });
+
   test('탈퇴는 진행 중 기록 경고와 최종 확인을 거친 뒤 서버 요청한다', async () => {
     loadMock.mockResolvedValue(PROFILE);
     const alert = jest.spyOn(Alert, 'alert');

@@ -50,6 +50,10 @@ export function blockTargetOf(body: Record<string, unknown>): string {
   return uuid(body['target_user_id'], 'target_user_id');
 }
 
+export function emptyBlockListBody(body: Record<string, unknown>): void {
+  exact(body, [], 'target_user_id');
+}
+
 export function safetyReportOf(body: Record<string, unknown>): {
   promiseId: string;
   targetUserId: string | null;

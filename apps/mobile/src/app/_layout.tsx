@@ -162,6 +162,7 @@ export default function RootLayout(): React.JSX.Element {
           <Stack.Screen name="notifications" />
           <Stack.Screen name="profile" />
           <Stack.Screen name="profile-nickname" />
+          <Stack.Screen name="blocked-users" />
         </Stack.Protected>
       </Stack>
     </MobileAuthGateContext.Provider>

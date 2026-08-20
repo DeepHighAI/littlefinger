@@ -3,7 +3,9 @@ import { ENDPOINT } from '@littlefinger/shared';
 import {
   blockUser,
   hidePromise,
+  listBlockedUsers,
   reportSafetyIssue,
+  unblockUser,
   updateProfileNickname,
   withdrawAccount,
 } from './account-safety-api.ts';
@@ -18,6 +20,8 @@ test('account and safety client uses the five dedicated idempotent endpoints', a
     .mockResolvedValueOnce({ nickname: '새 이름' })
     .mockResolvedValueOnce({ promise_id: PROMISE_ID, hidden: true })
     .mockResolvedValueOnce({ target_user_id: TARGET_ID, blocked: true })
+    .mockResolvedValueOnce({ target_user_id: TARGET_ID, blocked: false })
+    .mockResolvedValueOnce({ items: [] })
     .mockResolvedValueOnce({ report_id: TARGET_ID, status: 'RECEIVED', evidence_blinded: false });
   const deps = { call };
 
@@ -25,6 +29,8 @@ test('account and safety client uses the five dedicated idempotent endpoints', a
   await updateProfileNickname('새 이름', KEY, deps);
   await hidePromise(PROMISE_ID, true, KEY, deps);
   await blockUser(TARGET_ID, KEY, deps);
+  await unblockUser(TARGET_ID, KEY, deps);
+  await listBlockedUsers(deps);
   await reportSafetyIssue({
     promise_id: PROMISE_ID,
     target_user_id: TARGET_ID,
@@ -38,6 +44,8 @@ test('account and safety client uses the five dedicated idempotent endpoints', a
     [ENDPOINT.profileNicknameUpdate, { nickname: '새 이름' }, { idempotent: true, idempotencyKey: KEY }],
     [ENDPOINT.promiseHide, { promise_id: PROMISE_ID, hidden: true }, { idempotent: true, idempotencyKey: KEY }],
     [ENDPOINT.userBlock, { target_user_id: TARGET_ID }, { idempotent: true, idempotencyKey: KEY }],
+    [ENDPOINT.userUnblock, { target_user_id: TARGET_ID }, { idempotent: true, idempotencyKey: KEY }],
+    [ENDPOINT.userBlockList, {}, { idempotent: false }],
     [ENDPOINT.safetyReport, {
       promise_id: PROMISE_ID,
       target_user_id: TARGET_ID,

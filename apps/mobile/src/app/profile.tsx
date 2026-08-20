@@ -307,6 +307,18 @@ export default function ProfileScreen(): React.JSX.Element {
         </LfStack>
       </LfCard>
       <LfDisclaimer />
+      <LfCard>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={LABEL.blockedUsers}
+          style={styles.legalButton}
+          onPress={() => router.push('/blocked-users')}
+        >
+          <LfIcon name="block" color="textSecondary" />
+          <View style={styles.legalLabel}><LfText>{LABEL.blockedUsers}</LfText></View>
+          <LfIcon name="chevron-right" color="textMuted" />
+        </Pressable>
+      </LfCard>
       <LfButton label={LABEL.logout} variant="danger" disabled={state.loggingOut} onPress={confirmLogout} />
       {state.logoutFailed && <LfText secondary>{LABEL.logoutError}</LfText>}
       <LfButton

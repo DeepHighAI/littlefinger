@@ -1,9 +1,12 @@
 import type {
   AccountWithdrawResponse,
+  BlockedUserItem,
   ProfileNicknameUpdateResponse,
   PromiseHideResponse,
   SafetyReportResponse,
+  UserBlockListResponse,
   UserBlockResponse,
+  UserUnblockResponse,
 } from './api.ts';
 import { codepointLength } from './text.ts';
 
@@ -44,6 +47,44 @@ export function asUserBlockResponse(value: unknown): UserBlockResponse | null {
   return typeof targetUserId === 'string' && UUID_PATTERN.test(targetUserId) && record?.['blocked'] === true
     ? { target_user_id: targetUserId, blocked: true }
     : null;
+}
+
+export function asUserUnblockResponse(value: unknown): UserUnblockResponse | null {
+  const record = recordWithFields(value, ['target_user_id', 'blocked']);
+  const targetUserId = record?.['target_user_id'];
+  return typeof targetUserId === 'string' && UUID_PATTERN.test(targetUserId) && record?.['blocked'] === false
+    ? { target_user_id: targetUserId, blocked: false }
+    : null;
+}
+
+function asBlockedUserItem(value: unknown): BlockedUserItem | null {
+  const record = recordWithFields(value, [
+    'target_user_id', 'nickname', 'profile_image_url', 'blocked_at',
+  ]);
+  if (record === null) return null;
+  const targetUserId = record['target_user_id'];
+  const nickname = record['nickname'];
+  const profileImageUrl = record['profile_image_url'];
+  const blockedAt = record['blocked_at'];
+  return typeof targetUserId === 'string' && UUID_PATTERN.test(targetUserId)
+    && typeof nickname === 'string' && nickname.length > 0
+    && (profileImageUrl === null || typeof profileImageUrl === 'string')
+    && typeof blockedAt === 'string' && blockedAt.length > 0
+    ? {
+        target_user_id: targetUserId,
+        nickname,
+        profile_image_url: profileImageUrl,
+        blocked_at: blockedAt,
+      }
+    : null;
+}
+
+export function asUserBlockListResponse(value: unknown): UserBlockListResponse | null {
+  const record = recordWithFields(value, ['items']);
+  const rawItems = record?.['items'];
+  if (!Array.isArray(rawItems)) return null;
+  const items = rawItems.map(asBlockedUserItem);
+  return items.every((item): item is BlockedUserItem => item !== null) ? { items } : null;
 }
 
 export function asSafetyReportResponse(value: unknown): SafetyReportResponse | null {

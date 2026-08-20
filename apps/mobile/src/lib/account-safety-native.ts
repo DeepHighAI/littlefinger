@@ -3,14 +3,18 @@ import type {
   PromiseHideResponse,
   SafetyReportRequest,
   SafetyReportResponse,
+  UserBlockListResponse,
   UserBlockResponse,
+  UserUnblockResponse,
 } from '@littlefinger/shared';
 import * as Crypto from 'expo-crypto';
 
 import {
   blockUser as blockUserWith,
   hidePromise as hidePromiseWith,
+  listBlockedUsers as listBlockedUsersWith,
   reportSafetyIssue as reportSafetyIssueWith,
+  unblockUser as unblockUserWith,
   updateProfileNickname as updateProfileNicknameWith,
   withdrawAccount as withdrawAccountWith,
 } from './account-safety-api.ts';
@@ -45,6 +49,14 @@ export async function hidePromiseNative(
 
 export async function blockUserNative(targetUserId: string): Promise<UserBlockResponse> {
   return await blockUserWith(targetUserId, key(), deps);
+}
+
+export async function unblockUserNative(targetUserId: string): Promise<UserUnblockResponse> {
+  return await unblockUserWith(targetUserId, key(), deps);
+}
+
+export async function listBlockedUsersNative(): Promise<UserBlockListResponse> {
+  return await listBlockedUsersWith(deps);
 }
 
 export async function reportSafetyIssueNative(

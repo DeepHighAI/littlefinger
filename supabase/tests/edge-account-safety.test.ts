@@ -61,23 +61,29 @@ describe('account and safety Edge Functions', () => {
   let nickname: FactoryModule | null;
   let hide: FactoryModule | null;
   let block: FactoryModule | null;
+  let unblock: FactoryModule | null;
+  let blockList: FactoryModule | null;
   let report: FactoryModule | null;
 
   beforeEach(async () => {
-    [withdraw, nickname, hide, block, report] = await Promise.all([
+    [withdraw, nickname, hide, block, unblock, blockList, report] = await Promise.all([
       load('../functions/account-withdraw/handler.ts'),
       load('../functions/profile-nickname-update/handler.ts'),
       load('../functions/promise-hide/handler.ts'),
       load('../functions/user-block/handler.ts'),
+      load('../functions/user-unblock/handler.ts'),
+      load('../functions/user-block-list/handler.ts'),
       load('../functions/safety-report/handler.ts'),
     ]);
   });
 
-  test('Deno 전역 없는 다섯 순수 handler를 제공한다', () => {
+  test('Deno 전역 없는 순수 handler를 제공한다', () => {
     expect(withdraw?.['createAccountWithdrawHandler']).toBeTypeOf('function');
     expect(nickname?.['createProfileNicknameUpdateHandler']).toBeTypeOf('function');
     expect(hide?.['createPromiseHideHandler']).toBeTypeOf('function');
     expect(block?.['createUserBlockHandler']).toBeTypeOf('function');
+    expect(unblock?.['createUserUnblockHandler']).toBeTypeOf('function');
+    expect(blockList?.['createUserBlockListHandler']).toBeTypeOf('function');
     expect(report?.['createSafetyReportHandler']).toBeTypeOf('function');
   });
 
@@ -137,6 +143,42 @@ describe('account and safety Edge Functions', () => {
     });
   });
 
+  test('F3 차단 해제·목록은 JWT actor 기준으로만 RPC를 부른다', async () => {
+    const unblockSpy = spy({ target_user_id: TARGET_ID, blocked: false });
+    expect((await unblock!.createUserUnblockHandler!(unblockSpy.deps as never)(
+      request('user-unblock', { target_user_id: TARGET_ID }),
+    )).status).toBe(200);
+    expect(unblockSpy.rpcCalls[0]).toEqual({
+      fn: 'lf_user_unblock',
+      args: { p_idempotency_key: KEY, p_actor: ACTOR_ID, p_target_user_id: TARGET_ID },
+    });
+
+    const listSpy = spy({
+      items: [{
+        target_user_id: TARGET_ID,
+        nickname: '차단상대',
+        profile_image_url: null,
+        blocked_at: '2026-08-20T00:00:00+00:00',
+      }],
+    });
+    const listResponse = await blockList!.createUserBlockListHandler!(listSpy.deps as never)(
+      request('user-block-list', {}),
+    );
+    expect(listResponse.status).toBe(200);
+    expect(listSpy.rpcCalls[0]).toEqual({
+      fn: 'lf_user_block_list',
+      args: { p_actor: ACTOR_ID },
+    });
+    expect(await listResponse.json()).toEqual({
+      items: [{
+        target_user_id: TARGET_ID,
+        nickname: '차단상대',
+        profile_image_url: null,
+        blocked_at: '2026-08-20T00:00:00+00:00',
+      }],
+    });
+  });
+
   test('신고는 약속 컨텍스트와 nullable 대상을 그대로 전달한다', async () => {
     const s = spy({ report_id: REPORT_ID, status: 'RECEIVED', evidence_blinded: true });
     const response = await report!.createSafetyReportHandler!(s.deps as never)(
@@ -167,11 +209,20 @@ describe('account and safety Edge Functions', () => {
     ['profile-nickname-update', 'createProfileNicknameUpdateHandler', { nickname: '이름', extra: true }],
     ['promise-hide', 'createPromiseHideHandler', { promise_id: PROMISE_ID, hidden: 'yes' }],
     ['user-block', 'createUserBlockHandler', { target_user_id: 'not-a-uuid' }],
+    ['user-unblock', 'createUserUnblockHandler', { target_user_id: 'not-a-uuid' }],
+    ['user-block-list', 'createUserBlockListHandler', { target_user_id: TARGET_ID }],
     ['safety-report', 'createSafetyReportHandler', { promise_id: PROMISE_ID, target_user_id: null, evidence_id: null, reason: 'OTHER', detail: null }],
   ] as const)('잘못된 %s 본문은 RPC 전에 422로 막는다', async (slug, factory, body) => {
-    const module = slug === 'profile-nickname-update' ? nickname : slug === 'promise-hide' ? hide : slug === 'user-block' ? block : report;
+    const modules: Record<string, FactoryModule | null> = {
+      'profile-nickname-update': nickname,
+      'promise-hide': hide,
+      'user-block': block,
+      'user-unblock': unblock,
+      'user-block-list': blockList,
+      'safety-report': report,
+    };
     const s = spy({});
-    const response = await module![factory]!(s.deps as never)(request(slug, body));
+    const response = await modules[slug]![factory]!(s.deps as never)(request(slug, body));
     expect(response.status).toBe(422);
     expect(s.rpcCalls).toEqual([]);
   });

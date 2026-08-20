@@ -869,6 +869,25 @@ export interface UserBlockResponse extends UserBlockRequest {
   blocked: true;
 }
 
+export interface UserUnblockRequest {
+  target_user_id: string;
+}
+
+export interface UserUnblockResponse extends UserUnblockRequest {
+  blocked: false;
+}
+
+export interface BlockedUserItem {
+  target_user_id: string;
+  nickname: string;
+  profile_image_url: string | null;
+  blocked_at: IsoDateTime;
+}
+
+export interface UserBlockListResponse {
+  items: readonly BlockedUserItem[];
+}
+
 export type SafetyReportReason = 'ABUSE' | 'SPAM' | 'IMPERSONATION' | 'WRONG_PARTNER' | 'ETC';
 
 export interface SafetyReportRequest {
@@ -935,6 +954,8 @@ export const ENDPOINT = {
   profileNicknameUpdate: 'profile-nickname-update',
   promiseHide: 'promise-hide',
   userBlock: 'user-block',
+  userUnblock: 'user-unblock',
+  userBlockList: 'user-block-list',
   safetyReport: 'safety-report',
 } as const;
 
