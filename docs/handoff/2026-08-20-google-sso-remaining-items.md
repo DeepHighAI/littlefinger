@@ -22,6 +22,31 @@ Parts M(1/2), F, G, H are **done, verified, committed** (through `6a78a89`); tre
 Remaining: **Parts I, J, K + Codex gate** (steps 5–8 below). GCP OAuth setup was completed by
 the operator this session — the Google login path is live end-to-end.
 
+## Progress update (third session, same day) — ALL DEV PARTS DONE
+
+- **I** (`3589c5f`): `supabase/tests/spec13-guards.test.ts` — 5 guards (no promise-update/delete,
+  no web ad deps/scripts, no payment deps in the 4 package.json, no email libs in functions
+  (import specifiers only — `resend` matched by normalized prefix, relative paths exempt),
+  ENDPOINT ↔ dirs 1:1 with `push-send`/`evidence-purge` as the internal allowlist).
+- **J** (`f4fcc8d`, **deployed** via db push): migration `20260820000004` — 30 `alter function …
+  set search_path=''` (audit showed every body already `public.`-qualified, so zero rewrites);
+  16 `alter policy` init-plan rewrites to `(select auth.uid())`; grants-vs-policies revokes
+  (SELECT kept where a permissive policy exists — incl. app_configs/promises/approvals; promises
+  DELETE kept; device_tokens 4 verbs kept; TRUNCATE/REFERENCES/TRIGGER revoked everywhere;
+  prior one-way revokes NOT re-granted). New `security-hardening.test.ts` (3 invariants).
+  17 existing tests updated: client-write rejections now fail at the privilege layer
+  (`permission denied`) instead of RLS 0-rows/row-level-security — stricter, same intent.
+  **Live-verified**: unpinned=0, bare uid policies=0, RLS-bypass grants=0, kept SELECT/DELETE ok.
+- **K** (`a03b582`): font moved to `apps/web/public/fonts/` + `@font-face` → `/fonts/…` + preload;
+  meta description/theme-color(#FFFFFF)/og tags (og:url = ADR 0005 origin); `font-fallback.css`
+  with fontaine-measured metrics (ascent 1950/descent −494/lineGap 0/upm 2048/xWidthAvg 921 vs
+  Arial → size-adjust 100.8762%, ascent 94.3878%, descent 23.9116%, line-gap 0%);
+  `--lf-font-brand` gained `'Pretendard Fallback'` identically in web + design-reference
+  (**design-token value change, flagged to PO**); `seo.test.ts` pins all of it. Vite build OK.
+
+**Remaining: Codex gate only** — report migrations `20260820000003`/`0004` + the
+`account-withdraw` shell (incl. `25623b4` fallback removal) for the PO-driven Codex pass.
+
 ## Goal and current status
 
 PO-approved plan (2026-08-20): Google login + GCP guide + remaining dev items. Parts A–E are
