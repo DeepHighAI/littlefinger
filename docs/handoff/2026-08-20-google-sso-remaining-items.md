@@ -44,8 +44,10 @@ the operator this session — the Google login path is live end-to-end.
   `--lf-font-brand` gained `'Pretendard Fallback'` identically in web + design-reference
   (**design-token value change, flagged to PO**); `seo.test.ts` pins all of it. Vite build OK.
 
-**Remaining: Codex gate only** — report migrations `20260820000003`/`0004` + the
-`account-withdraw` shell (incl. `25623b4` fallback removal) for the PO-driven Codex pass.
+**Codex gate: skipped by PO (2026-08-20)** — the backend surface (migrations
+`20260820000003`/`0004`, `account-withdraw` shell incl. `25623b4`) was reported and the PO chose
+to skip the Codex pass. Nothing remains from this handoff; web changes go live on the next
+`firebase deploy --only hosting` (config committed per ADR 0005).
 
 ## Goal and current status
 
