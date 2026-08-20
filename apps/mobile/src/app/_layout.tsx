@@ -166,6 +166,8 @@ export default function RootLayout(): React.JSX.Element {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="update-required" />
         <Stack.Screen name="i/[token]" />
+        {/* 어긋난 딥링크는 세션과 무관하게 떠야 한다 — 가드 밖에 둔다. */}
+        <Stack.Screen name="+not-found" />
         <Stack.Protected guard={session === null}>
           <Stack.Screen name="index" />
           <Stack.Screen name="auth-callback" />

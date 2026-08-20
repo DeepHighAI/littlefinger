@@ -74,6 +74,11 @@ export const colors = {
  * RN 은 CSS 처럼 폰트 스택을 못 받고 패밀리 하나만 받는다.
  * 실제 굵기별 파일 선택은 `LfText` 가 한다 — RN 안드로이드는 가변 폰트의 웨이트 축이
  * 불안정해서 정적 `.ttf` 4종(400/600/700/800)을 쓰기 때문이다(04 §5-4).
+ *
+ * **여기 값은 tokens.css 와의 이름 패리티용이지 등록된 RN 패밀리가 아니다.**
+ * 네이티브에 등록된 이름은 `Pretendard-Regular` 등 굵기별 이름뿐이라,
+ * `fontFamily.brand` 를 style 에 직접 넣으면 조용히 시스템 폰트로 떨어진다 —
+ * 반드시 `brandFontFamily(weight)` 를 거친다.
  */
 export const fontFamily = {
   brand: 'Pretendard',
