@@ -109,12 +109,12 @@ Edit `CLAUDE.md` only, then `npm run sync:agents` regenerates `AGENTS.md`. Never
 `AGENTS.md`.
 
 **Test runners** (`04` §4 omits these — decided by PO 2026-07-26): **Vitest** for
-`packages/shared` and `apps/web`; **jest-expo** for `apps/mobile` once it exists. `02` §13 requires
+`packages/shared` and `apps/web`; **jest-expo** for `apps/mobile`. `02` §13 requires
 tests (every EC-\* case, concurrency cases in parallel, every batch job idempotent across two runs),
 so a runner is not optional.
 
-`typecheck` covers four projects: `packages/shared`, `apps/mobile`, `supabase/functions`,
-`supabase/tests`. `apps/web` joins when it exists. Nothing that ships is outside it —
+`typecheck` covers five projects: `packages/shared`, `apps/mobile`, `apps/web`,
+`supabase/functions`, `supabase/tests`. Nothing that ships is outside it —
 `supabase/functions` has no Deno available locally, so `tsc` plus `functions/deno.d.ts` is the only
 check those files get before deploy.
 
@@ -159,7 +159,7 @@ truth over them.
 | 2 | `docs/기획/02_세부기능명세서.md` | v1.1 | Per-feature screens · fields · data model · transitions · edge cases |
 | 3 | `docs/기획/04_AI-Agent_코딩가이드.md` | v1.0 | Confirmed stack · repo layout · **port rules** · Supabase schema · security |
 | 4 | `docs/디자인/01_와이어프레임_디자인요청서.md` | v1.1 | Screen inventory (SCR-ID) · glossary · design constraints |
-| 5 | `design/concept-4.html` | — | Original approved UI canvas (핑키 / 1d) |
+| 5 | `design-reference/concept-4.html` | — | Original approved UI canvas (핑키 / 1d) |
 | 6 | `docs/adr/` | — | Implementation decision records |
 
 `docs/기획/03_기술스택_비교분석.md` is the **rationale** behind the N-3 decision; implementation
@@ -190,8 +190,9 @@ original moves. Preview it with `npm run preview`.
 - App screens (SCR-A\*, MOD-\*) → **ported** to React Native against this reference.
 - Acceptance web (SCR-W\*) → moved to Vite **reusing the CSS verbatim**.
 
-`packages/shared/` exists and is under test. `apps/mobile` and `apps/web` do **not exist yet** —
-that is the next milestone (M0-B: `tokens.ts`, the 6 base components, SCR-A01).
+All three workspaces exist and are feature-complete for the approved MVP scope:
+`packages/shared` (domain contract), `apps/mobile` (Expo), `apps/web` (Vite). Current status,
+release gates and open verification live in `docs/DEVELOPMENT_STATUS.md`.
 
 Port rules are fully specified in `04` §3–§5. **Follow them; do not improvise.** Two known gaps in
 `04`: it counts 111 `lf-*` classes (actually 110), and its §4-6 dependency list omits
@@ -211,7 +212,7 @@ Port rules are fully specified in `04` §3–§5. **Follow them; do not improvis
 | `transitions.ts` | the T-01…T-18 table + `canTransition` | `02` §7-1 |
 | `api.ts` | the Edge Function HTTP contract — error body, request shapes, endpoint slugs | `02` §2-3·§7-3.6 |
 | `notification.ts` | NT event codes, titles, deeplinks, `dedupe_key` builders | `02` §8-1·§6-2 |
-| `i18n.ts` | `Locale`/`Localized<T>`, `resolveLocale`, `resolveInitialLocale`, `catalogKeyPaths`, **`LOCALE_DETECTION_ENABLED`** (the single ko/en rollout switch) | ADR 0006 |
+| `i18n.ts` | `Locale`/`Localized<T>`, `resolveLocale`, `resolveInitialLocale`, `catalogKeyPaths`, **`LOCALE_DETECTION_ENABLED`** (ON since 2026-08-20 — the one switch that forces Korean back) | ADR 0006 |
 | `app-links.ts` | `ANDROID_PACKAGE_NAME`, Play Store URL builder, `invitePathOf`, `buildInviteAppIntentUri` (intent:// with store fallback) | ADR 0007 |
 
 Naming follows **`02`, not `04`** where they conflict (PO, 2026-07-26): `keeper` not `obligor`,
@@ -223,8 +224,9 @@ from the label maps, keepRate math comes from the status sets, and no transition
 `TRANSITIONS`. **Contracts-first**: read the types before implementing; if a type is missing, write
 the type first, implement against it, then `npm test && npm run typecheck`.
 
-Still to build here: the Supabase client wrappers the app and web call (`api.ts` currently holds the
-HTTP contract only — types and constants, no calls).
+`api.ts` holds the HTTP contract only — types, constants, endpoint slugs, no calls. The calls live
+in each app's own client wrappers (`apps/*/src/lib/*-api.ts`), which is why `packages/shared` stays
+free of platform APIs.
 
 **Normalize before you measure.** `02` §2-3 mandates code-point length counting but never named a
 normalization form; the PO chose **NFC** (2026-07-26). Korean typed as conjoining jamo counts far
@@ -412,7 +414,9 @@ Verified 2026-07-26 against current docs and adversarially reviewed. Full detail
    privacy; [선택 동의] is what lets the user refuse while login still works.
    **The separately typed reminder email on SCR-W03 (`02` §5-3) is out of MVP too** (PO,
    2026-07-29): this product reaches people through KakaoTalk links and the Play Store link, never
-   through email, so `02` §5-3's field, EC-G01 and EC-G03 are not implemented. That also removes any
+   through email, so `02` §5-3's field and EC-G03 are not implemented. (EC-G01 *is* implemented,
+   in a non-email form — the counterpart-push-unavailable path of
+   `20260818000004_counterpart_push_availability.sql`.) That also removes any
    need to write to `users` from the client, which the `users update own` policy would have made
    dangerous — it permits updating every column, including `email_verified` and `status`.
 3. **`expo-secure-store` cannot hold a Supabase session directly** — it caps values at 2048 bytes

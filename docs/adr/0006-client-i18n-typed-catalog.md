@@ -36,7 +36,9 @@ No i18n library. A typed catalog convention built on two shared primitives in
 - Shared maps gained `*_BY_LOCALE` pairs whose `ko` is the **same object** as the existing
   constant — Edge Functions and the verbatim-disclaimer test are untouched.
 - Detection is gated by `LOCALE_DETECTION_ENABLED` in shared `i18n.ts`, kept `false` until every
-  catalog is converted, so intermediate commits render byte-identical Korean.
+  catalog was converted, so intermediate commits rendered byte-identical Korean. **Flipped to `true`
+  on 2026-08-20** once both surfaces were converted and their parity guards passed; it now exists
+  only as the single switch that forces Korean everywhere again.
 
 ## Why not i18next / react-i18next
 

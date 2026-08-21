@@ -18,7 +18,7 @@ test catalog diverge.
 | Fulfillment | EC-F01--EC-F10 | 10 | Parallel verdict, revision, KST batches, evidence and recheck rounds |
 | Notification | EC-G01--EC-G05 | 5 | Manual Kakao fallback, token eviction, no-email scope, dedupe and required events |
 | Data and account | EC-H01--EC-H06 | 6 | Withdrawal preservation, hiding, token cap, limits and integrity incidents |
-| Platform | EC-I01--EC-I04 | 4 | App Link contract, Kakao in-app fallback, iOS web path and version gate |
+| Platform | EC-I01--EC-I04 | 4 | In-app invite review via App Links (resolve/preview/approve/decline/amend, ADR 0007), Kakao in-app intent CTA fallback, iOS web path and version gate |
 
 ## Concurrency evidence
 

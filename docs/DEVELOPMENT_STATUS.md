@@ -1,11 +1,11 @@
 # Development Status
 
-Snapshot date: **2026-08-19 KST**.
+Snapshot date: **2026-08-22 KST**.
 
 ## Overall result
 
 The local MVP implementation is feature-complete for the scope approved in the 2026-08-18 plan.
-The Supabase test project is caught up, all 45 Edge Functions are active, and the acceptance web is
+The Supabase test project is caught up, all 47 Edge Functions are active, and the acceptance web is
 live on the existing Firebase project. Remaining work is interactive account/device verification,
 not an unimplemented local product flow.
 
@@ -47,7 +47,7 @@ physical-device accessibility/push verification remain release gates.
 
 | Gate | Result |
 |---|---|
-| `npm test` | PASS — Vitest **88 files / 1,887 tests**, mobile Jest **61 suites / 595 tests** |
+| `npm test` | PASS — Vitest **100 files**, mobile Jest **68 suites / 649 tests** |
 | `npm run typecheck` | PASS — shared, mobile, web, Edge Functions, Supabase tests |
 | `npm run build:web` | PASS — 115 modules; JS 535.90KB / gzip 154.02KB; 500KB chunk warning |
 | `npx expo install --check` | PASS — `Dependencies are up to date` |
@@ -75,8 +75,8 @@ not authorize font subsetting or chunk splitting in this pass; the build warning
 ## Remote deployment state
 
 The test project `vepnrrmxvsytguocicfe` is linked under `batisututu@gmail.com`. All migrations
-through `20260818000004_counterpart_push_availability.sql` are applied, `ACCOUNT_ID_PEPPER` is set
-independently, and all **45/45** local Edge Functions are deployed with `--use-api` and report
+through `20260820000004_security_hardening.sql` are applied, `ACCOUNT_ID_PEPPER` is set
+independently, and all **47/47** local Edge Functions are deployed with `--use-api` and report
 `ACTIVE`. `supabase config push` was not run.
 
 Read-only metadata and rollback-safe remote tests produced these results:

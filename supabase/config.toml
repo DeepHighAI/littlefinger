@@ -183,6 +183,12 @@ verify_jwt = true
 [functions.user-block]
 verify_jwt = true
 
+[functions.user-block-list]
+verify_jwt = true
+
+[functions.user-unblock]
+verify_jwt = true
+
 [functions.safety-report]
 verify_jwt = true
 
