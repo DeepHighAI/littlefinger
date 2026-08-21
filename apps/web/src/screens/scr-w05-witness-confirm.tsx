@@ -1,9 +1,9 @@
 import {
-  KEEPER_LABEL,
+  KEEPER_LABEL_BY_LOCALE,
   KST_MARK,
-  PARTICIPANT_ROLE_LABEL,
-  PROMISE_CATEGORY_LABEL,
-  PROMISE_STATUS_LABEL,
+  PARTICIPANT_ROLE_LABEL_BY_LOCALE,
+  PROMISE_CATEGORY_LABEL_BY_LOCALE,
+  PROMISE_STATUS_LABEL_BY_LOCALE,
   formatKstDateTime,
   type EvidenceView,
   type WitnessDetailResponse,
@@ -16,7 +16,7 @@ import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import { signFulfillmentEvidence } from '../lib/fulfillment-api.ts';
-import { INTERNAL_MESSAGE } from '../lib/api-failure.ts';
+import { messageForFailure, NO_RESPONSE, type ApiFailure } from '../lib/api-failure.ts';
 import { getSupabase } from '../lib/supabase.ts';
 import { signInWithGoogle, signInWithKakao } from '../lib/web-auth.ts';
 import {
@@ -27,7 +27,7 @@ import {
   WitnessApiError,
 } from '../lib/witness-api.ts';
 import { promisesPath, witnessJoinPath, witnessPath } from '../routes.ts';
-import { useLabels } from '../lib/locale.tsx';
+import { useLabels, useLocale } from '../lib/locale.tsx';
 import { SCR_W05_LABEL } from './scr-w05-labels.ts';
 
 type Phase =
@@ -35,7 +35,13 @@ type Phase =
   | { kind: 'SIGNED_OUT'; returnPath: string }
   | { kind: 'READY'; accessToken: string; detail: WitnessDetailResponse }
   | { kind: 'LEFT' }
-  | { kind: 'ERROR'; message: string };
+  // 실패는 렌더된 문구가 아니라 ApiFailure 로 저장한다 — 언어를 바꾸면 문구도 따라 바뀐다.
+  | { kind: 'ERROR'; failure: ApiFailure };
+
+/** API 계층 밖에서 던져진 예외는 EC-C02 로 뭉갠다 — 원문 메시지는 §2-3 의 어휘가 아니다. */
+function failureOf(raised: unknown): ApiFailure {
+  return raised instanceof WitnessApiError ? raised.failure : NO_RESPONSE;
+}
 
 const MIN_SIGNED_URL_REFRESH_DELAY_MS = 1_000;
 
@@ -127,10 +133,11 @@ function Claim({
   claim: WitnessFulfillmentClaim;
 }): React.JSX.Element {
   const L = useLabels(SCR_W05_LABEL);
+  const { locale } = useLocale();
   return (
     <section className="lf-claim">
       <p className="lf-claim__answer">
-        {PARTICIPANT_ROLE_LABEL[claim.role]} · {L.answer[claim.answer]}
+        {PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][claim.role]} · {L.answer[claim.answer]}
       </p>
       <p className="lf-body">{claim.comment ?? L.noComment}</p>
       {claim.evidences.length > 0 && (
@@ -156,6 +163,7 @@ function WitnessContent({
   detail: WitnessDetailResponse;
 }): React.JSX.Element {
   const L = useLabels(SCR_W05_LABEL);
+  const { locale } = useLocale();
   if (detail.visibility === 'LIMITED') {
     return (
       <article className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
@@ -174,15 +182,15 @@ function WitnessContent({
       <article className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
         <div className="lf-card__header">
           <span className="lf-chip lf-chip--neutral">{L.readOnly}</span>
-          <span className="lf-chip lf-chip--status">{PROMISE_STATUS_LABEL[detail.status]}</span>
+          <span className="lf-chip lf-chip--status">{PROMISE_STATUS_LABEL_BY_LOCALE[locale][detail.status]}</span>
         </div>
         <h2 className="lf-subtitle">{detail.title}</h2>
         <p className="lf-body">{content.body}</p>
         <hr className="lf-divider" />
         <p className="lf-body--secondary">
-          {L.category} {PROMISE_CATEGORY_LABEL[content.category]} ·{' '}
+          {L.category} {PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][content.category]} ·{' '}
           {L.endDate} {content.end_date} ·{' '}
-          {L.keeper} {KEEPER_LABEL[content.keeper]}
+          {L.keeper} {KEEPER_LABEL_BY_LOCALE[locale][content.keeper]}
         </p>
         <p className="lf-caption">{L.parties(detail.creator.nickname, partner.nickname)}</p>
         <p className="lf-caption">{kst(detail.activated_at!)}</p>
@@ -319,6 +327,7 @@ function WitnessLeaveDialog({
 
 export function ScrW05WitnessConfirm(): React.JSX.Element {
   const L = useLabels(SCR_W05_LABEL);
+  const { locale } = useLocale();
   const { token, promise_id: promiseId } = useParams<{
     token?: string;
     promise_id?: string;
@@ -329,7 +338,7 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
   const [signing, setSigning] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [leaveError, setLeaveError] = useState<string | null>(null);
+  const [leaveError, setLeaveError] = useState<ApiFailure | null>(null);
   const signPending = useRef(false);
   const leavePending = useRef(false);
   const joinKey = useRef(crypto.randomUUID());
@@ -366,7 +375,7 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
       if (raised instanceof WitnessApiError && raised.authExpired) {
         setPhase({ kind: 'SIGNED_OUT', returnPath });
       } else {
-        setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+        setPhase({ kind: 'ERROR', failure: failureOf(raised) });
       }
     }
   }, [navigate, promiseId, token]);
@@ -391,7 +400,7 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
         ? { ...current, detail: { ...current.detail, signed_at: signed.signed_at } }
         : current);
     } catch (raised) {
-      setPhase({ kind: 'ERROR', message: raised instanceof Error ? raised.message : INTERNAL_MESSAGE });
+      setPhase({ kind: 'ERROR', failure: failureOf(raised) });
     } finally {
       signPending.current = false;
       setSigning(false);
@@ -412,7 +421,7 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
       setLeaveOpen(false);
       setPhase({ kind: 'LEFT' });
     } catch (raised) {
-      setLeaveError(raised instanceof Error ? raised.message : INTERNAL_MESSAGE);
+      setLeaveError(failureOf(raised));
     } finally {
       leavePending.current = false;
       setLeaving(false);
@@ -451,7 +460,7 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
         )}
         {phase.kind === 'ERROR' && (
           <div className="lf-empty">
-            <p role="alert">{phase.message}</p>
+            <p role="alert">{messageForFailure(phase.failure, locale)}</p>
             <button className="lf-btn lf-btn--tonal" type="button" onClick={() => void load()}>
               {L.retry}
             </button>
@@ -495,7 +504,7 @@ export function ScrW05WitnessConfirm(): React.JSX.Element {
         <WitnessLeaveDialog
           signed={phase.detail.signed_at !== null}
           pending={leaving}
-          error={leaveError}
+          error={leaveError === null ? null : messageForFailure(leaveError, locale)}
           onStay={() => {
             if (leavePending.current) return;
             setLeaveError(null);

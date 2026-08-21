@@ -1,6 +1,6 @@
 import {
-  KEEPER_LABEL,
-  PROMISE_CATEGORY_LABEL,
+  KEEPER_LABEL_BY_LOCALE,
+  PROMISE_CATEGORY_LABEL_BY_LOCALE,
   ddayFrom,
   formatDday,
   validateAmendSuggestion,
@@ -31,7 +31,7 @@ import {
   watchMobileSession,
 } from '../../lib/invite-review-native.ts';
 import { signInWithGoogle, signInWithKakao } from '../../lib/kakao-auth-native.ts';
-import { useLabels } from '../../lib/locale-native';
+import { useLabels, useLocale } from '../../lib/locale-native';
 import { MobileApiError } from '../../lib/mobile-api.ts';
 import { INVITE_REVIEW_LABEL } from '../../screens/invite-review-labels.ts';
 import {
@@ -71,6 +71,7 @@ export default function InviteReviewScreen(): React.JSX.Element {
   const { token } = useLocalSearchParams<{ token: string }>();
   const router = useRouter();
   const L = useLabels(INVITE_REVIEW_LABEL);
+  const { locale } = useLocale();
 
   const [phase, setPhase] = useState<InviteReviewPhase>({ kind: 'RESOLVING' });
   const [invite, setInvite] = useState<InviteResolveResponse | null>(null);
@@ -392,12 +393,12 @@ export default function InviteReviewScreen(): React.JSX.Element {
           <View style={styles.fields}>
             <LfText variant="subtitle">{preview.title}</LfText>
             <LfText variant="body">{preview.body}</LfText>
-            <ReviewField label={L.category} value={PROMISE_CATEGORY_LABEL[preview.category]} />
+            <ReviewField label={L.category} value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][preview.category]} />
             <ReviewField
               label={L.endDate}
               value={`${preview.end_date} · ${formatDday(dday)}`}
             />
-            <ReviewField label={L.keeper} value={KEEPER_LABEL[preview.keeper]} />
+            <ReviewField label={L.keeper} value={KEEPER_LABEL_BY_LOCALE[locale][preview.keeper]} />
             {preview.reward !== null && <ReviewField label={L.reward} value={preview.reward} />}
             {preview.penalty !== null && (
               <ReviewField label={L.penalty} value={preview.penalty} />

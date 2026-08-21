@@ -110,13 +110,6 @@ export async function listWitnesses(promiseId: string): Promise<WitnessInviteLis
   return await listWitnessesWith(promiseId, apiDeps);
 }
 
-export async function loadWitnessInvite(
-  promiseId: string,
-  participantId: string,
-): Promise<WitnessInviteWithToken | null> {
-  return await repository().load(await currentMobileUserId(), promiseId, participantId);
-}
-
 export async function issueWitnessInvite(
   promiseId: string,
   participantId: string | null = null,

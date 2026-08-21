@@ -49,9 +49,6 @@ export const LEGAL_DRAFT_LABELS_BY_LOCALE: Localized<typeof koLabels> = {
   en: enLabels,
 };
 
-// 기존 임포터 호환용 ko 별칭 — 기본 로케일(ko) 출력은 바이트 단위로 이전과 동일해야 한다.
-export const LEGAL_DRAFT_LABELS = koLabels;
-
 const ko: Record<LegalDocumentKind, LegalDraftContent> = {
   TERMS: {
     title: koLabels.termsTitle,
@@ -302,6 +299,3 @@ const en = {
 } satisfies typeof ko;
 
 export const LEGAL_DRAFT_CONTENT_BY_LOCALE: Localized<typeof ko> = { ko, en };
-
-// 기존 임포터 호환용 ko 별칭.
-export const LEGAL_DRAFT_CONTENT: Record<LegalDocumentKind, LegalDraftContent> = ko;

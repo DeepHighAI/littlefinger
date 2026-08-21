@@ -1,4 +1,5 @@
 import {
+  buildParticipantPromisesWebUrl,
   KEEPER_LABEL_BY_LOCALE,
   PARTICIPANT_ROLE_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL_BY_LOCALE,
@@ -64,7 +65,6 @@ import {
   withdrawPromiseAmend,
 } from '../../lib/promise-amend-native.ts';
 import { getPromiseDetail } from '../../lib/promise-detail-native.ts';
-import { buildParticipantPromisesWebUrl } from '../../lib/invite-link.ts';
 import { openEndDatePicker } from '../../lib/promise-editor-native.ts';
 import {
   changedVersionRows,

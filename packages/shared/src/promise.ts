@@ -268,31 +268,6 @@ export interface InviteLink {
 /** 링크가 더 이상 유효하지 않은 사유 (SCR-W06) */
 export type InviteLinkInvalidReason = 'EXPIRED' | 'ALREADY_USED' | 'REVOKED';
 
-/** 알림 유형 (F-06) */
-export type NotificationType =
-  | 'APPROVAL_REQUEST'
-  | 'CONFIRMED'
-  | 'REMINDER'
-  | 'FULFILLMENT_CHECK'
-  | 'AMEND_REQUEST';
-
-export const NOTIFICATION_TYPE_LABEL: Record<NotificationType, string> = {
-  APPROVAL_REQUEST: '승인 요청',
-  CONFIRMED: '확정',
-  REMINDER: '리마인드',
-  FULFILLMENT_CHECK: '이행 확인',
-  AMEND_REQUEST: '변경 요청',
-};
-
-export interface AppNotification {
-  id: string;
-  type: NotificationType;
-  promiseId: string;
-  message: string;
-  createdAt: IsoDateTime;
-  readAt: IsoDateTime | null;
-}
-
 /**
  * 신뢰 프로필 (F-09).
  * 표시명은 "약속 지킴율"이다(O-D3).

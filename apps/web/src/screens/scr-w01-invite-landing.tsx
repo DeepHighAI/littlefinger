@@ -2,7 +2,7 @@ import {
   buildInviteAppIntentUri,
   buildPlayStoreUrl,
   ENDPOINT,
-  LEGAL_DOCUMENT_LABELS,
+  LEGAL_DOCUMENT_LABELS_BY_LOCALE,
   type InviteResolveResponse,
   type InviteTokenRequest,
 } from '@littlefinger/shared';
@@ -13,8 +13,8 @@ import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
 import { LfPinky } from '../components/LfPinky.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
-import { INTERNAL_MESSAGE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
-import { useLabels } from '../lib/locale.tsx';
+import { INTERNAL_MESSAGE_BY_LOCALE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
+import { useLabels, useLocale } from '../lib/locale.tsx';
 import { functionUrl, getSupabase } from '../lib/supabase.ts';
 import { signInWithGoogle, signInWithKakao } from '../lib/web-auth.ts';
 import { invitePath, legalPath, reviewPath, witnessJoinPath } from '../routes.ts';
@@ -146,6 +146,7 @@ async function resolveInvite(token: string, signal: AbortSignal): Promise<Phase>
 
 export function ScrW01InviteLanding(): React.JSX.Element {
   const L = useLabels(SCR_W01_LABEL);
+  const { locale } = useLocale();
   const { token } = useParams<{ token: string }>();
   const [phase, setPhase] = useState<Phase>({ kind: 'LOADING' });
   const [now, setNow] = useState(() => Date.now());
@@ -370,8 +371,8 @@ export function ScrW01InviteLanding(): React.JSX.Element {
         </button>
         {!signInFailed && <p className="lf-caption lf-text-center">{L.ctaCaption}</p>}
         <nav className="lf-login-legal" aria-label={L.legalNav}>
-          <Link to={legalPath('TERMS')}>{LEGAL_DOCUMENT_LABELS.TERMS}</Link>
-          <Link to={legalPath('PRIVACY')}>{LEGAL_DOCUMENT_LABELS.PRIVACY}</Link>
+          <Link to={legalPath('TERMS')}>{LEGAL_DOCUMENT_LABELS_BY_LOCALE[locale].TERMS}</Link>
+          <Link to={legalPath('PRIVACY')}>{LEGAL_DOCUMENT_LABELS_BY_LOCALE[locale].PRIVACY}</Link>
         </nav>
         {/* 라이브 리전은 **내용이 바뀌기 전부터** DOM 에 있어야 읽힌다. `role` 과 문구를 같이
             붙이면 대부분의 스크린리더가 로그인 실패를 놓치고, 버튼은 잠겨 있어 무반응으로만
@@ -380,7 +381,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
           {signInFailed
             ? KAKAOTALK_USER_AGENT.test(window.navigator.userAgent)
               ? L.externalBrowserGuide
-              : INTERNAL_MESSAGE
+              : INTERNAL_MESSAGE_BY_LOCALE[locale]
             : ''}
         </p>
         <TestLoginForm />

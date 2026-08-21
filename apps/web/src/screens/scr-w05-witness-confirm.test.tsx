@@ -5,6 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ROUTE, witnessJoinPath, witnessPath } from '../routes.ts';
+import { WitnessApiError } from '../lib/witness-api.ts';
 import { ScrW05WitnessConfirm } from './scr-w05-witness-confirm.tsx';
 
 const {
@@ -35,7 +36,16 @@ vi.mock('../lib/witness-api.ts', () => ({
   getWitnessDetail,
   leaveWitness,
   signWitness,
-  WitnessApiError: class WitnessApiError extends Error { authExpired = false; },
+  // 실제 WitnessApiError 처럼 failure 를 들고 있어야 화면이 §2-3 문구를 로케일에 맞게 고른다.
+  WitnessApiError: class WitnessApiError extends Error {
+    authExpired = false;
+    constructor(
+      readonly failure: { code: string | null; message: string | null; action: null },
+      readonly status: number | null,
+    ) {
+      super(failure.code ?? 'E_INTERNAL');
+    }
+  },
 }));
 vi.mock('../lib/fulfillment-api.ts', () => ({ signFulfillmentEvidence }));
 vi.mock('../lib/web-auth.ts', () => ({ signInWithGoogle, signInWithKakao }));
@@ -255,7 +265,9 @@ describe('SCR-W05 witness confirmation', () => {
   it('retains the detail and retries a failed leave with the same idempotency key', async () => {
     getWitnessDetail.mockResolvedValue(FULL);
     leaveWitness
-      .mockRejectedValueOnce(new Error('잠시 후 다시 시도해 주세요.'))
+      .mockRejectedValueOnce(
+        new WitnessApiError({ code: 'E_RATE_LIMIT', message: null, action: null }, 429),
+      )
       .mockResolvedValueOnce({ promise_id: PROMISE_ID, status: 'WITHDRAWN' });
     renderAt(witnessPath(PROMISE_ID));
 

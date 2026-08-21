@@ -5,11 +5,9 @@ import {
   formatDday,
   formatKstDate,
   IDEMPOTENCY_KEY_HEADER,
-  KEEPER_LABEL,
   KEEPER_LABEL_BY_LOCALE,
   KST_MARK,
   PARTICIPANT_ROLE_LABEL_BY_LOCALE,
-  PROMISE_CATEGORY_LABEL,
   PROMISE_CATEGORY_LABEL_BY_LOCALE,
   validateAmendSuggestion,
   type InvitePreviewResponse,
@@ -101,11 +99,11 @@ function phaseForFailure(failure: ApiFailure): Phase {
 }
 
 function isCategory(value: unknown): value is InvitePreviewResponse['category'] {
-  return typeof value === 'string' && value in PROMISE_CATEGORY_LABEL;
+  return typeof value === 'string' && value in PROMISE_CATEGORY_LABEL_BY_LOCALE.ko;
 }
 
 function isKeeper(value: unknown): value is InvitePreviewResponse['keeper'] {
-  return typeof value === 'string' && value in KEEPER_LABEL;
+  return typeof value === 'string' && value in KEEPER_LABEL_BY_LOCALE.ko;
 }
 
 /** `YYYY-MM-DD` 인지. 아니면 D-Day 가 NaN 이 되고, `NaN < 0` 은 false 라 EC-B10 이 열린다. */
