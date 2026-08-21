@@ -29,6 +29,21 @@ When context usage crosses **70%**:
    - **The exact next step**, written so a cold session can start from it
 4. **Hand off and continue in a new session**, seeded from that handoff file.
 
+**Retention: `docs/handoff/` keeps exactly one file — the newest.** A handoff is a session baton,
+not an archive; a directory of them is 15 stale "current status" documents, and the next session
+cannot tell which one is true. When you write a new handoff, delete the one it replaces (git history
+keeps it).
+
+That deletion is only safe because of the rule that comes with it: **anything that outlives the
+session goes somewhere permanent first.** Environment traps and hard-won debugging findings →
+[`docs/notes/environment-gotchas.md`](docs/notes/environment-gotchas.md). Decisions and their
+rationale → `docs/adr/`. Status → `docs/DEVELOPMENT_STATUS.md`. Rules → this file. If a fact has no
+home outside the handoff, it is not yet preserved.
+
+The one exception now in the directory is
+`2026-07-26-kakao-supabase-oauth-findings.md`: §6-1 and `supabase/config.toml` cite it as the source
+of truth for the Dashboard auth config, so it is a reference document that merely lives there.
+
 Below 70%, still prefer targeted reads: read the doc *section* you need, not the whole file.
 `02_세부기능명세서.md` is ~97 KB — always locate the section with grep first (its headers are indexed
 in §4-1 of this file), then read that range only.

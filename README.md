@@ -67,6 +67,10 @@ npm run verify:android-apk -- apps/mobile/android/app/build/outputs/apk/debug/ap
 57개 EC 추적은 [EC traceability](docs/qa/EC_TRACEABILITY.md), 두 계정 수동 시나리오는
 [manual E2E runbook](docs/qa/MANUAL_E2E.md)을 따른다.
 
+환경이 이상하게 굴 때는 먼저 [환경 함정 모음](docs/notes/environment-gotchas.md)을 본다 —
+Metro 포트, PGlite, 클라이언트 IP, Supabase CLI 403, Vite 환경변수처럼 원인이 증상과
+전혀 달라 보이는 것들을 모아 뒀다.
+
 동결 디자인 미리보기:
 
 ```bash
