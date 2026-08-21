@@ -39,6 +39,9 @@ Shipped in the last pass (2026-08-20/21, commits `f1cd06d`…`cb23baa`, all push
 - Drift corrected in `CLAUDE.md`/`AGENTS.md`, ADR 0006, `docs/DEVELOPMENT_STATUS.md`,
   `docs/qa/EC_TRACEABILITY.md`, `01_상위기획서.md`, `01_와이어프레임_디자인요청서.md`, and
   `supabase/config.toml` (two functions were missing their `verify_jwt` declaration).
+- `CLAUDE.md` §1-1 now carries the retention rule that makes this stick: one handoff at a time, and
+  durable knowledge moves to `docs/notes/` before the old file is deleted.
+- Web redeployed after the i18n fixes; the live bundle carries them.
 
 ## Open items for the PO
 
