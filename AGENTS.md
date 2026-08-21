@@ -163,7 +163,8 @@ truth over them.
 | 6 | `docs/adr/` | — | Implementation decision records |
 
 `docs/기획/03_기술스택_비교분석.md` is the **rationale** behind the N-3 decision; implementation
-guidance lives in `04`. **`docs/_archive/` is stale — never read it.**
+guidance lives in `04`. Prior spec revisions are not kept as files — read them from git history if
+a diff is ever needed.
 
 ### 4-1. Section index for `02_세부기능명세서.md` (grep target, do not read whole)
 

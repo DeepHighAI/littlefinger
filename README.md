@@ -107,8 +107,10 @@ littlefinger/                      # npm workspaces
 │   ├── 기획/                      # 01 상위기획서 · 02 세부기능명세서 · 03 기술스택 · 04 코딩가이드
 │   ├── 디자인/                    # 01 와이어프레임 디자인요청서
 │   ├── adr/                       # 구현 결정 기록
-│   ├── handoff/                   # 세션 인수인계
-│   └── _archive/                  # 구버전 문서 (읽지 않는다)
+│   ├── notes/                     # 환경 함정 등 오래 남는 메모
+│   ├── setup/                     # 운영자 런북 (OAuth · 딥링크 QA · assetlinks)
+│   ├── qa/                        # 수동 E2E 체크리스트 · EC 추적표
+│   └── handoff/                   # 세션 인수인계 (최신 1개만 유지)
 ├── tools/sync-agent-docs.js       # CLAUDE.md → AGENTS.md 동기화
 ├── CLAUDE.md                      # AI 에이전트 지침 (원본)
 └── AGENTS.md                      # 위와 동일 내용 — Codex Agent 용, 자동 생성
@@ -169,7 +171,7 @@ COMPLETED·BROKEN만 약속 지킴율에 반영되고, DISPUTED·UNRESOLVED·DEC
 | [docs/기획/04_AI-Agent_코딩가이드.md](docs/기획/04_AI-Agent_코딩가이드.md) | v1.0 | 확정 스택 · 저장소 구조 · **이식 규칙** · 스키마 · 보안 |
 | [docs/디자인/01_와이어프레임_디자인요청서.md](docs/디자인/01_와이어프레임_디자인요청서.md) | v1.1 | 화면 인벤토리(SCR-ID) · 용어 사전 · 디자인 제약 |
 
-`docs/_archive/`는 구버전 보관용이다. **읽지 않는다.**
+구버전 스펙은 파일로 보관하지 않는다. 개정 이력이 필요하면 git 히스토리에서 읽는다.
 
 ## 기여할 때
 

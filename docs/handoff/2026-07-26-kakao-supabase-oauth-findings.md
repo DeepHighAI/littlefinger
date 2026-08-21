@@ -1,5 +1,17 @@
 # Handoff — Kakao × Supabase Auth setup, verified
 
+> **정정 (2026-08-22).** 이 문서는 `CLAUDE.md` §6-1 과 `supabase/config.toml` 이 Dashboard auth
+> 설정의 근거로 가리키기 때문에 보존한다. 2026-07-26 이후 바뀐 네 가지는 아래가 이깁니다:
+>
+> 1. **호스팅은 Firebase Hosting** — `https://littlefinger-app-philwoo.web.app` (ADR 0005).
+>    본문의 Cloudflare Pages·`*.pages.dev` 서술은 폐기됐다. 리다이렉트 허용목록에도 이 오리진을
+>    넣는다.
+> 2. **C-3(도메인)은 종결** — 커스텀 도메인을 사지 않고 위 무료 오리진을 쓴다.
+> 3. **SCR-W03 리마인드 이메일 필드도 MVP 제외** (PO 2026-07-29). 본문 "still specced. Do not
+>    delete it" 는 그 결정 이전 서술이다.
+> 4. **프로덕션 로그인은 카카오 + Google SSO** (PO 2026-08-20). Google 쪽 설정은
+>    [`docs/setup/google-oauth-setup.md`](../setup/google-oauth-setup.md).
+
 Date: 2026-07-26. Researched with official docs, then **adversarially verified by three
 independent reviewers (Kakao console / Supabase Auth / Expo deep-linking lenses). All three
 refuted the first draft.** What follows is the post-correction answer; every claim below survived
@@ -55,8 +67,8 @@ Max 10 URIs per key. HTTP and HTTPS are separate entries. No arbitrary path para
 ```
 littlefinger://auth-callback
 littlefinger://**
-https://<cloudflare-pages-subdomain>/**
-https://<cloudflare-pages-subdomain>
+https://littlefinger-app-philwoo.web.app/**
+https://littlefinger-app-philwoo.web.app
 ```
 
 Two corrections the reviewers insisted on:
