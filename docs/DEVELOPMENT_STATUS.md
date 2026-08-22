@@ -1,6 +1,34 @@
 # Development Status
 
-Snapshot date: **2026-08-22 KST**.
+Snapshot date: **2026-08-23 KST**.
+
+## Play launch readiness pass (2026-08-23)
+
+Executed against the approved launch-review plan (`docs` release gates + Play policy):
+
+- **`/account-deletion` public web page** (Play data-safety requirement): in-app steps, the
+  `task@deephigh.ai` off-app channel, and the de-identified-retention facts, ko/en, linked from
+  privacy policy §8. Privacy policy re-versioned to **`2026-08-23.1`** (migration
+  `20260823000001`, DB applied); TERMS stays `2026-08-22.3` — document versions are independent
+  and only a changed text moves.
+- **Release build plumbing**: `eas.json` gains `cli.appVersionSource: remote` +
+  `production.autoIncrement`; AdMob production env vars documented in `.env.example` (production
+  builds deliberately fail without real IDs).
+- **Push notification branding**: `expo-notifications` plugin now sets the monochrome icon +
+  `#00BF40` color (was: default grey square).
+- **Test-login hygiene**: the mobile test-auth module is now attached via a `__DEV__`-guarded
+  `require`, so Metro DCE drops it from production bundles (the static import survived before).
+- **SCR-A00 single-page onboarding confirmed** (Q-5 option (b), PO-approved plan): page dots and
+  the "1/3 단계" indicator removed; labels and tests updated.
+- **`docs/setup/play-data-safety.md`**: prefilled Data safety form answers with code citations
+  (declare ads + advertising ID even while `ads_enabled=false`; account-deletion and privacy
+  URLs).
+
+Remaining launch work is tracked in the README gate list and section below — the big ones are
+real-OAuth verification (Kakao console state + Google runbook D-1), the release-build E2E pass
+(F4/F7 retest, quiet hours, TalkBack, 360×800), operator console tasks (AdMob IDs, GitHub
+Actions secrets, redirect allowlist, email-login removal at the end), and the Play Console
+sequence (org account → AAB → Play signing fingerprint append → store listing).
 
 ## Overall result
 

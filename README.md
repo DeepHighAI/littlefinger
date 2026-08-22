@@ -125,9 +125,9 @@ littlefinger/                      # npm workspaces
 
 ## 남은 출시 게이트
 
-- 두 카카오 계정으로 Android development build ↔ 수락 웹 수동 E2E
-- 실제 Firebase Hosting 도메인의 `assetlinks.json` 검증과 App Links 실기기 확인
-- 실제 AdMob 설정, Play 비공개 테스트 12명×14일, 상표·스토어명 확인
+- 두 카카오 계정으로 Android development build ↔ 수락 웹 수동 E2E (실 OAuth 검증 포함)
+- Play App Signing 지문을 `assetlinks.json`에 추가하고(런북) 스토어 설치본에서 App Links 재확인
+- 실제 AdMob 설정(EAS env), Play 비공개 테스트(계정 유형별 요건 확인), 상표·스토어명 확인
 - 물리 기기 전체 TalkBack·운영 푸시 도달 확인
 
 J-07 자동 집계·운영자 경보는 PO 결정으로 현재 범위에서 제외했다. ACTIVE 전환 시
