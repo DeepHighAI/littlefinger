@@ -16,8 +16,6 @@ const BODY_GUTTER = 28;
 const BADGE_SIZE = 128;
 const BADGE_RADIUS = 44;
 const STEP_WIDTH = 76;
-const DOT_SIZE = 8;
-const ACTIVE_DOT_WIDTH = 22;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -33,9 +31,6 @@ const styles = StyleSheet.create({
   stepIcon: { width: size.iconButton, height: size.iconButton, borderRadius: radius.md, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   stepLabel: { color: colors.textSecondary, fontSize: type.micro, fontFamily: brandFontFamily(weight.bold) },
   arrow: { marginBottom: space[7] },
-  dots: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  dot: { width: DOT_SIZE, height: DOT_SIZE, borderRadius: radius.pill, backgroundColor: colors.outlineStrong },
-  activeDot: { width: ACTIVE_DOT_WIDTH, backgroundColor: colors.primary },
   actions: { paddingHorizontal: space[8], paddingBottom: space[8] },
 });
 
@@ -88,11 +83,6 @@ export default function OnboardingScreen(): React.JSX.Element {
               </View>
             </View>
           ))}
-        </View>
-        <View accessible accessibilityRole="image" accessibilityLabel={LABEL.pageIndicator} style={styles.dots}>
-          <View style={[styles.dot, styles.activeDot]} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
         </View>
       </View>
       <View style={styles.actions}>

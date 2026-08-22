@@ -13,7 +13,6 @@ import {
   signInWithGoogle,
   signInWithKakao,
 } from '../lib/kakao-auth-native.ts';
-import { signInWithTestAccount } from '../lib/test-auth-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { useLabels } from '../lib/locale-native';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
@@ -32,6 +31,12 @@ import { colors, line, size, space, type, weight } from '../theme/tokens';
  * 아래 숫자들은 원본 `screens/app-entry.css` 의 화면 전용 값이다. tokens.css 에 없는 값이고
  * `design-reference/` 는 읽기 전용이라 토큰으로 승격할 수 없어, 여기 이름을 붙여 둔다.
  */
+
+// 테스트 로그인 모듈은 __DEV__ 가드 안의 require 로만 붙인다 — 정적 import 는 JSX 게이트와
+// 달리 프로덕션 번들에 남지만, 이 형태는 Metro 상수 접기 + DCE 가 모듈째 걷어낸다.
+const testAuth = __DEV__
+  ? (require('../lib/test-auth-native.ts') as typeof import('../lib/test-auth-native.ts'))
+  : null;
 
 const LOGIN_GUTTER = 28;
 const BADGE_SIZE = 136;
@@ -166,10 +171,11 @@ export default function LoginScreen(): React.JSX.Element {
   // 테스트 빌드 전용 — 카카오 계정 없이 수동 E2E 를 돌리기 위한 경로.
   // 릴리스 번들에서는 `__DEV__` 게이트가 UI 째로 제거한다.
   async function handleTestLogin(): Promise<void> {
+    if (testAuth === null) return;
     setSigningIn(true);
     setAuthMessage(null);
     try {
-      await signInWithTestAccount(testEmail.trim(), testPassword);
+      await testAuth.signInWithTestAccount(testEmail.trim(), testPassword);
     } catch {
       setAuthMessage(LABEL.testLoginError);
     } finally {

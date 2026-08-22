@@ -1,4 +1,7 @@
 {
+  "cli": {
+    "appVersionSource": "remote"
+  },
   "build": {
     "development": {
       "developmentClient": true,
@@ -6,6 +9,7 @@
       "environment": "development"
     },
     "production": {
+      "autoIncrement": true,
       "environment": "production"
     }
   }

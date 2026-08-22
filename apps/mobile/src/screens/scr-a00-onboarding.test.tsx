@@ -23,7 +23,8 @@ describe('SCR-A00 온보딩', () => {
     expect(view.getByText('작성')).toBeTruthy();
     expect(view.getByText('카톡 초대')).toBeTruthy();
     expect(view.getByText('걸고 지키기')).toBeTruthy();
-    expect(view.getByRole('image', { name: '1/3 단계' })).toBeTruthy();
+    // 단일 페이지 확정(Q-5 (b)) — 페이지 인디케이터는 더 이상 없다.
+    expect(view.queryByRole('image', { name: '1/3 단계' })).toBeNull();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
   });
 
