@@ -32,7 +32,7 @@ describe('public legal documents', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: title })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 2, name: section })).toBeTruthy();
-    expect(screen.getByText('버전 2026-08-22.2 · 시행일 2026-08-22')).toBeTruthy();
+    expect(screen.getByText('버전 2026-08-22.3 · 시행일 2026-08-22')).toBeTruthy();
     expect(screen.getByText(LEGAL_DISCLAIMER)).toBeTruthy();
     expect(screen.queryByText('비배포용 초안')).toBeNull();
     expect(screen.queryByText(/\[배포 전 입력 필요/u)).toBeNull();
@@ -79,6 +79,8 @@ describe('public legal documents', () => {
       expect(text).toContain(locale === 'ko' ? '심충섭' : 'Chungseob Shim');
       expect(text).toContain(locale === 'ko' ? '02-3443-1028' : '+82-2-3443-1028');
     }
+    // 보호책임자 문의 이메일은 방침에만 있다 (PO 2026-08-22).
+    expect(fullText(locale, 'PRIVACY')).toContain('task@deephigh.ai');
   });
 
   // 본문 수치는 버전 고정 문서라 리터럴이다 — config 가 바뀌면 여기서 깨져

@@ -320,6 +320,7 @@ const ko: Record<LegalDocumentKind, LegalContent> = {
         paragraphs: [
           '개인정보 보호책임자: 심충섭(대표이사)',
           '연락처: 02-3443-1028',
+          '이메일: task@deephigh.ai',
           '사용자는 서비스를 이용하면서 생긴 개인정보 관련 문의, 불만, 피해 구제 요청을 개인정보 보호책임자에게 할 수 있으며, 회사는 지체 없이 답변하고 처리합니다.',
         ],
       },
@@ -349,7 +350,7 @@ const ko: Record<LegalDocumentKind, LegalContent> = {
   },
 };
 
-// 참고용 번역본 — 한국어판이 우선한다. 법무 검토 결과가 나오면 그 결과로만 바꾼다.
+// 참고용 번역본 — 한국어판이 우선한다. 외부 법무 검토 완료(PO 확인, 2026-08-22).
 const en = {
   TERMS: {
     title: LEGAL_DOCUMENT_LABELS_BY_LOCALE.en.TERMS,
@@ -628,6 +629,7 @@ const en = {
         paragraphs: [
           'Privacy officer: Chungseob Shim (CEO)',
           'Contact: +82-2-3443-1028',
+          'Email: task@deephigh.ai',
           'Users may direct any privacy-related inquiries, complaints, or requests for remedy arising from use of the Service to the privacy officer, and the Company responds and handles them without delay.',
         ],
       },

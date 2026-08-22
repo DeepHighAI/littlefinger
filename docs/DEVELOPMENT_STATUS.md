@@ -12,8 +12,8 @@ not an unimplemented local product flow.
 J-07 automatic metrics review/operator alerting remains explicitly out of scope. Real AdMob
 release configuration, Play closed testing, trademark/store-name confirmation, and full
 physical-device accessibility/push verification remain release gates. The real legal copy gate
-closed on 2026-08-22 (see "Legal documents finalized" below); external 법무 review of the
-published texts remains a PO option.
+closed on 2026-08-22 (see "Legal documents finalized" below); the PO confirmed external 법무
+review of the published texts completed the same day.
 
 ## Implemented in this completion pass
 
@@ -149,10 +149,11 @@ of Service (20 articles + addendum) and the PIPA-compliant Privacy Policy (overv
 both carrying the real operator identity (주식회사 딥하이 / 심충섭 / 798-86-01094 /
 02-3443-1028) and full English translations that state the Korean version prevails.
 
-- Version `2026-08-22.2`, status FINAL, effective 2026-08-22 (`packages/shared/src/legal.ts`);
-  migrations `20260822000001` + `20260822000002` bump `lf_current_terms_version()` /
+- Version `2026-08-22.3`, status FINAL, effective 2026-08-22 (`packages/shared/src/legal.ts`);
+  migrations `20260822000001`–`20260822000003` bump `lf_current_terms_version()` /
   `lf_current_privacy_version()` so new signups agree to this version. Existing agreements are
-  not retro-inferred (unchanged `lf_user_provision` rule).
+  not retro-inferred (unchanged `lf_user_provision` rule). `.3` adds the privacy officer
+  contact email (task@deephigh.ai, PO 2026-08-22).
 - `.2` incorporates the Codex verification pass (2 findings, both fixed): the privacy policy now
   discloses the web's sessionStorage draft holding (SCR-W04 response drafts, SCR-W01 login
   attempt flag) instead of claiming "login + language only", and the nickname is classified as
@@ -165,8 +166,9 @@ both carrying the real operator identity (주식회사 딥하이 / 심충섭 / 7
   overseas transfer; AdMob ad identifiers are disclosed for the app-only ad slot; email/phone
   non-collection wording matches §6-1.
 - The draft badge/notice UI and its CSS were removed; the pages now render version + effective
-  date chrome. External 법무 review of the final texts stays available to the PO but no longer
-  blocks release.
+  date chrome. External 법무 review of the final texts is **complete** (PO confirmed
+  2026-08-22). The English `LEGAL_DISCLAIMER` DRAFT flag is tracked separately and stays until
+  the PO confirms the review covered that sentence too.
 
 ## Manual and visual verification
 
