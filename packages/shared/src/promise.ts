@@ -297,7 +297,7 @@ export const LEGAL_DISCLAIMER =
 
 /**
  * 로케일별 고지 문구. **ko 는 위 확정 문구 그대로이며 여전히 변경 금지다.**
- * en 은 법무 검토 전 초안(DRAFT, PO 2026-08-20) — 검토가 끝나면 그 결과 문구로만 바꾼다.
+ * en 도 외부 법무 검토를 통과해 확정됐다(PO 확인 2026-08-22) — 이제 양쪽 모두 변경 금지다.
  * 렌더는 여전히 LfDisclaimer 만 하고, 문구를 props 로 받지 않는다.
  */
 export const LEGAL_DISCLAIMER_BY_LOCALE: Localized<string> = {

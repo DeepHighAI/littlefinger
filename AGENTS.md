@@ -473,7 +473,8 @@ verbatim in code, DB, and design; screen labels **always** go through `PROMISE_S
    `ads_enabled=false`, the component is **not rendered at all** — no reserved empty space.
 2. **`LEGAL_DISCLAIMER` is verbatim and immutable.** Since 2026-08-20 it is a per-locale pair
    (`LEGAL_DISCLAIMER_BY_LOCALE`): the **ko text stays verbatim-immutable** (same object as the
-   legacy const), the **en text is a DRAFT pending 법무 검토**. `LfDisclaimer` renders the pair by
+   legacy const), and the **en text passed external 법무 검토 (PO confirmed 2026-08-22), so both
+   locales are now verbatim-immutable**. `LfDisclaimer` renders the pair by
    current locale and still does not accept text as a prop. It appears in **5 places**: SCR-W02 ·
    SCR-A05/ACTIVE confirmation area · SCR-W03 · SCR-A08 terms area · the in-app invite review
    screen (`/i/[token]`, EC-I01).

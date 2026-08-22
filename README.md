@@ -127,7 +127,6 @@ littlefinger/                      # npm workspaces
 
 - 두 카카오 계정으로 Android development build ↔ 수락 웹 수동 E2E
 - 실제 Firebase Hosting 도메인의 `assetlinks.json` 검증과 App Links 실기기 확인
-- 최종 약관·개인정보처리방침 법무 검토 및 운영자 정보 확정
 - 실제 AdMob 설정, Play 비공개 테스트 12명×14일, 상표·스토어명 확인
 - 물리 기기 전체 TalkBack·운영 푸시 도달 확인
 

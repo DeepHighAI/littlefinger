@@ -137,10 +137,10 @@ Approved plan executed in full; every phase committed and pushed (`f1cd06d`…`a
   surfaces (Alert, share sheet, push banner) stay system-font by design.
 - Web redeployed from a fresh build; live bundle carries the intent CTA and the locale switch,
   `/.well-known/assetlinks.json` still 200.
-- Open: the English disclaimer is **DRAFT pending PO/법무 review** (the legal documents
-  themselves were finalized 2026-08-22 — see below);
-  `docs/setup/deeplink-dev-qa.md` (PO-run manual QA) and `docs/setup/assetlinks-play-signing.md`
-  (M4 Play signing cert append) are not yet executed.
+- Open: `docs/setup/deeplink-dev-qa.md` (PO-run manual QA) and
+  `docs/setup/assetlinks-play-signing.md` (M4 Play signing cert append) are not yet executed.
+  (The English disclaimer's DRAFT flag was lifted 2026-08-22 — the completed 법무 review
+  covered that sentence; see "Legal documents finalized" below.)
 
 ## Legal documents finalized (2026-08-22)
 
@@ -167,8 +167,8 @@ both carrying the real operator identity (주식회사 딥하이 / 심충섭 / 7
   non-collection wording matches §6-1.
 - The draft badge/notice UI and its CSS were removed; the pages now render version + effective
   date chrome. External 법무 review of the final texts is **complete** (PO confirmed
-  2026-08-22). The English `LEGAL_DISCLAIMER` DRAFT flag is tracked separately and stays until
-  the PO confirms the review covered that sentence too.
+  2026-08-22), including the English `LEGAL_DISCLAIMER` sentence — its DRAFT flag is lifted
+  and both locales are now verbatim-immutable.
 
 ## Manual and visual verification
 

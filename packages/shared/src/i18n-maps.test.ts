@@ -51,7 +51,7 @@ describe('shared *_BY_LOCALE maps', () => {
     expect(ERROR_MESSAGE_BY_LOCALE.en.E_WITNESS_LIMIT).toContain('2');
   });
 
-  test('고지 문구 ko 는 확정 문구와 동일 참조다 — en 은 법무 검토 전 초안', () => {
+  test('고지 문구 ko·en 모두 확정(법무 검토 완료) — ko 는 확정 문구와 동일 참조다', () => {
     expect(LEGAL_DISCLAIMER_BY_LOCALE.ko).toBe(LEGAL_DISCLAIMER);
     expect(LEGAL_DISCLAIMER_BY_LOCALE.en.length).toBeGreaterThan(0);
   });
