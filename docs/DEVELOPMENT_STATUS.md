@@ -23,6 +23,12 @@ Executed against the approved launch-review plan (`docs` release gates + Play po
 - **`docs/setup/play-data-safety.md`**: prefilled Data safety form answers with code citations
   (declare ads + advertising ID even while `ads_enabled=false`; account-deletion and privacy
   URLs).
+- **Google SSO server side verified + auth URLs fixed (2026-08-23)**: the Supabase Google
+  provider turned out to be already configured (authorize 302s to accounts.google.com with the
+  real client id) and the GCP client has the Supabase callback registered (no
+  redirect_uri_mismatch) — the "operator runs google-oauth-setup" note was stale. What WAS broken
+  is fixed above (redirect allowlist / site_url). Remaining Google item: consent screen
+  publishing status (PO console check), then a real-device sign-in.
 - **First EAS cloud builds (2026-08-23)**: the EAS `production` environment now carries the three
   `EXPO_PUBLIC_*` vars (Supabase URL/key added; web URL existed). The **preview APK** (release
   mode, production backend, Google test ad IDs, EAS-signed so App Links verify against the
@@ -149,8 +155,11 @@ Cloudflare Pages is retired. ADR 0005 selects the existing Firebase Spark projec
   `littlefinger-app-philwoo.web.app` and path prefix `/i/`.
 - EAS development and production `EXPO_PUBLIC_WEB_BASE_URL` values are updated to the new origin.
 
-The Supabase Auth redirect allowlist is Dashboard-owned and still needs an interactive confirmation
-that the Firebase origin and callback path are present. **App Links final auto-verification passed
+The Supabase Auth redirect allowlist was confirmed **stale and fixed on 2026-08-23** via a
+field-scoped Management API PATCH (`site_url` was `localhost:3000`; the allowlist carried retired
+`littlefinger.pages.dev` and lacked the Firebase origin — the deployed web's OAuth return was
+broken until then). Now: `site_url = https://littlefinger-app-philwoo.web.app`, allowlist =
+Firebase origin `/**` + localhost dev entries + `littlefinger://auth-callback`. **App Links final auto-verification passed
 on 2026-08-20**: EAS development build `e31110b0` (PO-approved source upload) installed on the
 emulator reports `littlefinger-app-philwoo.web.app: verified` in `pm get-app-links`, and an
 `am start` HTTPS `/i/*` intent resolves into `com.littlefinger.app` instead of the browser.
