@@ -32,7 +32,7 @@ describe('public legal documents', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: title })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 2, name: section })).toBeTruthy();
-    expect(screen.getByText('버전 2026-08-22.1 · 시행일 2026-08-22')).toBeTruthy();
+    expect(screen.getByText('버전 2026-08-22.2 · 시행일 2026-08-22')).toBeTruthy();
     expect(screen.getByText(LEGAL_DISCLAIMER)).toBeTruthy();
     expect(screen.queryByText('비배포용 초안')).toBeNull();
     expect(screen.queryByText(/\[배포 전 입력 필요/u)).toBeNull();

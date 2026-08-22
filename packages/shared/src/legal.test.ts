@@ -13,14 +13,14 @@ describe('legal metadata', () => {
       TERMS: {
         kind: 'TERMS',
         status: 'FINAL',
-        version: '2026-08-22.1',
+        version: '2026-08-22.2',
         path: '/legal/terms',
         effective_date: '2026-08-22',
       },
       PRIVACY: {
         kind: 'PRIVACY',
         status: 'FINAL',
-        version: '2026-08-22.1',
+        version: '2026-08-22.2',
         path: '/legal/privacy',
         effective_date: '2026-08-22',
       },

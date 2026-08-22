@@ -233,8 +233,8 @@ const ko: Record<LegalDocumentKind, LegalContent> = {
         title: '1. 처리하는 개인정보의 항목과 수집 방법',
         paragraphs: [
           '① 회사는 다음 개인정보를 처리합니다.',
-          '가입·로그인(필수): 카카오 회원번호 또는 Google 계정 식별자, 닉네임',
-          '가입·로그인(선택): 프로필 이미지, 이메일(선택 동의한 경우 인증 시스템에만 저장되며 서비스는 이를 이용하지 않습니다)',
+          '가입·로그인(필수): 카카오 회원번호 또는 Google 계정 식별자',
+          '가입·로그인(선택): 닉네임(제공하지 않으면 서비스가 임시 이름을 부여합니다), 프로필 이미지, 이메일(선택 동의한 경우 인증 시스템에만 저장되며 서비스는 이를 이용하지 않습니다)',
           '서비스 이용 과정에서 생성: 약속 기록(제목·내용·보상·벌칙·기한 등), 승인·이행 확인 기록, 알림 기록, 기기 푸시 토큰, 접속 기록(IP 주소와 브라우저 정보는 복원할 수 없는 일방향 해시로만 저장)',
           '증빙 사진(선택): 첨부 시 위치 정보(EXIF)를 제거한 뒤 저장',
           '② 개인정보는 카카오·Google 로그인 시 인증 제공자로부터 제공받거나, 사용자가 서비스를 이용하는 과정에서 생성·수집됩니다.',
@@ -291,7 +291,7 @@ const ko: Record<LegalDocumentKind, LegalContent> = {
       {
         title: '7. 광고와 자동 수집 장치',
         paragraphs: [
-          '① 초대 링크로 접속하는 웹은 로그인 유지와 언어 설정을 위한 필수 저장소만 사용하며, 광고 쿠키나 행태 분석 쿠키를 사용하지 않습니다.',
+          '① 초대 링크로 접속하는 웹은 서비스 제공에 필요한 필수 저장소만 사용합니다. 로그인 유지, 언어 설정, 작성 중인 응답 내용의 임시 보관(브라우저를 닫으면 삭제됩니다)에 쓰이며, 광고 쿠키나 행태 분석 쿠키는 사용하지 않습니다.',
           '② 앱 홈 화면에 광고가 표시되는 경우 Google AdMob이 광고 식별자 등을 수집할 수 있습니다. 기기 설정(광고 ID 재설정, 맞춤 광고 끄기)에서 이를 관리할 수 있습니다.',
         ],
       },
@@ -541,8 +541,8 @@ const en = {
         title: '1. Personal information we process and how it is collected',
         paragraphs: [
           '(1) The Company processes the following personal information:',
-          'Sign-up and sign-in (required): Kakao member number or Google account identifier, nickname',
-          'Sign-up and sign-in (optional): profile image; email (stored only in the authentication system when optionally consented to; the Service does not use it)',
+          'Sign-up and sign-in (required): Kakao member number or Google account identifier',
+          'Sign-up and sign-in (optional): nickname (if not provided, the Service assigns a temporary name); profile image; email (stored only in the authentication system when optionally consented to; the Service does not use it)',
           'Generated while using the Service: promise records (title, content, reward, penalty, due date, and similar), approval and fulfillment records, notification records, device push tokens, and access records (IP addresses and browser information are stored only as irreversible one-way hashes)',
           'Evidence photos (optional): stored after location metadata (EXIF) is removed',
           '(2) Personal information is received from the authentication provider when signing in with Kakao or Google, or is generated and collected while the user uses the Service.',
@@ -599,7 +599,7 @@ const en = {
       {
         title: '7. Advertising and automatic collection tools',
         paragraphs: [
-          '(1) The web pages opened through an invite link use only essential storage for keeping you signed in and remembering your language, and use no advertising or behavioral analytics cookies.',
+          '(1) The web pages opened through an invite link use only essential storage needed to provide the Service: keeping you signed in, remembering your language, and temporarily holding a response you are writing (deleted when the browser is closed). No advertising or behavioral analytics cookies are used.',
           '(2) Where advertisements are shown on the app home screen, Google AdMob may collect advertising identifiers. You can manage this in your device settings (resetting the advertising ID, turning off personalized ads).',
         ],
       },

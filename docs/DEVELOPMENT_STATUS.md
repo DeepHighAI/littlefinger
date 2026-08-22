@@ -149,10 +149,14 @@ of Service (20 articles + addendum) and the PIPA-compliant Privacy Policy (overv
 both carrying the real operator identity (주식회사 딥하이 / 심충섭 / 798-86-01094 /
 02-3443-1028) and full English translations that state the Korean version prevails.
 
-- Version `2026-08-22.1`, status FINAL, effective 2026-08-22 (`packages/shared/src/legal.ts`);
-  migration `20260822000001_legal_final_versions.sql` bumps `lf_current_terms_version()` /
+- Version `2026-08-22.2`, status FINAL, effective 2026-08-22 (`packages/shared/src/legal.ts`);
+  migrations `20260822000001` + `20260822000002` bump `lf_current_terms_version()` /
   `lf_current_privacy_version()` so new signups agree to this version. Existing agreements are
   not retro-inferred (unchanged `lf_user_provision` rule).
+- `.2` incorporates the Codex verification pass (2 findings, both fixed): the privacy policy now
+  discloses the web's sessionStorage draft holding (SCR-W04 response drafts, SCR-W01 login
+  attempt flag) instead of claiming "login + language only", and the nickname is classified as
+  optional (server assigns a temporary name on refusal) matching `UserProvisionRequest`.
 - Policy numbers inside the documents are deliberate literals (a versioned document must not
   drift with config); `legal-document.test.tsx` compares them against `config.ts` so a config
   change breaks the build until a conscious re-versioning.

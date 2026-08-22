@@ -13,7 +13,8 @@ export interface LegalDocumentMetadata {
 }
 
 /**
- * 확정판(PO 2026-08-22) — 실제 사업자 정보(주식회사 딥하이)가 들어간 첫 배포판.
+ * 확정판(PO 2026-08-22) — 실제 사업자 정보(주식회사 딥하이)가 들어간 배포판.
+ * .2 는 Codex 검증이 잡은 사실관계 수정(웹 세션 저장소 고지, 닉네임 선택 항목 분류).
  * 버전 문자열은 DB 의 `lf_current_terms_version()`·`lf_current_privacy_version()` 과 항상
  * 함께 올린다 — 드리프트는 supabase/tests/user-provisioning.test.ts 가 잡는다.
  */
@@ -21,14 +22,14 @@ export const LEGAL_DOCUMENTS = {
   TERMS: {
     kind: 'TERMS',
     status: 'FINAL',
-    version: '2026-08-22.1',
+    version: '2026-08-22.2',
     path: '/legal/terms',
     effective_date: '2026-08-22',
   },
   PRIVACY: {
     kind: 'PRIVACY',
     status: 'FINAL',
-    version: '2026-08-22.1',
+    version: '2026-08-22.2',
     path: '/legal/privacy',
     effective_date: '2026-08-22',
   },
