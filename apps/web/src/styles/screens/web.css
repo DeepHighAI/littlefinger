@@ -380,7 +380,7 @@
 }
 
 .lf-legal__document h1 {
-  margin: var(--lf-space-7) 0 var(--lf-space-5);
+  margin: 0 0 var(--lf-space-5);
   font-size: var(--lf-type-title-size);
   line-height: var(--lf-line-title);
 }
@@ -397,16 +397,6 @@
   line-height: var(--lf-line-body);
 }
 
-.lf-legal__draft {
-  display: inline-flex;
-  padding: var(--lf-space-2) var(--lf-space-4);
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-error-container);
-  color: var(--lf-color-error);
-  font-weight: var(--lf-weight-bold);
-}
-
-.lf-legal__notice,
 .lf-legal__version {
   color: var(--lf-color-text-secondary);
 }

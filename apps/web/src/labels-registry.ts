@@ -1,9 +1,6 @@
 import type { Localized } from '@littlefinger/shared';
 
-import {
-  LEGAL_DRAFT_CONTENT_BY_LOCALE,
-  LEGAL_DRAFT_LABELS_BY_LOCALE,
-} from './legal/legal-content.ts';
+import { LEGAL_CONTENT_BY_LOCALE } from './legal/legal-content.ts';
 import { RESPONSE_COMPLETE_LABEL } from './screens/response-complete-labels.ts';
 import { SCR_W01_LABEL } from './screens/scr-w01-labels.ts';
 import { SCR_W02_LABEL } from './screens/scr-w02-labels.ts';
@@ -26,6 +23,5 @@ export const WEB_LABEL_CATALOGS = {
   SCR_W05_LABEL,
   SCR_W06_LABEL,
   RESPONSE_COMPLETE_LABEL,
-  LEGAL_DRAFT_LABELS_BY_LOCALE,
-  LEGAL_DRAFT_CONTENT_BY_LOCALE,
+  LEGAL_CONTENT_BY_LOCALE,
 } satisfies Record<string, Localized<unknown>>;

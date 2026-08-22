@@ -231,10 +231,11 @@ describe('약관 동의 기록은 서버가 한 번만 만든다', () => {
       );
       expect(remaining.rows[0]).toEqual({ auth_count: 0, public_count: 0, agreement_count: 0 });
     } finally {
+      // 마이그레이션 상태 그대로 되돌린다 — 현재 버전의 정본은 shared LEGAL_DOCUMENTS 다.
       await db.execAdmin(`
         create or replace function public.lf_current_terms_version()
         returns text language sql immutable set search_path = ''
-        as $$ select '2026-08-16-draft.1'::text $$;
+        as $$ select '${LEGAL_DOCUMENTS.TERMS.version}'::text $$;
       `);
     }
   });

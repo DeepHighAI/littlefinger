@@ -9,9 +9,11 @@ The Supabase test project is caught up, all 47 Edge Functions are active, and th
 live on the existing Firebase project. Remaining work is interactive account/device verification,
 not an unimplemented local product flow.
 
-J-07 automatic metrics review/operator alerting remains explicitly out of scope. Real legal copy,
-real AdMob release configuration, Play closed testing, trademark/store-name confirmation, and full
-physical-device accessibility/push verification remain release gates.
+J-07 automatic metrics review/operator alerting remains explicitly out of scope. Real AdMob
+release configuration, Play closed testing, trademark/store-name confirmation, and full
+physical-device accessibility/push verification remain release gates. The real legal copy gate
+closed on 2026-08-22 (see "Legal documents finalized" below); external 법무 review of the
+published texts remains a PO option.
 
 ## Implemented in this completion pass
 
@@ -135,9 +137,32 @@ Approved plan executed in full; every phase committed and pushed (`f1cd06d`…`a
   surfaces (Alert, share sheet, push banner) stay system-font by design.
 - Web redeployed from a fresh build; live bundle carries the intent CTA and the locale switch,
   `/.well-known/assetlinks.json` still 200.
-- Open: English legal texts and the English disclaimer are **DRAFT pending PO/법무 review**;
+- Open: the English disclaimer is **DRAFT pending PO/법무 review** (the legal documents
+  themselves were finalized 2026-08-22 — see below);
   `docs/setup/deeplink-dev-qa.md` (PO-run manual QA) and `docs/setup/assetlinks-play-signing.md`
   (M4 Play signing cert append) are not yet executed.
+
+## Legal documents finalized (2026-08-22)
+
+The placeholder drafts at `/legal/terms` and `/legal/privacy` were replaced with the final Terms
+of Service (20 articles + addendum) and the PIPA-compliant Privacy Policy (overview + 12 sections),
+both carrying the real operator identity (주식회사 딥하이 / 심충섭 / 798-86-01094 /
+02-3443-1028) and full English translations that state the Korean version prevails.
+
+- Version `2026-08-22.1`, status FINAL, effective 2026-08-22 (`packages/shared/src/legal.ts`);
+  migration `20260822000001_legal_final_versions.sql` bumps `lf_current_terms_version()` /
+  `lf_current_privacy_version()` so new signups agree to this version. Existing agreements are
+  not retro-inferred (unchanged `lf_user_provision` rule).
+- Policy numbers inside the documents are deliberate literals (a versioned document must not
+  drift with config); `legal-document.test.tsx` compares them against `config.ts` so a config
+  change breaks the build until a conscious re-versioning.
+- Facts checked against the running system: Supabase data region is `ap-northeast-2` (Seoul) —
+  stated as domestic storage with a US operator; push relay (Expo/FCM) is disclosed as the
+  overseas transfer; AdMob ad identifiers are disclosed for the app-only ad slot; email/phone
+  non-collection wording matches §6-1.
+- The draft badge/notice UI and its CSS were removed; the pages now render version + effective
+  date chrome. External 법무 review of the final texts stays available to the PO but no longer
+  blocks release.
 
 ## Manual and visual verification
 

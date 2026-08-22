@@ -7,22 +7,22 @@ import {
   legalDocumentPath,
 } from './legal.ts';
 
-describe('draft legal metadata', () => {
-  it('publishes the approved draft versions and paths', () => {
+describe('legal metadata', () => {
+  it('publishes the final versions and paths', () => {
     expect(LEGAL_DOCUMENTS).toEqual({
       TERMS: {
         kind: 'TERMS',
-        status: 'DRAFT',
-        version: '2026-08-16-draft.1',
+        status: 'FINAL',
+        version: '2026-08-22.1',
         path: '/legal/terms',
-        effective_date: '2026-08-16',
+        effective_date: '2026-08-22',
       },
       PRIVACY: {
         kind: 'PRIVACY',
-        status: 'DRAFT',
-        version: '2026-08-16-draft.1',
+        status: 'FINAL',
+        version: '2026-08-22.1',
         path: '/legal/privacy',
-        effective_date: '2026-08-16',
+        effective_date: '2026-08-22',
       },
     });
     expect(LEGAL_DOCUMENT_LABELS).toEqual({

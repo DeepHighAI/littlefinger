@@ -12,20 +12,25 @@ export interface LegalDocumentMetadata {
   effective_date: IsoDate;
 }
 
+/**
+ * 확정판(PO 2026-08-22) — 실제 사업자 정보(주식회사 딥하이)가 들어간 첫 배포판.
+ * 버전 문자열은 DB 의 `lf_current_terms_version()`·`lf_current_privacy_version()` 과 항상
+ * 함께 올린다 — 드리프트는 supabase/tests/user-provisioning.test.ts 가 잡는다.
+ */
 export const LEGAL_DOCUMENTS = {
   TERMS: {
     kind: 'TERMS',
-    status: 'DRAFT',
-    version: '2026-08-16-draft.1',
+    status: 'FINAL',
+    version: '2026-08-22.1',
     path: '/legal/terms',
-    effective_date: '2026-08-16',
+    effective_date: '2026-08-22',
   },
   PRIVACY: {
     kind: 'PRIVACY',
-    status: 'DRAFT',
-    version: '2026-08-16-draft.1',
+    status: 'FINAL',
+    version: '2026-08-22.1',
     path: '/legal/privacy',
-    effective_date: '2026-08-16',
+    effective_date: '2026-08-22',
   },
 } as const satisfies Record<LegalDocumentKind, LegalDocumentMetadata>;
 
