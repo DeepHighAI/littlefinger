@@ -23,6 +23,14 @@ Executed against the approved launch-review plan (`docs` release gates + Play po
 - **`docs/setup/play-data-safety.md`**: prefilled Data safety form answers with code citations
   (declare ads + advertising ID even while `ads_enabled=false`; account-deletion and privacy
   URLs).
+- **First EAS cloud builds (2026-08-23)**: the EAS `production` environment now carries the three
+  `EXPO_PUBLIC_*` vars (Supabase URL/key added; web URL existed). The **preview APK** (release
+  mode, production backend, Google test ad IDs, EAS-signed so App Links verify against the
+  published fingerprint) **FINISHED** — build `a4e9e7bd`, all four ABIs verified locally. The
+  **production AAB** (build `159b1038`) **ERRORED in the "Read app config" phase — the designed
+  AdMob env gate**; it unblocks the moment D-4 registers the two real AdMob IDs in the EAS
+  production environment, then `eas build --platform android --profile production` is the only
+  remaining step.
 
 Remaining launch work is tracked in the README gate list and section below — the big ones are
 real-OAuth verification (Kakao console state + Google runbook D-1), the release-build E2E pass
