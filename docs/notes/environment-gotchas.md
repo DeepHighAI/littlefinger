@@ -181,3 +181,23 @@ A fleet of subagents burns the shared quota together and dies together, usually 
 agents over 7. After a fleet dies, run `git status` first: files the agents wrote **first** (label
 catalogs, new modules) are usually complete and worth keeping, while files they edited **second** are
 half-converted — `tsc -p <app>` pinpoints exactly what to finish by hand.
+
+## Never start the release app on a locked Samsung via adb (2026-08-23)
+
+`adb shell am start`/`monkey` while the SM-N981N's screen is off creates a **permanently wedged
+process**: Samsung defers network and render commits for an activity started invisible, the
+startup awaits park (all threads asleep, no request ever reaches Supabase), and unlocking does NOT
+revive it — the user sees a frozen splash ("무한로딩") or a screen whose buttons run their JS
+(storage writes persist!) but never commit a frame ("시작하기 무반응"). Both 2026-08-23 field
+reports were this one artifact. A fresh user-launched process on an unlocked screen is fully
+healthy — verified end to end: onboarding → login → real-Kakao OAuth (`/auth/v1/token` 200) →
+promise creation.
+
+Debug recipe that worked: `svc power stayon usb` + wake, ask the PO to unlock once, then screencap
+(`exec-out screencap -p`) before/after every remote `input tap` — identical PNG sizes = frozen
+commit. `dumpsys window | grep mDreamingLockscreen` tells you whether a capture is contaminated by
+the lockscreen. Undo the stay-awake with `svc power stayon false`.
+
+Hardening still worth adding (not yet done): the `_layout.tsx` startup `Promise.all` has no
+`.catch` (any rejection = infinite splash) and no AppState-active retry for gates that parked
+while the screen was off.
