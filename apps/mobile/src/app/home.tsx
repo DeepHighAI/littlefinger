@@ -42,6 +42,10 @@ import { colors, gutter, size, space } from '../theme/tokens';
 
 const TABS: readonly PromiseHomeTab[] = ['ACTIVE', 'WAITING', 'COMPLETED'];
 
+// 원본 .lf-icon-button 의 아이콘은 22px 인데(components.css:149) 포트가 LfIcon 기본값
+// (subtitle 17)으로 줄어 있었다 — 원본 크기로 복원(PO 확대 요청, 2026-08-23).
+const APP_BAR_ICON_SIZE = 22;
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   tabs: {
@@ -371,7 +375,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
               style={styles.appBarAction}
               onPress={() => router.push('/notifications')}
             >
-              <LfIcon name="notifications-none" />
+              <LfIcon name="notifications-none" size={APP_BAR_ICON_SIZE} />
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -379,7 +383,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
               style={styles.appBarAction}
               onPress={() => router.push('/profile')}
             >
-              <LfIcon name="person-outline" />
+              <LfIcon name="person-outline" size={APP_BAR_ICON_SIZE} />
             </Pressable>
           </LfRow>
         )}
@@ -397,7 +401,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
               style={styles.tab}
               onPress={() => dispatch({ type: 'TAB_SELECTED', tab })}
             >
-              <LfChip label={label} tone={selectedTab ? 'urgent' : 'neutral'} />
+              <LfChip label={label} tone={selectedTab ? 'urgent' : 'neutral'} size="md" />
             </Pressable>
           );
         })}
