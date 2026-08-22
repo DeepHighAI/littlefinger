@@ -3,7 +3,7 @@ import {
   INVITE_TTL_HOURS,
 } from '@littlefinger/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,6 +24,7 @@ import {
   type InviteWithToken,
 } from '../lib/invite-flow.ts';
 import {
+  copyInviteLink,
   loadStoredInvite,
   reissueInvite,
   revokeInvite,
@@ -35,6 +36,7 @@ import { INVITE_LABEL } from '../screens/invite-labels.ts';
 import { colors, gutter, radius, size, space } from '../theme/tokens';
 
 const COUNTDOWN_REFRESH_MS = 60 * 1_000;
+const COPY_FEEDBACK_MS = 2_500;
 
 type InvitePhase = 'loading' | 'ready' | 'missing' | 'revoked' | 'error';
 
@@ -101,6 +103,15 @@ export default function InviteScreen(): React.JSX.Element {
   const [invite, setInvite] = useState<InviteWithToken | null>(null);
   const [now, setNow] = useState(() => new Date());
   const [shared, setShared] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copyTimerRef.current !== null) clearTimeout(copyTimerRef.current);
+    },
+    [],
+  );
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState(false);
   const [resendBlocked, setResendBlocked] = useState(false);
@@ -154,6 +165,19 @@ export default function InviteScreen(): React.JSX.Element {
       setActionError(true);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function copyCurrent(): Promise<void> {
+    if (invite === null || expired) return;
+    setActionError(false);
+    try {
+      await copyInviteLink(invite);
+      setCopied(true);
+      if (copyTimerRef.current !== null) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+    } catch {
+      setActionError(true);
     }
   }
 
@@ -267,14 +291,23 @@ export default function InviteScreen(): React.JSX.Element {
 
         {!needsIssue && invite !== null && (
           <>
-            <LfButton
-              label={shared ? LABEL.shareAgain : LABEL.share}
-              variant="kakao"
-              size="cta"
-              block
-              disabled={busy}
-              onPress={() => void shareCurrent()}
-            />
+            <LfStack gap={3}>
+              <LfButton
+                label={shared ? LABEL.shareAgain : LABEL.share}
+                variant="filled"
+                size="cta"
+                block
+                disabled={busy}
+                onPress={() => void shareCurrent()}
+              />
+              <LfButton
+                label={copied ? LABEL.copied : LABEL.copy}
+                variant="tonal"
+                block
+                disabled={busy}
+                onPress={() => void copyCurrent()}
+              />
+            </LfStack>
 
             <LfStack gap={3}>
               <LfText variant="sectionTitle">{LABEL.preview}</LfText>

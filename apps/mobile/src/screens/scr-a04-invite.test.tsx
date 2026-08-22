@@ -5,6 +5,7 @@ import { MobileApiError } from '../lib/mobile-api.ts';
 
 import InviteScreen from '../app/invite';
 import {
+  copyInviteLink,
   loadStoredInvite,
   reissueInvite,
   revokeInvite,
@@ -19,6 +20,7 @@ jest.mock('expo-router', () => ({
 jest.mock(
   '../lib/invite-native.ts',
   () => ({
+    copyInviteLink: jest.fn(),
     loadStoredInvite: jest.fn(),
     reissueInvite: jest.fn(),
     revokeInvite: jest.fn(),
@@ -51,6 +53,7 @@ const loadStoredInviteMock = jest.mocked(loadStoredInvite);
 const reissueInviteMock = jest.mocked(reissueInvite);
 const revokeInviteMock = jest.mocked(revokeInvite);
 const shareInviteMock = jest.mocked(shareInvite);
+const copyInviteLinkMock = jest.mocked(copyInviteLink);
 
 async function settle(): Promise<void> {
   await act(async () => {
@@ -79,6 +82,8 @@ describe('SCR-A04 초대 전송·대기', () => {
     revokeInviteMock.mockResolvedValue(undefined);
     shareInviteMock.mockReset();
     shareInviteMock.mockResolvedValue(undefined);
+    copyInviteLinkMock.mockReset();
+    copyInviteLinkMock.mockResolvedValue(undefined);
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   });
 
@@ -106,7 +111,7 @@ describe('SCR-A04 초대 전송·대기', () => {
     await settle();
 
     await fireEvent.press(
-      view.getByRole('button', { name: '카카오톡으로 초대 보내기' }),
+      view.getByRole('button', { name: '초대 링크 공유하기' }),
     );
     expect(shareInviteMock).toHaveBeenCalledWith(invite);
     expect(view.getByRole('button', { name: '링크 다시 공유' })).toBeTruthy();
@@ -114,6 +119,20 @@ describe('SCR-A04 초대 전송·대기', () => {
     await fireEvent.press(view.getByRole('button', { name: '링크 다시 공유' }));
     expect(shareInviteMock).toHaveBeenCalledTimes(2);
     expect(reissueInviteMock).not.toHaveBeenCalled();
+  });
+
+  test('링크 복사는 링크만 클립보드에 담고 복사됨 피드백을 보여준다', async () => {
+    loadStoredInviteMock.mockResolvedValue(invite);
+    const view = await render(<InviteScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '링크 복사하기' }));
+    await settle();
+
+    expect(copyInviteLinkMock).toHaveBeenCalledWith(invite);
+    // 공유 시트는 열리지 않는다 — 복사와 공유는 별개 동작이다.
+    expect(shareInviteMock).not.toHaveBeenCalled();
+    expect(view.getByRole('button', { name: '링크를 복사했어요' })).toBeTruthy();
   });
 
   test('작성에서 증인 사용을 선택한 약속만 MOD-02 진입을 노출한다', async () => {
