@@ -12,6 +12,8 @@ export const ROUTE = {
   terms: legalDocumentPath('TERMS'),
   /** 공개 개인정보 처리방침 초안. 인증과 초대 토큰이 필요 없다. */
   privacy: legalDocumentPath('PRIVACY'),
+  /** 계정 삭제 안내. Play 데이터 보안 양식에 제출하는 공개 URL — 인증이 필요 없다. */
+  accountDeletion: '/account-deletion',
   /** SCR-W01 초대 랜딩. 로그인 **전** 화면이다(§4-3-3). */
   invite: '/i/:token',
   /** SCR-W02 약속 검토. 로그인 **후**에만 열린다(§4-3-4). */

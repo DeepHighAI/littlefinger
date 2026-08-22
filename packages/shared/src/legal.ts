@@ -14,8 +14,9 @@ export interface LegalDocumentMetadata {
 
 /**
  * 확정판(PO 2026-08-22) — 실제 사업자 정보(주식회사 딥하이)가 들어간 배포판. 외부 법무 검토 완료.
- * .2 는 Codex 검증이 잡은 사실관계 수정(웹 세션 저장소 고지, 닉네임 선택 항목 분류),
- * .3 은 개인정보 보호책임자 이메일(task@deephigh.ai) 추가.
+ * .2 는 Codex 검증이 잡은 사실관계 수정, .3 은 보호책임자 이메일 추가.
+ * PRIVACY 2026-08-23.1 은 계정 삭제 안내 페이지(/account-deletion) 명시 — TERMS 는 텍스트가
+ * 그대로라 .3 에 머문다. 문서 버전은 각자 독립이며, 텍스트가 바뀐 문서만 올린다.
  * 버전 문자열은 DB 의 `lf_current_terms_version()`·`lf_current_privacy_version()` 과 항상
  * 함께 올린다 — 드리프트는 supabase/tests/user-provisioning.test.ts 가 잡는다.
  */
@@ -30,9 +31,9 @@ export const LEGAL_DOCUMENTS = {
   PRIVACY: {
     kind: 'PRIVACY',
     status: 'FINAL',
-    version: '2026-08-22.3',
+    version: '2026-08-23.1',
     path: '/legal/privacy',
-    effective_date: '2026-08-22',
+    effective_date: '2026-08-23',
   },
 } as const satisfies Record<LegalDocumentKind, LegalDocumentMetadata>;
 

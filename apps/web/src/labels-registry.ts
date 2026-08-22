@@ -1,6 +1,7 @@
 import type { Localized } from '@littlefinger/shared';
 
 import { LEGAL_CONTENT_BY_LOCALE } from './legal/legal-content.ts';
+import { ACCOUNT_DELETION_LABEL } from './screens/account-deletion-labels.ts';
 import { RESPONSE_COMPLETE_LABEL } from './screens/response-complete-labels.ts';
 import { SCR_W01_LABEL } from './screens/scr-w01-labels.ts';
 import { SCR_W02_LABEL } from './screens/scr-w02-labels.ts';
@@ -24,4 +25,5 @@ export const WEB_LABEL_CATALOGS = {
   SCR_W06_LABEL,
   RESPONSE_COMPLETE_LABEL,
   LEGAL_CONTENT_BY_LOCALE,
+  ACCOUNT_DELETION_LABEL,
 } satisfies Record<string, Localized<unknown>>;

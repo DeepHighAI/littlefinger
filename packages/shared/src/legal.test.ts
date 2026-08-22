@@ -20,9 +20,9 @@ describe('legal metadata', () => {
       PRIVACY: {
         kind: 'PRIVACY',
         status: 'FINAL',
-        version: '2026-08-22.3',
+        version: '2026-08-23.1',
         path: '/legal/privacy',
-        effective_date: '2026-08-22',
+        effective_date: '2026-08-23',
       },
     });
     expect(LEGAL_DOCUMENT_LABELS).toEqual({

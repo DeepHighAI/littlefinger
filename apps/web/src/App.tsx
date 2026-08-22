@@ -5,6 +5,7 @@ import { LocaleSwitch } from './components/LocaleSwitch.tsx';
 import { LocaleProvider } from './lib/locale.tsx';
 import { watchSignInProvision } from './lib/user-provision.ts';
 import { ROUTE } from './routes.ts';
+import { AccountDeletion } from './screens/account-deletion.tsx';
 import { ResponseComplete } from './screens/response-complete.tsx';
 import { LegalDocument } from './screens/legal-document.tsx';
 import { ScrW01InviteLanding } from './screens/scr-w01-invite-landing.tsx';
@@ -32,6 +33,7 @@ export function App(): React.JSX.Element {
     <Routes>
       <Route path={ROUTE.terms} element={<LegalDocument kind="TERMS" />} />
       <Route path={ROUTE.privacy} element={<LegalDocument kind="PRIVACY" />} />
+      <Route path={ROUTE.accountDeletion} element={<AccountDeletion />} />
       <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
       <Route path={ROUTE.review} element={<ScrW02PromiseReview />} />
       <Route path={ROUTE.witnessJoin} element={<ScrW05WitnessConfirm />} />

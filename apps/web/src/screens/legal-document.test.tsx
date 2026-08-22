@@ -25,14 +25,19 @@ function fullText(locale: 'ko' | 'en', kind: LegalDocumentKind): string {
 
 describe('public legal documents', () => {
   it.each([
-    ['TERMS', '이용약관', '제1조 (목적)'],
-    ['PRIVACY', '개인정보 처리방침', '1. 처리하는 개인정보의 항목과 수집 방법'],
-  ] as const)('renders the final %s document without auth or ads', (kind, title, section) => {
+    ['TERMS', '이용약관', '제1조 (목적)', '버전 2026-08-22.3 · 시행일 2026-08-22'],
+    [
+      'PRIVACY',
+      '개인정보 처리방침',
+      '1. 처리하는 개인정보의 항목과 수집 방법',
+      '버전 2026-08-23.1 · 시행일 2026-08-23',
+    ],
+  ] as const)('renders the final %s document without auth or ads', (kind, title, section, versionLine) => {
     const { container } = render(<LegalDocument kind={kind} />);
 
     expect(screen.getByRole('heading', { level: 1, name: title })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 2, name: section })).toBeTruthy();
-    expect(screen.getByText('버전 2026-08-22.3 · 시행일 2026-08-22')).toBeTruthy();
+    expect(screen.getByText(versionLine)).toBeTruthy();
     expect(screen.getByText(LEGAL_DISCLAIMER)).toBeTruthy();
     expect(screen.queryByText('비배포용 초안')).toBeNull();
     expect(screen.queryByText(/\[배포 전 입력 필요/u)).toBeNull();

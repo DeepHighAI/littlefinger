@@ -72,6 +72,12 @@ describe('App 라우팅', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('계정 삭제 안내를 로그인 없이 연다', () => {
+    renderAt(ROUTE.accountDeletion);
+    expect(screen.getByRole('heading', { level: 1, name: '계정 삭제 안내' })).toBeTruthy();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('계정 기반 참여 약속 경로를 직접 연다', async () => {
     renderAt(promisesPath());
     expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe(
