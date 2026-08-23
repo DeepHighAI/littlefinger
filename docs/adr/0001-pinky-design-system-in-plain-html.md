@@ -4,6 +4,10 @@
 - Date: 2026-07-25
 - Supersedes: —
 
+The original Pinky palette in this historical decision was superseded by ADR 0008 and the current
+role palette in `DESIGN.md`. The plain-HTML reference and one-source token architecture remain in
+force.
+
 ## Context
 
 The design round in Claude Design (`리틀핑거 모바일 UI 컨셉안`) produced four concepts and

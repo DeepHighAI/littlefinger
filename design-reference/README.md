@@ -1,13 +1,14 @@
-# design-reference/ — 확정 UI의 시각 기준 (읽기 전용)
+# design-reference/ — 확정 UI의 시각 기준
 
-**이 디렉터리는 수정하지 않는다.** 이식 결과와 원본을 나란히 놓고 대조해야 디자인 회귀를 잡을 수
-있고, 원본이 움직이면 그 대조가 성립하지 않는다. (`04_AI-Agent_코딩가이드` §3)
+기본적으로 이 디렉터리는 구현 이식 중 **읽기 전용**이다. 단 PO가 비교 시안을 승인하고 그
+변경을 `DESIGN.md`와 ADR에 기록한 전역 리스타일은 새로운 기준선을 만드는 명시적 예외다.
+현재 기준선은 A — **Pine Anchor · Warm Promise · Blue Record**다. 임의 수정은 여전히 금지한다.
 
 | 경로 | 내용 |
 |---|---|
 | `screens/app/` | 안드로이드 앱 화면 21개 — React Native 이식의 시각 기준 |
 | `screens/web/` | 수락 웹 화면 6개 — Vite JSX 변환의 원본 |
-| `styles/` | `tokens.css`(디자인 토큰 90종) · `base.css` · `components.css`(`lf-*` 110개) · `screens/` |
+| `styles/` | `tokens.css`(디자인 토큰 115종) · `base.css` · `components.css`(`lf-*` 110개) · `screens/` |
 | `assets/fonts/` | `PretendardVariable.woff2` — **웹 전용.** 앱은 정적 `.ttf` 4종이 따로 필요하다(§5-4) |
 | `concept-4.html` | Claude Design 원본 캔버스 |
 | `serve.js`, `index.html`, `docs/flows.html` | 미리보기 서버·갤러리·플로우 연결도 |
@@ -16,7 +17,8 @@
 node design-reference/serve.js
 ```
 
-이식 중에는 `http://localhost:4173/`의 갤러리가 **정답지**다.
+이식 중에는 `http://localhost:4173/`의 갤러리가 **정답지**다. 색상 역할과 화면별 적용 규칙은
+루트 `DESIGN.md`를 함께 따른다.
 
 ---
 
@@ -32,7 +34,7 @@ Claude Design 프로젝트 *리틀핑거 모바일 UI 컨셉안*에서 내보낸
 | 파일 | 역할 | 여기 없는 이유 |
 |---|---|---|
 | `support.js` | `<x-dc>` · `<x-import>` · `<sc-if>` · props를 해석하는 캔버스 런타임 (React 기반, 생성 파일) | 뷰어 도구일 뿐 디자인 내용이 아니다. `screens/frame.js`가 그 역할을 대체한다 |
-| `colors_and_type.css` | Material 3 기본(퍼플) 토큰 | `styles/tokens.css`로 옮기면서 핑키 로즈로 재정의했다 |
+| `colors_and_type.css` | Material 3 기본(퍼플) 토큰 | `styles/tokens.css`로 옮긴 뒤, 현재는 승인된 A 역할 팔레트로 재정의했다 |
 | `android-frame.jsx` | 안드로이드 디바이스 프레임 컴포넌트 | `styles/base.css`의 `.lf-device` + `frame.js`로 재구현했다 |
 | `fonts/PretendardVariable.woff2` | 브랜드 서체 | `assets/fonts/`에 있다 |
 

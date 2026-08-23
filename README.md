@@ -5,7 +5,7 @@
 
 ## 현재 단계: 로컬 MVP 완성 검증
 
-승인된 "핑키" 디자인을 기준으로 Android Expo 앱, Vite 수락 웹, Supabase DB·Edge Function을
+승인된 **Soft Promise → Quiet Record**와 A 역할 팔레트를 기준으로 Android Expo 앱, Vite 수락 웹, Supabase DB·Edge Function을
 구현했다. 핵심 흐름(로그인 → 작성 → 초대 → 웹 승인 → 이행 확인), 증인·변경·파기·알림·
 지킴율·증빙·완료 축하·광고 플래그에 더해 온보딩, 최소 버전 차단, 계정 탈퇴, 숨기기·차단·
 신고, J-04/J-06까지 로컬 코드와 자동 테스트가 있다.
@@ -22,7 +22,10 @@
 이식 규칙은 [04_AI-Agent_코딩가이드](docs/기획/04_AI-Agent_코딩가이드.md),
 배경은 [ADR 0002](docs/adr/0002-react-native-expo-and-port-strategy.md).
 
-`design-reference/`는 계속 **읽기 전용 시각 기준**이다. 구현·배포·수동 E2E의 실제 상태와
+현재 디자인 원칙과 색상 역할은 [DESIGN.md](DESIGN.md), 결정 배경은
+[ADR 0008](docs/adr/0008-karrot-style-visual-system.md)에 있다. `design-reference/`는 구현 중
+**읽기 전용 시각 기준**이며, PO가 비교 시안을 승인하고 두 문서에 기록한 전역 리스타일만
+새 기준선을 만드는 예외다. 구현·배포·수동 E2E의 실제 상태와
 남은 외부 게이트는 [개발 현황](docs/DEVELOPMENT_STATUS.md)에 기록한다. 현재 다음 단계는
 Firebase 호스트가 포함된 EAS development build와 배포 웹을 두 카카오 테스트 계정으로
 완주하는 것이다.
@@ -71,7 +74,7 @@ npm run verify:android-apk -- apps/mobile/android/app/build/outputs/apk/debug/ap
 Metro 포트, PGlite, 클라이언트 IP, Supabase CLI 403, Vite 환경변수처럼 원인이 증상과
 전혀 달라 보이는 것들을 모아 뒀다.
 
-동결 디자인 미리보기:
+승인 디자인 미리보기:
 
 ```bash
 npm run preview
@@ -101,9 +104,9 @@ littlefinger/                      # npm workspaces
 ├── apps/mobile/                   # Expo Android — SCR-A*, MOD-*, App Links
 ├── apps/web/                      # Vite 수락 웹 — SCR-W01~W06
 ├── supabase/                      # migrations, Edge Functions, DB 통합 테스트
-├── design-reference/              # ★ 읽기 전용 — 확정 UI의 시각 기준
+├── design-reference/              # ★ 승인된 확정 UI의 시각 기준
 │   ├── screens/{app,web}/         # 27개 화면
-│   ├── styles/                    # tokens.css(90종) · base · components(lf-* 110개)
+│   ├── styles/                    # tokens.css(115종) · base · components(lf-* 110개)
 │   ├── assets/fonts/              # Pretendard woff2 (웹 전용)
 │   ├── concept-4.html             # Claude Design 원본
 │   └── serve.js, index.html       # 미리보기 서버 + 갤러리
