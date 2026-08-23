@@ -67,10 +67,10 @@ const styles = StyleSheet.create({
     marginTop: 22,
     fontSize: WORDMARK_SIZE,
     lineHeight: WORDMARK_LINE,
-    fontWeight: weight.heavy,
+    fontWeight: weight.bold,
     letterSpacing: WORDMARK_TRACKING,
     color: colors.text,
-    fontFamily: brandFontFamily(weight.heavy),
+    fontFamily: brandFontFamily(weight.bold),
   },
   subtitle: {
     marginTop: space[3],

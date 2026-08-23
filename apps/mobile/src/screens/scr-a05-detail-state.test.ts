@@ -4,6 +4,7 @@ import type {
 } from '@littlefinger/shared';
 
 interface PresentationModule {
+  detailVisualModeOf(status: PromiseStatus): string;
   detailVariantOf(status: PromiseStatus): string;
   detailStatusOf(status: PromiseStatus): {
     label: string;
@@ -36,11 +37,27 @@ const presentation = loadPresentation();
 
 describe('SCR-A05 상태별 표현 계약', () => {
   test.each([
+    ['DRAFT', 'friendly'],
+    ['PENDING', 'friendly'],
+    ['ACTIVE', 'record'],
+    ['AMEND_PENDING', 'record'],
+    ['CHECKING', 'record'],
+    ['COMPLETED', 'record'],
+    ['BROKEN', 'record'],
+    ['DISPUTED', 'record'],
+    ['UNRESOLVED', 'record'],
+    ['DECLINED', 'terminal-neutral'],
+    ['CANCELED', 'record'],
+  ] as const)('%s를 확정 전·기록·중립 종결 모드로 매핑한다', (status, mode) => {
+    expect(presentation?.detailVisualModeOf(status)).toBe(mode);
+  });
+
+  test.each([
     ['PENDING', 'PENDING', '승인 대기', '상대방의 승인을 기다리고 있어요', 'neutral'],
-    ['ACTIVE', 'ACTIVE', '진행 중', '두 사람이 손가락 걸었어요!', 'status'],
+    ['ACTIVE', 'ACTIVE', '진행 중', '함께 확인한 약속이에요', 'info'],
     ['AMEND_PENDING', 'AMEND_PENDING', '변경 협의 중', '변경 내용을 확인하고 있어요', 'urgent'],
     ['CHECKING', 'CHECKING', '이행 확인 중', '약속, 지켜졌나요?', 'urgent'],
-    ['COMPLETED', 'COMPLETED', '완료', '약속 지킴! 완주했어요', 'done'],
+    ['COMPLETED', 'COMPLETED', '완료', '함께 지킨 약속으로 기록됐어요', 'done'],
     ['BROKEN', 'BROKEN', '불이행', '이번엔 못 지켰어요', 'broken'],
     ['DISPUTED', 'DISPUTED', '의견 불일치', '서로의 응답이 달라요', 'neutral'],
     ['UNRESOLVED', 'UNRESOLVED', '미확정 종결', '응답 없이 종료됐어요', 'neutral'],

@@ -4,7 +4,8 @@
  * **CSS 의 px 값이 곧 RN 의 dp 다.** 원본이 360×800dp 뷰포트 기준으로 작성됐기 때문에
  * 숫자를 그대로 옮긴다. 환산하지 않는다.
  *
- * 원본은 `tokens.css` 이고 여기는 사본이다. 둘이 어긋나면 고칠 쪽은 **항상 이 파일**이다.
+ * 원본은 `tokens.css` 이고 여기는 사본이다. 둘이 어긋나면 canonical CSS를 먼저 고치고
+ * 그 값을 이 파일에 기계적으로 미러링한다.
  * `tokens.test.ts` 가 CSS 를 파싱해 기계적으로 대조하므로 조용히 어긋날 수는 없다.
  *
  * 화면·컴포넌트 코드에 색·크기·여백·둥글기를 직접 쓰지 않는다. 값이 없으면
@@ -12,51 +13,66 @@
  */
 
 export const colors = {
-  // 브랜드 그린 — 새끼손가락 걸기 모티프
-  primary: '#00BF40',
-  primaryHover: '#00A435',
-  primaryPressed: '#009933',
-  onPrimary: '#171719',
-  primaryContainer: '#DBFBE5',
-  onPrimaryContainer: '#02220C',
-  primarySoft: '#F0FDF4',
-  primaryPale: '#6FE69C',
-  primaryInk: '#006420',
-  // PO 승인 브랜드 심볼 전용 단색. UI primary와 독립적으로 유지한다.
-  brandSymbol: '#006B3C',
+  // Pine 브랜드 — 브랜드·승인·진행에만 쓴다 (A안, PO 2026-08-23).
+  primary: '#0B6B4B',
+  primaryHover: '#095D41',
+  primaryPressed: '#084E37',
+  onPrimary: '#FFFFFF',
+  primaryContainer: '#E7F4ED',
+  onPrimaryContainer: '#0B6B4B',
+  primarySoft: '#F3FAF6',
+  primaryPale: '#78CEA5',
+  primaryInk: '#0B6B4B',
 
-  // 표면
-  background: '#FFFFFF',
+  // 핵심 행동 — 브랜드보다 밝게, 텍스트는 짙은 녹색으로 읽힌다.
+  actionFill: '#78CEA5',
+  actionFillPressed: '#62BF92',
+  onAction: '#12382B',
+  // PO 승인 브랜드 심볼 전용 단색. UI primary와 독립적으로 유지한다.
+  brandSymbol: '#0B6B4B',
+  brandSymbolOnAction: '#FFF8E7',
+
+  // Quiet Record — 확정 기록과 일반 정보에만 쓴다.
+  record: '#466FA8',
+  onRecord: '#FFFFFF',
+  recordContainer: '#EAF1FB',
+
+  // Promise Apricot — 마감 임박·응답 필요처럼 주의가 필요한 약속에 쓴다.
+  attention: '#B86A24',
+  attentionContainer: '#FFF1E6',
+
+  // 표면 — 전체 면의 대부분은 저채도 중립색이 맡는다.
+  background: '#F7F8F6',
   surface: '#FFFFFF',
   surfaceChrome: '#FFFFFF',
-  surfaceMuted: '#F7F7F8',
+  surfaceMuted: '#F1F3F2',
 
-  // 외곽선
-  outline: 'rgba(112, 115, 124, 0.22)',
-  outlineStrong: 'rgba(112, 115, 124, 0.40)',
-  outlineIcon: '#AEB0B6',
+  // 외곽선 — 그림자보다 헤어라인으로 면을 가른다.
+  outline: '#E2E6E3',
+  outlineStrong: '#CFD6D2',
+  outlineIcon: '#9AA39E',
 
-  // 텍스트
-  text: '#171719',
-  textSecondary: '#46474C',
-  textMuted: '#70737C',
-  textFaint: '#989BA2',
+  // 텍스트 — 따뜻한 중립 위계.
+  text: '#191C1B',
+  textSecondary: '#5F6864',
+  textMuted: '#7B837F',
+  textFaint: '#9AA39E',
 
   // 보상 / 벌칙 (§9 용어: Reward=보상, Penalty=벌칙)
-  rewardContainer: '#EAF2FE',
-  onRewardContainer: '#002566',
-  rewardLabel: '#003A91',
-  penaltyContainer: '#FFD9C2',
-  onPenaltyContainer: '#3D0505',
-  penaltyLabel: '#7D2E00',
+  rewardContainer: '#EAF1FB',
+  onRewardContainer: '#29466F',
+  rewardLabel: '#466FA8',
+  penaltyContainer: '#FFF1E6',
+  onPenaltyContainer: '#6B3B14',
+  penaltyLabel: '#B86A24',
 
-  // 오류 · 불이행
-  error: '#C81616',
-  errorContainer: '#FFE9E9',
+  // 오류 · 불이행 — 실제 위험에만 쓴다.
+  error: '#C4433B',
+  errorContainer: '#FCECEA',
 
   // 성공 · 완료
-  success: '#008629',
-  successContainer: '#DBFBE5',
+  success: '#0B6B4B',
+  successContainer: '#E7F4ED',
 
   // 카카오 로그인 공식 버튼 가이드 색
   kakao: '#FEE500',
@@ -87,6 +103,8 @@ export const fontFamily = {
 
 export const type = {
   display: 28, // D-Day 대형 숫자
+  listDday: 15, // 홈 일반 행 D-Day
+  heroDday: 46, // Soft Promise 히어로 D-Day
   title: 21, // 화면 타이틀 · 상세 제목
   heading: 19, // 앱바 타이틀 · 섹션 헤드
   subtitle: 17,
@@ -99,6 +117,7 @@ export const type = {
 
 export const line = {
   title: 28,
+  heroDday: 50,
   body: 21,
   caption: 18,
   micro: 16,
@@ -112,14 +131,17 @@ export const weight = {
   heavy: '800',
 } as const;
 
-/** Fresh Green은 Wanted 12dp 입력·버튼 기준의 절제된 곡률을 쓴다. */
+/** 당근 seed에서 가져온 반듯한 곡률 위계 (ADR 0008). */
 export const radius = {
-  xs: 8,
-  sm: 12,
-  md: 12,
-  lg: 16,
-  xl: 16,
+  xs: 6,
+  sm: 8,
+  md: 10,
+  lg: 12,
+  xl: 12,
   '2xl': 20,
+  hero: 28,
+  heroTail: 12,
+  record: 16,
   pill: 9999,
 } as const;
 
@@ -150,6 +172,10 @@ export const size = {
   actionHeight: 48,
   fabHeight: 52,
   tabHeight: 38,
+  bottomNavContentHeight: 64,
+  centerFab: 52,
+  navIcon: 26,
+  appbarIcon: 26,
   /** SCR-A06 승인 레퍼런스의 정사각형 증빙 타일. */
   evidenceThumb: 84,
 } as const;
@@ -159,28 +185,29 @@ export const size = {
  * MVP 는 안드로이드만이므로 실제로 그려지는 건 `elevation` 쪽이다.
  */
 export const elevation = {
-  // CSS의 두 겹 카드 그림자 중 더 강한 층을 RN 단일 그림자로 보존한다.
+  // 0 1px 2px rgba(25, 28, 27, 0.04) — 당근식 최소 그림자, 면 구분은 헤어라인이 맡는다
   card: {
-    shadowColor: '#171717',
+    shadowColor: '#191C1B',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
     elevation: 1,
   },
-  // 0 8px 24px rgba(0, 0, 0, 0.08)
+  // CSS의 두 겹 FAB 그림자 중 더 강한 층을 RN 단일 그림자로 보존한다.
+  // 0 6px 16px rgba(25, 28, 27, 0.14)
   fab: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
+    shadowColor: '#191C1B',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
     elevation: 8,
   },
-  // 0 -8px 28px rgba(0, 0, 0, 0.12) — 시트는 위로 그림자를 던진다
+  // 0 -6px 24px rgba(25, 28, 27, 0.10) — 시트는 위로 그림자를 던진다
   sheet: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 28,
+    shadowColor: '#191C1B',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
     elevation: 12,
   },
 } as const;

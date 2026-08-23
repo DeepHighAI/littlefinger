@@ -62,11 +62,11 @@ test('UI 브랜드 심볼은 투명 여백을 제거한 730×458 RGBA PNG다', (
   expect(readFileSync(webBrandSymbolPath)).toEqual(png);
 });
 
-test('Android 런처와 스플래시 배경도 Fresh Green 화면 토큰을 따른다', () => {
+test('Android 런처와 스플래시 배경도 A안 화면 토큰을 따른다', () => {
   const splashPlugin = appConfig.expo.plugins.find(
     (plugin) => Array.isArray(plugin) && plugin[0] === 'expo-splash-screen',
   );
 
-  expect(appConfig.expo.android.adaptiveIcon.backgroundColor).toBe('#DBFBE5');
-  expect(splashPlugin[1].backgroundColor).toBe('#FFFFFF');
+  expect(appConfig.expo.android.adaptiveIcon.backgroundColor).toBe('#E7F4ED');
+  expect(splashPlugin[1].backgroundColor).toBe('#F7F8F6');
 });

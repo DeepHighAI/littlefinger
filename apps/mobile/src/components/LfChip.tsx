@@ -3,7 +3,15 @@ import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, radius, space, type, weight } from '../theme/tokens';
 
-export type LfChipTone = 'status' | 'neutral' | 'urgent' | 'done' | 'broken';
+export type LfChipTone =
+  | 'status'
+  | 'info'
+  | 'neutral'
+  | 'urgent'
+  | 'done'
+  | 'broken'
+  | 'ink'
+  | 'outline';
 export type LfChipSize = 'sm' | 'md';
 
 export interface LfChipProps extends Omit<ViewProps, 'style' | 'children'> {
@@ -32,15 +40,26 @@ const styles = StyleSheet.create({
     fontSize: type.body,
   },
   status: { backgroundColor: colors.primaryContainer },
+  info: { backgroundColor: colors.recordContainer },
   neutral: { backgroundColor: colors.surfaceMuted },
-  urgent: { backgroundColor: colors.primary },
+  urgent: { backgroundColor: colors.attentionContainer },
   done: { backgroundColor: colors.successContainer },
   broken: { backgroundColor: colors.errorContainer },
+  // 당근식 필터 칩 (ADR 0008) — 선택은 잉크 필, 비선택은 흰 바탕 + 헤어라인
+  ink: { backgroundColor: colors.text, borderWidth: 1, borderColor: colors.text },
+  outline: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.outlineStrong,
+  },
   statusText: { color: colors.onPrimaryContainer },
+  infoText: { color: colors.record },
   neutralText: { color: colors.textSecondary },
-  urgentText: { color: colors.onPrimary },
+  urgentText: { color: colors.attention },
   doneText: { color: colors.success },
   brokenText: { color: colors.error },
+  inkText: { color: colors.background },
+  outlineText: { color: colors.textSecondary },
 });
 
 export function LfChip({

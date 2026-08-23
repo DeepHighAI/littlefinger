@@ -17,17 +17,17 @@ const styles = StyleSheet.create({
     minHeight: size.touchMin,
     paddingHorizontal: space[9],
     borderRadius: radius.pill,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.actionFill,
     flexDirection: 'row',
     alignItems: 'center',
     gap: space[3],
     ...elevation.fab,
   },
   label: {
-    color: colors.onPrimary,
+    color: colors.onAction,
     fontSize: type.body,
-    fontWeight: weight.heavy,
-    fontFamily: brandFontFamily(weight.heavy),
+    fontWeight: weight.bold,
+    fontFamily: brandFontFamily(weight.bold),
   },
 });
 
@@ -39,7 +39,7 @@ export function LfFab({ label, ...rest }: LfFabProps): React.JSX.Element {
       {...rest}
       style={({ pressed }) => [
         styles.button,
-        pressed && { backgroundColor: colors.primaryPressed },
+        pressed && { backgroundColor: colors.actionFillPressed },
       ]}
     >
       <LfPinky size="xs" tone="onPrimary" />

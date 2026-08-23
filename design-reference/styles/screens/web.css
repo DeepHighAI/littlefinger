@@ -94,14 +94,14 @@
   display: flex;
   align-items: center;
   gap: var(--lf-space-3);
-  background: var(--lf-color-primary-soft);
+  background: var(--lf-color-record-container);
   border-radius: var(--lf-radius-md);
   padding: var(--lf-space-5) var(--lf-space-6);
 }
 
 .lf-info-banner .material-symbols-rounded {
   font-size: 18px;
-  color: var(--lf-color-primary);
+  color: var(--lf-color-record);
 }
 
 .lf-info-banner__text {

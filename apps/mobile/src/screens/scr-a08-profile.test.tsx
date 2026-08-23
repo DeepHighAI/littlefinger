@@ -77,6 +77,7 @@ const openLegalMock = jest.mocked(openLegalDocument);
 const withdrawMock = jest.mocked(withdrawAccountNative);
 const back = jest.fn();
 const push = jest.fn();
+const replace = jest.fn();
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -126,7 +127,8 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
   beforeEach(() => {
     back.mockReset();
     push.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ back, push } as never);
+    replace.mockReset();
+    jest.mocked(useRouter).mockReturnValue({ back, push, replace } as never);
     loadMock.mockReset();
     updateMock.mockReset();
     logoutMock.mockReset().mockResolvedValue(undefined);
@@ -174,10 +176,12 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.getByText('지우')).toBeTruthy();
     expect(view.getByLabelText('지우 프로필 사진')).toBeTruthy();
     expect(view.getByText('75%')).toBeTruthy();
-    expect(view.getByLabelText('약속 지킴율 75퍼센트')).toBeTruthy();
+    expect(view.getByRole('progressbar', { name: '약속 지킴율' }).props.accessibilityValue)
+      .toEqual({ min: 0, max: 100, now: 75 });
     for (const text of ['완료 3건 · 불이행 1건', '의견 불일치 2건 · 미확정 종결 4건', '진행 중 5건']) {
       expect(view.getByText(text)).toBeTruthy();
     }
+    expect(view.queryByText('이메일 리마인드')).toBeNull();
   });
 
   test('표본이 부족하면 퍼센트 대신 집계 중을 표시한다', async () => {
@@ -344,13 +348,14 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.getByText(SCR_A08_LABEL.en.legalTitle)).toBeTruthy();
   });
 
-  test('뒤로·법적 문서·설정·로그아웃 control은 모두 48dp 이상이다', async () => {
+  test('하단 목적지·법적 문서·설정·로그아웃 control은 모두 48dp 이상이다', async () => {
     loadMock.mockResolvedValue(PROFILE);
     const view = await render(<ProfileScreen />);
     await settle();
 
     const controls = [
-      view.getByRole('button', { name: '뒤로' }),
+      view.getByRole('tab', { name: '홈' }),
+      view.getByRole('button', { name: '작성' }),
       view.getByRole('button', { name: '리마인드 발송 시각 12:00' }),
       view.getByRole('button', { name: '이용약관 열기' }),
       view.getByRole('button', { name: '개인정보 처리방침 열기' }),
@@ -358,5 +363,15 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
       ...view.getAllByRole('switch'),
     ];
     for (const control of controls) expect(control).toHaveStyle({ minHeight: 48 });
+  });
+
+  test('하단 홈과 작성은 목적지와 핵심 행동 경로를 분리한다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    const view = await render(<ProfileScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('tab', { name: '홈' }));
+    await fireEvent.press(view.getByRole('button', { name: '작성' }));
+    expect(replace).toHaveBeenCalledWith('/home');
+    expect(push).toHaveBeenCalledWith('/promise/edit');
   });
 });

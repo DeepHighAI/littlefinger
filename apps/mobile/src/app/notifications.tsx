@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.outline,
   },
-  unreadItem: { backgroundColor: colors.primarySoft, borderColor: colors.primarySoft },
+  unreadItem: { backgroundColor: colors.recordContainer, borderColor: colors.recordContainer },
   icon: {
     width: size.tabHeight,
     height: size.tabHeight,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   accentIcon: { backgroundColor: colors.primaryContainer },
-  urgentIcon: { backgroundColor: colors.primary },
+  urgentIcon: { backgroundColor: colors.attentionContainer },
   itemBody: { flex: 1, minWidth: 0 },
   headline: {
     color: colors.textSecondary,
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     fontFamily: brandFontFamily(weight.medium),
   },
   unreadHeadline: {
-    color: colors.primaryInk,
+    color: colors.record,
     fontWeight: weight.bold,
     fontFamily: brandFontFamily(weight.bold),
   },
@@ -133,7 +133,7 @@ function iconFor(item: NotificationInboxItem): React.JSX.Element {
       <LfIcon
         name={appearance.icon}
         size={type.heading}
-        color={urgent ? 'onPrimary' : 'textSecondary'}
+        color={urgent ? 'attention' : 'textSecondary'}
       />
     </View>
   );

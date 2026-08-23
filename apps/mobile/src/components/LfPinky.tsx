@@ -8,8 +8,8 @@ import { colors } from '../theme/tokens';
  */
 
 export type LfPinkySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-/** primary 배경만 흰색으로 반전하고 나머지는 승인된 진한 그린을 유지한다. */
-export type LfPinkyTone = 'default' | 'onContainer' | 'onPrimary';
+/** 소프트 액션 면만 밝은 아이보리로 반전하고 나머지는 승인된 진한 그린을 유지한다. */
+export type LfPinkyTone = 'default' | 'record' | 'onContainer' | 'onPrimary';
 
 export interface LfPinkyProps {
   size?: LfPinkySize;
@@ -29,7 +29,9 @@ const SIZES: Record<LfPinkySize, { width: number; height: number }> = {
 const BRAND_SYMBOL = require('../../assets/images/brand-symbol.png') as number;
 
 function tint(tone: LfPinkyTone): string {
-  return tone === 'onPrimary' ? colors.onPrimary : colors.brandSymbol;
+  if (tone === 'onPrimary') return colors.brandSymbolOnAction;
+  if (tone === 'record') return colors.record;
+  return colors.brandSymbol;
 }
 
 export function LfPinky({

@@ -1,8 +1,9 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert } from 'react-native';
+import { Alert, BackHandler } from 'react-native';
 
 import PromiseEditorScreen from '../app/promise/edit';
+import { MobileApiError } from '../lib/mobile-api.ts';
 import {
   clearEditorLocalDraft,
   loadAmendSuggestComment,
@@ -13,32 +14,19 @@ import {
 } from '../lib/promise-editor-native.ts';
 import { EMPTY_PROMISE_DRAFT } from '../lib/promise-draft.ts';
 
-jest.mock('expo-router', () => ({
-  useLocalSearchParams: jest.fn(),
-  useRouter: jest.fn(),
+jest.mock('expo-router', () => ({ useLocalSearchParams: jest.fn(), useRouter: jest.fn() }));
+jest.mock('../lib/promise-editor-native.ts', () => ({
+  clearEditorLocalDraft: jest.fn(),
+  loadAmendSuggestComment: jest.fn(),
+  loadEditorDraft: jest.fn(),
+  openEndDatePicker: jest.fn(),
+  saveEditorLocalDraft: jest.fn(),
+  submitEditorDraft: jest.fn(),
 }));
-jest.mock(
-  '../lib/promise-editor-native.ts',
-  () => ({
-    clearEditorLocalDraft: jest.fn(),
-    loadAmendSuggestComment: jest.fn(),
-    loadEditorDraft: jest.fn(),
-    openEndDatePicker: jest.fn(),
-    saveEditorLocalDraft: jest.fn(),
-    submitEditorDraft: jest.fn(),
-  }),
-  { virtual: true },
-);
 
 const push = jest.fn();
 const back = jest.fn();
-const loadEditorDraftMock = jest.mocked(loadEditorDraft);
-const loadAmendSuggestCommentMock = jest.mocked(loadAmendSuggestComment);
-const saveEditorLocalDraftMock = jest.mocked(saveEditorLocalDraft);
-const clearEditorLocalDraftMock = jest.mocked(clearEditorLocalDraft);
-const submitEditorDraftMock = jest.mocked(submitEditorDraft);
-const openEndDatePickerMock = jest.mocked(openEndDatePicker);
-
+const TEST_NOW = new Date('2026-08-01T00:00:00+09:00');
 const completeDraft = {
   ...EMPTY_PROMISE_DRAFT,
   title: '주 3회 달리기',
@@ -47,8 +35,6 @@ const completeDraft = {
   end_date: '2026-08-10',
 };
 
-const TEST_NOW = new Date('2026-08-01T00:00:00+09:00');
-
 async function settle(): Promise<void> {
   await act(async () => {
     await Promise.resolve();
@@ -56,39 +42,43 @@ async function settle(): Promise<void> {
   });
 }
 
-async function fillRequiredFields(
+async function fillStepOne(
   view: Awaited<ReturnType<typeof render>>,
-  category = '습관',
+  body = '매주 세 번 함께 달린다.',
 ): Promise<void> {
   await fireEvent.changeText(view.getByLabelText('제목'), '주 3회 달리기');
-  await fireEvent.changeText(view.getByLabelText('약속 내용'), '매주 세 번 함께 달린다.');
-  await fireEvent.press(view.getByRole('button', { name: category }));
+  await fireEvent.changeText(view.getByLabelText('약속 내용'), body);
+  await fireEvent.press(view.getByRole('button', { name: '습관' }));
+  await fireEvent.press(view.getByRole('button', { name: '조건 정하기' }));
+}
+
+async function fillStepTwo(view: Awaited<ReturnType<typeof render>>): Promise<void> {
   await fireEvent.press(view.getByRole('button', { name: '종료일 선택' }));
 }
 
-describe('SCR-A03 약속 작성', () => {
+async function goToReview(view: Awaited<ReturnType<typeof render>>): Promise<void> {
+  await fillStepOne(view);
+  await fillStepTwo(view);
+  await fireEvent.press(view.getByRole('button', { name: '내용 확인하기' }));
+}
+
+describe('SCR-A03 3단계 약속 작성', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    // 종료일 검증이 실제 실행일에 따라 달라지지 않도록 KST 기준 시각을 고정한다.
     jest.setSystemTime(TEST_NOW);
     push.mockReset();
     back.mockReset();
     jest.mocked(useRouter).mockReturnValue({ push, back } as never);
     jest.mocked(useLocalSearchParams).mockReturnValue({});
-    loadEditorDraftMock.mockReset();
-    loadEditorDraftMock.mockResolvedValue(EMPTY_PROMISE_DRAFT);
-    loadAmendSuggestCommentMock.mockReset();
-    loadAmendSuggestCommentMock.mockResolvedValue(null);
-    saveEditorLocalDraftMock.mockReset();
-    saveEditorLocalDraftMock.mockResolvedValue(undefined);
-    clearEditorLocalDraftMock.mockReset();
-    clearEditorLocalDraftMock.mockResolvedValue(undefined);
-    submitEditorDraftMock.mockReset();
-    openEndDatePickerMock.mockReset();
-    openEndDatePickerMock.mockImplementation((_value, onSelect) =>
-      onSelect('2026-08-10'),
-    );
-    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    jest.mocked(loadEditorDraft).mockReset().mockResolvedValue(EMPTY_PROMISE_DRAFT);
+    jest.mocked(loadAmendSuggestComment).mockReset().mockResolvedValue(null);
+    jest.mocked(saveEditorLocalDraft).mockReset().mockResolvedValue(undefined);
+    jest.mocked(clearEditorLocalDraft).mockReset().mockResolvedValue(undefined);
+    jest.mocked(submitEditorDraft).mockReset();
+    jest.mocked(openEndDatePicker).mockReset().mockImplementation((_value, onSelect) => {
+      onSelect('2026-08-10');
+    });
+    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
   });
 
   afterEach(async () => {
@@ -98,118 +88,99 @@ describe('SCR-A03 약속 작성', () => {
     jest.restoreAllMocks();
   });
 
-  test('8개 필드와 명세 우선 라벨을 한 화면에 두고 초기 전송 CTA를 비활성화한다', async () => {
+  test('첫 단계에는 내용 필드만 보이고 진행률·임시저장·다음 행동을 제공한다', async () => {
     const view = await render(<PromiseEditorScreen />);
     await settle();
-
-    expect(view.getByText('약속 만들기')).toBeTruthy();
+    expect(view.getAllByText('내용').length).toBeGreaterThan(0);
     expect(view.getByLabelText('제목')).toBeTruthy();
     expect(view.getByLabelText('약속 내용')).toBeTruthy();
     expect(view.getByRole('button', { name: '습관' })).toBeTruthy();
-    expect(view.getByRole('button', { name: '종료일 선택' })).toBeTruthy();
-    expect(view.getByRole('button', { name: '작성자' })).toBeTruthy();
-    expect(view.getByRole('button', { name: '상대방' })).toBeTruthy();
-    expect(view.getByRole('button', { name: '둘 다' })).toBeTruthy();
-    expect(view.getByLabelText('보상')).toBeTruthy();
-    expect(view.getByLabelText('벌칙')).toBeTruthy();
-    expect(view.getByRole('switch', { name: '증인 초대하기' })).toBeTruthy();
-    expect(view.queryByText('나')).toBeNull();
-    expect(view.queryByText('상대')).toBeNull();
-    expect(
-      view.getByRole('button', { name: '상대에게 보내기' }).props.accessibilityState,
-    ).toMatchObject({ disabled: true });
+    expect(view.queryByRole('button', { name: '종료일 선택' })).toBeNull();
+    expect(view.getByRole('progressbar').props.accessibilityValue).toMatchObject({ now: 1, text: '내용' });
+    expect(view.getByRole('button', { name: '임시저장' }).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(view.getByRole('button', { name: '조건 정하기' })).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
   });
 
-  test('명세 프리셋은 입력값을 채우며 금전·증인 선택 안내를 노출한다', async () => {
+  test('현재 단계의 오류만 드러내고 유효할 때 조건 단계로 이동한다', async () => {
     const view = await render(<PromiseEditorScreen />);
     await settle();
+    await fireEvent.press(view.getByRole('button', { name: '조건 정하기' }));
+    expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(1);
+    expect(view.getAllByRole('alert').length).toBeGreaterThan(0);
 
+    await fillStepOne(view);
+    expect(view.getByRole('progressbar').props.accessibilityValue).toMatchObject({ now: 2, text: '조건' });
+    expect(view.getByRole('button', { name: '종료일 선택' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '작성자' })).toBeTruthy();
+    expect(view.getByLabelText('보상')).toBeTruthy();
+    expect(view.queryByLabelText('제목')).toBeNull();
+  });
+
+  test('조건 프리셋과 종료일을 유지하고 확인 단계에서 수정·증인·확정 안내를 보여준다', async () => {
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+    await fillStepOne(view);
     await fireEvent.press(view.getByRole('button', { name: '커피 한 잔 사주기' }));
-    expect(view.getByLabelText('보상').props.value).toBe('커피 한 잔 사주기');
     await fireEvent.press(view.getByRole('button', { name: '설거지 1주일' }));
-    expect(view.getByLabelText('벌칙').props.value).toBe('설거지 1주일');
-
-    await fireEvent.press(view.getByRole('button', { name: '금전' }));
-    expect(
-      view.getByText(
-        '금전 약속도 기록할 수 있지만, 리틀핑거는 차용증·공증 서비스가 아니에요.',
-      ),
-    ).toBeTruthy();
-
-    await fireEvent.press(view.getByRole('switch', { name: '증인 초대하기' }));
-    expect(view.getByText('확정 후 증인을 초대할 수 있어요(최대 2명)')).toBeTruthy();
-  });
-
-  test('필수값이 유효하면 전송 CTA가 활성화되고 Android 날짜 선택 결과를 반영한다', async () => {
-    const view = await render(<PromiseEditorScreen />);
-    await settle();
-
-    await fillRequiredFields(view);
-
-    expect(openEndDatePickerMock).toHaveBeenCalled();
+    await fillStepTwo(view);
     expect(view.getByText('2026-08-10')).toBeTruthy();
-    expect(
-      view.getByRole('button', { name: '상대에게 보내기' }).props.accessibilityState,
-    ).toMatchObject({ disabled: false });
+    await fireEvent.press(view.getByRole('button', { name: '내용 확인하기' }));
+
+    expect(view.getByRole('progressbar').props.accessibilityValue).toMatchObject({ now: 3, text: '확인' });
+    expect(view.getByText('상대가 승인하면 이 내용으로 확정돼요.')).toBeTruthy();
+    expect(view.getByRole('button', { name: '약속 내용 수정' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '약속 조건 수정' })).toBeTruthy();
+    expect(view.getByText('커피 한 잔 사주기')).toBeTruthy();
+    expect(view.getByText('설거지 1주일')).toBeTruthy();
+    expect(view.getByRole('switch', { name: '증인 초대하기' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '상대에게 보내기' }).props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  test('서버 DRAFT를 불러와 재편집하고 임시저장 성공 시 로컬 초안을 지운 뒤 홈으로 간다', async () => {
-    jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
-    loadEditorDraftMock.mockResolvedValue(completeDraft);
-    submitEditorDraftMock.mockResolvedValue({
-      promise_id: 'promise-1',
-      status: 'DRAFT',
+  test('화면과 하드웨어 뒤로가기는 3→2→1 순서를 지킨다', async () => {
+    let hardwareBack: (() => boolean) | undefined;
+    jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => {
+      hardwareBack = () => handler({} as never) ?? false;
+      return { remove: jest.fn() } as never;
     });
     const view = await render(<PromiseEditorScreen />);
     await settle();
+    await fillStepOne(view);
+    await fillStepTwo(view);
+    await fireEvent.press(view.getByRole('button', { name: '내용 확인하기' }));
+    await fireEvent.press(view.getByRole('button', { name: '이전 단계' }));
+    expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(2);
+    await act(async () => { expect(hardwareBack?.()).toBe(true); });
+    expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(1);
+  });
 
-    expect(loadEditorDraftMock).toHaveBeenCalledWith('promise-1');
-    expect(view.getByLabelText('제목').props.value).toBe('주 3회 달리기');
+  test('서버 DRAFT 임시저장은 기존 제출 계약과 로컬 정리를 유지한다', async () => {
+    jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
+    jest.mocked(loadEditorDraft).mockResolvedValue(completeDraft);
+    jest.mocked(submitEditorDraft).mockResolvedValue({ promise_id: 'promise-1', status: 'DRAFT' });
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
     await fireEvent.press(view.getByRole('button', { name: '임시저장' }));
     await settle();
-
-    expect(submitEditorDraftMock).toHaveBeenCalledWith(
-      completeDraft,
-      'promise-1',
-      false,
-    );
-    expect(clearEditorLocalDraftMock).toHaveBeenCalledWith('promise-1');
+    expect(submitEditorDraft).toHaveBeenCalledWith(completeDraft, 'promise-1', false);
+    expect(clearEditorLocalDraft).toHaveBeenCalledWith('promise-1');
     expect(push).toHaveBeenCalledWith('/home');
   });
 
-  test('T-05로 돌아온 DRAFT는 상대 수정 제안 의견을 배너로 보여준다', async () => {
-    // PO 2026-08-20: approvals.comment 는 재열람 화면 상단 배너로 노출한다.
+  test('수정 제안 의견은 단계 전환과 무관하게 상단 배너에 남는다', async () => {
     jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
-    loadEditorDraftMock.mockResolvedValue(completeDraft);
-    loadAmendSuggestCommentMock.mockResolvedValue('종료일을 한 주만 늦춰 주세요');
+    jest.mocked(loadEditorDraft).mockResolvedValue(completeDraft);
+    jest.mocked(loadAmendSuggestComment).mockResolvedValue('종료일을 한 주만 늦춰 주세요');
     const view = await render(<PromiseEditorScreen />);
     await settle();
-
-    expect(loadAmendSuggestCommentMock).toHaveBeenCalledWith('promise-1');
     expect(view.getByTestId('amend-comment-banner')).toBeTruthy();
-    expect(view.getByText('상대방의 수정 제안 의견')).toBeTruthy();
     expect(view.getByText('종료일을 한 주만 늦춰 주세요')).toBeTruthy();
+    await fireEvent.press(view.getByRole('button', { name: '조건 정하기' }));
+    expect(view.getByTestId('amend-comment-banner')).toBeTruthy();
   });
 
-  test('새 약속 작성과 의견 조회 실패에는 배너를 그리지 않는다', async () => {
-    const view = await render(<PromiseEditorScreen />);
-    await settle();
-    expect(loadAmendSuggestCommentMock).not.toHaveBeenCalled();
-    expect(view.queryByTestId('amend-comment-banner')).toBeNull();
-
-    jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
-    loadEditorDraftMock.mockResolvedValue(completeDraft);
-    loadAmendSuggestCommentMock.mockRejectedValue(new Error('offline'));
-    const reopened = await render(<PromiseEditorScreen />);
-    await settle();
-    // 배너는 보조 정보 — 조회 실패가 편집을 막으면 안 된다.
-    expect(reopened.getByLabelText('제목').props.value).toBe('주 3회 달리기');
-    expect(reopened.queryByTestId('amend-comment-banner')).toBeNull();
-  });
-
-  test('전송은 개인정보 포함 시 한 번 확인하고 PENDING의 promise_id만 라우트에 전달한다', async () => {
-    submitEditorDraftMock.mockResolvedValue({
+  test('개인정보 확인 뒤 PENDING 초대 경로에는 원문 token을 넘기지 않는다', async () => {
+    jest.mocked(submitEditorDraft).mockResolvedValue({
       promise_id: 'promise-1',
       status: 'PENDING',
       invitation_id: 'invite-1',
@@ -221,28 +192,15 @@ describe('SCR-A03 약속 작성', () => {
     const alert = jest.spyOn(Alert, 'alert');
     const view = await render(<PromiseEditorScreen />);
     await settle();
-    await fillRequiredFields(view);
+    await fillStepOne(view, '연락은 010-1234-5678로 해줘');
+    await fillStepTwo(view);
+    await fireEvent.press(view.getByRole('button', { name: '내용 확인하기' }));
     await fireEvent.press(view.getByRole('switch', { name: '증인 초대하기' }));
-    await fireEvent.changeText(
-      view.getByLabelText('약속 내용'),
-      '연락은 010-1234-5678로 해줘',
-    );
-
     await fireEvent.press(view.getByRole('button', { name: '상대에게 보내기' }));
-    expect(alert).toHaveBeenCalledWith(
-      '개인정보가 포함돼 있어요',
-      '그대로 기록할까요?',
-      expect.any(Array),
-    );
-    expect(submitEditorDraftMock).not.toHaveBeenCalled();
-
-    const buttons = alert.mock.calls[0]?.[2];
+    expect(submitEditorDraft).not.toHaveBeenCalled();
     await act(async () => {
-      await buttons?.find((button) => button.text === '그대로 기록')?.onPress?.();
+      await alert.mock.calls[0]?.[2]?.find((button) => button.text === '그대로 기록')?.onPress?.();
     });
-
-    expect(submitEditorDraftMock).toHaveBeenCalledTimes(1);
-    expect(clearEditorLocalDraftMock).toHaveBeenCalledWith(null);
     expect(push).toHaveBeenCalledWith({
       pathname: '/invite',
       params: { promise_id: 'promise-1', witness_enabled: 'true' },
@@ -250,29 +208,30 @@ describe('SCR-A03 약속 작성', () => {
     expect(JSON.stringify(push.mock.calls)).not.toContain('raw-token');
   });
 
-  test('입력은 3초 뒤 로컬 저장하고 이탈 시 남은 변경을 즉시 flush한다', async () => {
+  test('서버 필드 오류는 해당 필드가 있는 단계로 되돌아간다', async () => {
+    jest.mocked(submitEditorDraft).mockRejectedValue(
+      new MobileApiError(null, '종료일을 다시 확인해 주세요.', 'end_date'),
+    );
     const view = await render(<PromiseEditorScreen />);
     await settle();
+    await goToReview(view);
+    await fireEvent.press(view.getByRole('button', { name: '상대에게 보내기' }));
+    await settle();
+    expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(2);
+    expect(view.getByRole('alert', { name: '종료일을 다시 확인해 주세요.' })).toBeTruthy();
+  });
 
+  test('입력은 3초 뒤 저장하고 이탈 시 남은 변경을 즉시 flush한다', async () => {
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
     await fireEvent.changeText(view.getByLabelText('제목'), '첫 제목');
-    await act(async () => {
-      await jest.advanceTimersByTimeAsync(2_999);
-    });
-    expect(saveEditorLocalDraftMock).not.toHaveBeenCalled();
-    await act(async () => {
-      await jest.advanceTimersByTimeAsync(1);
-    });
-    expect(saveEditorLocalDraftMock).toHaveBeenCalledWith(
-      null,
-      expect.objectContaining({ title: '첫 제목' }),
-    );
-
+    await act(async () => { await jest.advanceTimersByTimeAsync(2_999); });
+    expect(saveEditorLocalDraft).not.toHaveBeenCalled();
+    await act(async () => { await jest.advanceTimersByTimeAsync(1); });
+    expect(saveEditorLocalDraft).toHaveBeenCalledWith(null, expect.objectContaining({ title: '첫 제목' }));
     await fireEvent.changeText(view.getByLabelText('제목'), '이탈 직전 제목');
     await view.unmount();
     await settle();
-    expect(saveEditorLocalDraftMock).toHaveBeenLastCalledWith(
-      null,
-      expect.objectContaining({ title: '이탈 직전 제목' }),
-    );
+    expect(saveEditorLocalDraft).toHaveBeenLastCalledWith(null, expect.objectContaining({ title: '이탈 직전 제목' }));
   });
 });

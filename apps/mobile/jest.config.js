@@ -4,6 +4,8 @@
 // @testing-library/react-native 13+ 는 matcher 가 내장이라 setup 파일이 필요 없다.
 module.exports = {
   preset: 'jest-expo',
+  // Worklets 0.10 ships native/non-native twins. Jest must resolve the non-native mock path.
+  resolver: 'react-native-worklets/jest/resolver',
   // RN 렌더러 15개가 동시에 뜨면 5초 테스트 제한이 CPU 경합으로 무작위 실패한다.
   maxWorkers: 4,
   setupFilesAfterEnv: ['<rootDir>/src/test/jest-setup.js'],

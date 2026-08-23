@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 import { brandFontFamily } from '../theme/fonts';
 import { colors, radius, space, type, weight } from '../theme/tokens';
 
-/** 원본 `.lf-notice` — 연한 그린 배경의 알림 pill (04 §5-2) */
+/** 원본 `.lf-notice` — 정보성 안내는 Quiet Record 블루 역할을 쓴다. */
 
 export interface LfNoticeProps extends Omit<ViewProps, 'style' | 'children'> {
   label: string;
@@ -22,12 +22,12 @@ const styles = StyleSheet.create({
     height: NOTICE_HEIGHT,
     paddingHorizontal: NOTICE_PADDING_H,
     borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.recordContainer,
   },
   label: {
     fontSize: type.caption,
     fontWeight: weight.bold,
-    color: colors.primaryInk,
+    color: colors.record,
     fontFamily: brandFontFamily(weight.bold),
   },
 });

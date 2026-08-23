@@ -230,8 +230,8 @@
   transition: filter var(--lf-duration-short) var(--lf-easing-standard);
 }
 
-.lf-btn--filled:hover { background: var(--lf-color-primary-hover); }
-.lf-btn--filled:active { background: var(--lf-color-primary-pressed); }
+.lf-btn--filled:hover,
+.lf-btn--filled:active { background: var(--lf-color-action-fill-pressed); }
 .lf-btn:not(.lf-btn--filled):active { filter: brightness(0.94); }
 
 .lf-btn:disabled,
@@ -242,8 +242,8 @@
 
 /* 주 CTA — 화면당 1개 (요청서 §8) */
 .lf-btn--filled {
-  background: var(--lf-color-primary);
-  color: var(--lf-color-on-primary);
+  background: var(--lf-color-action-fill);
+  color: var(--lf-color-on-action);
   font-weight: var(--lf-weight-heavy);
 }
 
@@ -313,8 +313,8 @@
   height: var(--lf-fab-height);
   padding: 0 22px;
   border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-primary);
-  color: var(--lf-color-on-primary);
+  background: var(--lf-color-action-fill);
+  color: var(--lf-color-on-action);
   display: flex;
   align-items: center;
   gap: 9px;
@@ -341,7 +341,8 @@
 
 /* 상태 라벨 — 색상만으로 구분하지 않도록 항상 텍스트를 동반한다 (§8) */
 .lf-chip--status    { background: var(--lf-color-primary-container); color: var(--lf-color-on-primary-container); }
-.lf-chip--urgent    { background: var(--lf-color-primary); color: var(--lf-color-on-primary); font-weight: var(--lf-weight-heavy); }
+.lf-chip--info      { background: var(--lf-color-record-container); color: var(--lf-color-record); }
+.lf-chip--urgent    { background: var(--lf-color-attention-container); color: var(--lf-color-attention); font-weight: var(--lf-weight-heavy); }
 .lf-chip--broken    { background: var(--lf-color-error-container); color: var(--lf-color-error); }
 .lf-chip--done      { background: var(--lf-color-success-container); color: var(--lf-color-success); }
 .lf-chip--neutral   { background: var(--lf-color-surface-muted); color: var(--lf-color-text-secondary); }
@@ -354,8 +355,8 @@
   height: 30px;
   padding: 0 13px;
   border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-primary-soft);
-  color: var(--lf-color-primary-ink);
+  background: var(--lf-color-record-container);
+  color: var(--lf-color-record);
   font-size: var(--lf-type-caption-size);
   font-weight: var(--lf-weight-bold);
   white-space: nowrap;
@@ -364,7 +365,9 @@
 .lf-notice .material-symbols-rounded { font-size: 14px; }
 .lf-notice__timer { font-family: var(--lf-font-mono); }
 
-/* 탭 — 진행 중 / 대기 / 완료 (O-D4 기본안) */
+/* 탭 — 진행 중 / 대기 / 완료 (O-D4 기본안)
+   당근식 컨트롤 칩: 선택은 잉크 필, 비선택은 흰 바탕 + 헤어라인 (ADR 0008).
+   브랜드 그린은 CTA·D-Day·배너에만 남겨 절제한다. */
 .lf-tabs {
   flex: none;
   display: flex;
@@ -382,14 +385,16 @@
   align-items: center;
   font-size: var(--lf-type-label-size);
   font-weight: var(--lf-weight-medium);
-  background: var(--lf-color-surface-muted);
+  background: var(--lf-color-surface);
+  border: 1px solid var(--lf-color-outline-strong);
   color: var(--lf-color-text-secondary);
   white-space: nowrap;
 }
 
 .lf-tab[aria-selected='true'] {
-  background: var(--lf-color-primary);
-  color: var(--lf-color-on-primary);
+  background: var(--lf-color-text);
+  border-color: var(--lf-color-text);
+  color: var(--lf-color-background);
   font-weight: var(--lf-weight-bold);
 }
 
@@ -406,8 +411,8 @@
 /* 수락 웹 카드는 조금 더 각지고 여백이 넓다 */
 .lf-card--web { border-radius: var(--lf-radius-lg); padding: var(--lf-space-7); }
 
-/* 액션이 필요한 카드 — 2px 로즈 테두리로 주목 (이행 확인 필요) */
-.lf-card--emphasis { border: 2px solid var(--lf-color-primary); }
+/* 액션이 필요한 카드 — 정보 구조는 블루, CTA는 액션 그린으로 분리한다. */
+.lf-card--emphasis { border: 2px solid var(--lf-color-record); }
 
 /* 톤 카드 — 임박 약속 · 확정 스탬프 배경 */
 .lf-card--container {
@@ -531,7 +536,7 @@
   align-items: center;
   gap: var(--lf-space-2);
   font-size: var(--lf-type-micro-size);
-  color: var(--lf-color-primary-ink);
+  color: var(--lf-color-record);
   white-space: nowrap;
 }
 
@@ -840,8 +845,8 @@
   width: 40px;
   height: 40px;
   border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-primary-container);
-  color: var(--lf-color-primary);
+  background: var(--lf-color-record-container);
+  color: var(--lf-color-record);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -876,7 +881,8 @@
 }
 
 /* 읽지 않은 알림 */
-.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-primary-ink); }
+.lf-list-item--unread { background: var(--lf-color-record-container); }
+.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-record); }
 
 /* 행 전체가 링크처럼 동작하는 진입점 (버전 이력 등) */
 .lf-row-link {
