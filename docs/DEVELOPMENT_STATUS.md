@@ -91,28 +91,26 @@ review of the published texts completed the same day.
 
 | Gate | Result |
 |---|---|
-| `npm test` | PASS — Vitest **100 files**, mobile Jest **68 suites / 649 tests** |
+| `npm test` | PASS — Vitest **101 files / 1,976 tests**, mobile Jest **69 suites / 692 tests** |
 | `npm run typecheck` | PASS — shared, mobile, web, Edge Functions, Supabase tests |
-| `npm run build:web` | PASS — 115 modules; JS 535.90KB / gzip 154.02KB; 500KB chunk warning |
+| `npm run build:web` | PASS — 130 modules; JS 585.87KB / gzip 170.82KB; 500KB chunk warning |
 | `npx expo install --check` | PASS — `Dependencies are up to date` |
 | `npm run check:agents` | PASS — CLAUDE.md and AGENTS.md synchronized |
 | Android export | PASS — 1,776 modules; 4.4MB Hermes bundle |
-| ARM64 device APK | PASS — 99,186,411 bytes; package, SDK, ABI, and signature verified |
+| ARM64 device APK | PASS — 54,434,918 bytes; package, SDK, ABI, bundled JS, and signature verified |
 | `git diff --check` | PASS |
 
-The new Android export is at `apps/mobile/.expo/firebase-export`. The earlier
-`littlefinger-firebase-debug-x86_64.apk` contains only x86_64 native libraries and is emulator-only;
-Galaxy devices correctly reject it as incompatible. A replacement ARM64 debug APK built with JDK
-21 (`558 actionable tasks`, 99,186,411 bytes) is at
-`C:\Users\batis\AppData\Local\Temp\littlefinger-firebase-debug-arm64-v8a.apk`. Its compiled manifest
-reports package `com.littlefinger.app`, minSdk 24, targetSdk 36, and native code `arm64-v8a`; the
-APK signature verifies. It uses the local
-debug certificate (`FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C`), not the EAS development certificate in the public
-Digital Asset Links file, so it is suitable for local feature testing but not final App Links
-auto-verification. `npm run verify:android-apk -- <apk>` now rejects x86_64-only artifacts before
-distribution. Google test ad identifiers remain configured.
+The Palette A ARM64 release-mode APK was built locally with JDK 21 (`946 actionable tasks`) at
+`dist/littlefinger-palette-a-arm64-v0.1.0.apk`. Its compiled manifest reports package
+`com.littlefinger.app`, version `0.1.0` (code 1), minSdk 24, targetSdk 36, native code
+`arm64-v8a`, and the Google Android test ad application ID. The APK contains the production JS
+bundle, verifies with APK Signature Scheme v2, and has SHA-256
+`4FB325EE4BC0FCE3DF9F25BA1E69620446F3CD436120DED654F7784A889DE38F`. It uses the local debug
+certificate (`FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C`), not the EAS/Play certificate, so it is suitable for direct feature testing but not final
+App Links auto-verification or store upload. `npm run verify:android-apk -- <apk>` rejects
+x86_64-only artifacts before distribution.
 
-The production web bundle has one 535.90KB JavaScript chunk and the full Pretendard variable font
+The production web bundle has one 585.87KB JavaScript chunk and the full Pretendard variable font
 remains 2.06MB. The measured public-route LCP passes the approved 3-second target, so the plan does
 not authorize font subsetting or chunk splitting in this pass; the build warning remains recorded.
 

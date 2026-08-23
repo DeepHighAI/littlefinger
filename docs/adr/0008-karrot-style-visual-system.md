@@ -82,5 +82,5 @@ supports a text label and does not alter any domain status semantics.
   `tokens.test.ts`. Pine no longer carries ordinary CTA, information, and attention simultaneously.
 - The row pattern remains a home/list hierarchy decision. The A colour roles apply globally to
   mobile, acceptance web, and the reference gallery without changing screen structure.
-- Verified 2026-08-23: typecheck (5 projects), vitest 1976 tests, jest-expo 650
-  tests, and visual screenshots of the applied reference home/empty screens.
+- Verified 2026-08-23: typecheck (5 projects), vitest 101 files / 1,976 tests, jest-expo 69 suites /
+  692 tests, and visual screenshots of the applied four-screen reference board.
