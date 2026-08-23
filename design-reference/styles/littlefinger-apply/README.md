@@ -1,13 +1,16 @@
-# littlefinger 반영 가이드 — Fresh Green (#00BF40)
+# Historical migration guide — Fresh Green (superseded)
 
-Claude Design 확정안 "개선안 A-G1 프레시 그린" (Wanted Design System 기반)을
-littlefinger 저장소에 반영하는 파일 2개.
+This folder preserves the earlier "Fresh Green" migration artifact. It is not the current design
+guide. The PO-approved full-product baseline is A — **Pine Anchor · Warm Promise · Blue Record** —
+in repository `DESIGN.md` and ADR 0008.
 
 ## 적용 상태
 
-Fresh Green은 canonical `design-reference/styles/tokens.css`와 `components.css`에 반영됐다.
-이 디렉터리는 승인 당시 제안 산출물을 보존하는 기록이며 런타임이나 회귀 테스트의
-입력으로 사용하지 않는다.
+Fresh Green was once applied to canonical tokens, then superseded on 2026-08-23. This directory
+remains a historical proposal artifact and is not a runtime or regression-test input.
+
+Current core roles: Pine `#0B6B4B`, Action `#78CEA5`, Record Blue `#466FA8`, Apricot `#FFF1E6`,
+Canvas `#F7F8F6`, and Danger `#C4433B`. Do not copy the values below into current code.
 
 반영 내용:
 
@@ -19,7 +22,7 @@ Fresh Green은 canonical `design-reference/styles/tokens.css`와 `components.css
    - 그린 틴트 배경 위 그린 텍스트(알림 pill · 임박 D-Day · 안읽음 헤드라인)의
      가독성 보정 3건.
 
-## 주요 토큰 변경 요약
+## Historical token-change summary
 
 | 역할 | 기존 (핑키) | 변경 (프레시 그린) |
 |---|---|---|

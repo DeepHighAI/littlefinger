@@ -625,7 +625,9 @@ describe('SCR-A05 약속 상세', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    expect(view.getByText('두 사람이 손가락 걸었어요!')).toBeTruthy();
+    expect(view.getByText('함께 확인한 약속이에요')).toBeTruthy();
+    expect(view.getByTestId('promise-detail-record')).toBeTruthy();
+    expect(view.getAllByTestId('promise-seam', { includeHiddenElements: true })).toHaveLength(1);
     expect(view.queryByText('기록 일치')).toBeNull();
     expect(view.queryByText('기록 불일치')).toBeNull();
     expect(view.queryByText('확정 전 기록')).toBeNull();
@@ -668,6 +670,8 @@ describe('SCR-A05 약속 상세', () => {
     await settle();
 
     expect(view.getByText('상대방의 승인을 기다리고 있어요')).toBeTruthy();
+    expect(view.getByTestId('promise-detail-friendly')).toBeTruthy();
+    expect(view.queryByTestId('promise-seam')).toBeNull();
     expect(view.getByText('2026-08-19 00:00 (KST)')).toBeTruthy();
     expect(view.queryByText(/공증이나 전자계약 서비스가 아니며/u)).toBeNull();
     await fireEvent.press(view.getByRole('button', { name: '초대 관리하기' }));
@@ -792,7 +796,7 @@ describe('SCR-A05 약속 상세', () => {
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     );
     expect(loadDetailMock).toHaveBeenCalledTimes(2);
-    expect(view.getByText('두 사람이 손가락 걸었어요!')).toBeTruthy();
+    expect(view.getByText('함께 확인한 약속이에요')).toBeTruthy();
   });
 
   test('네트워크 실패 뒤 응답 결정을 바꾸면 새 멱등 키를 사용한다', async () => {
@@ -881,7 +885,7 @@ describe('SCR-A05 약속 상세', () => {
   });
 
   test.each([
-    ['COMPLETED', '약속 지킴! 완주했어요'],
+    ['COMPLETED', '함께 지킨 약속으로 기록됐어요'],
     ['BROKEN', '이번엔 못 지켰어요'],
     ['DISPUTED', '서로의 응답이 달라요'],
     ['UNRESOLVED', '응답 없이 종료됐어요'],
@@ -1007,9 +1011,9 @@ describe('SCR-A05 약속 상세', () => {
   });
 
   test.each([
-    ['DECLINED', '이번엔 성립되지 않았어요', '초대 내용을 받아들이기 어려워요'],
-    ['CANCELED', '약속이 파기됐어요', '일정이 바뀌었어요'],
-  ] as const)('%s는 중립 종결 이유를 표시하고 가짜 수정 액션이 없다', async (status, headline, reason) => {
+    ['DECLINED', '이번엔 성립되지 않았어요', '초대 내용을 받아들이기 어려워요', 'terminal-neutral'],
+    ['CANCELED', '약속이 파기됐어요', '일정이 바뀌었어요', 'record'],
+  ] as const)('%s는 중립 종결 이유를 표시하고 가짜 수정 액션이 없다', async (status, headline, reason, visualMode) => {
     loadDetailMock.mockResolvedValue(makeDetail({
       status,
       closed_at: '2026-08-20T00:00:00Z',
@@ -1027,6 +1031,7 @@ describe('SCR-A05 약속 상세', () => {
     await settle();
 
     expect(view.getByText(headline)).toBeTruthy();
+    expect(view.getByTestId(`promise-detail-${visualMode}`)).toBeTruthy();
     expect(view.getAllByText(reason).length).toBeGreaterThan(0);
     expect(view.queryByRole('button', { name: /다시 보내기|변경|파기|증인|버전/u })).toBeNull();
   });

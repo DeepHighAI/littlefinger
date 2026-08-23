@@ -4,6 +4,7 @@ import { BLOCKED_USERS_LABEL } from './blocked-users-labels.ts';
 import { INVITE_LABEL } from './invite-labels.ts';
 import { INVITE_REVIEW_LABEL } from './invite-review-labels.ts';
 import { LOGIN_LABEL } from './login-labels.ts';
+import { MOBILE_CHROME_LABEL } from './mobile-chrome-labels.ts';
 import { MOD_02_LABEL } from './mod-02-labels.ts';
 import { MOD_03_LABEL } from './mod-03-completion-celebration-labels.ts';
 import { NOT_FOUND_LABEL } from './not-found-labels.ts';
@@ -27,6 +28,7 @@ export const MOBILE_LABEL_CATALOGS = {
   INVITE_LABEL,
   INVITE_REVIEW_LABEL,
   LOGIN_LABEL,
+  MOBILE_CHROME_LABEL,
   MOD_01_LABEL,
   MOD_02_LABEL,
   MOD_03_LABEL,

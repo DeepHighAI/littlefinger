@@ -55,9 +55,9 @@
 
 /* 협의 중 상태 칩 — 점선 테두리로 "아직 확정 아님"을 표현 (AMEND_PENDING) */
 .lf-chip--pending {
-  background: transparent;
-  border: 1.5px dashed var(--lf-color-primary);
-  color: var(--lf-color-primary);
+  background: var(--lf-color-attention-container);
+  border: 1.5px dashed var(--lf-color-attention);
+  color: var(--lf-color-attention);
 }
 
 /* -------------------------------------------------------------
@@ -66,7 +66,7 @@
 
 /* 캡션인데 브랜드 컬러로 주목시킬 때 (예: "응답이 필요해요 · 2건") */
 .lf-caption--accent {
-  color: var(--lf-color-primary);
+  color: var(--lf-color-attention);
   font-weight: var(--lf-weight-bold);
 }
 
@@ -112,20 +112,20 @@
 }
 
 /* -------------------------------------------------------------
-   INFO BANNER — 옅은 그린 배경의 안내 박스 (예: SCR-W05 증인 권한 안내)
+   INFO BANNER — Quiet Record 블루 안내 박스 (예: SCR-W05 증인 권한 안내)
    ------------------------------------------------------------- */
 .lf-info-banner {
   display: flex;
   align-items: center;
   gap: var(--lf-space-3);
-  background: var(--lf-color-primary-soft);
+  background: var(--lf-color-record-container);
   border-radius: var(--lf-radius-md);
   padding: var(--lf-space-5) var(--lf-space-6);
 }
 
 .lf-info-banner .material-symbols-rounded {
   font-size: 18px;
-  color: var(--lf-color-primary);
+  color: var(--lf-color-record);
 }
 
 .lf-info-banner__text {
@@ -201,7 +201,7 @@
 }
 
 .lf-diff-new {
-  color: var(--lf-color-primary);
+  color: var(--lf-color-record);
   font-weight: var(--lf-weight-bold);
   text-decoration: none;
 }

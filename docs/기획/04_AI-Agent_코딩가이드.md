@@ -96,7 +96,7 @@ littlefinger/
 │   ├── migrations/               # 스키마 (세부기능명세서 §6)
 │   └── functions/                # Edge Functions (§7-3)
 │
-├── design-reference/             # ★ 읽기 전용 — 기존 HTML/CSS 27화면
+├── design-reference/             # ★ 승인 기준선 — 구현 중 읽기 전용인 HTML/CSS 27화면
 │   ├── screens/{app,web}/
 │   ├── styles/
 │   └── concept-4.html
@@ -113,12 +113,13 @@ littlefinger/
 | `src/types/promise.ts` | `packages/shared/src/promise.ts` | **그대로 이동.** 내용 변경 금지 |
 | `src/styles/tokens.css` | `design-reference/styles/tokens.css` + `apps/mobile/src/theme/tokens.ts` + `apps/web/src/styles/tokens.css` | 원본 보존 + 앱용 TS 변환 + 웹용 복사 |
 | `src/styles/{base,components}.css`, `src/styles/screens/*` | `design-reference/styles/` + `apps/web/src/styles/` | 원본 보존 + **웹은 그대로 재사용** |
-| `src/screens/app/*.html` (21개) | `design-reference/screens/app/` | **읽기 전용 시각 기준.** 앱 화면은 여기 보면서 새로 작성 |
+| `src/screens/app/*.html` (21개) | `design-reference/screens/app/` | **승인된 시각 기준.** 구현 중에는 읽기 전용으로 대조 |
 | `src/screens/web/*.html` (6개) | `design-reference/screens/web/` | 시각 기준 + JSX 변환 원본 |
 | `index.html`, `docs/flows.html`, `tools/serve.js` | `design-reference/` | 미리보기 유지 (`node design-reference/serve.js`) |
 | `design/concept-4.html` | `design-reference/concept-4.html` | 읽기 전용 유지 |
 
-> `design-reference/`는 **절대 수정하지 않는다.** 이식 결과와 원본을 비교해야 디자인 회귀를 잡을 수 있다.
+> `design-reference/`는 구현 이식 중 수정하지 않는다. 단 PO가 비교 시안을 명시적으로 승인하고
+> `DESIGN.md`와 ADR에 기록한 전역 리스타일은 새 기준선을 만드는 유일한 예외다.
 
 ---
 
@@ -170,7 +171,14 @@ npm run typecheck
 
 ## 5. 디자인 이식 규칙
 
-확정 UI는 이미 HTML/CSS로 구현되어 있다(27화면 · 토큰 · `lf-*` 컴포넌트 111개 클래스). **새로 디자인하지 않고 이식한다.**
+확정 UI는 이미 HTML/CSS로 구현되어 있다(27화면 · 디자인 토큰 115종 · `lf-*` 컴포넌트 110개 클래스). **새로 디자인하지 않고 이식한다.**
+
+2026-08-23 PO 승인 예외: 현재 시각 기준은 루트 `DESIGN.md`의 **Soft Promise → Quiet Record,
+A — Pine Anchor · Warm Promise · Blue Record**다. Pine은 브랜드·진행·승인, Action은 주 CTA,
+Blue는 확정 기록·정보, Apricot은 마감·응답 주의, red는 위험·오류에만 쓴다. 이 역할 팔레트는
+모바일·수락 웹·디자인 레퍼런스에 공통 적용하며 상태 정책이나 화면 구조를 바꾸지 않는다.
+향후 `design-reference/` 변경은 PO가 비교 시안을 명시적으로 승인하고 `DESIGN.md`와 ADR에
+기록한 경우에만 새 기준선으로 허용한다.
 
 ### 5-1. tokens.css → `apps/mobile/src/theme/tokens.ts`
 
@@ -196,24 +204,24 @@ npm run typecheck
 그림자 변환 예:
 
 ```ts
-// --lf-elevation-card: 0 1px 3px rgba(34, 25, 26, 0.06);
+// --lf-elevation-card: 0 1px 3px rgba(25, 28, 27, 0.06);
 export const elevation = {
   card: {
-    shadowColor: '#22191A',
+    shadowColor: '#191C1B',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
     elevation: 1,          // Android
   },
   fab: {
-    shadowColor: '#C74B64',
+    shadowColor: '#191C1B',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 8,
   },
   sheet: {
-    shadowColor: '#22191A',
+    shadowColor: '#191C1B',
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.16,
     shadowRadius: 28,
@@ -226,7 +234,7 @@ export const elevation = {
 
 ### 5-2. `lf-*` 클래스 → RN 컴포넌트
 
-**변형(`--filled`, `--web` 등)은 별도 컴포넌트로 만들지 않고 `props`로 받는다.** 111개 클래스가 약 33개 컴포넌트로 정리된다. 전부 `apps/mobile/src/components/` 아래 파일 하나당 컴포넌트 하나.
+**변형(`--filled`, `--web` 등)은 별도 컴포넌트로 만들지 않고 `props`로 받는다.** 110개 클래스가 약 33개 컴포넌트로 정리된다. 전부 `apps/mobile/src/components/` 아래 파일 하나당 컴포넌트 하나.
 
 | 원본 CSS 클래스 | RN 컴포넌트 | 변형 처리 |
 |---|---|---|
@@ -510,7 +518,7 @@ MVP는 **OS 기본 공유 시트**(RN `Share` API)로 초대 링크를 보낸다
 2. docs/기획/02_세부기능명세서.md
 3. docs/기획/04_AI-Agent_코딩가이드.md   ← 스택·구조·이식 규칙
 4. docs/디자인/01_와이어프레임_디자인요청서.md
-5. design-reference/  ← 확정 UI의 시각 기준 (읽기 전용, 수정 금지)
+5. design-reference/  ← 확정 UI 기준선 (구현 중 읽기 전용; PO 승인 리스타일만 예외)
 
 ## 스택
 Expo SDK 57 (RN 0.86) · TypeScript · Expo Router | 수락 웹: Vite + React

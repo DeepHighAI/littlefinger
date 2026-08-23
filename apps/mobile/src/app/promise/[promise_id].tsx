@@ -35,6 +35,7 @@ import { LfCard } from '../../components/LfCard';
 import { LfChip } from '../../components/LfChip';
 import { LfDisclaimer } from '../../components/LfDisclaimer';
 import { LfIcon } from '../../components/LfIcon';
+import { LfPromiseSeam } from '../../components/LfPromiseSeam';
 import { LfRow } from '../../components/LfRow';
 import { LfStack } from '../../components/LfStack';
 import { LfText } from '../../components/LfText';
@@ -70,12 +71,14 @@ import {
   changedVersionRows,
   claimPresentation,
   detailStatusOf,
+  detailVisualModeOf,
   evidenceAvailabilityText,
   fingerprintText,
   formatDetailDate,
   formatDetailDday,
   formatDetailInstant,
   responseFact,
+  type PromiseDetailVisualMode,
 } from '../../screens/scr-a05-detail-state.ts';
 import { MOD_01_LABEL, SCR_A05_LABEL } from '../../screens/scr-a05-labels.ts';
 import { colors, elevation, gutter, radius, size, space } from '../../theme/tokens';
@@ -93,6 +96,8 @@ interface IntentKey {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  screenFriendly: { backgroundColor: colors.primarySoft },
+  screenRecord: { backgroundColor: colors.surfaceMuted },
   back: {
     minWidth: size.touchMin,
     minHeight: size.touchMin,
@@ -111,9 +116,33 @@ const styles = StyleSheet.create({
     paddingBottom: space[9],
     gap: space[6],
   },
-  status: { alignItems: 'center', gap: space[3] },
+  status: { alignItems: 'center', gap: space[3], padding: space[6] },
+  statusFriendly: {
+    borderTopLeftRadius: radius.hero,
+    borderTopRightRadius: radius.hero,
+    borderBottomRightRadius: radius.hero,
+    borderBottomLeftRadius: radius.heroTail,
+    backgroundColor: colors.primaryContainer,
+  },
+  statusRecord: {
+    borderRadius: radius.record,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.recordContainer,
+    backgroundColor: colors.surface,
+  },
+  statusTerminal: {
+    borderRadius: radius.record,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.outline,
+    backgroundColor: colors.surface,
+  },
   detailText: { gap: space[3] },
   info: { gap: space[4] },
+  recordMetadata: {
+    padding: space[5],
+    borderRadius: radius.lg,
+    backgroundColor: colors.recordContainer,
+  },
   value: { flex: 1, alignItems: 'flex-end' },
   people: { gap: space[5] },
   personText: { flex: 1 },
@@ -173,14 +202,23 @@ function BackButton({ onPress }: { onPress(): void }): React.JSX.Element {
 
 function ScreenFrame({
   onBack,
+  mode = 'terminal-neutral',
   children,
 }: {
   onBack(): void;
+  mode?: PromiseDetailVisualMode;
   children: React.ReactNode;
 }): React.JSX.Element {
   const LABEL = useLabels(SCR_A05_LABEL);
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView
+      style={[
+        styles.screen,
+        mode === 'friendly' && styles.screenFriendly,
+        mode === 'record' && styles.screenRecord,
+      ]}
+      testID={`promise-detail-${mode}`}
+    >
       <LfAppBar title={LABEL.title} leading={<BackButton onPress={onBack} />} />
       {children}
     </SafeAreaView>
@@ -581,6 +619,8 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   }
 
   const status = detailStatusOf(detail.status, locale);
+  const visualMode = detailVisualModeOf(detail.status);
+  const contentCardVariant = visualMode === 'record' ? 'record' : 'default';
   const terminalReason =
     detail.status === 'DECLINED'
       ? (detail.approvals.find((approval) => approval.action === 'DECLINE')?.comment ?? null)
@@ -854,17 +894,29 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   }
 
   return (
-    <ScreenFrame onBack={() => router.back()}>
+    <ScreenFrame onBack={() => router.back()} mode={visualMode}>
       <ScrollView contentContainerStyle={styles.body}>
-        <View style={styles.status}>
+        <View
+          style={[
+            styles.status,
+            visualMode === 'friendly' && styles.statusFriendly,
+            visualMode === 'record' && styles.statusRecord,
+            visualMode === 'terminal-neutral' && styles.statusTerminal,
+          ]}
+        >
           <LfChip label={status.label} tone={status.tone} />
-          <LfText variant="headline" align="center">{status.headline}</LfText>
+          <LfText
+            variant={visualMode === 'record' ? 'confirmationHeadline' : 'headline'}
+            align="center"
+          >
+            {status.headline}
+          </LfText>
           <LfText variant="caption" align="center">
             {LABEL.statusSubtitle[detail.status]}
           </LfText>
         </View>
 
-        <LfCard>
+        <LfCard variant={contentCardVariant}>
           <View style={styles.detailText}>
             <LfText variant="title">{detail.title}</LfText>
             <LfText>{detail.body}</LfText>
@@ -879,7 +931,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         <LfStack gap={4}>
           <LfText variant="sectionTitle">{LABEL.people}</LfText>
-          <LfCard>
+          <LfCard variant={contentCardVariant}>
             <View style={styles.people}>
               <PersonRow person={detail.creator} />
               {detail.partner === null ? (
@@ -900,7 +952,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         </LfStack>
 
         {detail.status === 'PENDING' && detail.invitation !== null && (
-          <LfCard variant="container">
+          <LfCard variant={visualMode === 'record' ? 'record' : 'container'}>
             <View style={styles.info}>
               <InfoRow
                 label={LABEL.invitation}
@@ -967,21 +1019,27 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         <LfStack gap={4}>
           <LfText variant="sectionTitle">{LABEL.record}</LfText>
-          <LfCard variant="container">
-            <View style={styles.info}>
-              <LfText variant="caption">{fingerprintText(detail.current_version.fingerprint, locale)}</LfText>
+          <LfCard variant={visualMode === 'record' ? 'record' : 'container'}>
+            <View style={[styles.info, visualMode === 'record' && styles.recordMetadata]}>
               {/* 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다
                   (PO 2026-08-20). 최초 확정 시각은 승인 이력에 그대로 남는다. */}
               {detail.current_version.activated_at !== null && (
-                <LfText variant="caption">{formatDetailInstant(detail.current_version.activated_at)}</LfText>
+                <>
+                  <LfPromiseSeam />
+                  <LfText variant="caption">{formatDetailInstant(detail.current_version.activated_at)}</LfText>
+                </>
               )}
+              <LfText variant="caption">{fingerprintText(detail.current_version.fingerprint, locale)}</LfText>
             </View>
           </LfCard>
           {detail.approvals.length > 0 && (
             <LfStack gap={3}>
               <LfText variant="sectionTitle">{LABEL.approvals}</LfText>
               {detail.approvals.map((approval, index) => (
-                <LfCard key={`${approval.acted_at}.${approval.role}.${index}`}>
+                <LfCard
+                  key={`${approval.acted_at}.${approval.role}.${index}`}
+                  variant={contentCardVariant}
+                >
                   <InfoRow
                     label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]}`}
                     value={LABEL.approvalAction[approval.action]}

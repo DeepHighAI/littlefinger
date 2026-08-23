@@ -198,9 +198,9 @@ a diff is ever needed.
 The app framework (open point N-3) is **decided: React Native + Expo** (PO, 2026-07-25; ADR 0002).
 
 `design-reference/` holds the approved UI as a **framework-free HTML/CSS screen library** — 27
-screens, 90 design tokens, 110 `lf-*` component classes. It is **read-only, permanently.** The point
-is to diff the port against the original and catch visual regressions, which fails the moment the
-original moves. Preview it with `npm run preview`.
+screens, 115 design tokens, 110 `lf-*` component classes. It is read-only during implementation.
+The sole exception is an explicit PO-approved restyle previewed first and recorded in `DESIGN.md`
+and an ADR; that change creates a new frozen comparison baseline. Preview it with `npm run preview`.
 
 - App screens (SCR-A\*, MOD-\*) → **ported** to React Native against this reference.
 - Acceptance web (SCR-W\*) → moved to Vite **reusing the CSS verbatim**.
@@ -268,13 +268,19 @@ keepRate denominator counts **only promises where I am the obligor**, and shows 
 
 ### 5-3. The design system is a one-source, three-target pipeline
 
+Read [`DESIGN.md`](DESIGN.md) before changing UI. It defines the approved Soft Promise → Quiet
+Record semantics and A — Pine Anchor · Warm Promise · Blue Record — role palette. Pine owns
+identity/progress/approval, Action owns filled CTA, Blue owns durable information, Apricot owns
+deadline/response attention, and red is danger-only. The product hierarchy in §4 and the hard
+constraints in §8 still win.
+
 `src/styles/tokens.css` is the single definition of every colour, type scale, radius, spacing,
 elevation, easing and duration. It was authored at a **360×800 dp** viewport, which is why the port
 is mechanical:
 
 | Target | Transform |
 |---|---|
-| `design-reference/styles/tokens.css` | copy, frozen |
+| `design-reference/styles/tokens.css` | canonical approved baseline; frozen between PO-approved restyles |
 | `apps/mobile/src/theme/tokens.ts` | **px number = RN dp, 1:1**. Only shadows (→ objects), easing (→ `Easing.bezier`), weights (→ strings) change shape |
 | `apps/web/src/styles/tokens.css` | copy, used as-is |
 
@@ -313,7 +319,7 @@ packages/shared/   # the only shared code — MUST NOT import react-native, wind
 apps/mobile/       # Expo — SCR-A*, MOD-*
 apps/web/          # Vite — SCR-W01..W06, existing CSS reused as-is
 supabase/          # migrations + Edge Functions
-design-reference/  # today's HTML/CSS — read-only
+design-reference/  # approved HTML/CSS baseline — read-only between PO-approved restyles
 ```
 
 `packages/shared` holds domain types, label/policy constants, error codes, validation rules and the

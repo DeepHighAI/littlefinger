@@ -69,7 +69,9 @@ The token and component layer is the part that survives, exactly as ADR 0001 pre
   becoming props (`lf-btn--filled` → `<LfButton variant="filled">`).
 - The acceptance web (SCR-W01–W06) moves to Vite **keeping the CSS as-is**. Removed: the `lf-device`
   wrapper, `frame.js`, `screen-page.css`, `lf-browserbar` — all preview-only scaffolding.
-- The current HTML/CSS then moves to `design-reference/` and becomes **read-only**.
+- The current HTML/CSS then moves to `design-reference/` and is **read-only during implementation**.
+  A later PO-approved restyle recorded in `DESIGN.md` and an ADR may establish a new frozen baseline;
+  ADR 0008 documents the 2026-08-23 precedent.
 
 Full rules, including the per-file migration table, live in `04_AI-Agent_코딩가이드` §3–§5.
 

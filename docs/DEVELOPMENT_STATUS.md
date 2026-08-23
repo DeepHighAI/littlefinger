@@ -15,7 +15,7 @@ Executed against the approved launch-review plan (`docs` release gates + Play po
   `production.autoIncrement`; AdMob production env vars documented in `.env.example` (production
   builds deliberately fail without real IDs).
 - **Push notification branding**: `expo-notifications` plugin now sets the monochrome icon +
-  `#00BF40` color (was: default grey square).
+  palette-A Pine `#0B6B4B` colour (was: default grey square, then Fresh Green).
 - **Test-login hygiene**: the mobile test-auth module is now attached via a `__DEV__`-guarded
   `require`, so Metro DCE drops it from production bundles (the static import survived before).
 - **SCR-A00 single-page onboarding confirmed** (Q-5 option (b), PO-approved plan): page dots and
@@ -237,9 +237,16 @@ The measured first-view LCP passes the 3-second target, so the plan does not aut
 changes. CLS is **0.1666** and remains a visual-quality finding; SEO is **82**. Authenticated major
 screen transitions and approval API p95 were not measurable without the two-account session.
 
+## Visual-system baseline (2026-08-23)
+
+The PO approved A — **Pine Anchor · Warm Promise · Blue Record** — for the full mobile app,
+acceptance web, and design reference. It supersedes the single-green Fresh Green palette while
+preserving Soft Promise → Quiet Record layouts and all domain behaviour. `DESIGN.md` is the
+permanent colour and screen-application contract; ADR 0008 records the amendment.
+
 Still pending:
 
-- full app/web 360×800 comparison after the Fresh Green and brand-symbol changes;
+- final physical-device 360×800 comparison against the palette-A reference;
 - authenticated major screen transition ≤2 seconds and approval API p95 ≤1 second;
 - two Kakao accounts completing approval, witness, amend, fulfillment, safety and withdrawal flows;
 - real Expo push delivery on a physical device (emulator delivery verified foreground/background/

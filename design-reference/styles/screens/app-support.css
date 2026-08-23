@@ -48,7 +48,7 @@
 
 /* 안읽은 알림 — 배경 틴트로 구분 (색상만으로 구분하지 않도록 굵기·점도 동반) */
 .lf-notif-item--unread {
-  background: var(--lf-color-primary-soft);
+  background: var(--lf-color-record-container);
   border-color: transparent;
 }
 
@@ -66,11 +66,14 @@
 
 .lf-notif-item__icon .material-symbols-rounded { font-size: 19px; }
 
-.lf-notif-item__icon--accent { background: var(--lf-color-primary-container); }
+.lf-notif-item__icon--accent {
+  background: var(--lf-color-record-container);
+  color: var(--lf-color-record);
+}
 
 .lf-notif-item__icon--urgent {
-  background: var(--lf-color-primary);
-  color: var(--lf-color-on-primary);
+  background: var(--lf-color-attention-container);
+  color: var(--lf-color-attention);
 }
 
 .lf-notif-item__body { flex: 1; min-width: 0; }
@@ -97,7 +100,7 @@
   height: 8px;
   margin-top: var(--lf-space-1);
   border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-primary);
+  background: var(--lf-color-record);
   flex: none;
 }
 

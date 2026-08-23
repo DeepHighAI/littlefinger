@@ -43,7 +43,7 @@ const container = StyleSheet.create({
     justifyContent: 'center',
     gap: space[3],
   },
-  filled: { backgroundColor: colors.primary },
+  filled: { backgroundColor: colors.actionFill },
   tonal: { backgroundColor: colors.primaryContainer },
   outlined: {
     backgroundColor: 'transparent',
@@ -61,7 +61,7 @@ const container = StyleSheet.create({
 });
 
 const labelColor: Record<LfButtonVariant, string> = {
-  filled: colors.onPrimary,
+  filled: colors.onAction,
   tonal: colors.onPrimaryContainer,
   outlined: colors.primary,
   text: colors.textMuted,
@@ -120,7 +120,7 @@ export function LfButton({
         grow && { flex: 1 },
         pressed &&
           (variant === 'filled'
-            ? { backgroundColor: colors.primaryPressed }
+            ? { backgroundColor: colors.actionFillPressed }
             : { opacity: PRESSED_OPACITY }),
         isDisabled && { opacity: DISABLED_OPACITY },
       ]}

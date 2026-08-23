@@ -21,3 +21,12 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageTag: 'ko-KR' }],
 }));
+
+// Reanimated 4는 Jest에서 네이티브 worklet 런타임을 설치할 수 없다. 공식 mock은
+// 애니메이션을 즉시 완료시켜 화면 계약과 reduced-motion 분기만 결정적으로 검증한다.
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = require('react-native-reanimated/mock');
+  Reanimated.default.call = () => {};
+  Reanimated.useReducedMotion = () => false;
+  return Reanimated;
+});

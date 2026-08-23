@@ -33,14 +33,23 @@ export type PromiseDetailVariant =
   | 'UNRESOLVED'
   | 'TERMINAL';
 
+export type PromiseDetailVisualMode = 'friendly' | 'record' | 'terminal-neutral';
+
+/** 상태 정책은 바꾸지 않고, 확정 전·후의 시각 언어만 순수하게 분리한다. */
+export function detailVisualModeOf(status: PromiseStatus): PromiseDetailVisualMode {
+  if (status === 'DRAFT' || status === 'PENDING') return 'friendly';
+  if (status === 'DECLINED') return 'terminal-neutral';
+  return 'record';
+}
+
 // 순수 모듈이라 훅을 못 쓴다 — 로케일은 뒤쪽 인자(기본 ko)로 받는다.
 const HEADLINE: Localized<Record<PromiseDetailStatus, string>> = {
   ko: {
     PENDING: '상대방의 승인을 기다리고 있어요',
-    ACTIVE: '두 사람이 손가락 걸었어요!',
+    ACTIVE: '함께 확인한 약속이에요',
     AMEND_PENDING: '변경 내용을 확인하고 있어요',
     CHECKING: '약속, 지켜졌나요?',
-    COMPLETED: '약속 지킴! 완주했어요',
+    COMPLETED: '함께 지킨 약속으로 기록됐어요',
     BROKEN: '이번엔 못 지켰어요',
     DISPUTED: '서로의 응답이 달라요',
     UNRESOLVED: '응답 없이 종료됐어요',
@@ -50,10 +59,10 @@ const HEADLINE: Localized<Record<PromiseDetailStatus, string>> = {
   // DISPUTED en 도 P1(기록자, 판정자 아님)을 지킨다 — 누가 옳은지 암시하지 않는다.
   en: {
     PENDING: "Waiting for your partner's approval",
-    ACTIVE: 'You two pinky promised!',
+    ACTIVE: 'This promise was confirmed together',
     AMEND_PENDING: 'Reviewing the proposed changes',
     CHECKING: 'Was the promise kept?',
-    COMPLETED: 'Promise kept! You made it',
+    COMPLETED: 'Recorded as a promise kept together',
     BROKEN: "It wasn't kept this time",
     DISPUTED: 'Your responses differ',
     UNRESOLVED: 'Closed without a response',
@@ -64,7 +73,7 @@ const HEADLINE: Localized<Record<PromiseDetailStatus, string>> = {
 
 const TONE: Record<PromiseDetailStatus, LfChipTone> = {
   PENDING: 'neutral',
-  ACTIVE: 'status',
+  ACTIVE: 'info',
   AMEND_PENDING: 'urgent',
   CHECKING: 'urgent',
   COMPLETED: 'done',

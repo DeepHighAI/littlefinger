@@ -84,8 +84,8 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 hover·pressed 상태를 포함한 95개 토큰을 정의한다', () => {
-    expect(cssTokens.size).toBe(95);
+  test('canonical tokens.css 는 hover·pressed 상태와 승인된 화면 토큰을 정의한다', () => {
+    expect(cssTokens.size).toBe(115);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -96,7 +96,7 @@ describe('토큰이 하나도 누락되지 않았다', () => {
       { prefix: 'type-', keys: Object.keys(type), toKey: (r) => camel(r.replace('-size', '')) },
       { prefix: 'line-', keys: Object.keys(line), toKey: camel },
       { prefix: 'weight-', keys: Object.keys(weight), toKey: camel },
-      { prefix: 'radius-', keys: Object.keys(radius), toKey: (r) => r },
+      { prefix: 'radius-', keys: Object.keys(radius), toKey: camel },
       { prefix: 'space-', keys: Object.keys(space), toKey: (r) => r },
       { prefix: 'gutter-', keys: Object.keys(gutter), toKey: camel },
       { prefix: 'elevation-', keys: Object.keys(elevation), toKey: camel },
@@ -147,26 +147,29 @@ describe('색상은 문자열 그대로 옮긴다', () => {
   });
 });
 
-describe('Fresh Green 웹 토큰도 같은 계약을 쓴다', () => {
+describe('A안 역할 기반 웹 토큰도 같은 계약을 쓴다', () => {
   test('수락 웹의 모든 토큰 값이 확정안과 일치한다', () => {
     for (const [name, expected] of cssTokens) {
       expect(webCssTokens.get(name)).toBe(expected);
     }
-    expect(webCssTokens.get('color-primary-hover')).toBe('#00A435');
-    expect(webCssTokens.get('color-primary-pressed')).toBe('#009933');
+    expect(webCssTokens.get('color-primary')).toBe('#0B6B4B');
+    expect(webCssTokens.get('color-primary-hover')).toBe('#095D41');
+    expect(webCssTokens.get('color-primary-pressed')).toBe('#084E37');
+    expect(webCssTokens.get('color-record')).toBe('#466FA8');
+    expect(webCssTokens.get('color-attention')).toBe('#B86A24');
   });
 
-  test('그린 틴트 위 텍스트 세 곳은 대비 보정 역할을 쓴다', () => {
+  test('안내·응답·안읽음 상태가 역할 기반 색을 쓴다', () => {
     const css = readFileSync(WEB_COMPONENTS_CSS, 'utf8');
 
     expect(css).toMatch(
-      /\.lf-notice\s*\{[^}]*color:\s*var\(--lf-color-primary-ink\)/su,
+      /\.lf-notice\s*\{[^}]*color:\s*var\(--lf-color-record\)/su,
     );
     expect(css).toMatch(
       /\.lf-card--container\s+\.lf-dday\s*\{[^}]*color:\s*var\(--lf-color-success\)/su,
     );
     expect(css).toMatch(
-      /\.lf-list-item--unread\s+\.lf-list-item__headline\s*\{[^}]*color:\s*var\(--lf-color-primary-ink\)/su,
+      /\.lf-list-item--unread\s+\.lf-list-item__headline\s*\{[^}]*color:\s*var\(--lf-color-record\)/su,
     );
   });
 });
@@ -206,7 +209,9 @@ describe('치수는 px 를 뗀 숫자다 — CSS px 값이 곧 RN dp 다', () =>
   test.each([...cssTokens.entries()].filter(([n]) => n.startsWith('radius-')))(
     '--lf-%s = %s',
     (name, expected) => {
-      expect(radius[name.replace('radius-', '') as keyof typeof radius]).toBe(unitless(expected));
+      expect(radius[camel(name.replace('radius-', '')) as keyof typeof radius]).toBe(
+        unitless(expected),
+      );
     },
   );
 
@@ -233,21 +238,21 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
   });
 
   test('그림자는 box-shadow 대신 객체다', () => {
-    // 두 겹 CSS 그림자를 RN 단일 그림자의 더 강한 두 번째 층으로 보존한다.
+    // 당근식 최소 그림자 — 여러 겹 CSS 그림자는 가장 강한 층 하나로 보존한다(ADR 0008).
     expect(elevation.card).toEqual({
-      shadowColor: '#171717',
+      shadowColor: '#191C1B',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
+      shadowOpacity: 0.04,
+      shadowRadius: 2,
       elevation: 1,
     });
-    expect(elevation.fab.shadowOffset).toEqual({ width: 0, height: 8 });
-    expect(elevation.fab.shadowRadius).toBe(24);
-    expect(elevation.fab.shadowOpacity).toBe(0.08);
-    expect(elevation.sheet.shadowColor).toBe('#000000');
-    expect(elevation.sheet.shadowOffset).toEqual({ width: 0, height: -8 });
-    expect(elevation.sheet.shadowRadius).toBe(28);
-    expect(elevation.sheet.shadowOpacity).toBe(0.12);
+    expect(elevation.fab.shadowOffset).toEqual({ width: 0, height: 6 });
+    expect(elevation.fab.shadowRadius).toBe(16);
+    expect(elevation.fab.shadowOpacity).toBe(0.14);
+    expect(elevation.sheet.shadowColor).toBe('#191C1B');
+    expect(elevation.sheet.shadowOffset).toEqual({ width: 0, height: -6 });
+    expect(elevation.sheet.shadowRadius).toBe(24);
+    expect(elevation.sheet.shadowOpacity).toBe(0.1);
   });
 
   test('이징은 베지어 계수 배열이다', () => {
@@ -275,6 +280,20 @@ describe('접근성 하한', () => {
     expect(contrastRatio(colors.onPrimary, background)).toBeGreaterThanOrEqual(4.5);
   });
 
+  test.each([
+    ['default', colors.actionFill],
+    ['pressed', colors.actionFillPressed],
+  ] as const)('소프트 액션 %s 상태의 텍스트 대비는 WCAG AA 4.5:1 이상이다', (_, background) => {
+    expect(contrastRatio(colors.onAction, background)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test('정보·주의·위험 역할이 서로 다른 토큰을 쓴다', () => {
+    expect(new Set([colors.record, colors.attention, colors.error]).size).toBe(3);
+    expect(colors.recordContainer).toBe('#EAF1FB');
+    expect(colors.attentionContainer).toBe('#FFF1E6');
+    expect(colors.errorContainer).toBe('#FCECEA');
+  });
+
   test('터치 타깃 최소치는 48 이고 줄이지 않는다', () => {
     // 04 §5-1: "touchMin: 48 은 접근성 하한. 줄이지 않는다"
     expect(size.touchMin).toBe(48);
@@ -288,5 +307,11 @@ describe('접근성 하한', () => {
     expect(size.fabHeight).toBe(unitless(cssTokens.get('fab-height') ?? ''));
     expect(size.tabHeight).toBe(unitless(cssTokens.get('tab-height') ?? ''));
     expect(size.iconButton).toBe(unitless(cssTokens.get('icon-button') ?? ''));
+    expect(size.bottomNavContentHeight).toBe(
+      unitless(cssTokens.get('bottom-nav-content-height') ?? ''),
+    );
+    expect(size.centerFab).toBe(unitless(cssTokens.get('center-fab') ?? ''));
+    expect(size.navIcon).toBe(unitless(cssTokens.get('nav-icon') ?? ''));
+    expect(size.appbarIcon).toBe(unitless(cssTokens.get('appbar-icon') ?? ''));
   });
 });

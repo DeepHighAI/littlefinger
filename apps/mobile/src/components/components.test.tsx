@@ -1,24 +1,32 @@
 import { render, userEvent } from '@testing-library/react-native';
 import type { TextStyle, ViewStyle } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors, line, size, space, type, weight } from '../theme/tokens';
 import { LfAvatar } from './LfAvatar';
 import { LfAppBar } from './LfAppBar';
 import { LfButton } from './LfButton';
+import { LfBottomNav } from './LfBottomNav';
 import { LfCard } from './LfCard';
 import { LfChoice } from './LfChoice';
 import { LfDisclaimer } from './LfDisclaimer';
 import { LfFab } from './LfFab';
+import { LfHelper } from './LfHelper';
+import { LfHero } from './LfHero';
 import { LfField } from './LfField';
 import { LfIcon } from './LfIcon';
 import { LfInput } from './LfInput';
 import { LfNotice } from './LfNotice';
 import { LfPicker } from './LfPicker';
 import { LfPinky } from './LfPinky';
+import { LfPromiseSeam, promiseSeamDuration } from './LfPromiseSeam';
 import { LfRow } from './LfRow';
 import { LfStack } from './LfStack';
 import { LfSwitch } from './LfSwitch';
 import { LfText } from './LfText';
+import { LfTrustRing, trustRingDuration } from './LfTrustRing';
+import { LfTrustStrip } from './LfTrustStrip';
+import { LfWizardProgress } from './LfWizardProgress';
 
 /**
  * 근거: 04 §5-2 (lf-* → RN 컴포넌트), §12 절대제약.
@@ -59,8 +67,10 @@ describe('LfText', () => {
   });
 
   test.each([
-    ['title', type.title, weight.heavy],
-    ['subtitle', type.subtitle, weight.heavy],
+    ['headline', 22, weight.bold],
+    ['confirmationHeadline', 22, weight.heavy],
+    ['title', type.title, weight.bold],
+    ['subtitle', type.subtitle, weight.bold],
     ['sectionTitle', type.caption, weight.bold],
     ['body', type.body, weight.regular],
     ['caption', type.caption, weight.regular],
@@ -107,11 +117,11 @@ describe('LfDisclaimer', () => {
 });
 
 describe('LfNotice', () => {
-  test('그린 틴트 위 라벨은 대비가 확보된 primaryInk를 쓴다', async () => {
+  test('정보 안내는 Quiet Record 블루를 쓴다', async () => {
     const view = await render(<LfNotice label="초대가 곧 만료돼요" />);
 
     expect(flatten(view.getByText('초대가 곧 만료돼요').props.style).color).toBe(
-      colors.primaryInk,
+      colors.record,
     );
   });
 });
@@ -172,14 +182,14 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
     expect((styleOf(view, 'b') as ViewStyle).height).toBe(size.ctaHeight);
   });
 
-  test('filled 는 브랜드 색을 쓴다', async () => {
+  test('filled 는 소프트 액션 색을 쓴다', async () => {
     const view = await render(<LfButton testID="b" variant="filled" label="확인" />);
-    expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.primary);
+    expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.actionFill);
   });
 
-  test('filled 를 누르는 동안 Fresh Green pressed 색을 쓴다', async () => {
+  test('filled 를 누르는 동안 소프트 액션 pressed 색을 쓴다', async () => {
     const button = LfButton({ variant: 'filled', label: '확인' });
-    expect(pressedStyleOf(button).backgroundColor).toBe(colors.primaryPressed);
+    expect(pressedStyleOf(button).backgroundColor).toBe(colors.actionFillPressed);
   });
 
   test('kakao 는 카카오 공식 버튼 색을 쓴다', async () => {
@@ -246,15 +256,15 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
 });
 
 describe('LfFab', () => {
-  test('누르는 동안 Fresh Green pressed 색을 쓴다', async () => {
+  test('누르는 동안 소프트 액션 pressed 색을 쓴다', async () => {
     const button = LfFab({ label: '약속 만들기' });
-    expect(pressedStyleOf(button).backgroundColor).toBe(colors.primaryPressed);
+    expect(pressedStyleOf(button).backgroundColor).toBe(colors.actionFillPressed);
   });
 });
 
 describe('LfPinky', () => {
   test('새 브랜드 심볼은 진한 그린 토큰과 이미지 자산을 쓴다', async () => {
-    expect(colors).toHaveProperty('brandSymbol', '#006B3C');
+    expect(colors).toHaveProperty('brandSymbol', '#0B6B4B');
 
     const view = await render(
       <LfPinky testID="pinky" size="lg" accessibilityLabel="새끼손가락 약속" />,
@@ -263,15 +273,21 @@ describe('LfPinky', () => {
     const style = flatten(mark.props.style);
 
     expect(mark.type).toBe('Image');
-    expect(style.tintColor).toBe('#006B3C');
+    expect(style.tintColor).toBe('#0B6B4B');
     expect(style.width).toBeGreaterThan(style.height as number);
     expect(view.getByRole('image', { name: '새끼손가락 약속' })).toBeTruthy();
   });
 
-  test('primary 배경에서는 단색 흰색으로 대비한다', async () => {
+  test('소프트 액션 면에서는 밝은 아이보리로 대비한다', async () => {
     const view = await render(<LfPinky testID="pinky" tone="onPrimary" />);
     const mark = view.getByTestId('pinky', { includeHiddenElements: true });
-    expect(flatten(mark.props.style).tintColor).toBe(colors.onPrimary);
+    expect(flatten(mark.props.style).tintColor).toBe(colors.brandSymbolOnAction);
+  });
+
+  test('정보 맥락에서는 Record Blue로 표시한다', async () => {
+    const view = await render(<LfPinky testID="pinky" tone="record" />);
+    const mark = view.getByTestId('pinky', { includeHiddenElements: true });
+    expect(flatten(mark.props.style).tintColor).toBe(colors.record);
   });
 });
 
@@ -284,11 +300,11 @@ describe('LfCard', () => {
     expect(s.borderWidth).toBe(1);
   });
 
-  test('emphasis 는 2dp Fresh Green 테두리로 주목시킨다', async () => {
+  test('emphasis 는 2dp Record Blue 테두리로 정보 구조를 강조한다', async () => {
     const view = await render(<LfCard testID="c" variant="emphasis" />);
     const s = styleOf(view, 'c') as ViewStyle;
     expect(s.borderWidth).toBe(2);
-    expect(s.borderColor).toBe(colors.primary);
+    expect(s.borderColor).toBe(colors.record);
   });
 
   test('container 는 톤 배경에 테두리가 없다', async () => {
@@ -305,6 +321,98 @@ describe('LfCard', () => {
     expect(s.backgroundColor).toBe('transparent');
     expect(s.paddingVertical).toBe(0);
     expect(s.paddingHorizontal).toBe(0);
+  });
+
+  test('record 는 확정 기록용 대칭 곡률을 쓴다', async () => {
+    const view = await render(<LfCard testID="c" variant="record" />);
+    expect(styleOf(view, 'c').borderRadius).toBe(16);
+  });
+});
+
+describe('Soft Promise 공통 컴포넌트', () => {
+  test('히어로는 비대칭 곡률과 대형 D-Day를 쓴다', async () => {
+    const view = await render(
+      <LfHero testID="hero" eyebrow="가장 가까운 약속" title="함께 걷기" dday="D-3" />,
+    );
+    const hero = styleOf(view, 'hero') as ViewStyle;
+    expect(hero.borderTopLeftRadius).toBe(28);
+    expect(hero.borderBottomLeftRadius).toBe(12);
+    expect(flatten(view.getByText('D-3').props.style).fontSize).toBe(type.heroDday);
+  });
+
+  test('하단 내비는 목적지와 라벨된 중앙 작성 행동을 분리하고 safe-area를 더한다', async () => {
+    const onCreate = jest.fn();
+    const view = await render(
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 360, height: 800 },
+          insets: { top: 24, left: 0, right: 0, bottom: 24 },
+        }}
+      >
+        <LfBottomNav
+          active="home"
+          onHomePress={() => undefined}
+          onCreatePress={onCreate}
+          onProfilePress={() => undefined}
+        />
+      </SafeAreaProvider>,
+    );
+    expect(view.getByRole('tab', { name: '홈' }).props.accessibilityState).toEqual({ selected: true });
+    const create = view.getByRole('button', { name: '작성' });
+    expect(flatten(create.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
+    expect(flatten(create.props.style).backgroundColor).toBe(colors.actionFill);
+    expect(styleOf(view, 'lf-bottom-nav').paddingBottom).toBe(24);
+    await userEvent.press(create);
+    expect(onCreate).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([0, 87, 100])('지킴율 %i를 progressbar로 읽는다', async (rate) => {
+    const view = await render(<LfTrustRing rate={rate} />);
+    expect(view.getByRole('progressbar', { name: '약속 지킴율' }).props.accessibilityValue).toEqual({
+      min: 0,
+      max: 100,
+      now: rate,
+    });
+    expect(view.getByText(`${rate}%`)).toBeTruthy();
+  });
+
+  test.each([[-10, 0], [112, 100]] as const)('지킴율 %i를 %i로 clamp한다', async (rate, expected) => {
+    const view = await render(<LfTrustRing rate={rate} />);
+    expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(expected);
+    expect(view.getByText(`${expected}%`)).toBeTruthy();
+  });
+
+  test('표본 부족 지킴율은 숫자를 꾸미지 않고 집계 중으로 표시한다', async () => {
+    const view = await render(<LfTrustRing rate={null} />);
+    expect(view.getByText('집계 중')).toBeTruthy();
+    expect(view.getByRole('progressbar').props.accessibilityValue).toEqual({ text: '집계 중' });
+  });
+
+  test('reduced motion은 링과 Promise Seam의 공간 애니메이션을 0ms로 만든다', () => {
+    expect(trustRingDuration(true)).toBe(0);
+    expect(promiseSeamDuration(true)).toBe(0);
+    expect(trustRingDuration(false)).toBe(400);
+    expect(promiseSeamDuration(false)).toBe(400);
+  });
+
+  test('3단계 진행률과 헬퍼·지킴율 스트립·Promise Seam을 렌더한다', async () => {
+    const view = await render(
+      <>
+        <LfWizardProgress step={2} labels={['내용', '조건', '확인']} />
+        <LfHelper text="상대가 승인하면 이 내용으로 확정돼요." />
+        <LfTrustStrip rate={87} onPress={() => undefined} />
+        <LfPromiseSeam />
+      </>,
+    );
+    expect(view.getByRole('progressbar').props.accessibilityValue).toEqual({
+      min: 1,
+      max: 3,
+      now: 2,
+      text: '조건',
+    });
+    expect(view.getByText('상대가 승인하면 이 내용으로 확정돼요.')).toBeTruthy();
+    expect(view.getByRole('button', { name: '지금까지 약속의 87%를 지켰어요' })).toBeTruthy();
+    expect(view.getByTestId('promise-seam', { includeHiddenElements: true })).toBeTruthy();
   });
 });
 

@@ -4,7 +4,7 @@ import type { Localized, ReminderHour } from '@littlefinger/shared';
 const ko = {
   title: '마이',
   back: '뒤로',
-  connected: '카카오 계정 연결됨',
+  connected: '계정 연결됨',
   nicknameSetup: '닉네임 설정',
   profileImage: (nickname: string) => `${nickname} 프로필 사진`,
   keepRate: '약속 지킴율',
@@ -62,7 +62,7 @@ const ko = {
 const en = {
   title: 'Profile',
   back: 'Back',
-  connected: 'Kakao account linked',
+  connected: 'Account linked',
   nicknameSetup: 'Set nickname',
   profileImage: (nickname: string) => `${nickname}'s profile photo`,
   keepRate: 'Keep rate',

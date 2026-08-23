@@ -1,7 +1,8 @@
 /* =============================================================
-   Little Finger — Design Tokens ("Fresh Green" — Wanted green-50)
+   Little Finger — Design Tokens ("Pine Anchor · Warm Promise · Blue Record")
    Canonical source for the design reference, app, and acceptance web.
-   역할 이름은 유지하고 색·곡률·그림자·모션을 Fresh Green으로 재정의한다.
+   확정: 2026. 8. 23. A안 PO 승인.
+   Toss·당근의 색 역할 분리 철학을 따르되 리틀핑거 고유 팔레트를 쓴다.
    ============================================================= */
 
 /* @import 는 반드시 다른 규칙보다 먼저 와야 한다 (CSS 명세).
@@ -20,50 +21,64 @@
 
 :root {
   /* ---------------------------------------------------------
-     COLOR — 브랜드 그린(Wanted green scale)
+     COLOR — 역할 기반 팔레트
      --------------------------------------------------------- */
-  --lf-color-primary:              #00BF40;
-  --lf-color-primary-hover:        #00A435;
-  --lf-color-primary-pressed:      #009933;
-  --lf-color-on-primary:           #171719;
-  --lf-color-primary-container:    #DBFBE5;
-  --lf-color-on-primary-container: #02220C;
-  --lf-color-primary-soft:         #F0FDF4; /* 알림 pill 배경 */
-  --lf-color-primary-pale:         #6FE69C; /* 핑키 마크 보조 획 */
-  --lf-color-primary-ink:          #006420; /* 컨테이너 위 보조 텍스트 */
+  --lf-color-primary:              #0B6B4B; /* Pine · 브랜드·승인·진행 */
+  --lf-color-primary-hover:        #095D41;
+  --lf-color-primary-pressed:      #084E37;
+  --lf-color-on-primary:           #FFFFFF;
+  --lf-color-primary-container:    #E7F4ED; /* Mint */
+  --lf-color-on-primary-container: #0B6B4B;
+  --lf-color-primary-soft:         #F3FAF6;
+  --lf-color-primary-pale:         #78CEA5;
+  --lf-color-primary-ink:          #0B6B4B;
+  --lf-color-action-fill:          #78CEA5;
+  --lf-color-action-fill-pressed:  #62BF92;
+  --lf-color-on-action:            #12382B;
+  --lf-color-brand-symbol-on-action: #FFF8E7; /* 소프트 액션 면 위 핑키 아이보리 */
+  --lf-color-brand-symbol:         #0B6B4B;
+
+  /* 확정 기록·정보 */
+  --lf-color-record:           #466FA8;
+  --lf-color-on-record:        #FFFFFF;
+  --lf-color-record-container: #EAF1FB;
+
+  /* 마감·응답 필요 */
+  --lf-color-attention:           #B86A24;
+  --lf-color-attention-container: #FFF1E6;
 
   /* 표면 */
-  --lf-color-background:      #FFFFFF;
+  --lf-color-background:      #F7F8F6;
   --lf-color-surface:         #FFFFFF;
   --lf-color-surface-chrome:  #FFFFFF; /* 브라우저 크롬 / 앱바 */
-  --lf-color-surface-muted:   #F7F7F8; /* 비활성 탭 · 보조 칩 */
+  --lf-color-surface-muted:   #F1F3F2;
 
-  /* 외곽선 */
-  --lf-color-outline:        rgba(112, 115, 124, 0.22);
-  --lf-color-outline-strong: rgba(112, 115, 124, 0.40);
-  --lf-color-outline-icon:   #AEB0B6;
+  /* 외곽선 — 그림자 대신 헤어라인으로 면을 가른다 */
+  --lf-color-outline:        #E2E6E3;
+  --lf-color-outline-strong: #CFD6D2;
+  --lf-color-outline-icon:   #9AA39E;
 
-  /* 텍스트 */
-  --lf-color-text:           #171719;
-  --lf-color-text-secondary: #46474C;
-  --lf-color-text-muted:     #70737C;
-  --lf-color-text-faint:     #989BA2; /* 디스클레이머 */
+  /* 텍스트 — 따뜻한 중립 위계 */
+  --lf-color-text:           #191C1B;
+  --lf-color-text-secondary: #5F6864;
+  --lf-color-text-muted:     #7B837F;
+  --lf-color-text-faint:     #9AA39E;
 
   /* 보상 / 벌칙 (§9 용어: Reward=보상, Penalty=벌칙) */
-  --lf-color-reward-container:     #EAF2FE;
-  --lf-color-on-reward-container:  #002566;
-  --lf-color-reward-label:         #003A91;
-  --lf-color-penalty-container:    #FFD9C2;
-  --lf-color-on-penalty-container: #3D0505;
-  --lf-color-penalty-label:        #7D2E00;
+  --lf-color-reward-container:     #EAF1FB;
+  --lf-color-on-reward-container:  #29466F;
+  --lf-color-reward-label:         #466FA8;
+  --lf-color-penalty-container:    #FFF1E6;
+  --lf-color-on-penalty-container: #6B3B14;
+  --lf-color-penalty-label:        #B86A24;
 
-  /* 오류 · 불이행 강조 */
-  --lf-color-error:           #C81616;
-  --lf-color-error-container: #FFE9E9;
+  /* 오류 · 불이행 강조 — 실제 위험에만 사용 */
+  --lf-color-error:           #C4433B;
+  --lf-color-error-container: #FCECEA;
 
   /* 성공 · 완료 */
-  --lf-color-success:           #008629;
-  --lf-color-success-container: #DBFBE5;
+  --lf-color-success:           #0B6B4B;
+  --lf-color-success-container: #E7F4ED;
 
   /* 카카오 로그인 (공식 버튼 가이드 색) */
   --lf-color-kakao:    #FEE500;
@@ -75,7 +90,7 @@
   --lf-color-google-border: #747775;
 
   /* 디바이스 프레임 */
-  --lf-color-frame-border: rgba(116, 119, 117, 0.5);
+  --lf-color-frame-border: rgba(25, 28, 27, 0.18);
   --lf-color-scrim:        rgba(0, 0, 0, 0.40);
 
   /* ---------------------------------------------------------
@@ -85,6 +100,8 @@
   --lf-font-mono:  'Roboto Mono', ui-monospace, Menlo, monospace;
 
   --lf-type-display-size: 28px; /* D-Day 대형 숫자 */
+  --lf-type-list-dday-size: 15px; /* 홈 일반 행 D-Day */
+  --lf-type-hero-dday-size: 46px; /* Soft Promise 히어로 D-Day */
   --lf-type-title-size:   21px; /* 화면 타이틀 · 상세 제목 */
   --lf-type-heading-size: 19px; /* 앱바 타이틀 · 섹션 헤드 */
   --lf-type-subtitle-size:17px;
@@ -95,6 +112,7 @@
   --lf-type-micro-size:   11px;
 
   --lf-line-title:   28px;
+  --lf-line-hero-dday: 50px;
   --lf-line-body:    21px;
   --lf-line-caption: 18px;
   --lf-line-micro:   16px;
@@ -105,14 +123,17 @@
   --lf-weight-heavy:   800;
 
   /* ---------------------------------------------------------
-     SHAPE — Wanted 12px 입력·버튼 기준
+     SHAPE — 당근 seed radius (반 단계 각지다)
      --------------------------------------------------------- */
-  --lf-radius-xs:    8px;
-  --lf-radius-sm:   12px;
-  --lf-radius-md:   12px;
-  --lf-radius-lg:   16px;
-  --lf-radius-xl:   16px;
-  --lf-radius-2xl:  20px;
+  --lf-radius-xs:    6px; /* seed r1_5 */
+  --lf-radius-sm:    8px; /* seed r2 */
+  --lf-radius-md:   10px; /* seed r2_5 · 버튼·입력 */
+  --lf-radius-lg:   12px; /* seed r3 */
+  --lf-radius-xl:   12px; /* seed r3 · 카드 */
+  --lf-radius-2xl:  20px; /* seed r5 · 시트 상단 */
+  --lf-radius-hero: 28px; /* 친근한 히어로 */
+  --lf-radius-hero-tail: 12px; /* 히어로 좌하단 꼬리 */
+  --lf-radius-record: 16px; /* 확정 기록 표면 */
   --lf-radius-pill: 9999px;
 
   /* ---------------------------------------------------------
@@ -143,6 +164,10 @@
   --lf-action-height: 48px;
   --lf-fab-height:    52px;
   --lf-tab-height:    38px;
+  --lf-bottom-nav-content-height: 64px;
+  --lf-center-fab: 52px;
+  --lf-nav-icon: 26px;
+  --lf-appbar-icon: 26px;
 
   /* 기준 뷰포트 360×800dp (요청서 §2) */
   --lf-viewport-width:  360px;
@@ -151,11 +176,11 @@
   --lf-navbar-height:    24px;
 
   /* ---------------------------------------------------------
-     ELEVATION
+     ELEVATION — 당근식 최소 그림자 (면 구분은 헤어라인이 맡는다)
      --------------------------------------------------------- */
-  --lf-elevation-card: 0 1px 2px rgba(23, 23, 23, 0.06), 0 1px 3px rgba(23, 23, 23, 0.10);
-  --lf-elevation-fab:  0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.06);
-  --lf-elevation-sheet: 0 -8px 28px rgba(0, 0, 0, 0.12);
+  --lf-elevation-card: 0 1px 2px rgba(25, 28, 27, 0.04);
+  --lf-elevation-fab:  0 6px 16px rgba(25, 28, 27, 0.14), 0 2px 6px rgba(25, 28, 27, 0.10);
+  --lf-elevation-sheet: 0 -6px 24px rgba(25, 28, 27, 0.10);
 
   /* ---------------------------------------------------------
      MOTION — M3 easing 토큰 유지

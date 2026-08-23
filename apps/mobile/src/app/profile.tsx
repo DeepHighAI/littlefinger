@@ -2,17 +2,16 @@ import {
   LOCALES,
   REMINDER_HOURS,
   type Locale,
-  type ReminderHour,
   type ReminderPreferences,
 } from '@littlefinger/shared';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useReducer, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Circle } from 'react-native-svg';
 
 import { LfAppBar } from '../components/LfAppBar';
 import { LfAvatar } from '../components/LfAvatar';
+import { LfBottomNav } from '../components/LfBottomNav';
 import { LfButton } from '../components/LfButton';
 import { LfCard } from '../components/LfCard';
 import { LfDisclaimer } from '../components/LfDisclaimer';
@@ -22,6 +21,7 @@ import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfSwitch } from '../components/LfSwitch';
 import { LfText } from '../components/LfText';
+import { LfTrustRing } from '../components/LfTrustRing';
 import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { useLabels, useLocale } from '../lib/locale-native';
@@ -38,30 +38,20 @@ import {
 } from '../screens/scr-a08-profile-state.ts';
 import { colors, gutter, radius, size, space } from '../theme/tokens';
 
-const RING_SIZE = size.iconButton * 2;
-const RING_CENTER = RING_SIZE / 2;
-const RING_RADIUS = space[9] + space[5];
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-const RING_STROKE = space[4] - StyleSheet.hairlineWidth;
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: gutter.app, gap: space[7] },
+  body: { flex: 1 },
+  content: { padding: gutter.app, paddingBottom: space[9], gap: space[7] },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: gutter.app },
-  iconButton: {
-    minWidth: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   profileText: { flex: 1 },
   trustCard: {
     backgroundColor: colors.primaryContainer,
-    borderRadius: radius.xl,
-    padding: space[7],
+    borderTopLeftRadius: radius.hero,
+    borderTopRightRadius: radius.hero,
+    borderBottomRightRadius: radius.hero,
+    borderBottomLeftRadius: radius.heroTail,
+    padding: space[8],
   },
-  ring: { width: RING_SIZE, height: RING_SIZE, alignItems: 'center', justifyContent: 'center' },
-  ringValue: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   stats: { flex: 1 },
   settingText: { flex: 1 },
   legalButton: {
@@ -83,7 +73,7 @@ interface ReminderRowProps {
 function ReminderRow({ label, value, disabled, onChange }: ReminderRowProps): React.JSX.Element {
   return (
     <LfRow gap={4}>
-      <LfIcon name="notifications-none" color="textSecondary" />
+      <LfIcon name="notifications-none" color="record" />
       <View style={styles.settingText}><LfText>{label}</LfText></View>
       <LfSwitch
         accessibilityLabel={label}
@@ -256,47 +246,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
       <View style={styles.trustCard}>
         <LfRow gap={7}>
-          <View style={styles.ring}>
-            <Svg
-              width={RING_SIZE}
-              height={RING_SIZE}
-              accessibilityRole="image"
-              accessibilityLabel={state.profile.keep_rate === null
-                ? `${LABEL.keepRate} ${LABEL.aggregating}`
-                : LABEL.keepRateAccessibility(state.profile.keep_rate)}
-            >
-              <Circle
-                cx={RING_CENTER}
-                cy={RING_CENTER}
-                r={RING_RADIUS}
-                fill="none"
-                stroke={colors.surface}
-                strokeWidth={RING_STROKE}
-              />
-              {state.profile.keep_rate !== null && (
-                <Circle
-                  cx={RING_CENTER}
-                  cy={RING_CENTER}
-                  r={RING_RADIUS}
-                  fill="none"
-                  stroke={colors.primary}
-                  strokeWidth={RING_STROKE}
-                  strokeLinecap="round"
-                  strokeDasharray={RING_CIRCUMFERENCE}
-                  strokeDashoffset={RING_CIRCUMFERENCE * (1 - Math.min(100, Math.max(0, state.profile.keep_rate)) / 100)}
-                  rotation="-90"
-                  origin={`${RING_CENTER}, ${RING_CENTER}`}
-                />
-              )}
-            </Svg>
-            <View pointerEvents="none" style={styles.ringValue}>
-              <LfText variant="subtitle">
-                {state.profile.keep_rate === null
-                  ? LABEL.aggregating
-                  : LABEL.keepRatePercent(state.profile.keep_rate)}
-              </LfText>
-            </View>
-          </View>
+          <LfTrustRing rate={state.profile.keep_rate} />
           <View style={styles.stats}>
             <LfText variant="sectionTitle">{LABEL.keepRate}</LfText>
             <LfText>{`${LABEL.completed(state.profile.completed_count)} · ${LABEL.broken(state.profile.broken_count)}`}</LfText>
@@ -338,12 +288,12 @@ export default function ProfileScreen(): React.JSX.Element {
       <LfCard>
         <LfStack gap={2}>
           <Pressable accessibilityRole="button" accessibilityLabel={LABEL.termsAccessibility} style={styles.legalButton} onPress={() => void openLegalDocument('TERMS')}>
-            <LfIcon name="description" color="textSecondary" />
+            <LfIcon name="description" color="record" />
             <View style={styles.legalLabel}><LfText>{LABEL.terms}</LfText></View>
             <LfIcon name="chevron-right" color="textMuted" />
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={LABEL.privacyAccessibility} style={styles.legalButton} onPress={() => void openLegalDocument('PRIVACY')}>
-            <LfIcon name="privacy-tip" color="textSecondary" />
+            <LfIcon name="privacy-tip" color="record" />
             <View style={styles.legalLabel}><LfText>{LABEL.privacy}</LfText></View>
             <LfIcon name="chevron-right" color="textMuted" />
           </Pressable>
@@ -357,7 +307,7 @@ export default function ProfileScreen(): React.JSX.Element {
           style={styles.legalButton}
           onPress={() => router.push('/blocked-users')}
         >
-          <LfIcon name="block" color="textSecondary" />
+          <LfIcon name="block" color="record" />
           <View style={styles.legalLabel}><LfText>{LABEL.blockedUsers}</LfText></View>
           <LfIcon name="chevron-right" color="textMuted" />
         </Pressable>
@@ -375,16 +325,15 @@ export default function ProfileScreen(): React.JSX.Element {
   );
 
   return (
-    <SafeAreaView style={styles.screen}>
-      <LfAppBar
-        title={LABEL.title}
-        leading={(
-          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.back} style={styles.iconButton} onPress={() => router.back()}>
-            <LfIcon name="arrow-back" />
-          </Pressable>
-        )}
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
+      <LfAppBar title={LABEL.title} />
+      <View style={styles.body}>{body}</View>
+      <LfBottomNav
+        active="profile"
+        onHomePress={() => router.replace('/home')}
+        onCreatePress={() => router.push('/promise/edit')}
+        onProfilePress={() => undefined}
       />
-      {body}
     </SafeAreaView>
   );
 }
