@@ -23,6 +23,14 @@ jest.mock('../lib/promise-editor-native.ts', () => ({
   saveEditorLocalDraft: jest.fn(),
   submitEditorDraft: jest.fn(),
 }));
+jest.mock('../components/slot-paywall-sheet.tsx', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    SlotPaywallSheet: ({ visible, reason }: { visible: boolean; reason: string }) =>
+      visible ? React.createElement(Text, null, `슬롯 결제 시트 ${reason}`) : null,
+  };
+});
 
 const push = jest.fn();
 const back = jest.fn();
@@ -219,6 +227,22 @@ describe('SCR-A03 3단계 약속 작성', () => {
     await settle();
     expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(2);
     expect(view.getByRole('alert', { name: '종료일을 다시 확인해 주세요.' })).toBeTruthy();
+  });
+
+  test('슬롯 한도는 오류 줄 대신 결제 시트를 연다 (PO 2026-08-24)', async () => {
+    jest.mocked(submitEditorDraft).mockRejectedValue(
+      new MobileApiError('E_SLOT_LIMIT', '약속 슬롯이 가득 찼어요. 슬롯을 추가하면 새 약속을 보낼 수 있어요.'),
+    );
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+    await goToReview(view);
+    await fireEvent.press(view.getByRole('button', { name: '상대에게 보내기' }));
+    await settle();
+
+    expect(view.getByText('슬롯 결제 시트 limit')).toBeTruthy();
+    expect(view.queryByText(/슬롯이 가득 찼어요\./u)).toBeNull();
+    // 검토 단계에 머무른다 — 필드 오류가 아니므로 단계를 되돌리지 않는다.
+    expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(3);
   });
 
   test('입력은 3초 뒤 저장하고 이탈 시 남은 변경을 즉시 flush한다', async () => {

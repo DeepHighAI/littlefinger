@@ -30,6 +30,7 @@ import { LfSwitch } from '../../components/LfSwitch';
 import { LfText } from '../../components/LfText';
 import { LfTextarea } from '../../components/LfTextarea';
 import { LfWizardProgress, type LfWizardStep } from '../../components/LfWizardProgress';
+import { SlotPaywallSheet } from '../../components/slot-paywall-sheet.tsx';
 import { DraftAutosave } from '../../lib/draft-autosave.ts';
 import { useLabels, useLocale } from '../../lib/locale-native';
 import { localizedApiMessage, MobileApiError } from '../../lib/mobile-api.ts';
@@ -136,6 +137,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const [serverErrors, setServerErrors] = useState<Partial<Record<PromiseDraftField, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [amendComment, setAmendComment] = useState<string | null>(null);
+  const [slotSheetOpen, setSlotSheetOpen] = useState(false);
 
   const autosave = useMemo(
     () => new DraftAutosave(async (nextDraft) => await saveEditorLocalDraft(promiseId, nextDraft)),
@@ -249,7 +251,11 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         router.push('/home');
       }
     } catch (error) {
-      if (error instanceof MobileApiError && error.field !== undefined) {
+      if (error instanceof MobileApiError && error.code === 'E_SLOT_LIMIT') {
+        // 서버 트랜잭션은 통째로 롤백됐지만 내용은 로컬 자동저장에 그대로 있다 —
+        // 오류 줄 대신 결제 시트가 출구를 안내하고, 구매 후 [보내기]를 다시 누르면 된다.
+        setSlotSheetOpen(true);
+      } else if (error instanceof MobileApiError && error.field !== undefined) {
         const field = error.field as PromiseDraftField;
         setServerErrors((current) => ({ ...current, [field]: error.message }));
         setDirection(-1);
@@ -529,6 +535,11 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           />
         )}
       </View>
+      <SlotPaywallSheet
+        visible={slotSheetOpen}
+        reason="limit"
+        onClose={() => setSlotSheetOpen(false)}
+      />
     </SafeAreaView>
   );
 }

@@ -36,6 +36,14 @@ jest.mock('../components/witness-invite-sheet.tsx', () => {
       visible ? React.createElement(Text, null, `증인 초대 시트 ${promiseId}`) : null,
   };
 });
+jest.mock('../components/slot-paywall-sheet.tsx', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    SlotPaywallSheet: ({ visible, reason }: { visible: boolean; reason: string }) =>
+      visible ? React.createElement(Text, null, `슬롯 결제 시트 ${reason}`) : null,
+  };
+});
 
 const NOW = new Date('2026-07-30T01:00:00.000Z');
 const invite: InviteWithToken = {
@@ -240,5 +248,21 @@ describe('SCR-A04 초대 전송·대기', () => {
       view.getByRole('button', { name: '초대 다시 보내기' }).props
         .accessibilityState,
     ).toMatchObject({ disabled: true });
+  });
+
+  test('DRAFT 발송이 슬롯 한도에 걸리면 결제 시트를 연다 (PO 2026-08-24)', async () => {
+    loadStoredInviteMock.mockResolvedValue(null);
+    reissueInviteMock.mockRejectedValue(
+      new MobileApiError('E_SLOT_LIMIT', '약속 슬롯이 가득 찼어요. 슬롯을 추가하면 새 약속을 보낼 수 있어요.'),
+    );
+    const view = await render(<InviteScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '초대 다시 보내기' }));
+    await settle();
+
+    expect(view.getByText('슬롯 결제 시트 limit')).toBeTruthy();
+    // 일반 오류 문구로 처리하지 않는다 — 출구는 결제 시트다.
+    expect(view.queryByText(/문제가 발생했/u)).toBeNull();
   });
 });

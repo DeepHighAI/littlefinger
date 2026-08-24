@@ -16,6 +16,7 @@ import { LfPinky } from '../components/LfPinky';
 import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
+import { SlotPaywallSheet } from '../components/slot-paywall-sheet.tsx';
 import { WitnessInviteSheet } from '../components/witness-invite-sheet.tsx';
 import {
   formatInviteCountdown,
@@ -116,6 +117,7 @@ export default function InviteScreen(): React.JSX.Element {
   const [actionError, setActionError] = useState(false);
   const [resendBlocked, setResendBlocked] = useState(false);
   const [witnessSheetOpen, setWitnessSheetOpen] = useState(false);
+  const [slotSheetOpen, setSlotSheetOpen] = useState(false);
 
   useEffect(() => {
     if (promiseId === null) {
@@ -195,6 +197,9 @@ export default function InviteScreen(): React.JSX.Element {
     } catch (error) {
       if (error instanceof MobileApiError && error.code === 'E_RATE_LIMIT') {
         setResendBlocked(true);
+      } else if (error instanceof MobileApiError && error.code === 'E_SLOT_LIMIT') {
+        // DRAFT 발송이 슬롯 한도에 걸린 경우 — 결제 시트가 안내를 맡는다.
+        setSlotSheetOpen(true);
       } else {
         setActionError(true);
       }
@@ -398,6 +403,11 @@ export default function InviteScreen(): React.JSX.Element {
           onClose={() => setWitnessSheetOpen(false)}
         />
       )}
+      <SlotPaywallSheet
+        visible={slotSheetOpen}
+        reason="limit"
+        onClose={() => setSlotSheetOpen(false)}
+      />
     </SafeAreaView>
   );
 }
