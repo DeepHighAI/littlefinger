@@ -1,7 +1,7 @@
 /* =============================================================
    Little Finger — App 화면 전용 보조 클래스 (app-support)
    components.css에 없는, 아래 화면 전용 클래스만 담는다.
-   담당 화면: SCR-A07(알림함) · SCR-A08(마이) · MOD-01/02/03(모달 시트)
+   담당 화면: SCR-A07(알림함) · SCR-A08(마이) · MOD-01/02/03(모달 시트) · MOD-04(슬롯 결제)
    ============================================================= */
 
 /* -------------------------------------------------------------
@@ -351,3 +351,41 @@
 .lf-backdrop__block--96  { height: 96px; }
 .lf-backdrop__block--88  { height: 88px; }
 .lf-backdrop__block--60  { height: 60px; }
+
+/* -------------------------------------------------------------
+   MOD-04 — 슬롯 결제 시트 (ADR 0009)
+   ------------------------------------------------------------- */
+
+/* 발송이 막혀 열린 경우의 가득 참 안내 — 마감·응답 필요 계열(Apricot)이 자리다 */
+.lf-slot-sheet__notice {
+  padding: var(--lf-space-6);
+  border-radius: var(--lf-radius-md);
+  background: var(--lf-color-attention-container);
+  font-size: var(--lf-type-body-size);
+  line-height: var(--lf-line-body);
+  color: var(--lf-color-text);
+}
+
+.lf-slot-sheet__usage {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-4);
+  font-size: var(--lf-type-subtitle-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-slot-sheet__usage .material-symbols-rounded {
+  font-size: 22px;
+  color: var(--lf-color-primary);
+}
+
+/* 구매 항목 — 상자 하나, 재촉 없는 서술형(§8) */
+.lf-slot-sheet__offer {
+  padding: var(--lf-space-7);
+  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-2);
+}
