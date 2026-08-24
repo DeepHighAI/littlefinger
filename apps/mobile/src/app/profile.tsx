@@ -3,12 +3,14 @@ import {
   REMINDER_HOURS,
   type Locale,
   type ReminderPreferences,
+  type SlotStatusResponse,
 } from '@littlefinger/shared';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LfAdSlot } from '../components/LfAdSlot';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfAvatar } from '../components/LfAvatar';
 import { LfBottomNav } from '../components/LfBottomNav';
@@ -22,16 +24,20 @@ import { LfStack } from '../components/LfStack';
 import { LfSwitch } from '../components/LfSwitch';
 import { LfText } from '../components/LfText';
 import { LfTrustRing } from '../components/LfTrustRing';
+import { SlotPaywallSheet } from '../components/slot-paywall-sheet.tsx';
 import { withdrawAccountNative } from '../lib/account-safety-native.ts';
+import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { useLabels, useLocale } from '../lib/locale-native';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
+import { loadSlotStatus } from '../lib/slots-native.ts';
 import {
   loadTrustProfile,
   logoutCurrentDeviceNative,
   updateTrustProfileSettings,
 } from '../lib/trust-profile-native.ts';
 import { SCR_A08_LABEL } from '../screens/scr-a08-labels.ts';
+import { SLOT_LABEL } from '../screens/slot-labels.ts';
 import {
   createInitialProfileState,
   profileReducer,
@@ -120,12 +126,26 @@ function LanguageRow(): React.JSX.Element {
 
 export default function ProfileScreen(): React.JSX.Element {
   const LABEL = useLabels(SCR_A08_LABEL);
+  const SLOT = useLabels(SLOT_LABEL);
   const router = useRouter();
   const [state, dispatch] = useReducer(profileReducer, undefined, createInitialProfileState);
   const nextLoadId = useRef(0);
   const nextUpdateId = useRef(0);
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawFailed, setWithdrawFailed] = useState(false);
+  // 슬롯 현황은 보조 정보다 — 조회 실패가 프로필 화면을 막지 않도록 profile 상태와 분리한다.
+  const [slot, setSlot] = useState<SlotStatusResponse | null>(null);
+  const [slotSheetOpen, setSlotSheetOpen] = useState(false);
+  // F-12 확대(PO 2026-08-24): 프로필 하단 1구좌. 끄면 렌더 자체를 하지 않는다.
+  const [adsEnabled, setAdsEnabled] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void readAdsEnabled().then((enabled) => {
+      if (active) setAdsEnabled(enabled);
+    });
+    return () => { active = false; };
+  }, []);
 
   const load = useCallback(async () => {
     const loadId = ++nextLoadId.current;
@@ -137,8 +157,17 @@ export default function ProfileScreen(): React.JSX.Element {
     }
   }, []);
 
+  const loadSlot = useCallback(async () => {
+    try {
+      setSlot(await loadSlotStatus());
+    } catch {
+      // 실패하면 행을 숨긴다 — 결제 진입점 하나가 빠질 뿐 프로필은 정상이어야 한다.
+      setSlot(null);
+    }
+  }, []);
+
   // 닉네임 편집 등 다른 화면에서 바꾼 값이 돌아올 때 보이도록 포커스마다 다시 읽는다.
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); void loadSlot(); }, [load, loadSlot]));
 
   const save = useCallback(async (reminders: ReminderPreferences) => {
     const updateId = ++nextUpdateId.current;
@@ -257,6 +286,29 @@ export default function ProfileScreen(): React.JSX.Element {
         </LfRow>
       </View>
 
+      {slot !== null && (
+        <>
+          <LfText variant="sectionTitle">{SLOT.profileTitle}</LfText>
+          <LfCard>
+            <LfRow gap={4}>
+              <LfIcon name="bookmark" color="record" />
+              <View style={styles.settingText}>
+                <LfText accessibilityLabel={SLOT.usageAccessibility(slot.used, slot.capacity)}>
+                  {SLOT.usage(slot.used, slot.capacity)}
+                </LfText>
+              </View>
+              <LfButton
+                label={SLOT.profileAdd}
+                accessibilityLabel={SLOT.profileAddAccessibility}
+                variant="tonal"
+                size="compact"
+                onPress={() => setSlotSheetOpen(true)}
+              />
+            </LfRow>
+          </LfCard>
+        </>
+      )}
+
       <LfText variant="sectionTitle">{LABEL.reminderTitle}</LfText>
       <LfCard>
         <LfStack gap={4}>
@@ -321,6 +373,7 @@ export default function ProfileScreen(): React.JSX.Element {
         onPress={() => confirmWithdraw(state.profile!.active_count)}
       />
       {withdrawFailed && <LfText secondary>{LABEL.withdrawError}</LfText>}
+      <LfAdSlot enabled={adsEnabled} />
     </ScrollView>
   );
 
@@ -328,6 +381,12 @@ export default function ProfileScreen(): React.JSX.Element {
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
       <LfAppBar title={LABEL.title} />
       <View style={styles.body}>{body}</View>
+      <SlotPaywallSheet
+        visible={slotSheetOpen}
+        reason="manage"
+        onClose={() => setSlotSheetOpen(false)}
+        onPurchased={setSlot}
+      />
       <LfBottomNav
         active="profile"
         onHomePress={() => router.replace('/home')}

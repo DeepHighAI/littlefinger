@@ -7,7 +7,9 @@ import ProfileScreen from '../app/profile';
 import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { LocaleProvider } from '../lib/locale-native';
+import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
+import { loadSlotStatus } from '../lib/slots-native.ts';
 import {
   loadTrustProfile,
   logoutCurrentDeviceNative,
@@ -47,6 +49,20 @@ jest.mock('../lib/trust-profile-native.ts', () => ({
   logoutCurrentDeviceNative: jest.fn(),
   updateTrustProfileSettings: jest.fn(),
 }));
+jest.mock('../lib/slots-native.ts', () => ({ loadSlotStatus: jest.fn() }));
+jest.mock('../lib/ads-config-native.ts', () => ({ readAdsEnabled: jest.fn() }));
+jest.mock('../components/LfAdSlot', () => {
+  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return { LfAdSlot: ({ enabled }: { enabled: boolean }) => enabled ? <View testID="lf-ad-slot" /> : null };
+});
+jest.mock('../components/slot-paywall-sheet.tsx', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    SlotPaywallSheet: ({ visible, reason }: { visible: boolean; reason: string }) =>
+      visible ? React.createElement(Text, null, `슬롯 결제 시트 ${reason}`) : null,
+  };
+});
 
 const USER_ID = '11111111-1111-4111-8111-111111111111';
 const REMINDERS: ReminderPreferences = {
@@ -70,6 +86,7 @@ const PROFILE: TrustProfileDetailResponse = {
 };
 
 const loadMock = jest.mocked(loadTrustProfile);
+const slotMock = jest.mocked(loadSlotStatus);
 const updateMock = jest.mocked(updateTrustProfileSettings);
 const logoutMock = jest.mocked(logoutCurrentDeviceNative);
 const userIdMock = jest.mocked(currentMobileUserId);
@@ -130,6 +147,8 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     replace.mockReset();
     jest.mocked(useRouter).mockReturnValue({ back, push, replace } as never);
     loadMock.mockReset();
+    slotMock.mockReset().mockResolvedValue({ capacity: 5, used: 2 });
+    jest.mocked(readAdsEnabled).mockReset().mockResolvedValue(false);
     updateMock.mockReset();
     logoutMock.mockReset().mockResolvedValue(undefined);
     userIdMock.mockReset().mockResolvedValue(USER_ID);
@@ -152,6 +171,45 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     await act(async () => triggerFocus());
     await settle();
     expect(loadMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('약속 슬롯 행: 사용량을 보이고 추가 버튼이 결제 시트를 연다 (PO 2026-08-24)', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    expect(view.getByText('사용 중 2 / 5')).toBeTruthy();
+    expect(view.getByLabelText('약속 슬롯 5개 중 2개 사용 중')).toBeTruthy();
+
+    await fireEvent.press(view.getByRole('button', { name: '약속 슬롯 추가' }));
+    expect(view.getByText('슬롯 결제 시트 manage')).toBeTruthy();
+  });
+
+  test('슬롯 조회 실패는 행만 숨기고 프로필은 정상이다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    slotMock.mockRejectedValue(new Error('offline'));
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    expect(view.getByText('지우')).toBeTruthy();
+    expect(view.queryByText(/사용 중 \d/u)).toBeNull();
+  });
+
+  test('ads_enabled=false 면 광고 슬롯을 렌더하지 않는다 (F-12 확대, PO 2026-08-24)', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    expect(view.queryByTestId('lf-ad-slot')).toBeNull();
+  });
+
+  test('ads_enabled=true 면 화면 하단에 광고 슬롯 1구좌를 렌더한다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    jest.mocked(readAdsEnabled).mockResolvedValue(true);
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    expect(view.getByTestId('lf-ad-slot')).toBeTruthy();
   });
 
   test('로딩과 재시도 가능한 조회 실패를 표시한다', async () => {
