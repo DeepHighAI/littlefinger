@@ -200,6 +200,13 @@ verify_jwt = false
 [functions.push-send]
 verify_jwt = false
 
+# 유료 슬롯 (PO 2026-08-24)
+[functions.slot-status]
+verify_jwt = true
+
+[functions.purchase-verify]
+verify_jwt = true
+
 # ============================================================
 # 카카오 프로바이더 블록을 **의도적으로 두지 않는다.**
 #

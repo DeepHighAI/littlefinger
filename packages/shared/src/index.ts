@@ -25,6 +25,7 @@ export * from './promise.ts';
 export * from './promise-home.ts';
 export * from './promise-detail.ts';
 export * from './promise-amend.ts';
+export * from './slots.ts';
 export * from './text.ts';
 export * from './transitions.ts';
 export * from './trust-profile.ts';

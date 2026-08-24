@@ -3,9 +3,9 @@ import { describe, expect, test } from 'vitest';
 import { INVITE_TTL_HOURS, WITNESS_MAX } from './config.ts';
 import { ERROR_CODES, ERROR_HTTP_STATUS, ERROR_MESSAGE } from './errors.ts';
 
-// 근거: 02_세부기능명세서 §2-3 에러 코드표
+// 근거: 02_세부기능명세서 §2-3 에러 코드표 + E_SLOT_LIMIT 개정(PO 2026-08-24)
 describe('ERROR_CODES', () => {
-  test('명세의 14개 코드를 빠짐없이 정의한다', () => {
+  test('명세의 14개 코드 + 슬롯 한도 코드를 빠짐없이 정의한다', () => {
     expect([...ERROR_CODES].sort()).toEqual(
       [
         'E_AUTH_REQUIRED',
@@ -18,6 +18,7 @@ describe('ERROR_CODES', () => {
         'E_NOT_FOUND',
         'E_RATE_LIMIT',
         'E_SELF_INVITE',
+        'E_SLOT_LIMIT',
         'E_STATE_CONFLICT',
         'E_UPLOAD_FAILED',
         'E_VALIDATION',
@@ -50,6 +51,8 @@ describe('ERROR_HTTP_STATUS', () => {
     expect(ERROR_HTTP_STATUS.E_BLOCKED).toBe(422);
     expect(ERROR_HTTP_STATUS.E_RATE_LIMIT).toBe(429);
     expect(ERROR_HTTP_STATUS.E_UPLOAD_FAILED).toBe(400);
+    // 결제로만 풀리는 한도 — Payment Required 를 그대로 쓴다.
+    expect(ERROR_HTTP_STATUS.E_SLOT_LIMIT).toBe(402);
   });
 });
 
@@ -70,6 +73,9 @@ describe('ERROR_MESSAGE', () => {
     expect(ERROR_MESSAGE.E_BLOCKED).toBe('초대를 받을 수 없습니다.');
     expect(ERROR_MESSAGE.E_RATE_LIMIT).toBe('잠시 후 다시 시도해 주세요.');
     expect(ERROR_MESSAGE.E_UPLOAD_FAILED).toBe('사진을 올리지 못했어요. 다시 시도해 주세요.');
+    expect(ERROR_MESSAGE.E_SLOT_LIMIT).toBe(
+      '약속 슬롯이 가득 찼어요. 슬롯을 추가하면 새 약속을 보낼 수 있어요.',
+    );
   });
 
   test('E_VALIDATION 은 공통 문구가 없다 — 필드별 문구(§5)를 쓴다', () => {

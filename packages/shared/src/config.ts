@@ -23,6 +23,26 @@ export const ADS_ACTIVATION_DAILY_CONFIRMS = 100;
  */
 export const ADS_ENABLED_DEFAULT = false;
 
+/**
+ * 무료 약속 슬롯 수 (PO 2026-08-24). 내가 **작성자**인 '진행 중'(§4-1-4:
+ * PENDING·ACTIVE·AMEND_PENDING·CHECKING) 약속이 이 수에 도달하면 초대 발송(T-02)이
+ * `E_SLOT_LIMIT` 으로 막힌다. 종결되면 슬롯은 되돌아오고, DRAFT 는 별도 한도(20건)를 쓴다.
+ * 구매 슬롯은 영구 +1 — 용량 = 이 값 + 구매 수. 강제 지점은 `lf_promise_invite` 뿐이다.
+ */
+export const FREE_PROMISE_SLOTS = 5;
+
+/**
+ * 슬롯 +1 인앱 상품 ID. Google Play Console 의 관리 상품(소모성) ID 와 글자까지 같아야
+ * 한다 — 서버 검증(`purchase-verify`)이 이 값 외의 상품을 전부 거부한다.
+ */
+export const SLOT_PRODUCT_ID = 'promise_slot_plus1';
+
+/**
+ * 슬롯 가격 표시 기본값(₩, PO 2026-08-24). 화면 표시는 스토어 현지화 가격이 정본이고,
+ * 이 값은 스토어 조회가 실패한 화면의 대체 표기 전용이다. 실제 청구액은 Play Console 설정이 결정한다.
+ */
+export const SLOT_PRICE_KRW_DEFAULT = 1000;
+
 // ── 기본안 — PO 미확정, 변경 가능 ─────────────────────────
 
 /** 이행 확인 응답 기한(일). 경과 시 UNRESOLVED 로 종결된다(J-03). */
