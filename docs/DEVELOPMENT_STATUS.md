@@ -1,6 +1,42 @@
 # Development Status
 
-Snapshot date: **2026-08-23 KST**.
+Snapshot date: **2026-08-25 KST**.
+
+## Paid promise slots + expanded ads pass (2026-08-24/25)
+
+Executed against the approved plan (ADR 0009); the Codex red-team pass on the backend surfaced 4
+findings, all fixed before deployment (deadlock lock-ordering, error priority — PO decided
+validation-first, secret baselines, PUBLIC table revoke + privilege-baseline tests).
+
+- **Server (deployed 2026-08-25)**: migration `20260824000001_paid_promise_slots.sql` applied to
+  the linked project; Edge Functions `slot-status` + `purchase-verify` deployed with `--use-api`
+  (49/49 ACTIVE). Live smoke: `slot-status` returned `{"used":0,"capacity":5}` for a test account.
+  `purchase-verify` stays boot-gated until the `GOOGLE_PLAY_SERVICE_ACCOUNT` secret exists.
+- **Slot contract**: 5 free slots counting creator-side in-progress promises (§4-1-4 states);
+  DRAFT excluded; resend free; terminal states return the slot; purchases permanent (+1 per
+  `promise_slot_plus1`, ₩1,000). Enforced only in `lf_invite_issue_row` (all three send entry
+  points), raising the new 15th error code `E_SLOT_LIMIT` (HTTP 402) after content validation.
+- **Mobile**: `expo-iap` 5.3.2 added (dev-client rebuild required before device QA);
+  `slot-paywall-sheet` (verify-then-consume, unconsumed-purchase reconciliation, store-localized
+  price with `SLOT_PRICE_KRW_DEFAULT` fallback) opens on `E_SLOT_LIMIT` from SCR-A03/SCR-A04 and
+  from the new profile slot row; ko/en `SLOT_LABEL` catalog registered.
+- **Ads (F-12 expanded, PO 2026-08-24)**: SCR-A07 알림함 + SCR-A08 프로필 gained the bottom
+  native-ad slot behind the same `ads_enabled` flag (off = not rendered); spec §3 table + F-12
+  amended; design-reference A07/A08 carry the disabled marker; P4 zones unchanged. `app-ads.txt`
+  waits on the PO's AdMob publisher id.
+- **Language setting**: confirmed already implemented (SCR-A08 toggle + web LocaleSwitch);
+  PO decision — keep as is.
+- **Design review (batch 1, PO-confirmed via previews 2026-08-25)**: reference `scr-a08` was
+  stale against the shipped product (email-reminder row violating §6-1; missing language/slots/
+  reminder detail/block/logout/withdraw) — now current; new `mod-04-slot-paywall.html` is the
+  approved baseline for the purchase sheet. The A07/A08 full-bleed row conversion stays gated on
+  the PO's device check of the Karrot home.
+- Gates: `npm run typecheck` (5 projects) PASS · Vitest **104 files / 2,015 tests** PASS ·
+  mobile Jest **72 suites / 718 tests** PASS · `npm run check:agents` PASS.
+- Operator items (blocking purchase/ads E2E): Play Console merchant account + in-app product
+  `promise_slot_plus1` + license testers; GCP service account linked in Play Console API access →
+  Supabase secret; AdMob account/app/native unit + EAS production IDs + `app-ads.txt` pub id;
+  `ads_enabled` flip timing.
 
 ## Play launch readiness pass (2026-08-23)
 
