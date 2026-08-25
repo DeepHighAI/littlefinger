@@ -32,7 +32,7 @@ no Android client ID is needed.
 | Field | Value |
 |---|---|
 | Authorized redirect URI | `https://vepnrrmxvsytguocicfe.supabase.co/auth/v1/callback` |
-| Authorized JavaScript origins | `https://littlefinger-app-philwoo.web.app`, `http://localhost:5173` |
+| Authorized JavaScript origins | `https://littlefinger-app.web.app`, `http://localhost:5173` |
 
 Copy the **Client ID** and **Client secret**.
 
@@ -49,7 +49,7 @@ Copy the **Client ID** and **Client secret**.
 ## 5. Redirect allowlist — verify, don't add
 
 The existing entries already cover both surfaces: `littlefinger://auth-callback` (app) and the
-`https://littlefinger-app-philwoo.web.app/**` wildcard (web). Google needs nothing new.
+`https://littlefinger-app.web.app/**` wildcard (web). Google needs nothing new.
 
 ## 6. Email nuance
 

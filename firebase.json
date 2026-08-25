@@ -1,31 +1,55 @@
 {
-  "hosting": {
-    "public": "apps/web/dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "headers": [
-      {
-        "source": "/.well-known/assetlinks.json",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "application/json; charset=utf-8"
-          },
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=3600"
-          }
-        ]
-      }
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
+  "hosting": [
+    {
+      "target": "web",
+      "public": "apps/web/dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "/.well-known/assetlinks.json",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "target": "legacy",
+      "public": "apps/web/legacy",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "redirects": [
+        {
+          "source": "/",
+          "destination": "https://littlefinger-app.web.app/",
+          "type": 301
+        },
+        {
+          "source": "/:path*",
+          "destination": "https://littlefinger-app.web.app/:path*",
+          "type": 301
+        }
+      ]
+    }
+  ]
 }

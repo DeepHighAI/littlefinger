@@ -39,7 +39,7 @@ array — the test exists precisely so the deployed file and the repo cannot dri
 ```bash
 npm test && npm run typecheck
 npx firebase deploy --only hosting
-curl -s https://littlefinger-app-philwoo.web.app/.well-known/assetlinks.json
+curl -s https://littlefinger-app.web.app/.well-known/assetlinks.json
 ```
 
 Then on a device with the **store-installed** build:

@@ -8,8 +8,8 @@ unless the code has changed since 2026-08-23.
 
 | Field | Value |
 |---|---|
-| Privacy policy URL | `https://littlefinger-app-philwoo.web.app/legal/privacy` |
-| Account deletion URL | `https://littlefinger-app-philwoo.web.app/account-deletion` |
+| Privacy policy URL | `https://littlefinger-app.web.app/legal/privacy` |
+| Account deletion URL | `https://littlefinger-app.web.app/account-deletion` |
 
 ## Top-level questions
 

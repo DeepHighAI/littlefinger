@@ -2,6 +2,21 @@
 
 Snapshot date: **2026-08-25 KST**.
 
+## Domain re-cut: littlefinger-app.web.app (2026-08-25, ADR 0010)
+
+The PO flagged the personal name in `littlefinger-app-philwoo.web.app` before the Play listing
+existed — the last changeable moment. New origin **`https://littlefinger-app.web.app`** (new
+Hosting site on the same Firebase project; `littlefinger.web.app` was taken). Old site serves
+path-preserving 301s (`hosting:legacy` target). Moved with it: web SEO/OG, 47 origin references
+across code/tests/docs (historical records kept), local + example env, EAS
+`EXPO_PUBLIC_WEB_BASE_URL` (production/development — App Links intent filters derive from it),
+Supabase auth `site_url` + allowlist (legacy origin retained during transition), `app-ads.txt`.
+Privacy policy §8 carried the URL → re-versioned **PRIVACY `2026-08-25.1`** (migration
+`20260825000001`, pushed). Verified live: new-origin root/assetlinks/app-ads.txt/invite/legal/
+account-deletion all 200; legacy `/` and `/i/*` 301 to the new origin. The in-flight production
+AAB was cancelled (old origin baked in) and rebuilt after the env change. Gates re-run: typecheck
+5 projects, Vitest 104/2,015, Jest 72/718, `check:agents` — all PASS.
+
 ## Paid promise slots + expanded ads pass (2026-08-24/25)
 
 Executed against the approved plan (ADR 0009); the Codex red-team pass on the backend surfaced 4
@@ -179,23 +194,23 @@ Reusable verification SQL is committed under `supabase/tests/remote/`.
 
 Cloudflare Pages is retired. ADR 0005 selects the existing Firebase Spark project
 `littlefinger-app-philwoo`, and the acceptance web was deployed as 31 static files to
-`https://littlefinger-app-philwoo.web.app`.
+`https://littlefinger-app.web.app`.
 
 - `/` and direct `/i/e2e-invalid-token` requests return HTTP 200 HTML.
 - `/.well-known/assetlinks.json` returns HTTP 200, `application/json; charset=utf-8`, and the
   development APK SHA-256 signing fingerprint for `com.littlefinger.app`.
 - Google Digital Asset Links API returns the expected `handle_all_urls` statement.
 - Expo config resolves one `autoVerify` intent filter for HTTPS host
-  `littlefinger-app-philwoo.web.app` and path prefix `/i/`.
+  `littlefinger-app.web.app` and path prefix `/i/`.
 - EAS development and production `EXPO_PUBLIC_WEB_BASE_URL` values are updated to the new origin.
 
 The Supabase Auth redirect allowlist was confirmed **stale and fixed on 2026-08-23** via a
 field-scoped Management API PATCH (`site_url` was `localhost:3000`; the allowlist carried retired
 `littlefinger.pages.dev` and lacked the Firebase origin — the deployed web's OAuth return was
-broken until then). Now: `site_url = https://littlefinger-app-philwoo.web.app`, allowlist =
+broken until then). Now: `site_url = https://littlefinger-app.web.app`, allowlist =
 Firebase origin `/**` + localhost dev entries + `littlefinger://auth-callback`. **App Links final auto-verification passed
 on 2026-08-20**: EAS development build `e31110b0` (PO-approved source upload) installed on the
-emulator reports `littlefinger-app-philwoo.web.app: verified` in `pm get-app-links`, and an
+emulator reports `littlefinger-app.web.app: verified` in `pm get-app-links`, and an
 `am start` HTTPS `/i/*` intent resolves into `com.littlefinger.app` instead of the browser.
 
 ## Deep-link invites, Korean/English UI, Pretendard (2026-08-20/21)

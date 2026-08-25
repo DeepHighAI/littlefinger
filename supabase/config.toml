@@ -26,7 +26,7 @@ schemas = ["public"]
 #   site_url                      littlefinger://login-callback/
 #   additional_redirect_urls      littlefinger://auth-callback
 #                                 littlefinger://**
-#                                 https://littlefinger-app-philwoo.web.app 및 /**
+#                                 https://littlefinger-app.web.app 및 /**
 #   jwt_expiry                    1800        (02 §11-3 기본안: access 30분)
 #   enable_refresh_token_rotation true        (refresh 30일)
 #   Allow users without an email  ON          (§6-1 — 없으면 이메일 미제공 계정이 500)

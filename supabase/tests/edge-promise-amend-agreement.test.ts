@@ -139,7 +139,7 @@ describe('F-11 amend agreement Edge Functions', () => {
         reason: '  상황 변경  ',
       }, {
         headers: {
-          origin: 'https://littlefinger-app-philwoo.web.app',
+          origin: 'https://littlefinger-app.web.app',
           'cf-connecting-ip': '203.0.113.7',
           'user-agent': 'amend-browser',
         },
@@ -205,7 +205,7 @@ describe('F-11 amend agreement Edge Functions', () => {
         promise_id: PROMISE_ID,
         request_id: REQUEST_ID,
         decision: 'APPROVE',
-      }, { headers: { origin: 'https://littlefinger-app-philwoo.web.app' } }),
+      }, { headers: { origin: 'https://littlefinger-app.web.app' } }),
     );
     await factory('createPromiseAmendWithdrawHandler')(withdrawSpy.deps)(
       request('promise-amend-withdraw', { promise_id: PROMISE_ID, request_id: REQUEST_ID }),

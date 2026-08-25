@@ -15,7 +15,7 @@
 | 앱 (SCR-A*, MOD-*) | **React Native + Expo SDK 57** (RN 0.86) · TypeScript · Expo Router |
 | 수락 웹 (SCR-W*) | **Vite + React + React Router** — 지금의 CSS를 그대로 재사용 |
 | 백엔드 | **Supabase Free** (Postgres · Auth · Storage · Edge Functions · pg_cron) |
-| 웹 호스팅 | **Firebase Hosting Spark** (`littlefinger-app-philwoo.web.app`) |
+| 웹 호스팅 | **Firebase Hosting Spark** (`littlefinger-app.web.app`) |
 
 전부 무료 플랜으로 운영 가능하고, 광고 수익 모델에서도 약관 위반이 없는 조합이다.
 결정 근거는 [03_기술스택_비교분석](docs/기획/03_기술스택_비교분석.md),

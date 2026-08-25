@@ -42,7 +42,7 @@ the production AAB to the **closed testing** track, then append the Play App Sig
 fingerprint to `assetlinks.json` (`docs/setup/assetlinks-play-signing.md`). The Data safety form
 answers are prefilled in `docs/setup/play-data-safety.md` — ads and advertising ID stay declared.
 
-Set the store listing's developer website to `https://littlefinger-app-philwoo.web.app` — that is
+Set the store listing's developer website to `https://littlefinger-app.web.app` — that is
 the domain AdMob crawls for `app-ads.txt` (step 7).
 
 ## Step 4 — Merchant account + in-app product

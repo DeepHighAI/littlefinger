@@ -10,7 +10,7 @@ import {
   invitePathOf,
 } from './app-links.ts';
 
-const BASE = 'https://littlefinger-app-philwoo.web.app';
+const BASE = 'https://littlefinger-app.web.app';
 
 describe('스토어 URL', () => {
   test('SCR-W03 이 쓰던 UTM 부착 URL 과 문자 그대로 같다', () => {
@@ -51,7 +51,7 @@ describe('앱 인텐트 URI — 카톡 인앱 브라우저 탈출 + 미설치 �
   test('설치 시 앱, 미설치 시 스토어로 가는 단일 URI 형태를 고정한다', () => {
     const store = buildPlayStoreUrl({ source: 'littlefinger_web', medium: 'invite_landing' });
     expect(buildInviteAppIntentUri(BASE, 'tok-1', store)).toBe(
-      'intent://littlefinger-app-philwoo.web.app/i/tok-1' +
+      'intent://littlefinger-app.web.app/i/tok-1' +
         '#Intent;scheme=https;package=com.littlefinger.app;' +
         `S.browser_fallback_url=${encodeURIComponent(store)};end`,
     );

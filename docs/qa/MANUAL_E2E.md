@@ -19,7 +19,7 @@ OAuth, App Links, and real-device push were not exercised by this run.
 2. **PASS** — all 45 Edge Functions are deployed with `--use-api` and report `ACTIVE`.
 3. **PASS** — `ACCOUNT_ID_PEPPER` is configured separately.
 4. **PASS** — `ads_enabled=false` remains the default and Google test identifiers are configured.
-5. **PASS (host)** — `https://littlefinger-app-philwoo.web.app` serves `/i/*` and the matching
+5. **PASS (host)** — `https://littlefinger-app.web.app` serves `/i/*` and the matching
    Digital Asset Links JSON; Google recognizes the association statement.
 6. **PENDING (operator)** — confirm the Firebase origin in the Dashboard-owned Supabase Auth
    redirect allowlist.

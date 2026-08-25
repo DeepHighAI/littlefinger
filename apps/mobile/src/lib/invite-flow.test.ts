@@ -46,11 +46,11 @@ describe('SCR-A04 초대 링크와 암호화 토큰', () => {
   });
 
   test('공유 링크는 웹 기준 URL로 조립하고 공유 문구에는 제목과 링크만 넣는다', () => {
-    const link = buildInviteLink('https://littlefinger-app-philwoo.web.app/', invite.token);
+    const link = buildInviteLink('https://littlefinger-app.web.app/', invite.token);
 
-    expect(link).toBe('https://littlefinger-app-philwoo.web.app/i/raw_token-123');
+    expect(link).toBe('https://littlefinger-app.web.app/i/raw_token-123');
     expect(inviteShareMessage(invite.title, link)).toBe(
-      '주 3회 달리기\nhttps://littlefinger-app-philwoo.web.app/i/raw_token-123',
+      '주 3회 달리기\nhttps://littlefinger-app.web.app/i/raw_token-123',
     );
     expect(inviteShareMessage(invite.title, link)).not.toContain('보상');
     expect(inviteShareMessage(invite.title, link)).not.toContain('벌칙');

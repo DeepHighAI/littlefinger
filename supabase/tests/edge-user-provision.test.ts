@@ -100,7 +100,7 @@ describe('user-provision — 로그인 뒤 보정 호출', () => {
       request({
         headers: {
           authorization: 'Bearer jwt-value',
-          origin: 'https://littlefinger-app-philwoo.web.app',
+          origin: 'https://littlefinger-app.web.app',
         },
         body: { nickname: '지우', profile_image_url: 'https://k.kakaocdn.net/p.jpg' },
       }),

@@ -562,7 +562,7 @@ Full detail: `04` §10.
 | ~~C-1~~ | ~~Business registration → email collection~~ | **Closed 2026-07-26. The PO has a business registration, and chose not to collect email anyway.** See §6-1 below — Biz App is still mandatory, for a different reason than `04` §13 assumed |
 | ~~Emoji~~ | ~~`02` §2-3 wants both "count code points" and "emoji counts as 1"~~ | **Decided 2026-07-26: code points.** A family emoji counts 5, 🇰🇷 counts 2. Grapheme counting needs `Intl.Segmenter`, an ECMA-402 surface where Hermes has gaps. Revisit at M4 if device testing allows |
 | C-2 | Match icons to the original 100%? | Default: no — Expo MaterialIcons, slight corner-curvature difference |
-| ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18: use `https://littlefinger-app-philwoo.web.app` (ADR 0005).** |
+| ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18 (ADR 0005), domain re-cut 2026-08-25: use `https://littlefinger-app.web.app` — no personal name in the public origin (ADR 0010). The old `…-philwoo` site 301-redirects.** |
 | ~~C-4~~ | ~~Pretty KakaoTalk share card for invites?~~ | **Closed 2026-08-23: SCR-A04 ships the OS share sheet (카톡·SMS·SNS 전부) + an explicit link-copy button (expo-clipboard).** The old "카카오톡으로 초대 보내기" label was retired — the handler was already the OS sheet, only the label lied |
 | N-1 | '리틀핑거' trademark / store name | Confirm before launch |
 | ~~N-4~~ | ~~Google SSO for production login~~ | **Implemented 2026-08-20**, GCP client + Dashboard provider **verified live + allowlist fixed 2026-08-23**. Remaining: PO checks the consent screen publishing status (Testing → In production), then a real-account sign-in on device |
