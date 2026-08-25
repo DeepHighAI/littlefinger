@@ -299,7 +299,7 @@ const ko: Record<LegalDocumentKind, LegalContent> = {
         title: '8. 정보주체의 권리와 행사 방법',
         paragraphs: [
           '① 사용자는 언제든지 자신의 개인정보에 대한 열람, 정정, 삭제, 처리정지를 요구할 수 있습니다.',
-          '② 권리 행사는 서비스 안의 기능, 계정 삭제 안내 페이지(https://littlefinger-app-philwoo.web.app/account-deletion), 또는 아래 개인정보 보호책임자 연락처를 통해 할 수 있으며, 회사는 지체 없이 필요한 조치를 합니다.',
+          '② 권리 행사는 서비스 안의 기능, 계정 삭제 안내 페이지(https://littlefinger-app.web.app/account-deletion), 또는 아래 개인정보 보호책임자 연락처를 통해 할 수 있으며, 회사는 지체 없이 필요한 조치를 합니다.',
           '③ 삭제 요구는 다른 참여자의 확정 기록을 훼손하지 않는 범위에서 처리되며, 법령에 따라 보존해야 하는 정보는 처리가 제한될 수 있습니다.',
           '④ 만 14세 미만 아동은 서비스에 가입할 수 없으므로, 법정대리인 동의 절차를 두지 않습니다.',
         ],
@@ -608,7 +608,7 @@ const en = {
         title: '8. Rights of data subjects and how to exercise them',
         paragraphs: [
           '(1) Users may at any time request access to, correction of, deletion of, or suspension of processing of their personal information.',
-          '(2) Rights may be exercised through features within the Service, through the account deletion page (https://littlefinger-app-philwoo.web.app/account-deletion), or by contacting the privacy officer below, and the Company takes necessary measures without delay.',
+          '(2) Rights may be exercised through features within the Service, through the account deletion page (https://littlefinger-app.web.app/account-deletion), or by contacting the privacy officer below, and the Company takes necessary measures without delay.',
           '(3) Deletion requests are handled to the extent they do not damage another participant’s confirmed records, and processing may be limited for information that must be preserved by law.',
           '(4) Children under 14 cannot sign up for the Service, so no legal-guardian consent procedure is provided.',
         ],
