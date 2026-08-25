@@ -7,7 +7,8 @@
       "namespace": "android_app",
       "package_name": "com.littlefinger.app",
       "sha256_cert_fingerprints": [
-        "C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB"
+        "C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB",
+        "CA:34:89:02:D7:AD:7D:77:22:5C:50:08:2A:08:4F:13:C2:70:39:3F:14:5F:68:E5:E6:6F:9C:89:2C:23:5D:B2"
       ]
     }
   }
