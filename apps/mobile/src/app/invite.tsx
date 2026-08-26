@@ -256,7 +256,7 @@ export default function InviteScreen(): React.JSX.Element {
     return (
       <SafeAreaView style={styles.screen}>
         <View style={styles.loading}>
-          <LfText secondary align="center">
+          <LfText variant="error" align="center">
             {LABEL.loadError}
           </LfText>
         </View>
@@ -382,7 +382,7 @@ export default function InviteScreen(): React.JSX.Element {
         )}
 
         {actionError && (
-          <LfText variant="caption" align="center">
+          <LfText variant="error" align="center">
             {LABEL.actionError}
           </LfText>
         )}

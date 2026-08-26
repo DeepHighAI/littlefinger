@@ -182,7 +182,7 @@ export default function RootLayout(): React.JSX.Element {
         </Stack.Protected>
         <Stack.Protected guard={session !== null}>
           <Stack.Screen name="home" />
-          <Stack.Screen name="promises" />
+          <Stack.Screen name="history" />
           <Stack.Screen name="promise/edit" />
           <Stack.Screen name="promise/[promise_id]" />
           <Stack.Screen name="invite" />

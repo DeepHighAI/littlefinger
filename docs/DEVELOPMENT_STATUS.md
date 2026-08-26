@@ -1,6 +1,27 @@
 # Development Status
 
-Snapshot date: **2026-08-25 KST**.
+Snapshot date: **2026-08-26 KST**.
+
+## Device-QA UX batch (2026-08-26, ADR 0011)
+
+Four PO decisions from internal-test device QA, all shipped and gated:
+
+- **Form guidance (SCR-A03)**: CTAs never disable into dead buttons — an invalid press wakes the
+  inline §5 messages, jumps to the first invalid step, and shows a red one-line summary
+  (`invalidFields` added to draft validation for message-less rules).
+- **Category optional**: unselected saves as `ETC` client-side (spec §5-1 amended); zero
+  server/hash change; the review step shows 기타.
+- **Home 진행·대기 tabs + SCR-A09 history**: `/promises` removed; new history screen splits
+  terminal statuses P1-safely (완료/불이행/협의 중단/거절·파기). `lf_promise_home_list` extended
+  (migration `20260826000001`, deployed + `promise-home-list` redeployed twice — the shell's own
+  tab-vocabulary copy first rejected history tabs, now sourced from shared). Legacy tab
+  responses stay byte-compatible for installed builds; live smoke verified both families.
+- **Red error copy**: new `LfText` `error` variant; ~25 inline failure lines across 13
+  screens/sheets moved off gray. Also from the same QA session: a slot purchase now closes the
+  paywall and immediately resumes the blocked send (SCR-A03/A04).
+- Gates: typecheck 5 projects · Vitest **104 files / 2,017** · Jest **72 suites / 725** — PASS.
+- Purchase E2E completed on device (2026-08-26): paywall on 6th send → test-card payment →
+  server verify → slot granted. The whole monetization chain is live.
 
 ## Domain re-cut: littlefinger-app.web.app (2026-08-25, ADR 0010)
 

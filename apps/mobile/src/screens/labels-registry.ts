@@ -16,6 +16,7 @@ import { MOD_01_LABEL, SCR_A05_LABEL } from './scr-a05-labels.ts';
 import { SCR_A06_LABEL } from './scr-a06-labels.ts';
 import { SCR_A07_LABEL, SCR_A07_NOTIFICATION_SEMANTIC_LABEL } from './scr-a07-labels.ts';
 import { SCR_A08_LABEL } from './scr-a08-labels.ts';
+import { SCR_A09_LABEL } from './scr-a09-labels.ts';
 import { SLOT_LABEL } from './slot-labels.ts';
 import { UPDATE_REQUIRED_LABEL } from './update-required-labels.ts';
 
@@ -43,6 +44,7 @@ export const MOBILE_LABEL_CATALOGS = {
   SCR_A07_LABEL,
   SCR_A07_NOTIFICATION_SEMANTIC_LABEL,
   SCR_A08_LABEL,
+  SCR_A09_LABEL,
   SLOT_LABEL,
   UPDATE_REQUIRED_LABEL,
 } satisfies Record<string, Localized<unknown>>;

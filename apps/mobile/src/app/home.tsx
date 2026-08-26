@@ -3,33 +3,35 @@ import {
   formatDday,
   formatKstDate,
   type PromiseHomeCard,
+  type PromiseHomeTab,
 } from '@littlefinger/shared';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfAdSlot } from '../components/LfAdSlot';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfBottomNav } from '../components/LfBottomNav';
 import { LfButton } from '../components/LfButton';
+import { LfChip } from '../components/LfChip';
 import { LfEmpty } from '../components/LfEmpty';
 import { LfHero } from '../components/LfHero';
 import { LfIcon } from '../components/LfIcon';
 import { PromiseListRow } from '../components/PromiseListRow';
-import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
 import { LfTrustStrip } from '../components/LfTrustStrip';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
-import { listHomePromises } from '../lib/home-promises-native.ts';
+import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import { useLabels } from '../lib/locale-native';
 import { loadTrustProfile } from '../lib/trust-profile-native.ts';
 import { createInitialHomeState, promiseHomeReducer } from '../screens/scr-a02-home-state.ts';
 import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
 import { colors, gutter, radius, size, space } from '../theme/tokens';
 
-const ACTIVE_TAB = 'ACTIVE' as const;
+// 홈은 진행·대기 두 탭만 가진다(PO 2026-08-26, ADR 0011). 종결은 SCR-A09 히스토리의 몫이다.
+const HOME_TABS: readonly PromiseHomeTab[] = ['ACTIVE', 'WAITING'];
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -42,6 +44,18 @@ const styles = StyleSheet.create({
     paddingBottom: space[7],
     gap: space[2],
     backgroundColor: colors.background,
+  },
+  tabs: {
+    flexDirection: 'row',
+    gap: space[3],
+    paddingHorizontal: gutter.app,
+    paddingBottom: space[6],
+    backgroundColor: colors.background,
+  },
+  tab: {
+    minHeight: size.touchMin,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroArea: { paddingBottom: space[8], backgroundColor: colors.background },
   sectionHeader: {
@@ -82,8 +96,8 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
   const [trustRate, setTrustRate] = useState<number | null | undefined>(undefined);
   const stateRef = useRef(state);
   const nextRequestId = useRef(0);
-  const loading = useRef(false);
-  const paging = useRef(false);
+  const loadingTabs = useRef(new Set<PromiseHomeTab>());
+  const pagingTabs = useRef(new Set<PromiseHomeTab>());
   stateRef.current = state;
 
   useEffect(() => {
@@ -101,16 +115,16 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
     return () => { active = false; };
   }, []);
 
-  const loadFirstPage = useCallback(async (refresh: boolean) => {
-    if (loading.current) return;
-    loading.current = true;
+  const loadFirstPage = useCallback(async (tab: PromiseHomeTab, refresh: boolean) => {
+    if (loadingTabs.current.has(tab)) return;
+    loadingTabs.current.add(tab);
     const loadId = ++nextRequestId.current;
-    dispatch({ type: 'LOAD_STARTED', tab: ACTIVE_TAB, loadId, refresh });
+    dispatch({ type: 'LOAD_STARTED', tab, loadId, refresh });
     try {
-      const result = await listHomePromises({ tab: ACTIVE_TAB });
+      const result = await listHomePromises({ tab });
       dispatch({
         type: 'LOAD_SUCCEEDED',
-        tab: ACTIVE_TAB,
+        tab,
         loadId,
         items: result.items,
         pinned: result.pinned,
@@ -118,33 +132,33 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
         nextCursor: result.next_cursor,
       });
     } catch {
-      dispatch({ type: 'LOAD_FAILED', tab: ACTIVE_TAB, loadId });
+      dispatch({ type: 'LOAD_FAILED', tab, loadId });
     } finally {
-      loading.current = false;
+      loadingTabs.current.delete(tab);
     }
   }, []);
 
-  const loadNextPage = useCallback(async () => {
-    const snapshot = stateRef.current.tabs.ACTIVE;
-    if (snapshot.nextCursor === null || snapshot.pagePending || paging.current) return;
-    paging.current = true;
+  const loadNextPage = useCallback(async (tab: PromiseHomeTab) => {
+    const snapshot = stateRef.current.tabs[tab];
+    if (snapshot.nextCursor === null || snapshot.pagePending || pagingTabs.current.has(tab)) return;
+    pagingTabs.current.add(tab);
     const requestId = ++nextRequestId.current;
     const generation = snapshot.latestLoadId;
-    dispatch({ type: 'PAGE_STARTED', tab: ACTIVE_TAB, requestId, generation });
+    dispatch({ type: 'PAGE_STARTED', tab, requestId, generation });
     try {
-      const result = await listHomePromises({ tab: ACTIVE_TAB, cursor: snapshot.nextCursor });
+      const result = await listHomePromises({ tab, cursor: snapshot.nextCursor });
       dispatch({
         type: 'PAGE_SUCCEEDED',
-        tab: ACTIVE_TAB,
+        tab,
         requestId,
         generation,
         items: result.items,
         nextCursor: result.next_cursor,
       });
     } catch {
-      dispatch({ type: 'PAGE_FAILED', tab: ACTIVE_TAB, requestId, generation });
+      dispatch({ type: 'PAGE_FAILED', tab, requestId, generation });
     } finally {
-      paging.current = false;
+      pagingTabs.current.delete(tab);
     }
   }, []);
 
@@ -154,34 +168,64 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
       focusedOnce.current = true;
       return;
     }
-    void loadFirstPage(true);
+    void loadFirstPage(stateRef.current.selectedTab, true);
   }, [loadFirstPage]));
 
-  const active = state.tabs.ACTIVE;
+  const selected = state.tabs[state.selectedTab];
   useEffect(() => {
-    if (active.items === null && !active.loading && !active.loadFailed) void loadFirstPage(false);
-  }, [active.items, active.loadFailed, active.loading, loadFirstPage]);
+    if (selected.items === null && !selected.loading && !selected.loadFailed) {
+      void loadFirstPage(state.selectedTab, false);
+    }
+  }, [loadFirstPage, selected.items, selected.loadFailed, selected.loading, state.selectedTab]);
 
   const openPromise = useCallback((item: PromiseHomeCard) => {
-    router.push({ pathname: '/promise/[promise_id]', params: { promise_id: item.promise_id } });
+    router.push(item.status === 'DRAFT'
+      ? { pathname: '/promise/edit', params: { promise_id: item.promise_id } }
+      : { pathname: '/promise/[promise_id]', params: { promise_id: item.promise_id } });
   }, [router]);
 
-  const hero = active.pinned[0] ?? active.items?.[0] ?? null;
-  const heroId = hero?.promise_id;
-  const rows = [...active.pinned.slice(1), ...(active.items ?? [])].filter(
-    (item) => item.promise_id !== heroId,
-  );
+  const removeDraft = useCallback(async (item: PromiseHomeCard) => {
+    await deleteDraft(item.promise_id);
+    dispatch({ type: 'DRAFT_DELETED', promiseId: item.promise_id });
+  }, []);
 
-  const pageFooter = active.pagePending || active.pageFailed ? (
+  const confirmDelete = useCallback((item: PromiseHomeCard) => {
+    Alert.alert(LABEL.deleteFirstTitle, LABEL.deleteFirstBody, [
+      { text: LABEL.cancel, style: 'cancel' },
+      {
+        text: LABEL.deleteContinue,
+        onPress: () => Alert.alert(LABEL.deleteFinalTitle, LABEL.deleteFinalBody, [
+          { text: LABEL.cancel, style: 'cancel' },
+          {
+            text: LABEL.delete,
+            style: 'destructive',
+            onPress: async () => await removeDraft(item),
+          },
+        ]),
+      },
+    ]);
+  }, [LABEL, removeDraft]);
+
+  const isActiveTab = state.selectedTab === 'ACTIVE';
+  // 히어로는 진행 탭 전용이다 — 대기 탭은 임박·응답 개념이 없다.
+  const hero = isActiveTab ? selected.pinned[0] ?? selected.items?.[0] ?? null : null;
+  const heroId = hero?.promise_id;
+  const rows = isActiveTab
+    ? [...selected.pinned.slice(1), ...(selected.items ?? [])].filter(
+        (item) => item.promise_id !== heroId,
+      )
+    : selected.items ?? [];
+
+  const pageFooter = selected.pagePending || selected.pageFailed ? (
     <View style={styles.pageFooter}>
-      {active.pagePending ? <LfText align="center" secondary>{LABEL.loading}</LfText> : (
+      {selected.pagePending ? <LfText align="center" secondary>{LABEL.loading}</LfText> : (
         <LfStack gap={3} center>
-          <LfText secondary>{LABEL.pageError}</LfText>
+          <LfText variant="error">{LABEL.pageError}</LfText>
           <LfButton
             accessibilityLabel={LABEL.retryPageAccessibility}
             label={LABEL.retry}
             variant="text"
-            onPress={() => void loadNextPage()}
+            onPress={() => void loadNextPage(state.selectedTab)}
           />
         </LfStack>
       )}
@@ -193,6 +237,26 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
       <View style={styles.greeting}>
         <LfText variant="headline">{LABEL.greeting}</LfText>
         <LfText secondary>{LABEL.greetingDescription}</LfText>
+      </View>
+      <View accessibilityRole="tablist" style={styles.tabs}>
+        {HOME_TABS.map((tab) => {
+          const label = tab === 'ACTIVE'
+            ? LABEL.activeTab(state.counts.ACTIVE)
+            : LABEL.waitingTab(state.counts.WAITING);
+          const active = state.selectedTab === tab;
+          return (
+            <Pressable
+              key={tab}
+              accessibilityRole="tab"
+              accessibilityLabel={label}
+              accessibilityState={{ selected: active }}
+              style={styles.tab}
+              onPress={() => dispatch({ type: 'TAB_SELECTED', tab })}
+            >
+              <LfChip label={label} tone={active ? 'ink' : 'outline'} size="md" />
+            </Pressable>
+          );
+        })}
       </View>
       {hero !== null && (
         <View style={styles.heroArea}>
@@ -213,12 +277,15 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
         </View>
       )}
       <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitle}><LfText variant="subtitle">{LABEL.activeSection}</LfText></View>
+        <View style={styles.sectionTitle}>
+          <LfText variant="subtitle">
+            {isActiveTab ? LABEL.activeSection : LABEL.waitingSection}
+          </LfText>
+        </View>
         <LfButton
-          accessibilityLabel={LABEL.allPromisesAccessibility}
-          label={LABEL.allPromises}
+          label={LABEL.history}
           variant="text"
-          onPress={() => router.push('/promises')}
+          onPress={() => router.push('/history')}
         />
       </View>
     </>
@@ -251,16 +318,16 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
         )}
       />
       <View style={styles.body}>
-        {active.loading || active.items === null ? (
+        {selected.loading || selected.items === null ? (
           <View style={styles.centered}><LfText secondary>{LABEL.loading}</LfText></View>
-        ) : active.loadFailed && hero === null && rows.length === 0 ? (
+        ) : selected.loadFailed && hero === null && rows.length === 0 ? (
           <LfStack grow center gap={4}>
-            <LfText secondary align="center">{LABEL.loadError}</LfText>
+            <LfText variant="error" align="center">{LABEL.loadError}</LfText>
             <LfButton
               accessibilityLabel={LABEL.retryListAccessibility}
               label={LABEL.retry}
               variant="text"
-              onPress={() => void loadFirstPage(false)}
+              onPress={() => void loadFirstPage(state.selectedTab, false)}
             />
           </LfStack>
         ) : (
@@ -270,7 +337,12 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
             data={rows}
             keyExtractor={(item) => item.promise_id}
             renderItem={({ item }) => (
-              <PromiseListRow item={item} now={now} onOpen={openPromise} />
+              <PromiseListRow
+                item={item}
+                now={now}
+                onOpen={openPromise}
+                {...(isActiveTab ? {} : { onDelete: confirmDelete })}
+              />
             )}
             contentContainerStyle={styles.content}
             ListHeaderComponent={listHeader}
@@ -280,10 +352,13 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
               </View>
             ) : null}
             ListFooterComponent={listFooter}
-            onEndReached={() => void loadNextPage()}
+            onEndReached={() => void loadNextPage(state.selectedTab)}
             onEndReachedThreshold={0.4}
             refreshControl={(
-              <RefreshControl refreshing={active.refreshing} onRefresh={() => void loadFirstPage(true)} />
+              <RefreshControl
+                refreshing={selected.refreshing}
+                onRefresh={() => void loadFirstPage(state.selectedTab, true)}
+              />
             )}
           />
         )}

@@ -4,12 +4,17 @@ import type {
   PromiseHomeTab,
 } from '../../../packages/shared/src/api.ts';
 import { isIsoInstant } from '../../../packages/shared/src/datetime.ts';
+import {
+  PROMISE_HISTORY_TABS,
+  PROMISE_HOME_TABS,
+} from '../../../packages/shared/src/promise-home.ts';
 import { ApiError } from './errors.ts';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/u;
-const TABS: readonly PromiseHomeTab[] = ['ACTIVE', 'WAITING', 'COMPLETED'];
+// 표를 복사하지 않는다(errors.ts 의 원칙과 동일) — 탭 어휘의 정본은 packages/shared 다.
+const TABS: readonly PromiseHomeTab[] = [...PROMISE_HOME_TABS, ...PROMISE_HISTORY_TABS];
 
 function exactRecord(value: unknown, keys: readonly string[]): Record<string, unknown> | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
