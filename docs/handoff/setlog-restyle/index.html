@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>셋로그 리스타일 패키지 — 확정 6화면 미리보기</title>
+<style>
+body{margin:0;background:#efe9de;font-family:system-ui,sans-serif;color:#221c13;padding:28px 32px}
+h1{font-size:17px;margin:0 0 4px}
+p{font-size:12.5px;color:#6f6552;margin:0 0 20px}
+a{color:#4a3f2e}
+.grid{display:flex;flex-wrap:wrap;gap:24px}
+.cell{display:flex;flex-direction:column;gap:8px}
+.cell span{font:600 11px ui-monospace,Menlo,monospace;color:#221c13}
+iframe{width:408px;height:912px;border:none;border-radius:10px;background:#f3ecdc;box-shadow:0 10px 30px rgba(40,30,10,.14)}
+</style>
+</head>
+<body>
+<h1>셋로그 리스타일 패키지 — 확정 6화면</h1>
+<p>design-reference 덮어쓰기용. 적용 방법은 <a href="README.md">README.md</a> 참조.</p>
+<div class="grid">
+  <div class="cell"><span>SCR-A01 로그인</span><iframe src="screens/app/scr-a01-login.html" title="A01"></iframe></div>
+  <div class="cell"><span>SCR-A02 홈</span><iframe src="screens/app/scr-a02-home.html" title="A02"></iframe></div>
+  <div class="cell"><span>SCR-A03 약속 작성</span><iframe src="screens/app/scr-a03-promise-create.html" title="A03"></iframe></div>
+  <div class="cell"><span>SCR-A00 온보딩</span><iframe src="screens/app/scr-a00-onboarding.html" title="A00"></iframe></div>
+  <div class="cell"><span>SCR-A05 상세 · 진행 중</span><iframe src="screens/app/scr-a05-active.html" title="A05"></iframe></div>
+  <div class="cell"><span>SCR-A08 마이</span><iframe src="screens/app/scr-a08-profile.html" title="A08"></iframe></div>
+</div>
+</body>
+</html>
