@@ -201,3 +201,16 @@ the lockscreen. Undo the stay-awake with `svc power stayon false`.
 Hardening still worth adding (not yet done): the `_layout.tsx` startup `Promise.all` has no
 `.catch` (any rejection = infinite splash) and no AppState-active retry for gates that parked
 while the screen was off.
+
+## Shared error codes are baked into every deployed Edge Function (2026-08-26)
+
+Each shell bundles `packages/shared/src/errors.ts` at deploy time, and `_shared/errors.ts` builds
+its KNOWN_CODES set from that copy. **Adding a code to shared does nothing for already-deployed
+functions** — a stale shell treats the new raise as unknown and flattens it to 500 `E_INTERNAL`,
+which the app then renders as the generic "문제가 발생했어요" (its own parser also rejects
+unknown codes). Measured with `E_SLOT_LIMIT`: the DB raised it correctly, `slot-status` /
+`purchase-verify` (freshly deployed) knew it, but `promise-create`/`promise-invite`/
+`promise-draft-update` (deployed before the code existed) returned 500 — on device this looked
+like a client bug, and the profile purchase path "working" while the send path "failed" was the
+tell. Rule: **when the shared error vocabulary changes, redeploy every function whose RPC can
+raise the new code** (grep the migrations for the raise site, then its callers).
