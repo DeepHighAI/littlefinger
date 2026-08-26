@@ -11,7 +11,11 @@ import { PROMISE_STATUSES, type PromiseStatus } from './promise.ts';
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/u;
-const TABS: readonly PromiseHomeTab[] = ['ACTIVE', 'WAITING', 'COMPLETED'];
+/** 홈 화면의 탭. counts 도 이 3키 정확 일치다 — 구버전 파서와의 영구 계약. */
+export const PROMISE_HOME_TABS = ['ACTIVE', 'WAITING', 'COMPLETED'] as const;
+/** SCR-A09 히스토리 탭(ADR 0011). counts 는 이 4키 정확 일치다. */
+export const PROMISE_HISTORY_TABS = ['DONE', 'BROKEN', 'UNSETTLED', 'DECLINED'] as const;
+const TABS: readonly PromiseHomeTab[] = [...PROMISE_HOME_TABS, ...PROMISE_HISTORY_TABS];
 const ROLES = ['CREATOR', 'PARTNER', 'WITNESS'] as const;
 const TAB_STATUSES: Record<PromiseHomeTab, readonly PromiseStatus[]> = {
   ACTIVE: ['ACTIVE', 'AMEND_PENDING', 'CHECKING'],
@@ -24,6 +28,11 @@ const TAB_STATUSES: Record<PromiseHomeTab, readonly PromiseStatus[]> = {
     'DECLINED',
     'CANCELED',
   ],
+  DONE: ['COMPLETED'],
+  BROKEN: ['BROKEN'],
+  // DISPUTED 를 '불이행'으로 묶지 않는다 — P1(판정 금지). 미확정 종결과 함께 중립 탭이다.
+  UNSETTLED: ['DISPUTED', 'UNRESOLVED'],
+  DECLINED: ['DECLINED', 'CANCELED'],
 };
 
 function recordWithKeys(value: unknown, keys: readonly string[]): Record<string, unknown> | null {
@@ -151,14 +160,23 @@ function asCursor(value: unknown, tab: PromiseHomeTab): PromiseHomeCursor | null
   return record as unknown as PromiseHomeCursor;
 }
 
-function asCounts(value: unknown): Record<PromiseHomeTab, number> | null {
-  const record = recordWithKeys(value, TABS);
+function asCounts(
+  value: unknown,
+  expectedTab: PromiseHomeTab,
+): Readonly<Partial<Record<PromiseHomeTab, number>>> | null {
+  // 요청 탭의 패밀리(홈 3키 / 히스토리 4키)만 정확 일치로 받는다 — 키가 섞이면 서버가 아니다.
+  const family: readonly PromiseHomeTab[] = (
+    PROMISE_HISTORY_TABS as readonly PromiseHomeTab[]
+  ).includes(expectedTab)
+    ? PROMISE_HISTORY_TABS
+    : PROMISE_HOME_TABS;
+  const record = recordWithKeys(value, family);
   if (record === null) return null;
-  for (const tab of TABS) {
+  for (const tab of family) {
     const count = record[tab];
     if (!Number.isInteger(count) || (count as number) < 0) return null;
   }
-  return record as Record<PromiseHomeTab, number>;
+  return record as Readonly<Partial<Record<PromiseHomeTab, number>>>;
 }
 
 export function asPromiseHomeListResponse(
@@ -170,7 +188,7 @@ export function asPromiseHomeListResponse(
   if (!Array.isArray(payload['items']) || !Array.isArray(payload['pinned'])) return null;
   const items = payload['items'].map((item) => asCard(item, expectedTab, false));
   const pinned = payload['pinned'].map((item) => asCard(item, expectedTab, true));
-  const counts = asCounts(payload['counts']);
+  const counts = asCounts(payload['counts'], expectedTab);
   const cursor = asCursor(payload['next_cursor'], expectedTab);
   if (
     items.some((item) => item === null) ||

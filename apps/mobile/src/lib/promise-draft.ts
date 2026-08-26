@@ -29,6 +29,11 @@ export type PromiseDraftField = keyof PromiseDraftFields;
 export interface PromiseDraftValidation {
   valid: boolean;
   fields: Partial<Record<PromiseDraftField, string>>;
+  /**
+   * 문구 유무와 무관한 실패 필드 전체(§5-1 순서). §5 에 문구가 없는 규칙은 `fields` 에
+   * 안 실리므로, 어디로 안내할지는 이 목록만이 안다(PO 2026-08-26 미입력 안내).
+   */
+  invalidFields: readonly PromiseDraftField[];
 }
 
 export const EMPTY_PROMISE_DRAFT: PromiseDraftFields = {
@@ -90,10 +95,12 @@ export function penaltyPresets(locale: Locale = 'ko'): readonly string[] {
 
 function addResult(
   fields: Partial<Record<PromiseDraftField, string>>,
+  invalidFields: PromiseDraftField[],
   field: PromiseDraftField,
   result: ValidationResult,
 ): boolean {
   if (result.valid) return true;
+  invalidFields.push(field);
   if (result.message !== null) fields[field] = result.message;
   return false;
 }
@@ -104,17 +111,24 @@ export function validatePromiseDraft(
   locale: Locale = 'ko',
 ): PromiseDraftValidation {
   const fields: Partial<Record<PromiseDraftField, string>> = {};
+  const invalidFields: PromiseDraftField[] = [];
   const results = [
-    addResult(fields, 'title', validateTitle(draft.title, locale)),
-    addResult(fields, 'body', validateBody(draft.body, locale)),
-    addResult(fields, 'category', validateCategory(draft.category)),
-    addResult(fields, 'end_date', validateEndDate(draft.end_date, now, locale)),
-    addResult(fields, 'keeper', validateKeeper(draft.keeper)),
-    addResult(fields, 'reward', validateReward(draft.reward)),
-    addResult(fields, 'penalty', validatePenalty(draft.penalty)),
+    addResult(fields, invalidFields, 'title', validateTitle(draft.title, locale)),
+    addResult(fields, invalidFields, 'body', validateBody(draft.body, locale)),
+    // 카테고리는 선택 항목이다(PO 2026-08-26, §5-1 개정) — 비워 두면 발송 시 '기타'로 저장된다.
+    addResult(
+      fields,
+      invalidFields,
+      'category',
+      draft.category === '' ? { valid: true, message: null } : validateCategory(draft.category),
+    ),
+    addResult(fields, invalidFields, 'end_date', validateEndDate(draft.end_date, now, locale)),
+    addResult(fields, invalidFields, 'keeper', validateKeeper(draft.keeper)),
+    addResult(fields, invalidFields, 'reward', validateReward(draft.reward)),
+    addResult(fields, invalidFields, 'penalty', validatePenalty(draft.penalty)),
   ];
 
-  return { valid: results.every(Boolean), fields };
+  return { valid: results.every(Boolean), fields, invalidFields };
 }
 
 const KOREAN_MOBILE = /01[016789][ -]?\d{3,4}[ -]?\d{4}/u;

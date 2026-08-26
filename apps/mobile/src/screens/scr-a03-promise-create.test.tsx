@@ -119,7 +119,8 @@ describe('SCR-A03 3단계 약속 작성', () => {
     expect(view.getByRole('button', { name: '습관' })).toBeTruthy();
     expect(view.queryByRole('button', { name: '종료일 선택' })).toBeNull();
     expect(view.getByRole('progressbar').props.accessibilityValue).toMatchObject({ now: 1, text: '내용' });
-    expect(view.getByRole('button', { name: '임시저장' }).props.accessibilityState).toMatchObject({ disabled: true });
+    // CTA 는 비워도 활성이다(PO 2026-08-26) — 누르면 비활성 대신 미입력 안내가 답한다.
+    expect(view.getByRole('button', { name: '임시저장' }).props.accessibilityState).toMatchObject({ disabled: false });
     expect(view.getByRole('button', { name: '조건 정하기' })).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
   });
@@ -228,6 +229,32 @@ describe('SCR-A03 3단계 약속 작성', () => {
       params: { promise_id: 'promise-1', witness_enabled: 'true' },
     });
     expect(JSON.stringify(push.mock.calls)).not.toContain('raw-token');
+  });
+
+  test('빈 필수 필드로 다음을 누르면 붉은 안내가 뜨고 단계에 머무른다 (PO 2026-08-26)', async () => {
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '조건 정하기' }));
+
+    expect(view.getByText('제목 — 제목을 2자 이상 입력해 주세요.')).toBeTruthy();
+    expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(1);
+  });
+
+  test('임시저장은 미입력 필드가 있는 단계로 데려가 안내한다', async () => {
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+    // 1단계는 채우고 종료일만 비운 상태에서 저장을 누른다.
+    await fireEvent.changeText(view.getByLabelText('제목'), '주 3회 달리기');
+    await fireEvent.changeText(view.getByLabelText('약속 내용'), '매주 세 번 함께 달린다.');
+
+    await fireEvent.press(view.getByRole('button', { name: '임시저장' }));
+    await settle();
+
+    // 2단계(조건)로 이동해 종료일 안내를 보여준다 — 조용한 차단 금지.
+    expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(2);
+    expect(view.getByText('종료일 — 종료일은 내일부터 1년 안으로 정해주세요.')).toBeTruthy();
+    expect(submitEditorDraft).not.toHaveBeenCalled();
   });
 
   test('서버 필드 오류는 해당 필드가 있는 단계로 되돌아간다', async () => {

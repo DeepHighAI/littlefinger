@@ -136,6 +136,8 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const [touched, setTouched] = useState<Partial<Record<PromiseDraftField, boolean>>>({});
   const [serverErrors, setServerErrors] = useState<Partial<Record<PromiseDraftField, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // 미입력 안내 한 줄(PO 2026-08-26). CTA 를 비활성으로 두는 대신, 누르면 이유를 말하고 데려간다.
+  const [formNotice, setFormNotice] = useState<string | null>(null);
   const [amendComment, setAmendComment] = useState<string | null>(null);
   const [slotSheetOpen, setSlotSheetOpen] = useState(false);
 
@@ -185,7 +187,46 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       delete next[field];
       return next;
     });
+    setFormNotice(null);
   }
+
+  const FIELD_LABELS: Record<PromiseDraftField, string> = {
+    title: LABEL.titleField,
+    body: LABEL.bodyField,
+    category: LABEL.category,
+    end_date: LABEL.endDate,
+    keeper: LABEL.keeper,
+    reward: LABEL.reward,
+    penalty: LABEL.penalty,
+    witness_enabled: LABEL.witness,
+  };
+
+  /**
+   * 조용한 차단 금지(PO 2026-08-26): 실패 필드를 전부 touched 로 만들어 인라인 문구를 깨우고,
+   * 첫 실패 필드가 있는 단계로 이동한 뒤 요약 한 줄을 띄운다. §5 문구가 없는 규칙(문구를
+   * 지어내지 않는 §2-3 원칙)은 공통 안내 문구로 대신한다.
+   */
+  function guideToFirstInvalid(scope: readonly PromiseDraftField[]): void {
+    const first = scope.find((field) => validation.invalidFields.includes(field));
+    if (first === undefined) return;
+    setTouched((current) => ({
+      ...current,
+      ...Object.fromEntries(scope.map((field) => [field, true])),
+    }));
+    const targetStep = editorStepForField(first);
+    if (targetStep !== step && targetStep !== 3) {
+      setDirection(targetStep > step ? 1 : -1);
+      setStep(targetStep);
+    }
+    setFormNotice(
+      LABEL.formNotice(FIELD_LABELS[first], validation.fields[first] ?? LABEL.checkField),
+    );
+  }
+
+  const ALL_FIELDS: readonly PromiseDraftField[] = [
+    ...EDITOR_STEP_FIELDS[1],
+    ...EDITOR_STEP_FIELDS[2],
+  ];
 
   function errorFor(field: PromiseDraftField): string | undefined {
     return serverErrors[field] ?? (touched[field] === true ? validation.fields[field] : undefined);
@@ -225,10 +266,15 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       ...current,
       ...Object.fromEntries(fields.map((field) => [field, true])),
     }));
-    if (fields.some((field) => validation.fields[field] !== undefined)) return;
+    // 문구 없는 실패(§5 미정의 규칙)도 여기서 걸린다 — 조용히 막지 않고 안내한다.
+    if (fields.some((field) => validation.invalidFields.includes(field))) {
+      guideToFirstInvalid(fields);
+      return;
+    }
     setDirection(1);
     setStep((step + 1) as LfWizardStep);
     setSubmitError(null);
+    setFormNotice(null);
   }
 
   async function performSubmit(send: boolean): Promise<void> {
@@ -271,6 +317,10 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   }
 
   function submit(send: boolean): void {
+    if (!validation.valid) {
+      guideToFirstInvalid(ALL_FIELDS);
+      return;
+    }
     if (containsSensitiveNumber(draft.body) && !privacyConfirmed) {
       Alert.alert(LABEL.privacyTitle, LABEL.privacyBody, [
         { text: LABEL.cancel, style: 'cancel' },
@@ -298,7 +348,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   if (loadFailed) {
     return (
       <SafeAreaView style={styles.screen}>
-        <View style={styles.loading}><LfText secondary align="center">{LABEL.loadError}</LfText></View>
+        <View style={styles.loading}><LfText variant="error" align="center">{LABEL.loadError}</LfText></View>
       </SafeAreaView>
     );
   }
@@ -333,7 +383,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           onChangeText={(value) => updateDraft('body', value)}
         />
       </LfField>
-      <LfField label={LABEL.category} required error={errorFor('category')}>
+      <LfField label={LABEL.category} optional error={errorFor('category')}>
         <View style={styles.choices}>
           {CATEGORIES.map((category) => (
             <LfChoice
@@ -432,7 +482,8 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         <ReviewValue label={LABEL.bodyField} value={draft.body} />
         <ReviewValue
           label={LABEL.category}
-          value={draft.category === '' ? LABEL.none : PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][draft.category]}
+          // 미선택은 '기타'로 저장되므로 검토 단계도 저장될 값을 그대로 보여준다(PO 2026-08-26).
+          value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][draft.category === '' ? 'ETC' : draft.category]}
         />
       </LfStack></LfCard>
       <LfCard variant="record"><LfStack gap={4}>
@@ -509,12 +560,13 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         </Animated.View>
       </ScrollView>
       <View style={styles.actions}>
-        {submitError !== null && <LfText variant="caption" align="center">{submitError}</LfText>}
+        {formNotice !== null && <LfText variant="error" align="center">{formNotice}</LfText>}
+        {submitError !== null && <LfText variant="error" align="center">{submitError}</LfText>}
         <LfButton
           label={LABEL.save}
           variant="text"
           block
-          disabled={!validation.valid || submitting}
+          disabled={submitting}
           onPress={() => submit(false)}
         />
         {step < 3 ? (
@@ -530,7 +582,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             label={LABEL.send}
             size="cta"
             block
-            disabled={!validation.valid || submitting}
+            disabled={submitting}
             onPress={() => submit(true)}
           />
         )}

@@ -30,6 +30,18 @@ describe('SCR-A03 서버 DRAFT 저장·발송', () => {
     );
   });
 
+  test('카테고리 미선택은 기타(ETC)로 저장한다 — 빈 문자열은 서버가 거절한다', async () => {
+    call.mockResolvedValue({ promise_id: 'promise-1', status: 'DRAFT' });
+
+    await submitPromiseDraft({ ...completeDraft, category: '' }, null, false, { call });
+
+    expect(call).toHaveBeenCalledWith(
+      ENDPOINT.promiseCreate,
+      { ...completeDraft, category: 'ETC', send: false },
+      { idempotent: true },
+    );
+  });
+
   test('기존 초안은 같은 promise_id를 promise-draft-update로 보내 버전 1을 유지한다', async () => {
     call.mockResolvedValue({ promise_id: 'promise-1', status: 'DRAFT' });
 

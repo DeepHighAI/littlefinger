@@ -48,6 +48,9 @@ const ko = {
   privacyContinue: '그대로 기록',
   cancel: '취소',
   genericError: '문제가 발생했어요. 잠시 후 다시 시도해 주세요.',
+  // 미입력 안내(PO 2026-08-26). §5 문구가 있으면 그쪽이 우선이고, 없는 규칙만 이 문구로 안내한다.
+  checkField: '입력 내용을 확인해 주세요.',
+  formNotice: (field: string, hint: string) => `${field} — ${hint}`,
 };
 
 const en = {
@@ -93,6 +96,8 @@ const en = {
   privacyContinue: 'Record as is',
   cancel: 'Cancel',
   genericError: 'Something went wrong. Please try again shortly.',
+  checkField: 'Please check this field.',
+  formNotice: (field: string, hint: string) => `${field} — ${hint}`,
 } satisfies typeof ko;
 
 export const PROMISE_EDIT_LABEL: Localized<typeof ko> = { ko, en };

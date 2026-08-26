@@ -433,7 +433,21 @@ export interface ParticipantPromiseSummary {
   waiting_for_partner: boolean;
 }
 
-export type PromiseHomeTab = 'ACTIVE' | 'WAITING' | 'COMPLETED';
+/**
+ * 홈 탭 3종 + SCR-A09 히스토리 탭 4종(PO 2026-08-26, ADR 0011).
+ * `COMPLETED` 는 구버전 설치 빌드가 계속 부르는 레거시 탭이라 남는다.
+ * DISPUTED 를 '불이행'으로 묶지 않는 UNSETTLED 분리는 P1(판정하지 않는다)의 요구다.
+ */
+export type PromiseHomeTab =
+  | 'ACTIVE'
+  | 'WAITING'
+  | 'COMPLETED'
+  | 'DONE'
+  | 'BROKEN'
+  | 'UNSETTLED'
+  | 'DECLINED';
+
+export type PromiseHomeTerminalTab = 'COMPLETED' | 'DONE' | 'BROKEN' | 'UNSETTLED' | 'DECLINED';
 
 export type PromiseHomeCursor =
   | {
@@ -448,7 +462,7 @@ export type PromiseHomeCursor =
       promise_id: string;
     }
   | {
-      tab: 'COMPLETED';
+      tab: PromiseHomeTerminalTab;
       closed_at: IsoDateTime | null;
       updated_at: IsoDateTime;
       promise_id: string;
@@ -481,7 +495,12 @@ export interface PromiseHomeListRequest {
 export interface PromiseHomeListResponse {
   items: readonly PromiseHomeCard[];
   pinned: readonly PromiseHomeCard[];
-  counts: Record<PromiseHomeTab, number>;
+  /**
+   * 요청 탭의 패밀리별 정확 키: 홈 탭 요청은 {ACTIVE, WAITING, COMPLETED},
+   * 히스토리 탭 요청은 {DONE, BROKEN, UNSETTLED, DECLINED}. 구버전 파서가 3키
+   * 정확 일치를 검사하므로 레거시 응답 형태는 영구히 그대로다.
+   */
+  counts: Readonly<Partial<Record<PromiseHomeTab, number>>>;
   next_cursor: PromiseHomeCursor | null;
 }
 
