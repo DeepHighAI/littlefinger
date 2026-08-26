@@ -1,6 +1,6 @@
 import { Pressable, type PressableProps, StyleSheet, Text } from 'react-native';
 
-import { brandFontFamily, type PretendardWeight } from '../theme/fonts';
+import { brandFontFamily, type BrandFontWeight } from '../theme/fonts';
 import { colors, radius, size, space, type, weight } from '../theme/tokens';
 
 /**
@@ -71,7 +71,7 @@ const labelColor: Record<LfButtonVariant, string> = {
 };
 
 /** 변형별 라벨 굵기. 스타일 객체에서 캐내지 않고 여기서 한 번에 선언한다. */
-const labelWeight: Record<LfButtonVariant, PretendardWeight> = {
+const labelWeight: Record<LfButtonVariant, BrandFontWeight> = {
   filled: weight.heavy,
   tonal: weight.heavy,
   outlined: weight.bold,

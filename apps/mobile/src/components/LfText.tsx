@@ -1,6 +1,6 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
-import { brandFontFamily, type PretendardWeight } from '../theme/fonts';
+import { brandFontFamily, type BrandFontWeight } from '../theme/fonts';
 import { colors, line, type, weight } from '../theme/tokens';
 
 /**
@@ -129,7 +129,7 @@ export function LfText({
   ...rest
 }: LfTextProps): React.JSX.Element {
   const base = styles[variant];
-  const fontWeight = base.fontWeight as PretendardWeight;
+  const fontWeight = base.fontWeight as BrandFontWeight;
 
   return (
     <Text
