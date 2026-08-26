@@ -1,6 +1,26 @@
 # Development Status
 
-Snapshot date: **2026-08-26 KST**.
+Snapshot date: **2026-08-27 KST**.
+
+## Visual-system baseline: 잉크 & 스티커 (2026-08-27, ADR 0012)
+
+The PO confirmed the **잉크 & 스티커** (Ink & Sticker, Setlog 시안 1a) restyle — full token value
+swap (115 names/count frozen, 72 values moved: ink `#221C13` on cream `#F3ECDC`, butter/lavender/
+apricot stickers, black filled CTA, Gaegu 400/700, offset sticker shadows) plus the six confirmed
+screens A00·A01·A02·A03·A05(ACTIVE)·A08. Applied across all three targets (design-reference in-place
+merge — no override layer shipped; RN tokens/components/screens; web tokens + lockstep
+components.css per PO confirmation) with the value-pinning tests moved deliberately. This
+supersedes the 2026-08-23 palette-A baseline below; `DESIGN.md` was rewritten and ADR 0012 records
+the decisions and deviations.
+
+- Gates (2026-08-27): typecheck 5 projects · Vitest **104 files / 2,017** · Jest **72 suites /
+  723** (fonts.test 4→2 weight params −4, +2 decor smoke tests) — PASS. Six merged reference
+  screens compared side-by-side in Chrome against the bundle's own preview.
+- Still pending (device QA): font-scale **1.5 reflow with Gaegu** (wide tracking — D-Day
+  badge/chip clipping first), Android dashed-border rendering, elevation approximation of the
+  offset sticker shadow, and a real-device pass of the six restyled screens.
+- PO-확인: the English twins added for the A03 typewriter line ("→ Shall we write a new
+  promise?") and the A00 mascot label ("Littlefinger mascot").
 
 ## Device-QA UX batch (2026-08-26, ADR 0011)
 
@@ -310,16 +330,17 @@ The measured first-view LCP passes the 3-second target, so the plan does not aut
 changes. CLS is **0.1666** and remains a visual-quality finding; SEO is **82**. Authenticated major
 screen transitions and approval API p95 were not measurable without the two-account session.
 
-## Visual-system baseline (2026-08-23)
+## Visual-system baseline (2026-08-23) — superseded by 잉크 & 스티커 (2026-08-27, ADR 0012)
 
 The PO approved A — **Pine Anchor · Warm Promise · Blue Record** — for the full mobile app,
-acceptance web, and design reference. It supersedes the single-green Fresh Green palette while
-preserving Soft Promise → Quiet Record layouts and all domain behaviour. `DESIGN.md` is the
-permanent colour and screen-application contract; ADR 0008 records the amendment.
+acceptance web, and design reference. It superseded the single-green Fresh Green palette while
+preserving Soft Promise → Quiet Record layouts and all domain behaviour. ADR 0008 records the
+amendment; the 2026-08-27 section above is now the live baseline.
 
 Still pending:
 
-- final physical-device 360×800 comparison against the palette-A reference;
+- final physical-device 360×800 comparison against the frozen reference (now the ink-and-sticker
+  baseline);
 - authenticated major screen transition ≤2 seconds and approval API p95 ≤1 second;
 - two Kakao accounts completing approval, witness, amend, fulfillment, safety and withdrawal flows;
 - real Expo push delivery on a physical device (emulator delivery verified foreground/background/

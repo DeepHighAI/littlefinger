@@ -269,11 +269,12 @@ keepRate denominator counts **only promises where I am the obligor**, and shows 
 
 ### 5-3. The design system is a one-source, three-target pipeline
 
-Read [`DESIGN.md`](DESIGN.md) before changing UI. It defines the approved Soft Promise → Quiet
-Record semantics and A — Pine Anchor · Warm Promise · Blue Record — role palette. Pine owns
-identity/progress/approval, Action owns filled CTA, Blue owns durable information, Apricot owns
-deadline/response attention, and red is danger-only. The product hierarchy in §4 and the hard
-constraints in §8 still win.
+Read [`DESIGN.md`](DESIGN.md) before changing UI. It defines the approved **잉크 & 스티커**
+(Ink & Sticker, Setlog 시안 1a — ADR 0012) system: cream paper canvas, one warm ink for
+text/borders/filled CTA, sticker containers (butter=brand/positive, lavender=durable record,
+apricot=deadline/response), Gaegu 400/700 as the brand face, thick ink borders with offset
+sticker shadows, and red as danger-only. The product hierarchy in §4 and the hard constraints
+in §8 still win.
 
 `src/styles/tokens.css` is the single definition of every colour, type scale, radius, spacing,
 elevation, easing and duration. It was authored at a **360×800 dp** viewport, which is why the port
@@ -308,8 +309,10 @@ Preview-only scaffolding that **must be stripped during the port**: the `lf-devi
 KakaoTalk in-app browser plays that role). Keep the `lf-screen` structure and every `lf-*` class.
 
 Two port gotchas already discovered, do not rediscover them:
-- `assets/fonts/PretendardVariable.woff2` is **web-only** — RN needs 4 static `.ttf` weights
-  (400/600/700/800), because RN Android's variable-font weight axis is unreliable.
+- Web font files (`PretendardVariable.woff2`, @fontsource css) are **web-only** — RN loads static
+  per-weight files because RN Android's variable-font weight axis is unreliable. Since ADR 0012
+  the brand face is Gaegu (400/700 only, via `@expo-google-fonts/gaegu` → `theme/fontAssets.ts`);
+  weight tokens medium/heavy converge to 400/700 — weight 800 no longer exists anywhere.
 - Material Symbols Rounded is not bundled with Expo — use `@expo/vector-icons` MaterialIcons behind
   an `LfIcon` wrapper so the swap point stays in one file. Screens never import icons directly.
 
