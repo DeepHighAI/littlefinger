@@ -30,7 +30,7 @@ describe('public legal documents', () => {
       'PRIVACY',
       '개인정보 처리방침',
       '1. 처리하는 개인정보의 항목과 수집 방법',
-      '버전 2026-08-23.1 · 시행일 2026-08-23',
+      '버전 2026-08-25.1 · 시행일 2026-08-25',
     ],
   ] as const)('renders the final %s document without auth or ads', (kind, title, section, versionLine) => {
     const { container } = render(<LegalDocument kind={kind} />);

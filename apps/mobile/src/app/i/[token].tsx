@@ -415,7 +415,7 @@ export default function InviteReviewScreen(): React.JSX.Element {
           </LfText>
         )}
         {actionError !== null && (
-          <LfText variant="caption" accessibilityRole="alert">{actionError}</LfText>
+          <LfText variant="error" accessibilityRole="alert">{actionError}</LfText>
         )}
 
         {confirming ? (

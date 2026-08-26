@@ -320,7 +320,7 @@ export function PromiseAmendSheet({
                 onChangeText={setReason}
               />
             </LfField>
-            {actionError ? <LfText variant="caption" align="center">{LABEL.submitError}</LfText> : null}
+            {actionError ? <LfText variant="error" align="center">{LABEL.submitError}</LfText> : null}
             <LfButton
               label={LABEL.submit}
               size="cta"

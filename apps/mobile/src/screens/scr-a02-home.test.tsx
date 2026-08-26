@@ -93,15 +93,37 @@ describe('SCR-A02 Soft Promise 홈', () => {
     mockFocusEffects.clear();
   });
 
-  test('첫 진입은 ACTIVE만 읽고 중립 인사말·전체 보기·하단 작성 행동을 보여준다', async () => {
+  test('첫 진입은 ACTIVE만 읽고 진행·대기 탭과 히스토리 버튼을 보여준다 (ADR 0011)', async () => {
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
     expect(listHomePromises).toHaveBeenCalledWith({ tab: 'ACTIVE' });
     expect(view.getByText('이번 주도 약속을 챙겨볼까요?')).toBeTruthy();
-    expect(view.getByRole('button', { name: '전체 약속 보기' })).toBeTruthy();
-    expect(view.queryByRole('tab', { name: /진행 중/u })).toBeNull();
+    // 홈 탭은 진행·대기 둘뿐이다 — 종결은 히스토리 화면의 몫이다.
+    expect(view.getByRole('tab', { name: '진행 중 0' })).toBeTruthy();
+    expect(view.getByRole('tab', { name: '대기 2' })).toBeTruthy();
+    expect(view.queryByRole('tab', { name: /완료/u })).toBeNull();
+    expect(view.getByRole('button', { name: '지난 약속 히스토리 보기' })).toBeTruthy();
     expect(view.getByRole('button', { name: '작성' })).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
+  });
+
+  test('대기 탭은 초안·대기 목록을 읽고 히어로 없이 초안 삭제 진입점을 준다', async () => {
+    jest.mocked(listHomePromises).mockImplementation(async (input: { tab: string }) =>
+      input.tab === 'WAITING'
+        ? response({ items: [card({ id: SECOND_ID, title: '초안 약속', status: 'DRAFT', endDate: null })] })
+        : response({ pinned: [card({ id: ACTIVE_ID, title: '히어로' })] }),
+    );
+    const view = await render(<HomeScreen now={NOW} />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('tab', { name: '대기 2' }));
+    await settle();
+
+    expect(listHomePromises).toHaveBeenCalledWith({ tab: 'WAITING' });
+    expect(view.queryByTestId('home-hero')).toBeNull();
+    expect(view.getByText('대기 중 약속')).toBeTruthy();
+    expect(view.getByText('초안 약속')).toBeTruthy();
+    expect(view.getByRole('button', { name: '초안 약속 초안 삭제' })).toBeTruthy();
   });
 
   test('가장 가까운 약속은 히어로 한 곳에만 나오고 상세로 이동한다', async () => {
@@ -165,13 +187,13 @@ describe('SCR-A02 Soft Promise 홈', () => {
     });
   });
 
-  test('전체 보기·지킴율·하단 목적지는 각각 올바른 경로를 연다', async () => {
+  test('히스토리·지킴율·하단 목적지는 각각 올바른 경로를 연다', async () => {
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '전체 약속 보기' }));
+    await fireEvent.press(view.getByRole('button', { name: '지난 약속 히스토리 보기' }));
     await fireEvent.press(view.getByRole('button', { name: '지금까지 약속의 87%를 지켰어요' }));
     await fireEvent.press(view.getByRole('tab', { name: '마이' }));
-    expect(push).toHaveBeenCalledWith('/promises');
+    expect(push).toHaveBeenCalledWith('/history');
     expect(replace).toHaveBeenNthCalledWith(1, '/profile');
     expect(replace).toHaveBeenNthCalledWith(2, '/profile');
   });

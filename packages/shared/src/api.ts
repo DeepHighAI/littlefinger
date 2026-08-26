@@ -94,7 +94,9 @@ export type ApiValidationField =
   | 'decision'
   | 'target_user_id'
   | 'hidden'
-  | 'detail';
+  | 'detail'
+  | 'product_id'
+  | 'purchase_token';
 
 export type ApiErrorAction = 'AMEND_SUGGEST';
 
@@ -431,7 +433,21 @@ export interface ParticipantPromiseSummary {
   waiting_for_partner: boolean;
 }
 
-export type PromiseHomeTab = 'ACTIVE' | 'WAITING' | 'COMPLETED';
+/**
+ * 홈 탭 3종 + SCR-A09 히스토리 탭 4종(PO 2026-08-26, ADR 0011).
+ * `COMPLETED` 는 구버전 설치 빌드가 계속 부르는 레거시 탭이라 남는다.
+ * DISPUTED 를 '불이행'으로 묶지 않는 UNSETTLED 분리는 P1(판정하지 않는다)의 요구다.
+ */
+export type PromiseHomeTab =
+  | 'ACTIVE'
+  | 'WAITING'
+  | 'COMPLETED'
+  | 'DONE'
+  | 'BROKEN'
+  | 'UNSETTLED'
+  | 'DECLINED';
+
+export type PromiseHomeTerminalTab = 'COMPLETED' | 'DONE' | 'BROKEN' | 'UNSETTLED' | 'DECLINED';
 
 export type PromiseHomeCursor =
   | {
@@ -446,7 +462,7 @@ export type PromiseHomeCursor =
       promise_id: string;
     }
   | {
-      tab: 'COMPLETED';
+      tab: PromiseHomeTerminalTab;
       closed_at: IsoDateTime | null;
       updated_at: IsoDateTime;
       promise_id: string;
@@ -479,7 +495,12 @@ export interface PromiseHomeListRequest {
 export interface PromiseHomeListResponse {
   items: readonly PromiseHomeCard[];
   pinned: readonly PromiseHomeCard[];
-  counts: Record<PromiseHomeTab, number>;
+  /**
+   * 요청 탭의 패밀리별 정확 키: 홈 탭 요청은 {ACTIVE, WAITING, COMPLETED},
+   * 히스토리 탭 요청은 {DONE, BROKEN, UNSETTLED, DECLINED}. 구버전 파서가 3키
+   * 정확 일치를 검사하므로 레거시 응답 형태는 영구히 그대로다.
+   */
+  counts: Readonly<Partial<Record<PromiseHomeTab, number>>>;
   next_cursor: PromiseHomeCursor | null;
 }
 
@@ -905,6 +926,25 @@ export interface SafetyReportResponse {
 }
 
 /**
+ * 슬롯 현황 (PO 2026-08-24 유료 슬롯).
+ * `used` 는 내가 작성자인 '진행 중'(§4-1-4) 약속 수, `capacity` 는 무료 5 + 구매 수다.
+ * 수치의 정본은 서버(`lf_slot_status`) — 클라이언트는 절대 스스로 세지 않는다.
+ */
+export interface SlotStatusResponse {
+  capacity: number;
+  used: number;
+}
+
+export interface PurchaseVerifyRequest {
+  product_id: string;
+  /** Google Play 구매 토큰. 서버가 Play Developer API 로 직접 검증한다 — 영수증 자체는 신뢰하지 않는다. */
+  purchase_token: string;
+}
+
+/** 검증 성공 = 슬롯이 이미 부여된 상태의 현황. 클라이언트는 이 응답을 받은 뒤에만 소모 처리한다. */
+export interface PurchaseVerifyResponse extends SlotStatusResponse {}
+
+/**
  * Edge Function 슬러그. `04` §7-3 의 이름을 그대로 쓴다.
  *
  * `lf_idempotency_begin` 이 이 문자열을 (키, 사용자, 엔드포인트) 쌍의 일부로 저장하므로
@@ -957,6 +997,8 @@ export const ENDPOINT = {
   userUnblock: 'user-unblock',
   userBlockList: 'user-block-list',
   safetyReport: 'safety-report',
+  slotStatus: 'slot-status',
+  purchaseVerify: 'purchase-verify',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];

@@ -1,7 +1,7 @@
 import { type PromiseHomeCard, type PromiseHomeTab } from '@littlefinger/shared';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfAppBar } from '../components/LfAppBar';
@@ -12,19 +12,29 @@ import { LfIcon } from '../components/LfIcon';
 import { PromiseListRow } from '../components/PromiseListRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
-import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
+import { listHomePromises } from '../lib/home-promises-native.ts';
 import { useLabels } from '../lib/locale-native';
 import { createInitialHomeState, promiseHomeReducer } from '../screens/scr-a02-home-state.ts';
-import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
+import { SCR_A09_LABEL } from '../screens/scr-a09-labels.ts';
 import { colors, gutter, size, space } from '../theme/tokens';
 
-const TABS: readonly PromiseHomeTab[] = ['ACTIVE', 'WAITING', 'COMPLETED'];
+/**
+ * SCR-A09 지난 약속 히스토리 (PO 2026-08-26, ADR 0011).
+ *
+ * 종결 6개 상태를 판정 없이 네 묶음으로 보여준다 — 의견 불일치를 '불이행'에 넣지 않는
+ * 것(협의 중단 탭)이 P1 의 요구다. 광고 슬롯은 없다(F-12 허용 지면은 A02·A07·A08 뿐).
+ */
+const HISTORY_TABS: readonly PromiseHomeTab[] = ['DONE', 'BROKEN', 'UNSETTLED', 'DECLINED'];
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  tabs: { flexDirection: 'row', gap: space[3], paddingHorizontal: gutter.app },
+  tabs: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: space[3],
+    paddingHorizontal: gutter.app,
+  },
   tab: {
-    flex: 1,
     minHeight: size.touchMin,
     alignItems: 'center',
     justifyContent: 'center',
@@ -38,26 +48,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  empty: { paddingHorizontal: gutter.app },
+  empty: { paddingHorizontal: gutter.app, paddingVertical: space[9] },
   footer: { paddingVertical: space[7] },
 });
 
 function tabLabel(
-  labels: (typeof SCR_A02_LABEL)['ko'],
+  labels: (typeof SCR_A09_LABEL)['ko'],
   tab: PromiseHomeTab,
   count: number,
 ): string {
-  if (tab === 'ACTIVE') return labels.activeTab(count);
-  if (tab === 'WAITING') return labels.waitingTab(count);
-  return labels.completedTab(count);
+  if (tab === 'DONE') return labels.doneTab(count);
+  if (tab === 'BROKEN') return labels.brokenTab(count);
+  if (tab === 'UNSETTLED') return labels.unsettledTab(count);
+  return labels.declinedTab(count);
 }
 
-export interface PromisesScreenProps {
+export interface HistoryScreenProps {
   now?: Date;
 }
 
-export default function PromisesScreen({ now = new Date() }: PromisesScreenProps): React.JSX.Element {
-  const LABEL = useLabels(SCR_A02_LABEL);
+export default function HistoryScreen({ now = new Date() }: HistoryScreenProps): React.JSX.Element {
+  const LABEL = useLabels(SCR_A09_LABEL);
   const router = useRouter();
   const [state, dispatch] = useReducer(promiseHomeReducer, undefined, createInitialHomeState);
   const stateRef = useRef(state);
@@ -65,6 +76,12 @@ export default function PromisesScreen({ now = new Date() }: PromisesScreenProps
   const loadingTabs = useRef(new Set<PromiseHomeTab>());
   const pagingTabs = useRef(new Set<PromiseHomeTab>());
   stateRef.current = state;
+  // 홈 리듀서의 초기 탭은 ACTIVE 다 — 히스토리는 첫 탭(완료)으로 시작한다.
+  const selectedTab: PromiseHomeTab = (HISTORY_TABS as readonly string[]).includes(
+    state.selectedTab,
+  )
+    ? state.selectedTab
+    : 'DONE';
 
   const loadFirstPage = useCallback(async (tab: PromiseHomeTab, refresh: boolean) => {
     if (loadingTabs.current.has(tab)) return;
@@ -119,68 +136,44 @@ export default function PromisesScreen({ now = new Date() }: PromisesScreenProps
       focusedOnce.current = true;
       return;
     }
-    void loadFirstPage(stateRef.current.selectedTab, true);
+    const tab = stateRef.current.selectedTab;
+    void loadFirstPage(
+      (HISTORY_TABS as readonly string[]).includes(tab) ? tab : 'DONE',
+      true,
+    );
   }, [loadFirstPage]));
 
-  const selected = state.tabs[state.selectedTab];
+  const selected = state.tabs[selectedTab];
   useEffect(() => {
     if (selected.items === null && !selected.loading && !selected.loadFailed) {
-      void loadFirstPage(state.selectedTab, false);
+      void loadFirstPage(selectedTab, false);
     }
-  }, [loadFirstPage, selected.items, selected.loadFailed, selected.loading, state.selectedTab]);
+  }, [loadFirstPage, selected.items, selected.loadFailed, selected.loading, selectedTab]);
 
   const openPromise = useCallback((item: PromiseHomeCard) => {
-    router.push(item.status === 'DRAFT'
-      ? { pathname: '/promise/edit', params: { promise_id: item.promise_id } }
-      : { pathname: '/promise/[promise_id]', params: { promise_id: item.promise_id } });
+    router.push({ pathname: '/promise/[promise_id]', params: { promise_id: item.promise_id } });
   }, [router]);
-
-  const removeDraft = useCallback(async (item: PromiseHomeCard) => {
-    await deleteDraft(item.promise_id);
-    dispatch({ type: 'DRAFT_DELETED', promiseId: item.promise_id });
-  }, []);
-
-  const confirmDelete = useCallback((item: PromiseHomeCard) => {
-    Alert.alert(LABEL.deleteFirstTitle, LABEL.deleteFirstBody, [
-      { text: LABEL.cancel, style: 'cancel' },
-      {
-        text: LABEL.deleteContinue,
-        onPress: () => Alert.alert(LABEL.deleteFinalTitle, LABEL.deleteFinalBody, [
-          { text: LABEL.cancel, style: 'cancel' },
-          {
-            text: LABEL.delete,
-            style: 'destructive',
-            onPress: async () => await removeDraft(item),
-          },
-        ]),
-      },
-    ]);
-  }, [LABEL, removeDraft]);
 
   const pageFooter = selected.pagePending || selected.pageFailed ? (
     <View style={styles.footer}>
       {selected.pagePending ? <LfText align="center" secondary>{LABEL.loading}</LfText> : (
         <LfStack gap={3} center>
-          <LfText secondary>{LABEL.pageError}</LfText>
+          <LfText variant="error">{LABEL.pageError}</LfText>
           <LfButton
             accessibilityLabel={LABEL.retryPageAccessibility}
             label={LABEL.retry}
             variant="text"
-            onPress={() => void loadNextPage(state.selectedTab)}
+            onPress={() => void loadNextPage(selectedTab)}
           />
         </LfStack>
       )}
     </View>
   ) : null;
 
-  const items = state.selectedTab === 'ACTIVE'
-    ? [...selected.pinned, ...(selected.items ?? [])]
-    : selected.items ?? [];
-
   return (
     <SafeAreaView style={styles.screen}>
       <LfAppBar
-        title={LABEL.allPromisesTitle}
+        title={LABEL.title}
         leading={(
           <Pressable
             accessibilityRole="button"
@@ -193,9 +186,9 @@ export default function PromisesScreen({ now = new Date() }: PromisesScreenProps
         )}
       />
       <View accessibilityRole="tablist" style={styles.tabs}>
-        {TABS.map((tab) => {
+        {HISTORY_TABS.map((tab) => {
           const label = tabLabel(LABEL, tab, state.counts[tab]);
-          const active = state.selectedTab === tab;
+          const active = selectedTab === tab;
           return (
             <Pressable
               key={tab}
@@ -213,23 +206,23 @@ export default function PromisesScreen({ now = new Date() }: PromisesScreenProps
       <View style={styles.body}>
         {selected.loading || selected.items === null ? (
           <View style={styles.centered}><LfText secondary>{LABEL.loading}</LfText></View>
-        ) : selected.loadFailed && items.length === 0 ? (
+        ) : selected.loadFailed && (selected.items ?? []).length === 0 ? (
           <LfStack grow center gap={4}>
-            <LfText secondary align="center">{LABEL.loadError}</LfText>
+            <LfText variant="error" align="center">{LABEL.loadError}</LfText>
             <LfButton
               accessibilityLabel={LABEL.retryListAccessibility}
               label={LABEL.retry}
               variant="text"
-              onPress={() => void loadFirstPage(state.selectedTab, false)}
+              onPress={() => void loadFirstPage(selectedTab, false)}
             />
           </LfStack>
         ) : (
           <FlatList
-            testID="promises-list"
-            data={items}
+            testID="history-list"
+            data={selected.items ?? []}
             keyExtractor={(item) => item.promise_id}
             renderItem={({ item }) => (
-              <PromiseListRow item={item} now={now} onOpen={openPromise} onDelete={confirmDelete} />
+              <PromiseListRow item={item} now={now} onOpen={openPromise} />
             )}
             contentContainerStyle={styles.content}
             ListEmptyComponent={(
@@ -238,12 +231,12 @@ export default function PromisesScreen({ now = new Date() }: PromisesScreenProps
               </View>
             )}
             ListFooterComponent={pageFooter}
-            onEndReached={() => void loadNextPage(state.selectedTab)}
+            onEndReached={() => void loadNextPage(selectedTab)}
             onEndReachedThreshold={0.4}
             refreshControl={(
               <RefreshControl
                 refreshing={selected.refreshing}
-                onRefresh={() => void loadFirstPage(state.selectedTab, true)}
+                onRefresh={() => void loadFirstPage(selectedTab, true)}
               />
             )}
           />

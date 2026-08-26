@@ -14,7 +14,7 @@ Understanding this first prevents mis-diagnosing failures:
 | SCR-W01 "앱에서 계속하기" CTA | `intent://` URI — launches by **package name** (`com.littlefinger.app`), no domain verification involved | **Yes** |
 | Plain link tap in Chrome/browser | Android App Links — needs the APK's **signing cert** listed in `/.well-known/assetlinks.json` | **No** (see below) |
 
-`assetlinks.json` on `littlefinger-app-philwoo.web.app` carries the **EAS development
+`assetlinks.json` on `littlefinger-app.web.app` carries the **EAS development
 certificate**. The local ARM64 debug APK
 (`C:\Users\batis\AppData\Local\Temp\littlefinger-firebase-debug-arm64-v8a.apk`) is signed with a
 different local cert, so auto-open from Chrome will not verify with that APK — that is a
@@ -43,7 +43,7 @@ development build; everything else can be tested with the local debug APK.
 ## 2. Produce an invite link
 
 In the app: create a promise → 초대 링크 보내기 → share to KakaoTalk (or copy the link and
-paste it into a chat). Link shape: `https://littlefinger-app-philwoo.web.app/i/<token>`.
+paste it into a chat). Link shape: `https://littlefinger-app.web.app/i/<token>`.
 Sending it to 나와의 채팅 on the partner's KakaoTalk is the easiest single-device setup.
 
 ## 3. Scenario A — KakaoTalk → CTA → in-app review (app installed)
@@ -68,7 +68,7 @@ Run with the **EAS-signed dev build** for the definitive result.
    adb shell pm get-app-links com.littlefinger.app
    ```
 
-   **Expect** `littlefinger-app-philwoo.web.app: verified`.
+   **Expect** `littlefinger-app.web.app: verified`.
 2. Paste the invite link into Chrome's address bar and tap it (or tap it in any non-Kakao
    app) → **expect** the app opens directly on the review screen, no browser, no chooser.
 3. With the local debug APK the domain will report not-verified and Chrome stays on web

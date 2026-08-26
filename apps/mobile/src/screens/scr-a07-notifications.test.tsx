@@ -9,6 +9,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '../lib/notification-inbox-native.ts';
+import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { notificationAppearance } from './scr-a07-notification-presentation.ts';
 import {
   INITIAL_NOTIFICATION_INBOX_STATE,
@@ -26,6 +27,11 @@ jest.mock(
   }),
   { virtual: true },
 );
+jest.mock('../lib/ads-config-native.ts', () => ({ readAdsEnabled: jest.fn() }));
+jest.mock('../components/LfAdSlot', () => {
+  const { View } = jest.requireActual<typeof import('react-native')>('react-native');
+  return { LfAdSlot: ({ enabled }: { enabled: boolean }) => enabled ? <View testID="lf-ad-slot" /> : null };
+});
 
 const NOW = new Date('2026-08-15T04:00:00.000Z');
 const FIRST_ID = '11111111-1111-4111-8111-111111111111';
@@ -115,11 +121,37 @@ describe('SCR-A07 알림함', () => {
     markAllNotificationsReadMock.mockResolvedValue({ read_count: 0 });
     createNotificationReadIdempotencyKeyMock.mockReset();
     createNotificationReadIdempotencyKeyMock.mockReturnValue(SECOND_ID);
+    jest.mocked(readAdsEnabled).mockReset().mockResolvedValue(false);
   });
 
   afterEach(async () => {
     await cleanup();
     jest.useRealTimers();
+  });
+
+  test('ads_enabled=false 면 광고 슬롯을 렌더하지 않는다 (F-12 확대, PO 2026-08-24)', async () => {
+    listNotificationInboxMock.mockResolvedValue({
+      items: [item()],
+      unread_count: 1,
+      next_cursor: null,
+    });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    expect(view.queryByTestId('lf-ad-slot')).toBeNull();
+  });
+
+  test('ads_enabled=true 면 목록 하단에 광고 슬롯 1구좌를 렌더한다', async () => {
+    jest.mocked(readAdsEnabled).mockResolvedValue(true);
+    listNotificationInboxMock.mockResolvedValue({
+      items: [item()],
+      unread_count: 1,
+      next_cursor: null,
+    });
+    const view = await render(<NotificationInboxScreen />);
+    await settle();
+
+    expect(view.getByTestId('lf-ad-slot')).toBeTruthy();
   });
 
   test('목록을 기다리는 동안 로딩 문구를 보여준다', async () => {

@@ -7,6 +7,7 @@ import { LfButton } from '../components/LfButton';
 import { LfIcon } from '../components/LfIcon';
 import { LfPinky } from '../components/LfPinky';
 import { useLabels } from '../lib/locale-native';
+import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
 import { completeOnboardingNative } from '../lib/onboarding-native.ts';
 import { ONBOARDING_LABEL } from '../screens/onboarding-labels.ts';
 import { brandFontFamily } from '../theme/fonts';
@@ -37,6 +38,7 @@ const styles = StyleSheet.create({
 export default function OnboardingScreen(): React.JSX.Element {
   const LABEL = useLabels(ONBOARDING_LABEL);
   const router = useRouter();
+  const { onOnboardingCompleted } = useMobileAuthGate();
   const [saving, setSaving] = useState(false);
 
   async function finish(): Promise<void> {
@@ -44,6 +46,7 @@ export default function OnboardingScreen(): React.JSX.Element {
     setSaving(true);
     try {
       await completeOnboardingNative();
+      onOnboardingCompleted?.();
       router.replace('/');
     } finally {
       setSaving(false);

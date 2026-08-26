@@ -31,9 +31,9 @@ export const LEGAL_DOCUMENTS = {
   PRIVACY: {
     kind: 'PRIVACY',
     status: 'FINAL',
-    version: '2026-08-23.1',
+    version: '2026-08-25.1',
     path: '/legal/privacy',
-    effective_date: '2026-08-23',
+    effective_date: '2026-08-25',
   },
 } as const satisfies Record<LegalDocumentKind, LegalDocumentMetadata>;
 

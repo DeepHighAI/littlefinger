@@ -49,6 +49,8 @@ describe('SCR-A03 약속 초안 규칙', () => {
       body: '어떤 약속인지 5자 이상 적어주세요.',
       end_date: '종료일은 내일부터 1년 안으로 정해주세요.',
     });
+    // 안내 이동은 문구 없는 실패까지 포함한 이 목록을 따른다(카테고리는 이제 선택 항목).
+    expect(invalid.invalidFields).toEqual(['title', 'body', 'end_date']);
 
     expect(
       validatePromiseDraft(
@@ -64,7 +66,25 @@ describe('SCR-A03 약속 초안 규칙', () => {
         },
         NOW,
       ),
-    ).toEqual({ valid: true, fields: {} });
+    ).toEqual({ valid: true, fields: {}, invalidFields: [] });
+  });
+
+  test('카테고리는 비워도 유효하다 — 미선택은 발송 시 기타로 저장된다(PO 2026-08-26)', () => {
+    expect(
+      validatePromiseDraft(
+        {
+          title: '주 3회 달리기',
+          body: '매주 세 번 함께 달린다.',
+          category: '',
+          end_date: '2026-08-10',
+          keeper: 'BOTH',
+          reward: '',
+          penalty: '',
+          witness_enabled: false,
+        },
+        NOW,
+      ),
+    ).toEqual({ valid: true, fields: {}, invalidFields: [] });
   });
 
   test('한국 휴대전화와 구분자 포함 10~14자리 숫자열은 경고하되 검증을 막지 않는다', () => {

@@ -1,9 +1,10 @@
 import type { NotificationInboxItem } from '@littlefinger/shared';
 import { useRouter } from 'expo-router';
-import { useEffect, useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LfAdSlot } from '../components/LfAdSlot';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfButton } from '../components/LfButton';
 import { LfEmpty } from '../components/LfEmpty';
@@ -16,6 +17,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '../lib/notification-inbox-native.ts';
+import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { useLabels, useLocale } from '../lib/locale-native';
 import {
   routeForNotificationDeeplink,
@@ -153,6 +155,16 @@ export default function NotificationInboxScreen(): React.JSX.Element {
   const nextLoadId = useRef(0);
   stateRef.current = state;
   const { items, loadFailed } = state;
+  // F-12 확대(PO 2026-08-24): 알림함 목록 하단 1구좌. 끄면 렌더 자체를 하지 않는다.
+  const [adsEnabled, setAdsEnabled] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void readAdsEnabled().then((enabled) => {
+      if (active) setAdsEnabled(enabled);
+    });
+    return () => { active = false; };
+  }, []);
 
   async function refresh(): Promise<void> {
     const loadId = ++nextLoadId.current;
@@ -292,7 +304,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
         </View>
       ) : loadFailed && items.length === 0 ? (
         <View style={styles.centered}>
-          <LfText secondary align="center">
+          <LfText variant="error" align="center">
             {LABEL.loadError}
           </LfText>
           <LfButton label={LABEL.retry} variant="outlined" onPress={() => void refresh()} />
@@ -302,7 +314,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
       ) : (
         <ScrollView contentContainerStyle={styles.body}>
           {loadFailed && (
-            <LfText secondary align="center">
+            <LfText variant="error" align="center">
               {LABEL.loadError}
             </LfText>
           )}
@@ -357,7 +369,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
           {state.nextCursor !== null && (
             <View style={styles.pageAction}>
               {state.pageLoadFailed && (
-                <LfText secondary align="center">
+                <LfText variant="error" align="center">
                   {LABEL.pageLoadError}
                 </LfText>
               )}
@@ -372,6 +384,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
               />
             </View>
           )}
+          <LfAdSlot enabled={adsEnabled} />
         </ScrollView>
       )}
     </SafeAreaView>

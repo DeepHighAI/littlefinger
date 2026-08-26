@@ -31,9 +31,9 @@
       <p class="lf-body--secondary lf-home__greeting">지우님, 이번 주 약속 3개 순항 중!</p>
 
       <div class="lf-tabs" role="tablist" aria-label="약속 상태 필터">
+        <!-- 홈 탭은 진행·대기 둘뿐이다(PO 2026-08-26, ADR 0011) — 종결은 SCR-A09 히스토리로 -->
         <button class="lf-tab" type="button" role="tab" aria-selected="true">진행 중 2</button>
         <button class="lf-tab" type="button" role="tab" aria-selected="false">대기 1</button>
-        <button class="lf-tab" type="button" role="tab" aria-selected="false">완료 4</button>
       </div>
 
       <div class="lf-screen__body lf-home__body">
@@ -71,6 +71,9 @@
           </li>
 
         </ul>
+
+        <!-- 종결 약속 진입점 — SCR-A09 히스토리 (ADR 0011) -->
+        <button type="button" class="lf-btn lf-btn--text lf-btn--block">지난 약속 히스토리 보기</button>
 
         <!-- 광고 슬롯 — MVP에서는 비활성 표기만 (요청서 §8) -->
         <div class="lf-ad-slot">

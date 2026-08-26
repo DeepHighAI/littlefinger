@@ -34,6 +34,7 @@ export default function RootLayout(): React.JSX.Element {
   const [localeReady, setLocaleReady] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(true);
   const [updateRequired, setUpdateRequired] = useState(false);
+  const onOnboardingCompleted = useCallback(() => setOnboardingComplete(true), []);
   const authenticatedRoutesReadyRef = useRef(false);
   const hadSessionRef = useRef(false);
   // 콜드 스타트 푸시 복구의 결과(E2E Run 1 F4). settled 전에는 홈 교체를 미룬다.
@@ -167,7 +168,7 @@ export default function RootLayout(): React.JSX.Element {
 
   // 화면 헤더는 각 화면이 직접 그린다(디자인 원본에 맞추기 위해).
   return (
-    <MobileAuthGateContext.Provider value={{ callbackFailed, sessionExpired }}>
+    <MobileAuthGateContext.Provider value={{ callbackFailed, sessionExpired, onOnboardingCompleted }}>
       <LocaleProvider onReady={() => setLocaleReady(true)}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="update-required" />
@@ -181,7 +182,7 @@ export default function RootLayout(): React.JSX.Element {
         </Stack.Protected>
         <Stack.Protected guard={session !== null}>
           <Stack.Screen name="home" />
-          <Stack.Screen name="promises" />
+          <Stack.Screen name="history" />
           <Stack.Screen name="promise/edit" />
           <Stack.Screen name="promise/[promise_id]" />
           <Stack.Screen name="invite" />

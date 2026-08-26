@@ -63,7 +63,7 @@ describe('SCR-A02 탭별 홈 상태', () => {
     const state = module?.createInitialHomeState();
     expect(state).toMatchObject({
       selectedTab: 'ACTIVE',
-      counts: { ACTIVE: 0, WAITING: 0, COMPLETED: 0 },
+      counts: { ACTIVE: 0, WAITING: 0, COMPLETED: 0, DONE: 0, BROKEN: 0, UNSETTLED: 0, DECLINED: 0 },
       tabs: {
         ACTIVE: { items: null, pinned: [], nextCursor: null },
         WAITING: { items: null, pinned: [], nextCursor: null },
@@ -261,7 +261,7 @@ describe('SCR-A02 탭별 홈 상태', () => {
     });
 
     expect(activeSucceededLate.tabs.ACTIVE.items).toHaveLength(1);
-    expect(activeSucceededLate.counts).toEqual({ ACTIVE: 4, WAITING: 3, COMPLETED: 2 });
+    expect(activeSucceededLate.counts).toEqual({ ACTIVE: 4, WAITING: 3, COMPLETED: 2, DONE: 0, BROKEN: 0, UNSETTLED: 0, DECLINED: 0 });
   });
 
   test('DRAFT 삭제 성공은 WAITING cache와 count에서 정확히 한 건만 제거한다', () => {

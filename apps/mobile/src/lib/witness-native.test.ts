@@ -48,7 +48,7 @@ function storeSpy() {
 
 describe('encrypted witness invite token lifecycle', () => {
   beforeEach(() => {
-    process.env.EXPO_PUBLIC_WEB_BASE_URL = 'https://littlefinger-app-philwoo.web.app';
+    process.env.EXPO_PUBLIC_WEB_BASE_URL = 'https://littlefinger-app.web.app';
     jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
   });
 
@@ -121,7 +121,7 @@ describe('encrypted witness invite token lifecycle', () => {
   test('share contains title and link only', async () => {
     await shareWitnessInvite(invite);
     expect(Share.share).toHaveBeenCalledWith({
-      message: `매일 걷기\nhttps://littlefinger-app-philwoo.web.app/i/${invite.token}`,
+      message: `매일 걷기\nhttps://littlefinger-app.web.app/i/${invite.token}`,
     });
   });
 });

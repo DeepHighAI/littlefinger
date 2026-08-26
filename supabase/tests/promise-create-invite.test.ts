@@ -97,6 +97,19 @@ function kstToday(offsetDays: number): string {
   return kstNow.toISOString().slice(0, 10);
 }
 
+/**
+ * 유료 슬롯 한도(PO 2026-08-24, 20260824000001)가 EC-H05 의 더 큰 한도를 가리지 않도록
+ * 용량을 미리 넓힌다. 슬롯 자체의 계약은 paid-slots.test.ts 가 검증한다.
+ */
+async function grantSlots(userId: string, count: number): Promise<void> {
+  await db.asAdmin(
+    `insert into public.slot_purchases
+       (user_id, provider, product_id, order_id, purchase_token, purchase_time, granted_slots)
+     values ($1, 'google_play', 'promise_slot_plus1', $2, $3, now(), $4)`,
+    [userId, `test-order-${randomUUID()}`, `test-token-${randomUUID()}`, count],
+  );
+}
+
 async function statusOf(promiseId: string): Promise<string> {
   const { rows } = await db.asAdmin(`select status from public.promises where id = $1`, [
     promiseId,
@@ -351,6 +364,7 @@ describe('EC-H05 남용 방지', () => {
   test('DRAFT 를 보내고 나면 동시 보유 한도에서 빠진다', async () => {
     // 한도는 **DRAFT 동시 보유**다. PENDING 을 세면 정상 사용자가 21번째 약속을 못 만든다.
     const creator = await createUser(db, 'ECH05발송후');
+    await grantSlots(creator, DRAFT_MAX_CONCURRENT);
     for (let i = 0; i < DRAFT_MAX_CONCURRENT; i += 1) {
       await create(creator, { tokenHash: await inviteTokenHash(createInviteToken(), PEPPER) });
     }
@@ -359,6 +373,7 @@ describe('EC-H05 남용 방지', () => {
 
   test(`일 ${PROMISE_MAX_PER_DAY}건을 넘으면 E_RATE_LIMIT 이다`, async () => {
     const creator = await createUser(db, 'ECH05일일');
+    await grantSlots(creator, PROMISE_MAX_PER_DAY);
     // 동시 보유 한도에 먼저 걸리지 않도록 전부 보낸다.
     for (let i = 0; i < PROMISE_MAX_PER_DAY; i += 1) {
       await create(creator, { tokenHash: await inviteTokenHash(createInviteToken(), PEPPER) });
@@ -368,6 +383,7 @@ describe('EC-H05 남용 방지', () => {
 
   test('어제 만든 약속은 오늘 한도에 들어가지 않는다 — 기준은 KST 캘린더 일이다', async () => {
     const creator = await createUser(db, 'ECH05어제');
+    await grantSlots(creator, PROMISE_MAX_PER_DAY * 2);
     for (let i = 0; i < PROMISE_MAX_PER_DAY; i += 1) {
       await create(creator, { tokenHash: await inviteTokenHash(createInviteToken(), PEPPER) });
     }

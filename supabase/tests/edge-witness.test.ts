@@ -233,7 +233,7 @@ describe('F-05 witness Edge Functions', () => {
     const response = await factory('createWitnessSignHandler')(spy.deps)(
       request('witness-sign', { promise_id: PROMISE_ID }, {
         headers: {
-          origin: 'https://littlefinger-app-philwoo.web.app',
+          origin: 'https://littlefinger-app.web.app',
           'cf-connecting-ip': '203.0.113.4',
           'user-agent': 'witness-browser',
         },

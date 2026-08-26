@@ -367,6 +367,80 @@ describe('lf_promise_home_list — F-10 account home', () => {
     expect((await listHome({ actor: witness, tab: 'ACTIVE' })).pinned[0]?.needs_response).toBe(false);
   });
 
+  test('히스토리 4탭은 종결 상태를 판정 없이 분류하고 레거시 COMPLETED 탭은 그대로다 (ADR 0011)', async () => {
+    const creator = await createUser(db, '히스토리작성자');
+    const statuses: readonly [string, string][] = [
+      ['COMPLETED', 'h1'],
+      ['BROKEN', 'h2'],
+      ['DISPUTED', 'h3'],
+      ['UNRESOLVED', 'h4'],
+      ['DECLINED', 'h5'],
+      ['CANCELED', 'h6'],
+    ];
+    for (const [index, [status]] of statuses.entries()) {
+      await insertPromise({
+        id: fixedId('9', index + 1),
+        creatorId: creator,
+        status,
+        title: `종결 ${status}`,
+        endDate: '2026-08-10',
+        closedAt: `2026-08-1${index}T00:00:00Z`,
+      });
+    }
+    await insertPromise({
+      id: fixedId('9', 7),
+      creatorId: creator,
+      status: 'ACTIVE',
+      title: '진행 중',
+      endDate: '2026-08-30',
+    });
+
+    const done = await listHome({ actor: creator, tab: 'DONE' });
+    const broken = await listHome({ actor: creator, tab: 'BROKEN' });
+    const unsettled = await listHome({ actor: creator, tab: 'UNSETTLED' });
+    const declined = await listHome({ actor: creator, tab: 'DECLINED' });
+
+    expect(done.items.map((item) => item.status)).toEqual(['COMPLETED']);
+    expect(broken.items.map((item) => item.status)).toEqual(['BROKEN']);
+    // P1: 의견 불일치는 불이행이 아니라 미확정과 함께 중립 탭이다.
+    expect(unsettled.items.map((item) => item.status).sort()).toEqual(['DISPUTED', 'UNRESOLVED']);
+    expect(declined.items.map((item) => item.status).sort()).toEqual(['CANCELED', 'DECLINED']);
+    // 히스토리 counts 는 4키 정확 일치 — 파서(asPromiseHomeListResponse)가 이미 강제했다.
+    expect(done.counts).toEqual({ DONE: 1, BROKEN: 1, UNSETTLED: 2, DECLINED: 2 });
+    expect(done.pinned).toEqual([]);
+
+    // 레거시 탭은 구버전 설치 빌드의 계약 그대로: 전 종결 6건 + 3키 counts.
+    const legacy = await listHome({ actor: creator, tab: 'COMPLETED' });
+    expect(legacy.items).toHaveLength(6);
+    expect(legacy.counts).toEqual({ ACTIVE: 1, WAITING: 0, COMPLETED: 6 });
+  });
+
+  test('히스토리 탭도 숨긴 약속을 제외하고 종결 cursor 로 page 를 잇는다', async () => {
+    const creator = await createUser(db, '히스토리페이지');
+    for (let index = 1; index <= PROMISE_HOME_PAGE_SIZE + 1; index += 1) {
+      await insertPromise({
+        id: fixedId('8', index),
+        creatorId: creator,
+        status: 'COMPLETED',
+        title: `완료 ${index}`,
+        endDate: '2026-08-10',
+        closedAt: `2026-07-${String((index % 28) + 1).padStart(2, '0')}T00:00:00Z`,
+      });
+    }
+    // 한 건을 숨긴다 — 홈과 같은 hidden_by 술어를 히스토리도 쓴다.
+    await db.asAdmin(
+      `update public.promises set hidden_by = jsonb_build_object($2::text, true)
+        where id = $1`,
+      [fixedId('8', 1), creator],
+    );
+
+    const first = await listHome({ actor: creator, tab: 'DONE' });
+    expect(first.items).toHaveLength(PROMISE_HOME_PAGE_SIZE);
+    expect(first.next_cursor).toBeNull();
+    expect(first.counts['DONE']).toBe(PROMISE_HOME_PAGE_SIZE);
+    expect(first.items.map((item) => item.promise_id)).not.toContain(fixedId('8', 1));
+  });
+
   test('RPC는 빈 search_path SECURITY DEFINER이며 service_role만 실행한다', async () => {
     const metadata = await db.asAdmin(
       `select p.prosecdef, p.proconfig

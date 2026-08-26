@@ -229,6 +229,7 @@ Port rules are fully specified in `04` §3–§5. **Follow them; do not improvis
 | `notification.ts` | NT event codes, titles, deeplinks, `dedupe_key` builders | `02` §8-1·§6-2 |
 | `i18n.ts` | `Locale`/`Localized<T>`, `resolveLocale`, `resolveInitialLocale`, `catalogKeyPaths`, **`LOCALE_DETECTION_ENABLED`** (ON since 2026-08-20 — the one switch that forces Korean back) | ADR 0006 |
 | `app-links.ts` | `ANDROID_PACKAGE_NAME`, Play Store URL builder, `invitePathOf`, `buildInviteAppIntentUri` (intent:// with store fallback) | ADR 0007 |
+| `slots.ts` | `asSlotStatusResponse` — 유료 슬롯 현황 파서. 수치의 정본은 서버(`lf_slot_status`)이고 클라이언트는 세지 않는다 | ADR 0009 |
 
 Naming follows **`02`, not `04`** where they conflict (PO, 2026-07-26): `keeper` not `obligor`,
 `INVITE_TTL_HOURS` not `INVITE_EXPIRY_HOURS`, `CHECK_DEADLINE_DAYS`, `WITNESS_MAX`,
@@ -399,7 +400,8 @@ and the weekly `supabase db dump` backup are load-bearing, not optional.
 | DB · auth · storage · server logic · batch | **Supabase Free** (Postgres · Auth · Storage · Edge Functions · pg_cron) |
 | Web hosting | **Firebase Hosting Spark** on the existing `littlefinger-app-philwoo` project |
 | Push | expo-notifications + Expo Push Service |
-| Ads | `react-native-google-mobile-ads` (AdMob) — SCR-A02 bottom slot only |
+| Ads | `react-native-google-mobile-ads` (AdMob) — SCR-A02·A07·A08 bottom slots (expanded PO 2026-08-24, ADR 0009) |
+| In-app purchase | **expo-iap** (Google Play Billing) — promise slots only, verified server-side by `purchase-verify` |
 
 **Do not use**: Vercel (Hobby plan forbids ad-monetized services) · Firebase Blaze · Next.js ·
 react-native-web / Expo Web for the acceptance web · `@react-native-kakao/*` (unofficial) ·
@@ -474,13 +476,16 @@ verbatim in code, DB, and design; screen labels **always** go through `PROMISE_S
 | 약속 지킴율 | `keepRate` | 약속 지킴율 | 이행률, 성공률 (O-D3) |
 | 확정 기록 지문 | `fingerprint` | 기록 지문 | hash, 해시, 서명 |
 | 초대 링크 | `inviteLink` | 초대 링크 | 공유 링크, url |
+| 약속 슬롯 | `slot` | 슬롯 | quota, 좌석, ticket |
+| 슬롯 구매 | `purchase` | 구매 | payment, order, 결제(코드 식별자로는 금지) |
 
 ---
 
 ## 8. Hard constraints — no document below §4 can override these
 
 1. **No ads at moments of trust.** Creation, review, approval, confirmation and fulfillment screens,
-   plus **the entire acceptance web**, carry no ads. The only slot is the SCR-A02 bottom. When
+   plus **the entire acceptance web**, carry no ads. The only slots are the SCR-A02, SCR-A07 and
+   SCR-A08 bottoms (A07·A08 expanded by the PO 2026-08-24, ADR 0009). When
    `ads_enabled=false`, the component is **not rendered at all** — no reserved empty space.
 2. **`LEGAL_DISCLAIMER` is verbatim and immutable.** Since 2026-08-20 it is a per-locale pair
    (`LEGAL_DISCLAIMER_BY_LOCALE`): the **ko text stays verbatim-immutable** (same object as the
@@ -557,7 +562,7 @@ Full detail: `04` §10.
 | ~~C-1~~ | ~~Business registration → email collection~~ | **Closed 2026-07-26. The PO has a business registration, and chose not to collect email anyway.** See §6-1 below — Biz App is still mandatory, for a different reason than `04` §13 assumed |
 | ~~Emoji~~ | ~~`02` §2-3 wants both "count code points" and "emoji counts as 1"~~ | **Decided 2026-07-26: code points.** A family emoji counts 5, 🇰🇷 counts 2. Grapheme counting needs `Intl.Segmenter`, an ECMA-402 surface where Hermes has gaps. Revisit at M4 if device testing allows |
 | C-2 | Match icons to the original 100%? | Default: no — Expo MaterialIcons, slight corner-curvature difference |
-| ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18: use `https://littlefinger-app-philwoo.web.app` (ADR 0005).** |
+| ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18 (ADR 0005), domain re-cut 2026-08-25: use `https://littlefinger-app.web.app` — no personal name in the public origin (ADR 0010). The old `…-philwoo` site 301-redirects.** |
 | ~~C-4~~ | ~~Pretty KakaoTalk share card for invites?~~ | **Closed 2026-08-23: SCR-A04 ships the OS share sheet (카톡·SMS·SNS 전부) + an explicit link-copy button (expo-clipboard).** The old "카카오톡으로 초대 보내기" label was retired — the handler was already the OS sheet, only the label lied |
 | N-1 | '리틀핑거' trademark / store name | Confirm before launch |
 | ~~N-4~~ | ~~Google SSO for production login~~ | **Implemented 2026-08-20**, GCP client + Dashboard provider **verified live + allowlist fixed 2026-08-23**. Remaining: PO checks the consent screen publishing status (Testing → In production), then a real-account sign-in on device |

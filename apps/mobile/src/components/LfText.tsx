@@ -27,6 +27,7 @@ export type LfTextVariant =
   | 'heroDday'
   | 'body'
   | 'caption'
+  | 'error'
   | 'disclaimer';
 
 export interface LfTextProps extends Omit<TextProps, 'style'> {
@@ -104,6 +105,13 @@ const styles = StyleSheet.create({
     lineHeight: line.caption,
     fontWeight: weight.regular,
     color: colors.textMuted,
+  },
+  // 앱 내 오류·실패 문구 공통 톤(PO 2026-08-26) — 상태를 색만으로 말하지 않도록 문구가 본체다(§8-7).
+  error: {
+    fontSize: type.caption,
+    lineHeight: line.caption,
+    fontWeight: weight.medium,
+    color: colors.error,
   },
   // 문구는 LfDisclaimer 가 상수로 넣는다. 여기는 모양만 정의한다.
   disclaimer: {

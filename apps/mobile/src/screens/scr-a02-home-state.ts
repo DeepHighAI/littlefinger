@@ -20,6 +20,7 @@ export interface PromiseHomeTabState {
 
 export interface PromiseHomeState {
   selectedTab: PromiseHomeTab;
+  /** 서버 counts 는 요청 탭 패밀리의 키만 싣는다(ADR 0011) — 도착분을 병합해 쌓는다. */
   counts: Record<PromiseHomeTab, number>;
   latestCountsLoadId: number;
   tabs: Record<PromiseHomeTab, PromiseHomeTabState>;
@@ -34,7 +35,7 @@ export type PromiseHomeAction =
       loadId: number;
       items: readonly PromiseHomeCard[];
       pinned: readonly PromiseHomeCard[];
-      counts: Record<PromiseHomeTab, number>;
+      counts: Readonly<Partial<Record<PromiseHomeTab, number>>>;
       nextCursor: PromiseHomeCursor | null;
     }
   | { type: 'LOAD_FAILED'; tab: PromiseHomeTab; loadId: number }
@@ -79,12 +80,24 @@ function initialTabState(): PromiseHomeTabState {
 export function createInitialHomeState(): PromiseHomeState {
   return {
     selectedTab: 'ACTIVE',
-    counts: { ACTIVE: 0, WAITING: 0, COMPLETED: 0 },
+    counts: {
+      ACTIVE: 0,
+      WAITING: 0,
+      COMPLETED: 0,
+      DONE: 0,
+      BROKEN: 0,
+      UNSETTLED: 0,
+      DECLINED: 0,
+    },
     latestCountsLoadId: 0,
     tabs: {
       ACTIVE: initialTabState(),
       WAITING: initialTabState(),
       COMPLETED: initialTabState(),
+      DONE: initialTabState(),
+      BROKEN: initialTabState(),
+      UNSETTLED: initialTabState(),
+      DECLINED: initialTabState(),
     },
   };
 }
@@ -165,7 +178,8 @@ export function promiseHomeReducer(
           pageRequestId: null,
           pageGeneration: null,
         }),
-        counts: hasLatestCounts ? action.counts : state.counts,
+        // 홈 3키·히스토리 4키가 서로를 지우지 않도록 병합한다.
+        counts: hasLatestCounts ? { ...state.counts, ...action.counts } : state.counts,
         latestCountsLoadId: hasLatestCounts ? action.loadId : state.latestCountsLoadId,
       };
     case 'LOAD_FAILED':

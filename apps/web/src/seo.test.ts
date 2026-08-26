@@ -16,7 +16,7 @@ const REPO_ROOT = resolve(WEB_ROOT, '../..');
 const INDEX_HTML = readFileSync(resolve(WEB_ROOT, 'index.html'), 'utf8');
 
 // ADR 0005 — 도메인을 사지 않고 기존 Firebase Hosting 을 쓴다.
-const CANONICAL_ORIGIN = 'https://littlefinger-app-philwoo.web.app';
+const CANONICAL_ORIGIN = 'https://littlefinger-app.web.app';
 
 describe('폰트 CLS 하드닝', () => {
   test('브랜드 폰트는 public 에 있고 preload 와 @font-face 가 같은 경로를 가리킨다', () => {

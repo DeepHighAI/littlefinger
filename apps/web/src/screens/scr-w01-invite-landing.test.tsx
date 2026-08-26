@@ -330,7 +330,7 @@ describe('SCR-W01 초대 랜딩', () => {
     vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
       'Mozilla/5.0 (Linux; Android 14) Chrome/120',
     );
-    vi.stubGlobal('location', { origin: 'https://littlefinger-app-philwoo.web.app' });
+    vi.stubGlobal('location', { origin: 'https://littlefinger-app.web.app' });
     fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
 
     renderAt();
@@ -340,7 +340,7 @@ describe('SCR-W01 초대 랜딩', () => {
       'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=littlefinger_web&utm_medium=invite_landing',
     );
     expect(cta.getAttribute('href')).toBe(
-      `intent://littlefinger-app-philwoo.web.app/i/${TOKEN}` +
+      `intent://littlefinger-app.web.app/i/${TOKEN}` +
         `#Intent;scheme=https;package=com.littlefinger.app;S.browser_fallback_url=${store};end`,
     );
     // 웹 승인 경로는 보조 동선으로 남는다(01 P6).

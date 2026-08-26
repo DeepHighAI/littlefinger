@@ -255,7 +255,7 @@ describe('fulfillment-submit', () => {
           evidence_upload_ids: [PARTNER_ID],
           retained_evidence_ids: [WITNESS_ID],
         },
-        { origin: 'https://littlefinger-app-philwoo.web.app' },
+        { origin: 'https://littlefinger-app.web.app' },
       ),
     );
     expect(response.status).toBe(200);
@@ -382,7 +382,7 @@ describe('fulfillment-reopen', () => {
     const response = await createFulfillmentReopenHandler(s.deps)(
       mutationRequest(
         { promise_id: PROMISE_ID },
-        { origin: 'https://littlefinger-app-philwoo.web.app' },
+        { origin: 'https://littlefinger-app.web.app' },
       ),
     );
     expect(response.status).toBe(200);

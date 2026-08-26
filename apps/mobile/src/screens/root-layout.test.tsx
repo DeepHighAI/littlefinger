@@ -32,6 +32,7 @@ let mockRootNavigationReady = false;
 let mockStoredPushValue: string | null = null;
 let mockPushManager!: PushNavigationManager;
 let mockAndroidPushEvents: MockAndroidPushEvents | null = null;
+let mockOnboardingCompleted: (() => void) | undefined;
 let mockPathname = '/';
 const mockReadOnboardingCompletionNative = jest.fn().mockResolvedValue(true);
 const mockLoadMinimumAppVersionNative = jest.fn().mockResolvedValue(false);
@@ -50,11 +51,18 @@ jest.mock('expo-splash-screen', () => ({
 jest.mock('expo-router', () => {
   const React = require('react') as typeof import('react');
   const { Text } = require('react-native') as typeof import('react-native');
+  const { MobileAuthGateContext } = require('../lib/mobile-auth-gate.ts') as typeof import('../lib/mobile-auth-gate.ts');
 
   function Stack({ children }: { children: React.ReactNode }): React.JSX.Element {
     return <>{children}</>;
   }
-  Stack.Screen = ({ name }: { name: string }) => <Text>{`screen:${name}`}</Text>;
+  Stack.Screen = ({ name }: { name: string }) => {
+    const gate = React.useContext(MobileAuthGateContext) as {
+      onOnboardingCompleted?: () => void;
+    };
+    if (name === 'onboarding') mockOnboardingCompleted = gate.onOnboardingCompleted;
+    return <Text>{`screen:${name}`}</Text>;
+  };
   Stack.Protected = ({
     children,
     guard,
@@ -108,6 +116,7 @@ describe('루트 인증 게이트', () => {
   beforeEach(() => {
     capturedEvents = null;
     mockAndroidPushEvents = null;
+    mockOnboardingCompleted = undefined;
     mockRootNavigationReady = false;
     mockStoredPushValue = null;
     mockEncryptedStorageSet.mockReset();
@@ -156,6 +165,22 @@ describe('루트 인증 게이트', () => {
     await act(async () => capturedEvents?.onReady());
     await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
     expect(mockReplace).toHaveBeenCalledWith('/onboarding');
+  });
+
+  test('온보딩 완료를 같은 세션의 게이트 상태에 반영해 로그인에서 되돌리지 않는다', async () => {
+    mockRootNavigationReady = true;
+    mockPathname = '/onboarding';
+    mockReadOnboardingCompletionNative.mockResolvedValue(false);
+    const view = await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
+
+    mockReplace.mockClear();
+    await act(async () => mockOnboardingCompleted?.());
+    mockPathname = '/';
+    await act(async () => view.rerender(<RootLayout />));
+
+    expect(mockReplace).not.toHaveBeenCalledWith('/onboarding');
   });
 
   test('EC-I04 강제 업데이트는 온보딩보다 우선한다', async () => {

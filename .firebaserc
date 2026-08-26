@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "littlefinger-app-philwoo"
+  },
+  "targets": {
+    "littlefinger-app-philwoo": {
+      "hosting": {
+        "web": ["littlefinger-app"],
+        "legacy": ["littlefinger-app-philwoo"]
+      }
+    }
   }
 }

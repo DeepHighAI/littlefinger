@@ -1,6 +1,81 @@
 # Development Status
 
-Snapshot date: **2026-08-23 KST**.
+Snapshot date: **2026-08-26 KST**.
+
+## Device-QA UX batch (2026-08-26, ADR 0011)
+
+Four PO decisions from internal-test device QA, all shipped and gated:
+
+- **Form guidance (SCR-A03)**: CTAs never disable into dead buttons — an invalid press wakes the
+  inline §5 messages, jumps to the first invalid step, and shows a red one-line summary
+  (`invalidFields` added to draft validation for message-less rules).
+- **Category optional**: unselected saves as `ETC` client-side (spec §5-1 amended); zero
+  server/hash change; the review step shows 기타.
+- **Home 진행·대기 tabs + SCR-A09 history**: `/promises` removed; new history screen splits
+  terminal statuses P1-safely (완료/불이행/협의 중단/거절·파기). `lf_promise_home_list` extended
+  (migration `20260826000001`, deployed + `promise-home-list` redeployed twice — the shell's own
+  tab-vocabulary copy first rejected history tabs, now sourced from shared). Legacy tab
+  responses stay byte-compatible for installed builds; live smoke verified both families.
+- **Red error copy**: new `LfText` `error` variant; ~25 inline failure lines across 13
+  screens/sheets moved off gray. Also from the same QA session: a slot purchase now closes the
+  paywall and immediately resumes the blocked send (SCR-A03/A04).
+- Gates: typecheck 5 projects · Vitest **104 files / 2,017** · Jest **72 suites / 725** — PASS.
+- Purchase E2E completed on device (2026-08-26): paywall on 6th send → test-card payment →
+  server verify → slot granted. The whole monetization chain is live.
+- **Device verification (2026-08-26)**: versionCode 6 uploaded to the internal track; the PO
+  confirmed all five checklist items on device — form guidance, ETC default, home tabs +
+  history, red error copy, and purchase auto-resume. The batch is closed.
+
+## Domain re-cut: littlefinger-app.web.app (2026-08-25, ADR 0010)
+
+The PO flagged the personal name in `littlefinger-app-philwoo.web.app` before the Play listing
+existed — the last changeable moment. New origin **`https://littlefinger-app.web.app`** (new
+Hosting site on the same Firebase project; `littlefinger.web.app` was taken). Old site serves
+path-preserving 301s (`hosting:legacy` target). Moved with it: web SEO/OG, 47 origin references
+across code/tests/docs (historical records kept), local + example env, EAS
+`EXPO_PUBLIC_WEB_BASE_URL` (production/development — App Links intent filters derive from it),
+Supabase auth `site_url` + allowlist (legacy origin retained during transition), `app-ads.txt`.
+Privacy policy §8 carried the URL → re-versioned **PRIVACY `2026-08-25.1`** (migration
+`20260825000001`, pushed). Verified live: new-origin root/assetlinks/app-ads.txt/invite/legal/
+account-deletion all 200; legacy `/` and `/i/*` 301 to the new origin. The in-flight production
+AAB was cancelled (old origin baked in) and rebuilt after the env change. Gates re-run: typecheck
+5 projects, Vitest 104/2,015, Jest 72/718, `check:agents` — all PASS.
+
+## Paid promise slots + expanded ads pass (2026-08-24/25)
+
+Executed against the approved plan (ADR 0009); the Codex red-team pass on the backend surfaced 4
+findings, all fixed before deployment (deadlock lock-ordering, error priority — PO decided
+validation-first, secret baselines, PUBLIC table revoke + privilege-baseline tests).
+
+- **Server (deployed 2026-08-25)**: migration `20260824000001_paid_promise_slots.sql` applied to
+  the linked project; Edge Functions `slot-status` + `purchase-verify` deployed with `--use-api`
+  (49/49 ACTIVE). Live smoke: `slot-status` returned `{"used":0,"capacity":5}` for a test account.
+  `purchase-verify` stays boot-gated until the `GOOGLE_PLAY_SERVICE_ACCOUNT` secret exists.
+- **Slot contract**: 5 free slots counting creator-side in-progress promises (§4-1-4 states);
+  DRAFT excluded; resend free; terminal states return the slot; purchases permanent (+1 per
+  `promise_slot_plus1`, ₩1,000). Enforced only in `lf_invite_issue_row` (all three send entry
+  points), raising the new 15th error code `E_SLOT_LIMIT` (HTTP 402) after content validation.
+- **Mobile**: `expo-iap` 5.3.2 added (dev-client rebuild required before device QA);
+  `slot-paywall-sheet` (verify-then-consume, unconsumed-purchase reconciliation, store-localized
+  price with `SLOT_PRICE_KRW_DEFAULT` fallback) opens on `E_SLOT_LIMIT` from SCR-A03/SCR-A04 and
+  from the new profile slot row; ko/en `SLOT_LABEL` catalog registered.
+- **Ads (F-12 expanded, PO 2026-08-24)**: SCR-A07 알림함 + SCR-A08 프로필 gained the bottom
+  native-ad slot behind the same `ads_enabled` flag (off = not rendered); spec §3 table + F-12
+  amended; design-reference A07/A08 carry the disabled marker; P4 zones unchanged. `app-ads.txt`
+  waits on the PO's AdMob publisher id.
+- **Language setting**: confirmed already implemented (SCR-A08 toggle + web LocaleSwitch);
+  PO decision — keep as is.
+- **Design review (batch 1, PO-confirmed via previews 2026-08-25)**: reference `scr-a08` was
+  stale against the shipped product (email-reminder row violating §6-1; missing language/slots/
+  reminder detail/block/logout/withdraw) — now current; new `mod-04-slot-paywall.html` is the
+  approved baseline for the purchase sheet. The A07/A08 full-bleed row conversion stays gated on
+  the PO's device check of the Karrot home.
+- Gates: `npm run typecheck` (5 projects) PASS · Vitest **104 files / 2,015 tests** PASS ·
+  mobile Jest **72 suites / 718 tests** PASS · `npm run check:agents` PASS.
+- Operator items (blocking purchase/ads E2E): Play Console merchant account + in-app product
+  `promise_slot_plus1` + license testers; GCP service account linked in Play Console API access →
+  Supabase secret; AdMob account/app/native unit + EAS production IDs + `app-ads.txt` pub id;
+  `ads_enabled` flip timing.
 
 ## Play launch readiness pass (2026-08-23)
 
@@ -143,23 +218,23 @@ Reusable verification SQL is committed under `supabase/tests/remote/`.
 
 Cloudflare Pages is retired. ADR 0005 selects the existing Firebase Spark project
 `littlefinger-app-philwoo`, and the acceptance web was deployed as 31 static files to
-`https://littlefinger-app-philwoo.web.app`.
+`https://littlefinger-app.web.app`.
 
 - `/` and direct `/i/e2e-invalid-token` requests return HTTP 200 HTML.
 - `/.well-known/assetlinks.json` returns HTTP 200, `application/json; charset=utf-8`, and the
   development APK SHA-256 signing fingerprint for `com.littlefinger.app`.
 - Google Digital Asset Links API returns the expected `handle_all_urls` statement.
 - Expo config resolves one `autoVerify` intent filter for HTTPS host
-  `littlefinger-app-philwoo.web.app` and path prefix `/i/`.
+  `littlefinger-app.web.app` and path prefix `/i/`.
 - EAS development and production `EXPO_PUBLIC_WEB_BASE_URL` values are updated to the new origin.
 
 The Supabase Auth redirect allowlist was confirmed **stale and fixed on 2026-08-23** via a
 field-scoped Management API PATCH (`site_url` was `localhost:3000`; the allowlist carried retired
 `littlefinger.pages.dev` and lacked the Firebase origin — the deployed web's OAuth return was
-broken until then). Now: `site_url = https://littlefinger-app-philwoo.web.app`, allowlist =
+broken until then). Now: `site_url = https://littlefinger-app.web.app`, allowlist =
 Firebase origin `/**` + localhost dev entries + `littlefinger://auth-callback`. **App Links final auto-verification passed
 on 2026-08-20**: EAS development build `e31110b0` (PO-approved source upload) installed on the
-emulator reports `littlefinger-app-philwoo.web.app: verified` in `pm get-app-links`, and an
+emulator reports `littlefinger-app.web.app: verified` in `pm get-app-links`, and an
 `am start` HTTPS `/i/*` intent resolves into `com.littlefinger.app` instead of the browser.
 
 ## Deep-link invites, Korean/English UI, Pretendard (2026-08-20/21)
