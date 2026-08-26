@@ -22,6 +22,9 @@ Four PO decisions from internal-test device QA, all shipped and gated:
 - Gates: typecheck 5 projects · Vitest **104 files / 2,017** · Jest **72 suites / 725** — PASS.
 - Purchase E2E completed on device (2026-08-26): paywall on 6th send → test-card payment →
   server verify → slot granted. The whole monetization chain is live.
+- **Device verification (2026-08-26)**: versionCode 6 uploaded to the internal track; the PO
+  confirmed all five checklist items on device — form guidance, ETC default, home tabs +
+  history, red error copy, and purchase auto-resume. The batch is closed.
 
 ## Domain re-cut: littlefinger-app.web.app (2026-08-25, ADR 0010)
 
