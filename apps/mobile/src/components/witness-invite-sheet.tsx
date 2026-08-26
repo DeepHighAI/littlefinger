@@ -283,7 +283,7 @@ export function WitnessInviteSheet({
           {loadState.phase === 'ERROR' ? (
             <View style={styles.centered}>
               <LfStack gap={5} center>
-                <LfText align="center">{LABEL.loadError}</LfText>
+                <LfText variant="error" align="center">{LABEL.loadError}</LfText>
                 <LfButton label={LABEL.retry} variant="outlined" onPress={() => void load()} />
               </LfStack>
             </View>
@@ -307,7 +307,7 @@ export function WitnessInviteSheet({
               )}
               <LfText variant="caption" align="center">{LABEL.hint}</LfText>
               {actionError ? (
-                <LfText variant="caption" align="center">{LABEL.shareError}</LfText>
+                <LfText variant="error" align="center">{LABEL.shareError}</LfText>
               ) : null}
               <LfButton
                 testID="witness-invite-button"

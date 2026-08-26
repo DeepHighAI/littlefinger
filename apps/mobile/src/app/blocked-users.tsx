@@ -102,7 +102,7 @@ export default function BlockedUsersScreen(): React.JSX.Element {
         </View>
       ) : loadFailed ? (
         <View style={styles.centered}>
-          <LfText secondary align="center">{LABEL.loadError}</LfText>
+          <LfText variant="error" align="center">{LABEL.loadError}</LfText>
           <LfButton label={LABEL.retry} variant="outlined" onPress={() => void refresh()} />
         </View>
       ) : items !== null && items.length === 0 ? (
@@ -110,7 +110,7 @@ export default function BlockedUsersScreen(): React.JSX.Element {
       ) : (
         <ScrollView contentContainerStyle={styles.body}>
           {unblockFailed && (
-            <LfText secondary align="center">{LABEL.unblockError}</LfText>
+            <LfText variant="error" align="center">{LABEL.unblockError}</LfText>
           )}
           {(items ?? []).map((item) => (
             <LfCard key={item.target_user_id} testID={`blocked-${item.target_user_id}`}>

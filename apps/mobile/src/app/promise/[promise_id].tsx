@@ -388,7 +388,7 @@ function VersionHistorySheet({
             {state.phase === 'loading' || state.phase === 'idle' ? (
               <LfText>{LABEL.versionHistoryLoading}</LfText>
             ) : null}
-            {state.phase === 'error' ? <LfText>{LABEL.loadError}</LfText> : null}
+            {state.phase === 'error' ? <LfText variant="error">{LABEL.loadError}</LfText> : null}
             {state.phase === 'ready' ? (
               <ScrollView contentContainerStyle={styles.historyContent}>
                 {state.value.versions.length === 0 ? (
@@ -1173,7 +1173,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               />
             </LfRow>
           )}
-          {actionError && <LfText variant="caption" align="center">{LABEL.actionFailed}</LfText>}
+          {actionError && <LfText variant="error" align="center">{LABEL.actionFailed}</LfText>}
         </View>
       </ScrollView>
       <WitnessInviteSheet

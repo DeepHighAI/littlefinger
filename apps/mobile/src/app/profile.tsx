@@ -243,7 +243,7 @@ export default function ProfileScreen(): React.JSX.Element {
     <View style={styles.centered}><LfText secondary>{LABEL.loading}</LfText></View>
   ) : state.profile === null ? (
     <LfStack grow center gap={4}>
-      <LfText align="center" secondary>{LABEL.loadError}</LfText>
+      <LfText variant="error" align="center">{LABEL.loadError}</LfText>
       <LfButton
         accessibilityLabel={LABEL.retryAccessibility}
         label={LABEL.retry}
@@ -327,7 +327,7 @@ export default function ProfileScreen(): React.JSX.Element {
               />
             </>
           )}
-          {state.saveFailed && <LfText secondary>{LABEL.saveError}</LfText>}
+          {state.saveFailed && <LfText variant="error">{LABEL.saveError}</LfText>}
         </LfStack>
       </LfCard>
 
@@ -365,14 +365,14 @@ export default function ProfileScreen(): React.JSX.Element {
         </Pressable>
       </LfCard>
       <LfButton label={LABEL.logout} variant="danger" disabled={state.loggingOut} onPress={confirmLogout} />
-      {state.logoutFailed && <LfText secondary>{LABEL.logoutError}</LfText>}
+      {state.logoutFailed && <LfText variant="error">{LABEL.logoutError}</LfText>}
       <LfButton
         label={LABEL.withdraw}
         variant="danger"
         disabled={withdrawing}
         onPress={() => confirmWithdraw(state.profile!.active_count)}
       />
-      {withdrawFailed && <LfText secondary>{LABEL.withdrawError}</LfText>}
+      {withdrawFailed && <LfText variant="error">{LABEL.withdrawError}</LfText>}
       <LfAdSlot enabled={adsEnabled} />
     </ScrollView>
   );

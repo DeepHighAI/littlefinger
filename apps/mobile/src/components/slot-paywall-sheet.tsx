@@ -174,7 +174,7 @@ export function SlotPaywallSheet({
 
             {phase === 'error' && (
               <LfStack gap={4}>
-                <LfText secondary>{LABEL.loadError}</LfText>
+                <LfText variant="error">{LABEL.loadError}</LfText>
                 <LfButton
                   label={LABEL.retry}
                   variant="outlined"
@@ -210,7 +210,7 @@ export function SlotPaywallSheet({
 
                 {purchased && <LfText align="center">{LABEL.purchased}</LfText>}
                 {purchaseFailed && (
-                  <LfText variant="caption" align="center">
+                  <LfText variant="error" align="center">
                     {LABEL.purchaseError}
                   </LfText>
                 )}

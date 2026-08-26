@@ -877,7 +877,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
       <ScreenFrame onBack={() => router.back()}>
         <View style={styles.centered}>
           <LfStack gap={5} center>
-            <LfText secondary align="center">
+            <LfText variant="error" align="center">
               {LABEL.loadError}
             </LfText>
             <LfButton

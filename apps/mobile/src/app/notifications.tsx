@@ -304,7 +304,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
         </View>
       ) : loadFailed && items.length === 0 ? (
         <View style={styles.centered}>
-          <LfText secondary align="center">
+          <LfText variant="error" align="center">
             {LABEL.loadError}
           </LfText>
           <LfButton label={LABEL.retry} variant="outlined" onPress={() => void refresh()} />
@@ -314,7 +314,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
       ) : (
         <ScrollView contentContainerStyle={styles.body}>
           {loadFailed && (
-            <LfText secondary align="center">
+            <LfText variant="error" align="center">
               {LABEL.loadError}
             </LfText>
           )}
@@ -369,7 +369,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
           {state.nextCursor !== null && (
             <View style={styles.pageAction}>
               {state.pageLoadFailed && (
-                <LfText secondary align="center">
+                <LfText variant="error" align="center">
                   {LABEL.pageLoadError}
                 </LfText>
               )}
