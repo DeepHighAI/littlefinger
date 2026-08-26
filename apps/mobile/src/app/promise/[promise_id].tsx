@@ -143,6 +143,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     backgroundColor: colors.recordContainer,
   },
+  // 확정 스탬프의 손붙임 기울기 (.lf-stamp rotate, ADR 0012)
+  recordStamp: { transform: [{ rotate: '-0.8deg' }] },
   value: { flex: 1, alignItems: 'flex-end' },
   people: { gap: space[5] },
   personText: { flex: 1 },
@@ -178,6 +180,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius['2xl'],
     backgroundColor: colors.surface,
     ...elevation.sheet,
+    // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
+    borderWidth: 2.5,
+    borderBottomWidth: 0,
+    borderColor: colors.text,
   },
   historyContent: { gap: space[5], paddingBottom: space[5] },
 });
@@ -1019,6 +1025,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         <LfStack gap={4}>
           <LfText variant="sectionTitle">{LABEL.record}</LfText>
+          <View style={visualMode === 'record' ? styles.recordStamp : null}>
           <LfCard variant={visualMode === 'record' ? 'record' : 'container'}>
             <View style={[styles.info, visualMode === 'record' && styles.recordMetadata]}>
               {/* 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다
@@ -1032,6 +1039,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               <LfText variant="caption">{fingerprintText(detail.current_version.fingerprint, locale)}</LfText>
             </View>
           </LfCard>
+          </View>
           {detail.approvals.length > 0 && (
             <LfStack gap={3}>
               <LfText variant="sectionTitle">{LABEL.approvals}</LfText>

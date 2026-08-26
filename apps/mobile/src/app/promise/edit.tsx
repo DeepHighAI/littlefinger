@@ -10,7 +10,7 @@ import {
 } from '@littlefinger/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, ToastAndroid, View } from 'react-native';
+import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Text, ToastAndroid, View } from 'react-native';
 import Animated, { FadeInLeft, FadeInRight, useReducedMotion } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -68,6 +68,9 @@ export function editorStepForField(field: PromiseDraftField): 1 | 2 | 3 {
   return 3;
 }
 
+// CSS 원본 .sl-typeline 의 고정 13px — 토큰에 없는 장식 전용 수치
+const TYPELINE_FONT_SIZE = 13;
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   close: {
@@ -82,6 +85,13 @@ const styles = StyleSheet.create({
     paddingBottom: space[5],
   },
   intro: { paddingHorizontal: gutter.app, paddingBottom: space[5], gap: space[2] },
+  // 잉크&스티커 타자기 인트로 (.sl-typeline) — 모노 13px, 장식 전용 (ADR 0012)
+  typeline: {
+    fontFamily: 'monospace',
+    fontSize: TYPELINE_FONT_SIZE,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
   scroll: { flex: 1 },
   body: { paddingHorizontal: gutter.app, paddingBottom: space[9], gap: space[6] },
   stepCard: { gap: space[7] },
@@ -539,6 +549,11 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       />
       <View style={styles.progress}><LfWizardProgress step={step} labels={steps} /></View>
       <View style={styles.intro}>
+        {step === 1 && (
+          <Text style={styles.typeline} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            {LABEL.typeline}
+          </Text>
+        )}
         <LfText variant="title">{stepTitle}</LfText>
         <LfText secondary>{stepDescription}</LfText>
       </View>

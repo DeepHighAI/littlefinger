@@ -9,11 +9,16 @@ export interface LfAvatarProps extends Omit<ViewProps, 'children' | 'style'> {
   accessibilityLabel: string;
 }
 
+// 잉크 테두리 아바타 (ADR 0012)
+const AVATAR_BORDER_WIDTH = 2.4;
+
 const styles = StyleSheet.create({
   avatar: {
     width: size.iconButton,
     height: size.iconButton,
     borderRadius: radius.pill,
+    borderWidth: AVATAR_BORDER_WIDTH,
+    borderColor: colors.text,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

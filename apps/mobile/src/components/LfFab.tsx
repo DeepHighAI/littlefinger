@@ -10,8 +10,10 @@ export interface LfFabProps extends Omit<PressableProps, 'style' | 'children'> {
 
 const styles = StyleSheet.create({
   button: {
+    // 잉크&스티커 시안 1a: 우하단 → 하단 중앙 (CSS 원본과 같은 자기 기준 -50% 이동)
     position: 'absolute',
-    right: gutter.app,
+    left: '50%',
+    transform: [{ translateX: '-50%' }],
     bottom: gutter.app,
     height: size.fabHeight,
     minHeight: size.touchMin,

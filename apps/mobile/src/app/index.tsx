@@ -5,7 +5,9 @@ import { LEGAL_DOCUMENT_LABELS_BY_LOCALE, type LegalDocumentKind } from '@little
 
 import { GoogleMark } from '../components/GoogleMark';
 import { LfButton } from '../components/LfButton';
+import { LfDoodle, LfDoodleLayer } from '../components/LfDoodle';
 import { LfInput } from '../components/LfInput';
+import { LfMascot } from '../components/LfMascot';
 import { LfNotice } from '../components/LfNotice';
 import { LfPinky } from '../components/LfPinky';
 import { LfStack } from '../components/LfStack';
@@ -39,13 +41,14 @@ const testAuth = __DEV__
   : null;
 
 const LOGIN_GUTTER = 28;
-const BADGE_SIZE = 136;
-const BADGE_RADIUS = 46;
-const WORDMARK_SIZE = 30;
-const WORDMARK_LINE = 38;
-const WORDMARK_TRACKING = -0.5;
+// 잉크&스티커 워드마크 — Gaegu 40/46, 자간 3 (.lf-login__wordmark)
+const WORDMARK_SIZE = 40;
+const WORDMARK_LINE = 46;
+const WORDMARK_TRACKING = 3;
 const SUBTITLE_SIZE = 15;
 const ACTIONS_BOTTOM = 28;
+// 마스코트 아래 소형 핑키 글리프 여백 (.sl-glyph)
+const GLYPH_MARGIN_TOP = 4;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -55,14 +58,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: LOGIN_GUTTER,
   },
+  // 배지 상자는 걷어내고 마스코트가 그대로 앉는다 (.lf-login__badge 리셋)
   badge: {
-    width: BADGE_SIZE,
-    height: BADGE_SIZE,
-    borderRadius: BADGE_RADIUS,
-    backgroundColor: colors.primaryContainer,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  glyph: { marginTop: GLYPH_MARGIN_TOP },
   wordmark: {
     marginTop: 22,
     fontSize: WORDMARK_SIZE,
@@ -194,6 +195,14 @@ export default function LoginScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.screen}>
+      <LfDoodleLayer>
+        <LfDoodle placement="sparkle-tl" />
+        <LfDoodle placement="star-tr" />
+        <LfDoodle placement="mail-l" />
+        <LfDoodle placement="moon-r" />
+        <LfDoodle placement="tea-bl" />
+        <LfDoodle placement="plant-br" />
+      </LfDoodleLayer>
       <View style={styles.body}>
         <View
           style={styles.badge}
@@ -201,7 +210,11 @@ export default function LoginScreen(): React.JSX.Element {
           accessibilityRole="image"
           accessibilityLabel={LABEL.logo}
         >
-          <LfPinky size="xl" tone="onContainer" />
+          <LfMascot size="login" />
+        </View>
+        {/* 마스코트 아래 소형 핑키 글리프 (.sl-glyph) — 장식 */}
+        <View style={styles.glyph} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <LfPinky size="sm" />
         </View>
 
         <Text style={styles.wordmark}>{LABEL.wordmark}</Text>

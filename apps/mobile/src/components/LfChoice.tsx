@@ -9,28 +9,31 @@ export interface LfChoiceProps {
   onPress(): void;
 }
 
+// 잉크 테두리 선택 칩 — 선택은 잉크 반전 (배경 잉크 · 글자 크림, ADR 0012)
+const CHOICE_BORDER_WIDTH = 2.2;
+
 const styles = StyleSheet.create({
   base: {
     minHeight: size.touchMin,
     paddingHorizontal: space[6],
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outlineStrong,
+    borderWidth: CHOICE_BORDER_WIDTH,
+    borderColor: colors.text,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   selected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryContainer,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   label: {
-    color: colors.textSecondary,
+    color: colors.text,
     fontFamily: brandFontFamily(weight.medium),
     fontWeight: weight.medium,
     fontSize: type.label,
   },
-  selectedLabel: { color: colors.onPrimaryContainer, fontWeight: weight.bold },
+  selectedLabel: { color: colors.background, fontWeight: weight.bold },
 });
 
 export function LfChoice({ label, selected, onPress }: LfChoiceProps): React.JSX.Element {

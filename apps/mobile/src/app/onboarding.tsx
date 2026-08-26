@@ -4,7 +4,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfButton } from '../components/LfButton';
+import { LfDoodle, LfDoodleLayer } from '../components/LfDoodle';
 import { LfIcon } from '../components/LfIcon';
+import { LfMascot } from '../components/LfMascot';
 import { LfPinky } from '../components/LfPinky';
 import { useLabels } from '../lib/locale-native';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
@@ -14,22 +16,41 @@ import { brandFontFamily } from '../theme/fonts';
 import { colors, line, radius, size, space, type, weight } from '../theme/tokens';
 
 const BODY_GUTTER = 28;
-const BADGE_SIZE = 128;
-const BADGE_RADIUS = 44;
 const STEP_WIDTH = 76;
+// 잉크&스티커 단계 아이콘 — 54px 필 + 2.4px 잉크 테두리 (.lf-onboarding__step-icon)
+const STEP_ICON_SIZE = 54;
+const STEP_ICON_BORDER_WIDTH = 2.4;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   skipRow: { alignItems: 'flex-end', paddingTop: space[6], paddingHorizontal: space[8] },
   skip: { minHeight: size.touchMin, paddingHorizontal: space[3], justifyContent: 'center' },
-  skipText: { color: colors.textMuted, fontSize: type.body, fontFamily: brandFontFamily(weight.medium) },
+  skipText: {
+    color: colors.textMuted,
+    fontSize: type.body,
+    fontFamily: brandFontFamily(weight.medium),
+    textDecorationLine: 'underline',
+  },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[8], paddingHorizontal: BODY_GUTTER },
-  badge: { width: BADGE_SIZE, height: BADGE_SIZE, borderRadius: BADGE_RADIUS, backgroundColor: colors.primaryContainer, alignItems: 'center', justifyContent: 'center' },
+  // 배지 상자는 걷어내고 마스코트가 그대로 앉는다 (.lf-onboarding__badge 리셋)
+  badge: { alignItems: 'center', justifyContent: 'center' },
   headline: { color: colors.text, fontSize: type.title, lineHeight: line.title, fontFamily: brandFontFamily(weight.heavy), textAlign: 'center' },
   subcopy: { marginTop: space[4], color: colors.textSecondary, fontSize: type.body, lineHeight: line.body, fontFamily: brandFontFamily(weight.regular), textAlign: 'center' },
   steps: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   step: { width: STEP_WIDTH, alignItems: 'center', gap: space[1] },
-  stepIcon: { width: size.iconButton, height: size.iconButton, borderRadius: radius.md, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
+  stepIcon: {
+    width: STEP_ICON_SIZE,
+    height: STEP_ICON_SIZE,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: STEP_ICON_BORDER_WIDTH,
+    borderColor: colors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // 2번째 단계 = 버터, 3번째 단계 = 라벤더 스티커 톤
+  stepIconButter: { backgroundColor: colors.primaryContainer },
+  stepIconLavender: { backgroundColor: colors.rewardContainer },
   stepLabel: { color: colors.textSecondary, fontSize: type.micro, fontFamily: brandFontFamily(weight.bold) },
   arrow: { marginBottom: space[7] },
   actions: { paddingHorizontal: space[8], paddingBottom: space[8] },
@@ -61,6 +82,11 @@ export default function OnboardingScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.screen}>
+      <LfDoodleLayer>
+        <LfDoodle placement="sparkle-tl" />
+        <LfDoodle placement="star-tr" />
+        <LfDoodle placement="moon-r" />
+      </LfDoodleLayer>
       <View style={styles.skipRow}>
         <Pressable accessibilityRole="button" style={styles.skip} disabled={saving} onPress={() => void finish()}>
           <Text style={styles.skipText}>{LABEL.skip}</Text>
@@ -68,7 +94,7 @@ export default function OnboardingScreen(): React.JSX.Element {
       </View>
       <View style={styles.body}>
         <View style={styles.badge} accessible accessibilityRole="image" accessibilityLabel={LABEL.badge}>
-          <LfPinky size="xl" tone="onContainer" />
+          <LfMascot size="onboarding" />
         </View>
         <View>
           <Text style={styles.headline}>{LABEL.headline}</Text>
@@ -77,10 +103,16 @@ export default function OnboardingScreen(): React.JSX.Element {
         <View style={styles.steps}>
           {steps.map((step, index) => (
             <View key={step.label} style={styles.steps}>
-              {index > 0 && <LfIcon name="east" size={type.body} color="outlineIcon" />}
+              {index > 0 && <LfIcon name="east" size={type.body} color="text" />}
               <View style={styles.step}>
-                <View style={styles.stepIcon}>
-                  {step.icon === null ? <LfPinky size="xs" /> : <LfIcon name={step.icon} size={type.title} color="primary" />}
+                <View
+                  style={[
+                    styles.stepIcon,
+                    index === 1 && styles.stepIconButter,
+                    index === 2 && styles.stepIconLavender,
+                  ]}
+                >
+                  {step.icon === null ? <LfPinky size="xs" /> : <LfIcon name={step.icon} size={type.title} color="text" />}
                 </View>
                 <Text style={styles.stepLabel}>{step.label}</Text>
               </View>

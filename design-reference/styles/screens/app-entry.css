@@ -325,7 +325,7 @@
   background: var(--lf-color-reward-container);
   border: 2.2px solid var(--lf-color-text);
   font-family: var(--lf-font-brand);
-  font-size: 15px;
+  font-size: var(--lf-type-list-dday-size);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }

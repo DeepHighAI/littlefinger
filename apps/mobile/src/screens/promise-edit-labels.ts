@@ -8,6 +8,8 @@ import { PROMISE_STATUS_LABEL_BY_LOCALE, type Localized } from '@littlefinger/sh
  */
 const ko = {
   title: '약속 만들기',
+  // 잉크&스티커 타자기 인트로 — 장식 텍스트 (ADR 0012). en 은 PO 확인 대기 초안.
+  typeline: '→ 새로운 약속을 적어볼까요?',
   editing: PROMISE_STATUS_LABEL_BY_LOCALE.ko.DRAFT,
   close: '닫기',
   previous: '이전 단계',
@@ -55,6 +57,7 @@ const ko = {
 
 const en = {
   title: 'Create a promise',
+  typeline: '→ Shall we write a new promise?',
   editing: PROMISE_STATUS_LABEL_BY_LOCALE.en.DRAFT,
   close: 'Close',
   previous: 'Previous step',

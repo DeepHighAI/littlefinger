@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors, gutter, radius, space } from '../theme/tokens';
+import { colors, elevation, gutter, radius, space } from '../theme/tokens';
 import { LfButton } from './LfButton';
 import { LfPinky } from './LfPinky';
 import { LfStack } from './LfStack';
@@ -17,24 +17,27 @@ export interface LfHeroProps {
   testID?: string;
 }
 
+// 임박 배너 = 살짝 기울인 잉크 테두리 스티커 카드 (.lf-home__pinned, ADR 0012)
+const HERO_BORDER_WIDTH = 2.5;
+const HERO_TILT = '-1.2deg';
+
 const styles = StyleSheet.create({
   hero: {
     marginHorizontal: gutter.app,
-    padding: space[8],
-    borderTopLeftRadius: radius.hero,
-    borderTopRightRadius: radius.hero,
-    borderBottomRightRadius: radius.hero,
-    borderBottomLeftRadius: radius.heroTail,
-    backgroundColor: colors.primaryContainer,
+    paddingVertical: space[6],
+    paddingHorizontal: space[7],
+    borderRadius: radius.record,
+    backgroundColor: colors.surface,
+    borderWidth: HERO_BORDER_WIDTH,
+    borderColor: colors.text,
+    transform: [{ rotate: HERO_TILT }],
+    ...elevation.card,
     gap: space[7],
   },
   top: { flexDirection: 'row', alignItems: 'flex-start', gap: space[5] },
+  // 플래그는 배경 없는 살구 텍스트 (.lf-home__pinned-flag)
   eyebrow: {
     alignSelf: 'flex-start',
-    paddingVertical: space[1],
-    paddingHorizontal: space[5],
-    borderRadius: radius.pill,
-    backgroundColor: colors.attentionContainer,
   },
 });
 

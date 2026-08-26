@@ -10,6 +10,8 @@ import { LfBottomNav } from './LfBottomNav';
 import { LfCard } from './LfCard';
 import { LfChoice } from './LfChoice';
 import { LfDisclaimer } from './LfDisclaimer';
+import { LfDoodle, LfDoodleLayer } from './LfDoodle';
+import { LfMascot } from './LfMascot';
 import { LfFab } from './LfFab';
 import { LfHelper } from './LfHelper';
 import { LfHero } from './LfHero';
@@ -117,11 +119,11 @@ describe('LfDisclaimer', () => {
 });
 
 describe('LfNotice', () => {
-  test('정보 안내는 Quiet Record 블루를 쓴다', async () => {
+  test('정보 안내는 잉크 밑줄 스타일을 쓴다 (ADR 0012)', async () => {
     const view = await render(<LfNotice label="초대가 곧 만료돼요" />);
 
     expect(flatten(view.getByText('초대가 곧 만료돼요').props.style).color).toBe(
-      colors.record,
+      colors.textSecondary,
     );
   });
 });
@@ -292,12 +294,12 @@ describe('LfPinky', () => {
 });
 
 describe('LfCard', () => {
-  test('기본 카드는 흰 표면에 얇은 테두리다', async () => {
+  test('기본 카드는 잉크 테두리 스티커 카드다 (ADR 0012)', async () => {
     const view = await render(<LfCard testID="c" />);
     const s = styleOf(view, 'c') as ViewStyle;
     expect(s.backgroundColor).toBe(colors.surface);
-    expect(s.borderColor).toBe(colors.outline);
-    expect(s.borderWidth).toBe(1);
+    expect(s.borderColor).toBe(colors.text);
+    expect(s.borderWidth).toBe(2.2);
   });
 
   test('emphasis 는 2dp Record Blue 테두리로 정보 구조를 강조한다', async () => {
@@ -330,13 +332,15 @@ describe('LfCard', () => {
 });
 
 describe('Soft Promise 공통 컴포넌트', () => {
-  test('히어로는 비대칭 곡률과 대형 D-Day를 쓴다', async () => {
+  test('히어로는 기울인 잉크 테두리 스티커 카드에 대형 D-Day를 쓴다 (ADR 0012)', async () => {
     const view = await render(
       <LfHero testID="hero" eyebrow="가장 가까운 약속" title="함께 걷기" dday="D-3" />,
     );
     const hero = styleOf(view, 'hero') as ViewStyle;
-    expect(hero.borderTopLeftRadius).toBe(28);
-    expect(hero.borderBottomLeftRadius).toBe(12);
+    expect(hero.borderRadius).toBe(18);
+    expect(hero.borderWidth).toBe(2.5);
+    expect(hero.borderColor).toBe(colors.text);
+    expect(hero.transform).toEqual([{ rotate: '-1.2deg' }]);
     expect(flatten(view.getByText('D-3').props.style).fontSize).toBe(type.heroDday);
   });
 
@@ -522,5 +526,25 @@ describe('M4 접근성 의미와 터치 하한', () => {
         size.touchMin,
       );
     }
+  });
+});
+
+describe('잉크&스티커 장식 컴포넌트 (ADR 0012)', () => {
+  test('마스코트는 토큰 색으로 그려진다', async () => {
+    const view = await render(<LfMascot />);
+    expect(view.getByTestId('lf-mascot')).toBeTruthy();
+  });
+
+  test('두들 레이어는 터치를 막지 않고 접근성 트리에서 빠진다', async () => {
+    const view = await render(
+      <LfDoodleLayer testID="doodles">
+        <LfDoodle placement="sparkle-tl" />
+        <LfDoodle placement="star-tr" />
+      </LfDoodleLayer>,
+    );
+    const layer = view.getByTestId('doodles', { includeHiddenElements: true });
+    expect(layer.props.pointerEvents).toBe('none');
+    expect(layer.props.accessibilityElementsHidden).toBe(true);
+    expect(layer.props.importantForAccessibility).toBe('no-hide-descendants');
   });
 });

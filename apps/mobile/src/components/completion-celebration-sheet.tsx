@@ -50,6 +50,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius['2xl'],
     backgroundColor: colors.primaryContainer,
     ...elevation.sheet,
+    // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
+    borderWidth: 2.5,
+    borderBottomWidth: 0,
+    borderColor: colors.text,
   },
   handle: {
     width: size.iconButton,

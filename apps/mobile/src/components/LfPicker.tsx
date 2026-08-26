@@ -12,13 +12,16 @@ export interface LfPickerProps {
   disabled?: boolean;
 }
 
+// 잉크 테두리 피커 (ADR 0012)
+const PICKER_BORDER_WIDTH = 2;
+
 const styles = StyleSheet.create({
   picker: {
     minHeight: size.touchMin,
     paddingHorizontal: space[6],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outlineStrong,
-    borderRadius: radius.sm,
+    borderWidth: PICKER_BORDER_WIDTH,
+    borderColor: colors.text,
+    borderRadius: radius.md,
     backgroundColor: colors.surface,
     flexDirection: 'row',
     alignItems: 'center',

@@ -15,6 +15,7 @@ import { LfAppBar } from '../components/LfAppBar';
 import { LfBottomNav } from '../components/LfBottomNav';
 import { LfButton } from '../components/LfButton';
 import { LfChip } from '../components/LfChip';
+import { LfDoodle, LfDoodleLayer } from '../components/LfDoodle';
 import { LfEmpty } from '../components/LfEmpty';
 import { LfHero } from '../components/LfHero';
 import { LfIcon } from '../components/LfIcon';
@@ -303,6 +304,10 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
+      <LfDoodleLayer>
+        <LfDoodle placement="sparkle-home-tr" />
+        <LfDoodle placement="sparkle-home-bl" />
+      </LfDoodleLayer>
       <LfAppBar
         title={LABEL.brand}
         brand

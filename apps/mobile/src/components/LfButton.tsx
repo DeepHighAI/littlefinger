@@ -1,7 +1,7 @@
 import { Pressable, type PressableProps, StyleSheet, Text } from 'react-native';
 
 import { brandFontFamily, type BrandFontWeight } from '../theme/fonts';
-import { colors, radius, size, space, type, weight } from '../theme/tokens';
+import { colors, elevation, radius, size, space, type, weight } from '../theme/tokens';
 
 /**
  * 버튼 — 원본 `.lf-btn` 과 변형 10종을 props 로 접은 것 (04 §5-2).
@@ -27,8 +27,11 @@ export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children'
 
 const DISABLED_OPACITY = 0.38;
 const PRESSED_OPACITY = 0.94;
-const OUTLINE_WIDTH = 1.5;
-// Google 버튼 가이드는 1px 고정 테두리다 — 내부 outlined(1.5)와 다르다.
+// 잉크&스티커 굵은 잉크 테두리 (ADR 0012) — CSS 원본의 2.2~2.5px 그대로.
+const STICKER_OUTLINE_WIDTH = 2.4;
+const KAKAO_OUTLINE_WIDTH = 2.5;
+const DANGER_OUTLINE_WIDTH = 2.2;
+// Google 버튼 가이드는 1px 고정 테두리다 — 잉크 테두리를 얹지 않는다.
 const GOOGLE_OUTLINE_WIDTH = 1;
 
 const container = StyleSheet.create({
@@ -43,27 +46,39 @@ const container = StyleSheet.create({
     justifyContent: 'center',
     gap: space[3],
   },
-  filled: { backgroundColor: colors.actionFill },
-  tonal: { backgroundColor: colors.primaryContainer },
+  filled: { backgroundColor: colors.actionFill, ...elevation.fab },
+  tonal: {
+    backgroundColor: colors.primaryContainer,
+    borderWidth: STICKER_OUTLINE_WIDTH,
+    borderColor: colors.text,
+  },
   outlined: {
-    backgroundColor: 'transparent',
-    borderWidth: OUTLINE_WIDTH,
-    borderColor: colors.primary,
+    backgroundColor: colors.surface,
+    borderWidth: STICKER_OUTLINE_WIDTH,
+    borderColor: colors.text,
   },
   text: { backgroundColor: 'transparent' },
-  kakao: { backgroundColor: colors.kakao },
+  kakao: {
+    backgroundColor: colors.kakao,
+    borderWidth: KAKAO_OUTLINE_WIDTH,
+    borderColor: colors.text,
+  },
   google: {
     backgroundColor: colors.google,
     borderWidth: GOOGLE_OUTLINE_WIDTH,
     borderColor: colors.googleBorder,
   },
-  danger: { backgroundColor: 'transparent', borderWidth: OUTLINE_WIDTH, borderColor: colors.error },
+  danger: {
+    backgroundColor: colors.surface,
+    borderWidth: DANGER_OUTLINE_WIDTH,
+    borderColor: colors.error,
+  },
 });
 
 const labelColor: Record<LfButtonVariant, string> = {
   filled: colors.onAction,
   tonal: colors.onPrimaryContainer,
-  outlined: colors.primary,
+  outlined: colors.text,
   text: colors.textMuted,
   kakao: colors.onKakao,
   google: colors.onGoogle,
@@ -76,7 +91,7 @@ const labelWeight: Record<LfButtonVariant, BrandFontWeight> = {
   tonal: weight.heavy,
   outlined: weight.bold,
   text: weight.medium,
-  kakao: weight.medium,
+  kakao: weight.bold,
   google: weight.medium,
   danger: weight.bold,
 };
@@ -133,6 +148,8 @@ export function LfButton({
           color: labelColor[variant],
           textAlign: 'center',
           fontFamily: brandFontFamily(labelWeight[variant]),
+          // 링크형 보조 액션은 CSS 원본처럼 밑줄로 구분한다 (underline-offset 은 RN 미지원)
+          textDecorationLine: variant === 'text' ? 'underline' : 'none',
         }}
       >
         {label}
