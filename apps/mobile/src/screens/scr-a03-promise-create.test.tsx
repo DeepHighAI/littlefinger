@@ -27,8 +27,22 @@ jest.mock('../components/slot-paywall-sheet.tsx', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const { Text } = jest.requireActual<typeof import('react-native')>('react-native');
   return {
-    SlotPaywallSheet: ({ visible, reason }: { visible: boolean; reason: string }) =>
-      visible ? React.createElement(Text, null, `슬롯 결제 시트 ${reason}`) : null,
+    SlotPaywallSheet: ({
+      visible,
+      reason,
+      onPurchased,
+    }: {
+      visible: boolean;
+      reason: string;
+      onPurchased?: (status: { capacity: number; used: number }) => void;
+    }) =>
+      visible
+        ? React.createElement(
+            Text,
+            { onPress: () => onPurchased?.({ capacity: 6, used: 5 }) },
+            `슬롯 결제 시트 ${reason}`,
+          )
+        : null,
   };
 });
 
@@ -243,6 +257,39 @@ describe('SCR-A03 3단계 약속 작성', () => {
     expect(view.queryByText(/슬롯이 가득 찼어요\./u)).toBeNull();
     // 검토 단계에 머무른다 — 필드 오류가 아니므로 단계를 되돌리지 않는다.
     expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(3);
+  });
+
+  test('결제 완료는 시트를 닫고 발송을 즉시 재개한다 (PO 2026-08-26)', async () => {
+    // 시트가 열린 채 남으면 결제가 안 된 것으로 오해한다 — 재개가 성공의 표시다.
+    jest.mocked(submitEditorDraft)
+      .mockRejectedValueOnce(
+        new MobileApiError('E_SLOT_LIMIT', '약속 슬롯이 가득 찼어요. 슬롯을 추가하면 새 약속을 보낼 수 있어요.'),
+      )
+      .mockResolvedValue({
+        promise_id: 'promise-1',
+        status: 'PENDING',
+        invitation_id: 'invite-1',
+        expires_at: '2026-08-02T01:00:00.000Z',
+        resend_count: 0,
+        title: '주 3회 달리기',
+        token: 'raw-token',
+      });
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+    await goToReview(view);
+    await fireEvent.press(view.getByRole('button', { name: '상대에게 보내기' }));
+    await settle();
+    expect(view.getByText('슬롯 결제 시트 limit')).toBeTruthy();
+
+    await act(async () => fireEvent.press(view.getByText('슬롯 결제 시트 limit')));
+    await settle();
+
+    expect(view.queryByText('슬롯 결제 시트 limit')).toBeNull();
+    expect(submitEditorDraft).toHaveBeenCalledTimes(2);
+    expect(push).toHaveBeenCalledWith({
+      pathname: '/invite',
+      params: { promise_id: 'promise-1', witness_enabled: 'false' },
+    });
   });
 
   test('입력은 3초 뒤 저장하고 이탈 시 남은 변경을 즉시 flush한다', async () => {

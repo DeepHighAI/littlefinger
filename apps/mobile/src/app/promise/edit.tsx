@@ -539,6 +539,12 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         visible={slotSheetOpen}
         reason="limit"
         onClose={() => setSlotSheetOpen(false)}
+        // 결제 완료 = 막혔던 발송의 즉시 재개(PO 2026-08-26). 시트가 열린 채 남으면
+        // 결제가 안 된 것으로 오해한다. 미소모 구매 복구(reconcile)로 와도 같은 재개다.
+        onPurchased={() => {
+          setSlotSheetOpen(false);
+          void performSubmit(true);
+        }}
       />
     </SafeAreaView>
   );

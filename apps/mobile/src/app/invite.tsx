@@ -407,6 +407,11 @@ export default function InviteScreen(): React.JSX.Element {
         visible={slotSheetOpen}
         reason="limit"
         onClose={() => setSlotSheetOpen(false)}
+        // 결제 완료 = 막혔던 재발급·공유의 즉시 재개(PO 2026-08-26).
+        onPurchased={() => {
+          setSlotSheetOpen(false);
+          void issueAndShare();
+        }}
       />
     </SafeAreaView>
   );
