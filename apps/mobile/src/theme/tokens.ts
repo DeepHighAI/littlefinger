@@ -13,66 +13,66 @@
  */
 
 export const colors = {
-  // Pine 브랜드 — 브랜드·승인·진행에만 쓴다 (A안, PO 2026-08-23).
-  primary: '#0B6B4B',
-  primaryHover: '#095D41',
-  primaryPressed: '#084E37',
-  onPrimary: '#FFFFFF',
-  primaryContainer: '#E7F4ED',
-  onPrimaryContainer: '#0B6B4B',
-  primarySoft: '#F3FAF6',
-  primaryPale: '#78CEA5',
-  primaryInk: '#0B6B4B',
+  // 잉크 브랜드 — 잉크&스티커 (시안 1a, PO 2026-08-27). 브랜드·강조·선택.
+  primary: '#221C13',
+  primaryHover: '#16120C',
+  primaryPressed: '#0B0906',
+  onPrimary: '#FFFDF4',
+  primaryContainer: '#F6E7A3', // 버터 스티커
+  onPrimaryContainer: '#221C13',
+  primarySoft: '#FBF6E4',
+  primaryPale: '#CDBCEC', // 라벤더 — 핑키 보조 획
+  primaryInk: '#221C13',
 
-  // 핵심 행동 — 브랜드보다 밝게, 텍스트는 짙은 녹색으로 읽힌다.
-  actionFill: '#78CEA5',
-  actionFillPressed: '#62BF92',
-  onAction: '#12382B',
+  // 핵심 행동 — 검정 필 CTA, 텍스트는 크림.
+  actionFill: '#221C13',
+  actionFillPressed: '#000000',
+  onAction: '#FFFDF4',
   // PO 승인 브랜드 심볼 전용 단색. UI primary와 독립적으로 유지한다.
-  brandSymbol: '#0B6B4B',
-  brandSymbolOnAction: '#FFF8E7',
+  brandSymbol: '#221C13',
+  brandSymbolOnAction: '#F6E7A3',
 
-  // Quiet Record — 확정 기록과 일반 정보에만 쓴다.
-  record: '#466FA8',
-  onRecord: '#FFFFFF',
-  recordContainer: '#EAF1FB',
+  // 확정 기록·정보 — 라벤더 계열.
+  record: '#6B58A8',
+  onRecord: '#FFFDF4',
+  recordContainer: '#E7DFF6',
 
-  // Promise Apricot — 마감 임박·응답 필요처럼 주의가 필요한 약속에 쓴다.
-  attention: '#B86A24',
-  attentionContainer: '#FFF1E6',
+  // 마감·응답 필요 — 살구 계열.
+  attention: '#B05F2C',
+  attentionContainer: '#F8DDBE',
 
-  // 표면 — 전체 면의 대부분은 저채도 중립색이 맡는다.
-  background: '#F7F8F6',
-  surface: '#FFFFFF',
-  surfaceChrome: '#FFFFFF',
-  surfaceMuted: '#F1F3F2',
+  // 표면 — 크림 바탕 + 오프화이트 스티커 면.
+  background: '#F3ECDC',
+  surface: '#FFFDF4',
+  surfaceChrome: '#FFFDF4',
+  surfaceMuted: '#EAE1CB',
 
-  // 외곽선 — 그림자보다 헤어라인으로 면을 가른다.
-  outline: '#E2E6E3',
-  outlineStrong: '#CFD6D2',
-  outlineIcon: '#9AA39E',
+  // 외곽선 — 굵은 잉크 테두리는 컴포넌트 레이어에서 colors.text 로 긋는다.
+  outline: '#E0D5BA',
+  outlineStrong: '#B8AB92',
+  outlineIcon: '#8A7E66',
 
-  // 텍스트 — 따뜻한 중립 위계.
-  text: '#191C1B',
-  textSecondary: '#5F6864',
-  textMuted: '#7B837F',
-  textFaint: '#9AA39E',
+  // 텍스트 — 따뜻한 잉크 위계.
+  text: '#221C13',
+  textSecondary: '#6F6552',
+  textMuted: '#9A8E75',
+  textFaint: '#B3A78C',
 
-  // 보상 / 벌칙 (§9 용어: Reward=보상, Penalty=벌칙)
-  rewardContainer: '#EAF1FB',
-  onRewardContainer: '#29466F',
-  rewardLabel: '#466FA8',
-  penaltyContainer: '#FFF1E6',
+  // 보상 / 벌칙 (§9 용어: Reward=보상, Penalty=벌칙) — 보상=라벤더, 벌칙=살구
+  rewardContainer: '#E7DFF6',
+  onRewardContainer: '#3E3372',
+  rewardLabel: '#6B58A8',
+  penaltyContainer: '#F8DDBE',
   onPenaltyContainer: '#6B3B14',
-  penaltyLabel: '#B86A24',
+  penaltyLabel: '#A85B1E',
 
   // 오류 · 불이행 — 실제 위험에만 쓴다.
   error: '#C4433B',
-  errorContainer: '#FCECEA',
+  errorContainer: '#F8DFDB',
 
-  // 성공 · 완료
-  success: '#0B6B4B',
-  successContainer: '#E7F4ED',
+  // 성공 · 완료 — 잉크 + 버터 스티커 (모노 팔레트 원칙, 상태는 텍스트가 구분)
+  success: '#221C13',
+  successContainer: '#F6E7A3',
 
   // 카카오 로그인 공식 버튼 가이드 색
   kakao: '#FEE500',
@@ -83,65 +83,65 @@ export const colors = {
   onGoogle: '#1F1F1F',
   googleBorder: '#747775',
 
-  scrim: 'rgba(0, 0, 0, 0.40)',
+  scrim: 'rgba(20, 15, 8, 0.42)',
 } as const;
 
 /**
  * RN 은 CSS 처럼 폰트 스택을 못 받고 패밀리 하나만 받는다.
- * 실제 굵기별 파일 선택은 `LfText` 가 한다 — RN 안드로이드는 가변 폰트의 웨이트 축이
- * 불안정해서 정적 `.ttf` 4종(400/600/700/800)을 쓰기 때문이다(04 §5-4).
+ * 실제 굵기별 파일 선택은 `LfText` 가 한다 — Gaegu 는 400/700 두 정적 웨이트만
+ * 있으므로 `fonts.ts` 의 매핑을 거친다(04 §5-4 의 정적 파일 원칙 유지).
  *
  * **여기 값은 tokens.css 와의 이름 패리티용이지 등록된 RN 패밀리가 아니다.**
- * 네이티브에 등록된 이름은 `Pretendard-Regular` 등 굵기별 이름뿐이라,
+ * 네이티브에 등록된 이름은 `Gaegu-Regular` 등 굵기별 이름뿐이라,
  * `fontFamily.brand` 를 style 에 직접 넣으면 조용히 시스템 폰트로 떨어진다 —
  * 반드시 `brandFontFamily(weight)` 를 거친다.
  */
 export const fontFamily = {
-  brand: 'Pretendard',
+  brand: 'Gaegu',
   mono: 'Roboto Mono',
 } as const;
 
 export const type = {
-  display: 28, // D-Day 대형 숫자
-  listDday: 15, // 홈 일반 행 D-Day
-  heroDday: 46, // Soft Promise 히어로 D-Day
-  title: 21, // 화면 타이틀 · 상세 제목
-  heading: 19, // 앱바 타이틀 · 섹션 헤드
-  subtitle: 17,
-  bodyLg: 16, // 카드 제목 · 주 CTA 라벨
-  body: 14,
-  label: 13,
-  caption: 12,
-  micro: 11,
+  display: 30, // D-Day 대형 숫자
+  listDday: 16, // 홈 일반 행 D-Day
+  heroDday: 46, // 히어로 D-Day
+  title: 22, // 화면 타이틀 · 상세 제목
+  heading: 20, // 앱바 타이틀 · 섹션 헤드
+  subtitle: 18,
+  bodyLg: 17, // 카드 제목 · 주 CTA 라벨
+  body: 15,
+  label: 14,
+  caption: 12.5,
+  micro: 11.5,
 } as const;
 
 export const line = {
-  title: 28,
+  title: 30,
   heroDday: 50,
-  body: 21,
+  body: 22,
   caption: 18,
   micro: 16,
 } as const;
 
-/** RN `fontWeight` 는 문자열을 받는다. */
+/** RN `fontWeight` 는 문자열을 받는다. Gaegu 는 400/700 뿐 — medium→400, heavy→700 수렴. */
 export const weight = {
   regular: '400',
-  medium: '600',
+  medium: '400',
   bold: '700',
-  heavy: '800',
+  heavy: '700',
 } as const;
 
-/** 당근 seed에서 가져온 반듯한 곡률 위계 (ADR 0008). */
+/** 셋로그식 오버라운드 + 필 (ADR 0012). */
 export const radius = {
-  xs: 6,
-  sm: 8,
-  md: 10,
-  lg: 12,
-  xl: 12,
-  '2xl': 20,
+  xs: 8,
+  sm: 12,
+  md: 14,
+  lg: 16,
+  xl: 16,
+  '2xl': 24,
   hero: 28,
   heroTail: 12,
-  record: 16,
+  record: 18,
   pill: 9999,
 } as const;
 
@@ -168,12 +168,12 @@ export const size = {
   touchMin: 48,
   iconButton: 44,
   appbarHeight: 56,
-  ctaHeight: 52,
+  ctaHeight: 54,
   actionHeight: 48,
-  fabHeight: 52,
+  fabHeight: 54,
   tabHeight: 38,
   bottomNavContentHeight: 64,
-  centerFab: 52,
+  centerFab: 54,
   navIcon: 26,
   appbarIcon: 26,
   /** SCR-A06 승인 레퍼런스의 정사각형 증빙 타일. */
@@ -183,30 +183,30 @@ export const size = {
 /**
  * CSS `box-shadow` 는 RN 에 없다. iOS 용 shadow* 속성과 안드로이드용 `elevation` 을 함께 준다.
  * MVP 는 안드로이드만이므로 실제로 그려지는 건 `elevation` 쪽이다.
+ * 스티커식 오프셋 섀도(블러 0)는 안드로이드에서 elevation 근사로 그려진다 (ADR 0012).
  */
 export const elevation = {
-  // 0 1px 2px rgba(25, 28, 27, 0.04) — 당근식 최소 그림자, 면 구분은 헤어라인이 맡는다
+  // 3px 4px 0 rgba(34, 28, 19, 0.14) — 잉크 테두리 카드의 오프셋 스티커 섀도
   card: {
-    shadowColor: '#191C1B',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
+    shadowColor: '#221C13',
+    shadowOffset: { width: 3, height: 4 },
+    shadowOpacity: 0.14,
+    shadowRadius: 0,
     elevation: 1,
   },
-  // CSS의 두 겹 FAB 그림자 중 더 강한 층을 RN 단일 그림자로 보존한다.
-  // 0 6px 16px rgba(25, 28, 27, 0.14)
+  // 3px 4px 0 rgba(34, 28, 19, 0.22) — CTA·FAB 는 같은 오프셋에 더 진하게
   fab: {
-    shadowColor: '#191C1B',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 16,
+    shadowColor: '#221C13',
+    shadowOffset: { width: 3, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 0,
     elevation: 8,
   },
-  // 0 -6px 24px rgba(25, 28, 27, 0.10) — 시트는 위로 그림자를 던진다
+  // 0 -6px 24px rgba(34, 28, 19, 0.12) — 시트는 위로 그림자를 던진다 (블러 유지)
   sheet: {
-    shadowColor: '#191C1B',
+    shadowColor: '#221C13',
     shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 24,
     elevation: 12,
   },

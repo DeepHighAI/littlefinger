@@ -147,23 +147,24 @@ describe('색상은 문자열 그대로 옮긴다', () => {
   });
 });
 
-describe('A안 역할 기반 웹 토큰도 같은 계약을 쓴다', () => {
+describe('잉크&스티커 웹 토큰도 같은 계약을 쓴다', () => {
   test('수락 웹의 모든 토큰 값이 확정안과 일치한다', () => {
     for (const [name, expected] of cssTokens) {
       expect(webCssTokens.get(name)).toBe(expected);
     }
-    expect(webCssTokens.get('color-primary')).toBe('#0B6B4B');
-    expect(webCssTokens.get('color-primary-hover')).toBe('#095D41');
-    expect(webCssTokens.get('color-primary-pressed')).toBe('#084E37');
-    expect(webCssTokens.get('color-record')).toBe('#466FA8');
-    expect(webCssTokens.get('color-attention')).toBe('#B86A24');
+    expect(webCssTokens.get('color-primary')).toBe('#221C13');
+    expect(webCssTokens.get('color-primary-hover')).toBe('#16120C');
+    expect(webCssTokens.get('color-primary-pressed')).toBe('#0B0906');
+    expect(webCssTokens.get('color-record')).toBe('#6B58A8');
+    expect(webCssTokens.get('color-attention')).toBe('#B05F2C');
   });
 
   test('안내·응답·안읽음 상태가 역할 기반 색을 쓴다', () => {
     const css = readFileSync(WEB_COMPONENTS_CSS, 'utf8');
 
+    // 잉크&스티커: notice 는 잉크 밑줄 스타일 — 본문 색은 text-secondary (ADR 0012)
     expect(css).toMatch(
-      /\.lf-notice\s*\{[^}]*color:\s*var\(--lf-color-record\)/su,
+      /\.lf-notice\s*\{[^}]*color:\s*var\(--lf-color-text-secondary\)/su,
     );
     expect(css).toMatch(
       /\.lf-card--container\s+\.lf-dday\s*\{[^}]*color:\s*var\(--lf-color-success\)/su,
@@ -227,7 +228,8 @@ describe('치수는 px 를 뗀 숫자다 — CSS px 값이 곧 RN dp 다', () =>
 
 describe('RN 에서 모양이 달라지는 토큰', () => {
   test('웨이트는 문자열이다 — RN fontWeight 가 문자열을 받는다', () => {
-    expect(weight).toEqual({ regular: '400', medium: '600', bold: '700', heavy: '800' });
+    // Gaegu 는 400/700 뿐 — medium→400, heavy→700 수렴 (ADR 0012)
+    expect(weight).toEqual({ regular: '400', medium: '400', bold: '700', heavy: '700' });
     for (const value of Object.values(weight)) {
       expect(typeof value).toBe('string');
     }
@@ -238,21 +240,21 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
   });
 
   test('그림자는 box-shadow 대신 객체다', () => {
-    // 당근식 최소 그림자 — 여러 겹 CSS 그림자는 가장 강한 층 하나로 보존한다(ADR 0008).
+    // 스티커식 오프셋 섀도(블러 0) — 안드로이드는 elevation 근사로 그린다 (ADR 0012).
     expect(elevation.card).toEqual({
-      shadowColor: '#191C1B',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
+      shadowColor: '#221C13',
+      shadowOffset: { width: 3, height: 4 },
+      shadowOpacity: 0.14,
+      shadowRadius: 0,
       elevation: 1,
     });
-    expect(elevation.fab.shadowOffset).toEqual({ width: 0, height: 6 });
-    expect(elevation.fab.shadowRadius).toBe(16);
-    expect(elevation.fab.shadowOpacity).toBe(0.14);
-    expect(elevation.sheet.shadowColor).toBe('#191C1B');
+    expect(elevation.fab.shadowOffset).toEqual({ width: 3, height: 4 });
+    expect(elevation.fab.shadowRadius).toBe(0);
+    expect(elevation.fab.shadowOpacity).toBe(0.22);
+    expect(elevation.sheet.shadowColor).toBe('#221C13');
     expect(elevation.sheet.shadowOffset).toEqual({ width: 0, height: -6 });
     expect(elevation.sheet.shadowRadius).toBe(24);
-    expect(elevation.sheet.shadowOpacity).toBe(0.1);
+    expect(elevation.sheet.shadowOpacity).toBe(0.12);
   });
 
   test('이징은 베지어 계수 배열이다', () => {
@@ -289,9 +291,9 @@ describe('접근성 하한', () => {
 
   test('정보·주의·위험 역할이 서로 다른 토큰을 쓴다', () => {
     expect(new Set([colors.record, colors.attention, colors.error]).size).toBe(3);
-    expect(colors.recordContainer).toBe('#EAF1FB');
-    expect(colors.attentionContainer).toBe('#FFF1E6');
-    expect(colors.errorContainer).toBe('#FCECEA');
+    expect(colors.recordContainer).toBe('#E7DFF6');
+    expect(colors.attentionContainer).toBe('#F8DDBE');
+    expect(colors.errorContainer).toBe('#F8DFDB');
   });
 
   test('터치 타깃 최소치는 48 이고 줄이지 않는다', () => {

@@ -263,8 +263,8 @@ describe('LfFab', () => {
 });
 
 describe('LfPinky', () => {
-  test('새 브랜드 심볼은 진한 그린 토큰과 이미지 자산을 쓴다', async () => {
-    expect(colors).toHaveProperty('brandSymbol', '#0B6B4B');
+  test('브랜드 심볼은 잉크 토큰과 이미지 자산을 쓴다', async () => {
+    expect(colors).toHaveProperty('brandSymbol', '#221C13');
 
     const view = await render(
       <LfPinky testID="pinky" size="lg" accessibilityLabel="새끼손가락 약속" />,
@@ -273,7 +273,7 @@ describe('LfPinky', () => {
     const style = flatten(mark.props.style);
 
     expect(mark.type).toBe('Image');
-    expect(style.tintColor).toBe('#0B6B4B');
+    expect(style.tintColor).toBe('#221C13');
     expect(style.width).toBeGreaterThan(style.height as number);
     expect(view.getByRole('image', { name: '새끼손가락 약속' })).toBeTruthy();
   });
@@ -325,7 +325,7 @@ describe('LfCard', () => {
 
   test('record 는 확정 기록용 대칭 곡률을 쓴다', async () => {
     const view = await render(<LfCard testID="c" variant="record" />);
-    expect(styleOf(view, 'c').borderRadius).toBe(16);
+    expect(styleOf(view, 'c').borderRadius).toBe(18);
   });
 });
 

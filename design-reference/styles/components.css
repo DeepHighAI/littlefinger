@@ -240,35 +240,40 @@
   pointer-events: none;
 }
 
-/* 주 CTA — 화면당 1개 (요청서 §8) */
+/* 주 CTA — 화면당 1개 (요청서 §8). 검정 필 + 오프셋 스티커 섀도 */
 .lf-btn--filled {
   background: var(--lf-color-action-fill);
   color: var(--lf-color-on-action);
   font-weight: var(--lf-weight-heavy);
+  box-shadow: var(--lf-elevation-fab);
 }
 
 .lf-btn--tonal {
   background: var(--lf-color-primary-container);
   color: var(--lf-color-on-primary-container);
   font-weight: var(--lf-weight-heavy);
+  border: 2.4px solid var(--lf-color-text);
 }
 
 .lf-btn--outlined {
-  border: 1.5px solid var(--lf-color-primary);
-  color: var(--lf-color-primary);
-  background: transparent;
+  border: 2.4px solid var(--lf-color-text);
+  color: var(--lf-color-text);
+  background: var(--lf-color-surface);
 }
 
 .lf-btn--text {
   color: var(--lf-color-text-muted);
   font-weight: var(--lf-weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .lf-btn--kakao {
   background: var(--lf-color-kakao);
   color: var(--lf-color-on-kakao);
-  font-weight: var(--lf-weight-medium);
+  font-weight: var(--lf-weight-bold);
   font-size: var(--lf-type-body-lg-size);
+  border: 2.5px solid var(--lf-color-text);
 }
 
 /* Google 로그인 — 가이드가 흰 배경 + 1px 고정 테두리를 요구한다 */
@@ -282,9 +287,9 @@
 
 /* 파괴적 액션 (파기 요청 등) */
 .lf-btn--danger {
-  border: 1.5px solid var(--lf-color-error);
+  border: 2.2px solid var(--lf-color-error);
   color: var(--lf-color-error);
-  background: transparent;
+  background: var(--lf-color-surface);
 }
 
 /* 크기 변형 */
@@ -303,12 +308,14 @@
   font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-/* FAB — 홈 우하단 '약속 만들기' */
+/* FAB — 하단 중앙 '약속 만들기' (잉크&스티커 시안 1a에서 우하단 → 중앙) */
 .lf-fab {
   position: absolute;
-  right: var(--lf-gutter-app);
+  left: 50%;
+  transform: translateX(-50%);
   bottom: var(--lf-gutter-app);
   height: var(--lf-fab-height);
   padding: 0 22px;
@@ -330,33 +337,36 @@
   display: inline-flex;
   align-items: center;
   gap: var(--lf-space-1);
-  padding: var(--lf-space-1) 11px;
+  padding: var(--lf-space-1) 12px;
   border-radius: var(--lf-radius-pill);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: var(--lf-weight-bold);
-  background: var(--lf-color-surface-muted);
-  color: var(--lf-color-text-secondary);
+  border: 2px solid var(--lf-color-text);
+  background: var(--lf-color-surface);
+  color: var(--lf-color-text);
   white-space: nowrap;
 }
 
-/* 상태 라벨 — 색상만으로 구분하지 않도록 항상 텍스트를 동반한다 (§8) */
-.lf-chip--status    { background: var(--lf-color-primary-container); color: var(--lf-color-on-primary-container); }
+/* 상태 라벨 — 색상만으로 구분하지 않도록 항상 텍스트를 동반한다 (§8)
+   잉크&스티커: 톤은 스티커 배경으로만 구분, 테두리는 잉크 공통 (broken 만 빨강) */
+.lf-chip--status    { background: var(--lf-color-primary-container); color: var(--lf-color-text); }
 .lf-chip--info      { background: var(--lf-color-record-container); color: var(--lf-color-record); }
 .lf-chip--urgent    { background: var(--lf-color-attention-container); color: var(--lf-color-attention); font-weight: var(--lf-weight-heavy); }
-.lf-chip--broken    { background: var(--lf-color-error-container); color: var(--lf-color-error); }
-.lf-chip--done      { background: var(--lf-color-success-container); color: var(--lf-color-success); }
-.lf-chip--neutral   { background: var(--lf-color-surface-muted); color: var(--lf-color-text-secondary); }
+.lf-chip--broken    { background: var(--lf-color-error-container); color: var(--lf-color-error); border-color: var(--lf-color-error); }
+.lf-chip--done      { background: var(--lf-color-primary-container); color: var(--lf-color-text); }
+.lf-chip--neutral   { background: var(--lf-color-primary-container); color: var(--lf-color-text); }
 
-/* 알림 pill (카운트다운 · 안내) */
+/* 알림 (카운트다운 · 안내) — 잉크 밑줄 스타일 */
 .lf-notice {
   display: inline-flex;
   align-items: center;
   gap: var(--lf-space-2);
-  height: 30px;
-  padding: 0 13px;
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-record-container);
-  color: var(--lf-color-record);
+  height: auto;
+  padding: 0 2px 2px;
+  border-radius: 0;
+  border-bottom: 2px solid var(--lf-color-text);
+  background: transparent;
+  color: var(--lf-color-text-secondary);
   font-size: var(--lf-type-caption-size);
   font-weight: var(--lf-weight-bold);
   white-space: nowrap;
@@ -386,8 +396,8 @@
   font-size: var(--lf-type-label-size);
   font-weight: var(--lf-weight-medium);
   background: var(--lf-color-surface);
-  border: 1px solid var(--lf-color-outline-strong);
-  color: var(--lf-color-text-secondary);
+  border: 2.2px solid var(--lf-color-text);
+  color: var(--lf-color-text);
   white-space: nowrap;
 }
 
@@ -403,9 +413,10 @@
    ------------------------------------------------------------- */
 .lf-card {
   background: var(--lf-color-surface);
-  border: 1px solid var(--lf-color-outline);
+  border: 2.2px solid var(--lf-color-text);
   border-radius: var(--lf-radius-xl);
   padding: var(--lf-space-6) var(--lf-space-7);
+  box-shadow: var(--lf-elevation-card);
 }
 
 /* 수락 웹 카드는 조금 더 각지고 여백이 넓다 */
@@ -474,8 +485,11 @@
    확정 스탬프 — "제대로 기록됐다"는 신뢰감 (요청서 §8)
    ------------------------------------------------------------- */
 .lf-stamp {
-  background: var(--lf-color-primary-container);
-  border-radius: var(--lf-radius-2xl);
+  background: var(--lf-color-surface);
+  border: 2.5px solid var(--lf-color-text);
+  border-radius: var(--lf-radius-record);
+  transform: rotate(-0.8deg);
+  box-shadow: var(--lf-elevation-card);
   padding: var(--lf-space-8);
   display: flex;
   flex-direction: column;
@@ -516,7 +530,8 @@
   display: flex;
   align-items: center;
   gap: var(--lf-space-1);
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--lf-color-surface);
+  border: 2px solid var(--lf-color-text);
   border-radius: var(--lf-radius-pill);
   padding: var(--lf-space-1) var(--lf-space-4);
   font-size: var(--lf-type-micro-size);
@@ -536,7 +551,7 @@
   align-items: center;
   gap: var(--lf-space-2);
   font-size: var(--lf-type-micro-size);
-  color: var(--lf-color-record);
+  color: var(--lf-color-text-secondary);
   white-space: nowrap;
 }
 
@@ -646,7 +661,8 @@
 }
 
 .lf-outcome {
-  border-radius: 18px;
+  border: 2.2px solid var(--lf-color-text);
+  border-radius: var(--lf-radius-lg);
   padding: 11px var(--lf-space-5);
 }
 
@@ -672,7 +688,7 @@
 /* BROKEN 상태에서 기록된 벌칙을 강조 */
 .lf-outcome--enforced {
   background: var(--lf-color-error-container);
-  border: 1.5px solid var(--lf-color-error);
+  border-color: var(--lf-color-error);
   grid-column: 1 / -1;
 }
 
@@ -702,8 +718,8 @@
 .lf-input {
   min-height: var(--lf-touch-min);
   padding: var(--lf-space-5) var(--lf-space-6);
-  border: 1px solid var(--lf-color-outline-strong);
-  border-radius: var(--lf-radius-sm);
+  border: 2px solid var(--lf-color-text);
+  border-radius: var(--lf-radius-md);
   background: var(--lf-color-surface);
   font-size: var(--lf-type-body-size);
   color: var(--lf-color-text);
@@ -727,8 +743,8 @@
 .lf-picker {
   min-height: var(--lf-touch-min);
   padding: var(--lf-space-5) var(--lf-space-6);
-  border: 1px solid var(--lf-color-outline-strong);
-  border-radius: var(--lf-radius-sm);
+  border: 2px solid var(--lf-color-text);
+  border-radius: var(--lf-radius-md);
   background: var(--lf-color-surface);
   display: flex;
   align-items: center;
@@ -753,21 +769,22 @@
   min-height: var(--lf-touch-min);
   padding: var(--lf-space-4) var(--lf-space-6);
   border-radius: var(--lf-radius-pill);
-  border: 1px solid var(--lf-color-outline-strong);
+  border: 2.2px solid var(--lf-color-text);
   background: var(--lf-color-surface);
   font-size: var(--lf-type-label-size);
   font-weight: var(--lf-weight-medium);
-  color: var(--lf-color-text-secondary);
+  color: var(--lf-color-text);
   display: flex;
   align-items: center;
   gap: var(--lf-space-2);
 }
 
+/* 선택 = 잉크 반전 (배경 잉크 · 글자 크림) */
 .lf-choice[aria-pressed='true'],
 .lf-choice[aria-selected='true'] {
-  background: var(--lf-color-primary-container);
-  border-color: var(--lf-color-primary);
-  color: var(--lf-color-on-primary-container);
+  background: var(--lf-color-text);
+  border-color: var(--lf-color-text);
+  color: var(--lf-color-background);
   font-weight: var(--lf-weight-bold);
 }
 
@@ -790,8 +807,8 @@
   width: 52px;
   height: 32px;
   border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-surface-muted);
-  border: 2px solid var(--lf-color-outline-strong);
+  background: var(--lf-color-surface);
+  border: 2.2px solid var(--lf-color-text);
   position: relative;
   flex: none;
   transition: background var(--lf-duration-short) var(--lf-easing-standard);
@@ -811,14 +828,15 @@
               background var(--lf-duration-short) var(--lf-easing-standard);
 }
 
+/* ON = 버터 트랙 + 잉크 노브 */
 .lf-switch[aria-checked='true'] {
-  background: var(--lf-color-primary);
-  border-color: var(--lf-color-primary);
+  background: var(--lf-color-primary-container);
+  border-color: var(--lf-color-text);
 }
 
 .lf-switch[aria-checked='true']::after {
   transform: translate(20px, -50%);
-  background: var(--lf-color-on-primary);
+  background: var(--lf-color-text);
 }
 
 /* -------------------------------------------------------------
@@ -839,7 +857,7 @@
   width: 100%;
 }
 
-.lf-list-item + .lf-list-item { border-top: 1px solid var(--lf-color-outline); }
+.lf-list-item + .lf-list-item { border-top: 2px dashed var(--lf-color-outline); }
 
 .lf-list-item__icon {
   width: 40px;
@@ -890,7 +908,7 @@
   align-items: center;
   gap: var(--lf-space-3);
   height: var(--lf-touch-min);
-  border-top: 1px solid var(--lf-color-outline);
+  border-top: 2px dashed var(--lf-color-outline);
   width: 100%;
   text-align: left;
 }
@@ -912,6 +930,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--lf-radius-pill);
+  border: 2.4px solid var(--lf-color-text);
   background: var(--lf-color-primary-container);
   color: var(--lf-color-on-primary-container);
   display: flex;
@@ -1028,7 +1047,7 @@
    AD SLOT — 홈·알림함·프로필 하단 각 1구좌 (F-12 확대, PO 2026-08-24), MVP에서는 비활성 (요청서 §8)
    ------------------------------------------------------------- */
 .lf-ad-slot {
-  border: 1.5px dashed var(--lf-color-outline-strong);
+  border: 2px dashed var(--lf-color-outline-strong);
   border-radius: var(--lf-radius-md);
   padding: var(--lf-space-4) var(--lf-space-6);
   display: flex;
@@ -1141,6 +1160,8 @@
   right: 0;
   bottom: 0;
   background: var(--lf-color-background);
+  border: 2.5px solid var(--lf-color-text);
+  border-bottom: none;
   border-radius: var(--lf-radius-2xl) var(--lf-radius-2xl) 0 0;
   box-shadow: var(--lf-elevation-sheet);
   padding: var(--lf-space-5) var(--lf-gutter-app) var(--lf-space-9);
@@ -1171,6 +1192,71 @@
   align-items: center;
   text-align: center;
   background: var(--lf-color-primary-container);
+}
+
+/* -------------------------------------------------------------
+   STICKER DECOR — 잉크&스티커 장식 (두들 · 마스코트 · 타자기 인트로)
+   장식 전용: aria-hidden + pointer-events 차단, 색은 전부 토큰.
+   ------------------------------------------------------------- */
+.sl-doodles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sl-doodles svg { position: absolute; }
+
+.sl-ink {
+  fill: none;
+  stroke: var(--lf-color-text);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.sl-fill-butter { fill: var(--lf-color-primary-container); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
+.sl-fill-lavender { fill: var(--lf-color-reward-container); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
+.sl-fill-surface { fill: var(--lf-color-surface); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
+.sl-face { fill: none; stroke: var(--lf-color-text); stroke-width: 1.8; stroke-linecap: round; }
+
+.sl-dd--sparkle-tl { left: 26px; top: 74px; width: 34px; }
+.sl-dd--star-tr    { right: 30px; top: 56px; width: 58px; transform: rotate(9deg); }
+.sl-dd--mail-l     { left: 20px; top: 210px; width: 52px; transform: rotate(-8deg); }
+.sl-dd--moon-r     { right: 24px; top: 228px; width: 46px; transform: rotate(10deg); }
+.sl-dd--tea-bl     { left: 34px; bottom: 200px; width: 44px; transform: rotate(-6deg); }
+.sl-dd--plant-br   { right: 38px; bottom: 194px; width: 48px; transform: rotate(7deg); }
+.sl-dd--sparkle-b  { left: 12px; bottom: 320px; width: 18px; transform: rotate(14deg); }
+
+/* 마스코트 — 버터 블롭 + 얼굴 (로그인·온보딩 배지 내부) */
+.sl-mascot { width: 132px; height: 132px; }
+.lf-onboarding__badge .sl-mascot { width: 124px; height: 124px; }
+
+.sl-mascot__body {
+  fill: var(--lf-color-primary-container);
+  stroke: var(--lf-color-text);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+}
+
+.sl-mascot__eye { fill: var(--lf-color-text); }
+
+.sl-mascot__smile {
+  fill: none;
+  stroke: var(--lf-color-text);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* 로그인 — 마스코트 아래 소형 핑키 글리프 */
+.sl-glyph { --lf-pinky-size: 38px; --lf-pinky-stroke: 10; margin-top: 4px; }
+
+/* 작성 화면 타자기 인트로 */
+.sl-typeline {
+  font-family: var(--lf-font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--lf-color-text-secondary);
 }
 
 /* -------------------------------------------------------------

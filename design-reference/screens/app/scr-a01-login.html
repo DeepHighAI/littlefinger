@@ -15,15 +15,31 @@
   <div class="lf-device__viewport">
     <div class="lf-screen">
 
+      <div class="sl-doodles" aria-hidden="true">
+        <svg class="sl-dd--sparkle-tl" viewBox="0 0 40 40"><path class="sl-ink" d="M20 4C21 14 26 19 36 20 26 21 21 26 20 36 19 26 14 21 4 20 14 19 19 14 20 4Z"/></svg>
+        <svg class="sl-dd--star-tr" viewBox="0 0 40 40"><path class="sl-fill-butter" d="M20 3 24.5 14 36 14.5 27 22 30 34 20 27 10 34 13 22 4 14.5 15.5 14Z"/><path class="sl-face" d="M15 17q2-2.4 4 0M22 17q2-2.4 4 0M16 22q4.4 3.4 8.4 0"/></svg>
+        <svg class="sl-dd--mail-l" viewBox="0 0 48 40"><rect class="sl-fill-surface" x="3" y="8" width="42" height="28" rx="4"/><path class="sl-ink" d="M4 10 24 24 44 10"/><path class="sl-fill-butter" d="M24 27c-3-3.4-.4-6 1.6-4.4 2-1.6 4.6 1 1.4 4.4l-1.5 1.4z"/></svg>
+        <svg class="sl-dd--moon-r" viewBox="0 0 40 40"><path class="sl-fill-butter" d="M25 4a16 16 0 1 0 0 32A20 20 0 0 1 25 4Z"/><path class="sl-face" d="M17 16q1.8-2.2 3.6 0M15 25q3.4 2.6 6.4 0"/></svg>
+        <svg class="sl-dd--tea-bl" viewBox="0 0 44 44"><path class="sl-fill-surface" d="M8 18h26v10a10 10 0 0 1-10 10h-6A10 10 0 0 1 8 28Z"/><path class="sl-ink" d="M34 20c6 0 6 9 0 9M15 12q-2-3 0-6M22 13q-2-4 0-8"/></svg>
+        <svg class="sl-dd--plant-br" viewBox="0 0 48 48"><path class="sl-fill-surface" d="M14 30h20l-3 12H17Z"/><path class="sl-ink" d="M12 30h24"/><path class="sl-fill-lavender" d="M18 26q-4-8 4-10-2-6 5-7 7-1 6 6 7 2 2 11"/></svg>
+      </div>
+
       <div class="lf-screen__body lf-screen__body--centered lf-login__body">
 
         <!-- 로고를 누르면 새끼손가락을 거는 반응(.lf-pinky--tapped, components.css)이 재생된다 -->
         <button class="lf-login__badge" type="button" aria-label="리틀핑거 로고">
-          <svg class="lf-pinky lf-pinky--xl" viewBox="0 0 120 120" aria-hidden="true">
-            <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
-            <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+          <svg class="sl-mascot" viewBox="0 0 120 120" aria-hidden="true">
+            <path class="sl-mascot__body" d="M60 12q22-5 34 12 14 10 8 30 6 24-15 33-18 12-38 4-24 0-30-21-9-20 5-36 7-20 36-22Z"/>
+            <circle class="sl-mascot__eye" cx="45" cy="47" r="4.6"/>
+            <circle class="sl-mascot__eye" cx="76" cy="47" r="4.6"/>
+            <path class="sl-mascot__smile" d="M48 61q12 10 24 0"/>
           </svg>
         </button>
+
+        <svg class="lf-pinky sl-glyph" viewBox="0 0 120 120" aria-hidden="true">
+          <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+          <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+        </svg>
 
         <h1 class="lf-login__wordmark">리틀핑거</h1>
         <p class="lf-login__subtitle">새끼손가락 걸고, 약속!</p>
