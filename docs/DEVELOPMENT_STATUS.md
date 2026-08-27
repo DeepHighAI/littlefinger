@@ -16,6 +16,19 @@ the decisions and deviations.
 - Gates (2026-08-27): typecheck 5 projects · Vitest **104 files / 2,017** · Jest **72 suites /
   723** (fonts.test 4→2 weight params −4, +2 decor smoke tests) — PASS. Six merged reference
   screens compared side-by-side in Chrome against the bundle's own preview.
+- PO legibility correction (2026-08-27): shared disclaimer/supporting copy moved from micro
+  11.5/16 + regular + `text-faint` to caption 12.5/18 + bold + `text-secondary` across the
+  reference, acceptance web, and RN. SCR-W04 browser verification measured 4.88:1 contrast on
+  cream (previous muted candidate: 2.74:1). Follow-up review promoted the whole small-copy tier:
+  captions, card metadata, secondary body copy, field labels, and list supporting copy are
+  14/22 + bold + `text-secondary`; field hints and attachment labels are 12.5/18 + bold. Proof
+  text uses full ink on `surface-muted` (12.97:1 instead of the secondary pair's 4.41:1), and the
+  butter trust-card note keeps its existing full ink (13.57:1). RN now uses the same hierarchy and
+  restores the A06 upload filename and A08 slot-release explanation. Browser screenshots on
+  A05·A06·A08·W04 found no console warning, and the full changed-class audit covered **25 reference
+  pages / 77 text elements** with no text or viewport horizontal overflow;
+  gates: typecheck 5 projects · Vitest **104 files / 2,017** · Jest **72 suites / 737 tests** · Web
+  build **133 modules** — PASS.
 - Still pending (device QA): font-scale **1.5 reflow with Gaegu** (wide tracking — D-Day
   badge/chip clipping first), Android dashed-border rendering, elevation approximation of the
   offset sticker shadow, and a real-device pass of the six restyled screens.

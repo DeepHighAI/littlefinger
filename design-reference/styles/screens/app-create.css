@@ -17,8 +17,8 @@
 
 /* .lf-field__label 안에 넣는 "선택" 표기 */
 .lf-field__optional {
-  font-weight: var(--lf-weight-medium);
-  color: var(--lf-color-outline-icon);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
 }
 
 /* choices 그룹을 <fieldset class="lf-field">로 감쌀 때 브라우저 기본
@@ -177,7 +177,10 @@ legend.lf-field__label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 9.5px;
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
 }
 
 /* "사진 추가" 타일 — 첨부 안내는 점선 플레이스홀더 톤을 따른다 */

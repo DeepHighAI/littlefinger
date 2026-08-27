@@ -52,7 +52,12 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   subtitle: { fontSize: type.subtitle, fontWeight: weight.bold, color: colors.text },
-  sectionTitle: { fontSize: type.caption, fontWeight: weight.bold, color: colors.textMuted },
+  sectionTitle: {
+    fontSize: type.label,
+    lineHeight: line.body,
+    fontWeight: weight.bold,
+    color: colors.textSecondary,
+  },
   containerAccent: { fontSize: type.caption, fontWeight: weight.bold, color: colors.success },
   // 임박 배너 (.lf-home__pinned-flag / -title) — 역할 기반 톤 위 잉크
   containerFlag: {
@@ -74,9 +79,9 @@ const styles = StyleSheet.create({
   },
   listMeta: {
     fontSize: type.label,
-    lineHeight: line.caption,
-    fontWeight: weight.regular,
-    color: colors.textMuted,
+    lineHeight: line.body,
+    fontWeight: weight.bold,
+    color: colors.textSecondary,
   },
   listStatus: {
     fontSize: type.label,
@@ -101,10 +106,10 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   caption: {
-    fontSize: type.caption,
-    lineHeight: line.caption,
-    fontWeight: weight.regular,
-    color: colors.textMuted,
+    fontSize: type.label,
+    lineHeight: line.body,
+    fontWeight: weight.bold,
+    color: colors.textSecondary,
   },
   // 앱 내 오류·실패 문구 공통 톤(PO 2026-08-26) — 상태를 색만으로 말하지 않도록 문구가 본체다(§8-7).
   error: {
@@ -115,10 +120,10 @@ const styles = StyleSheet.create({
   },
   // 문구는 LfDisclaimer 가 상수로 넣는다. 여기는 모양만 정의한다.
   disclaimer: {
-    fontSize: type.micro,
-    lineHeight: line.micro,
-    fontWeight: weight.regular,
-    color: colors.textFaint,
+    fontSize: type.caption,
+    lineHeight: line.caption,
+    fontWeight: weight.bold,
+    color: colors.textSecondary,
   },
 });
 
@@ -129,7 +134,7 @@ export function LfText({
   ...rest
 }: LfTextProps): React.JSX.Element {
   const base = styles[variant];
-  const fontWeight = base.fontWeight as BrandFontWeight;
+  const fontWeight = (secondary ? weight.bold : base.fontWeight) as BrandFontWeight;
 
   return (
     <Text
@@ -137,7 +142,7 @@ export function LfText({
       style={[
         base,
         { fontFamily: brandFontFamily(fontWeight) },
-        secondary && { color: colors.textSecondary },
+        secondary && { color: colors.textSecondary, fontWeight: weight.bold },
         align !== undefined && { textAlign: align },
       ]}
     />

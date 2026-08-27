@@ -234,7 +234,7 @@ describe('SCR-A07 알림함', () => {
 
     const unreadLabel = view.getByTestId(`notification-unread-${FIRST_ID}`);
     expect(unreadLabel).toBeTruthy();
-    expect(StyleSheet.flatten(unreadLabel.props.style).fontFamily).toBe('Gaegu-Regular');
+    expect(StyleSheet.flatten(unreadLabel.props.style).fontFamily).toBe('Gaegu-Bold');
     expect(view.getByTestId(`notification-dot-${FIRST_ID}`)).toBeTruthy();
     expect(view.queryByTestId(`notification-dot-${SECOND_ID}`)).toBeNull();
     expect(

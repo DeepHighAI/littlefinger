@@ -73,6 +73,13 @@ Rules:
   longer exists anywhere.
 - The type scale sits one step larger than the previous system (body 15, label 14) to keep the
   handwriting face legible.
+- User-visible captions, sentence-length metadata, secondary body copy, field labels, and list
+  supporting copy use at least label size/body line height (14/22), bold 700, and
+  `text-secondary`.
+- Disclaimer, field hints, and photo-tile labels use caption size/line height (12.5/18) and bold
+  700. Use `text-secondary` on cream/paper, but full `text` ink on `surface-muted` because the
+  secondary pair is only 4.41:1 there. The micro scale and `text-faint` are not for user-visible
+  guidance.
 - Typography must reflow at font scale 1.5 without clipping or relying on fixed-height text boxes —
   Gaegu's wide tracking makes D-Day badges and chips the first things to re-check on device.
 

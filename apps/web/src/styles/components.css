@@ -414,8 +414,10 @@
 
 .lf-card__meta {
   margin-top: var(--lf-space-2);
-  font-size: var(--lf-type-caption-size);
-  color: var(--lf-color-text-muted);
+  font-size: var(--lf-type-label-size);
+  line-height: var(--lf-line-body);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
 }
 
 /* 약속 미리보기 (로그인 전 노출되는 최소 정보) */
@@ -559,12 +561,18 @@
   color: var(--lf-color-text);
 }
 
-.lf-body--secondary { color: var(--lf-color-text-secondary); font-size: var(--lf-type-label-size); line-height: 20px; }
+.lf-body--secondary {
+  color: var(--lf-color-text-secondary);
+  font-size: var(--lf-type-label-size);
+  line-height: var(--lf-line-body);
+  font-weight: var(--lf-weight-bold);
+}
 
 .lf-caption {
-  font-size: var(--lf-type-caption-size);
-  line-height: var(--lf-line-caption);
-  color: var(--lf-color-text-muted);
+  font-size: var(--lf-type-label-size);
+  line-height: var(--lf-line-body);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
 }
 
 .lf-divider {
@@ -574,11 +582,12 @@
   margin: 0;
 }
 
-/* 디스클레이머 — 문구 변경 금지 (요청서 §8) */
+/* 디스클레이머·보조 안내 — 문구는 유지하되 작은 손글씨에서도 가독성을 우선한다. */
 .lf-disclaimer {
-  font-size: var(--lf-type-micro-size);
-  line-height: var(--lf-line-micro);
-  color: var(--lf-color-text-faint);
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
 }
 
 /* -------------------------------------------------------------
@@ -668,14 +677,17 @@
 }
 
 .lf-field__label {
-  font-size: var(--lf-type-caption-size);
+  font-size: var(--lf-type-label-size);
+  line-height: var(--lf-line-body);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text-secondary);
 }
 
 .lf-field__hint {
-  font-size: var(--lf-type-micro-size);
-  color: var(--lf-color-text-muted);
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
 }
 
 .lf-input {
@@ -846,8 +858,10 @@
 
 .lf-list-item__supporting {
   margin-top: 2px;
-  font-size: var(--lf-type-caption-size);
-  color: var(--lf-color-text-muted);
+  font-size: var(--lf-type-label-size);
+  line-height: var(--lf-line-body);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
 }
 
 .lf-list-item__trailing {
@@ -1102,8 +1116,10 @@
   align-items: center;
   justify-content: center;
   gap: var(--lf-space-2);
-  color: var(--lf-color-text-muted);
+  color: var(--lf-color-text);
   font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
 }
 
 .lf-proof .material-symbols-rounded { font-size: 32px; color: var(--lf-color-outline-icon); }

@@ -25,6 +25,7 @@ const ko = {
   loadError: '슬롯 정보를 불러오지 못했어요.',
   retry: '다시 시도',
   profileTitle: '약속 슬롯',
+  profileExplain: '약속이 종결되면 슬롯은 다시 비워져요',
   profileAdd: '추가',
   profileAddAccessibility: '약속 슬롯 추가',
 };
@@ -49,6 +50,7 @@ const en = {
   loadError: 'Could not load slot info.',
   retry: 'Try again',
   profileTitle: 'Promise slots',
+  profileExplain: 'When a promise closes, its slot frees up.',
   profileAdd: 'Add',
   profileAddAccessibility: 'Add a promise slot',
 } satisfies typeof ko;

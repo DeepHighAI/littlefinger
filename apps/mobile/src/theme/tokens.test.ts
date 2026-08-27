@@ -32,6 +32,27 @@ const TOKENS_CSS = join(
 );
 const WEB_TOKENS_CSS = join(__dirname, '../../../web/src/styles/tokens.css');
 const WEB_COMPONENTS_CSS = join(__dirname, '../../../web/src/styles/components.css');
+const REFERENCE_COMPONENTS_CSS = join(
+  __dirname,
+  '../../../../design-reference/styles/components.css',
+);
+const REFERENCE_APP_CREATE_CSS = join(
+  __dirname,
+  '../../../../design-reference/styles/screens/app-create.css',
+);
+const REFERENCE_APP_DETAIL_CSS = join(
+  __dirname,
+  '../../../../design-reference/styles/screens/app-detail.css',
+);
+const REFERENCE_APP_SUPPORT_CSS = join(
+  __dirname,
+  '../../../../design-reference/styles/screens/app-support.css',
+);
+const REFERENCE_WEB_SCREEN_CSS = join(
+  __dirname,
+  '../../../../design-reference/styles/screens/web.css',
+);
+const WEB_SCREEN_CSS = join(__dirname, '../../../web/src/styles/screens/web.css');
 
 /** `--lf-foo-bar: value;` 를 전부 뽑아 { 'foo-bar': 'value' } 로 만든다. */
 function parseCssTokens(path: string): Map<string, string> {
@@ -173,6 +194,90 @@ describe('잉크&스티커 웹 토큰도 같은 계약을 쓴다', () => {
       /\.lf-list-item--unread\s+\.lf-list-item__headline\s*\{[^}]*color:\s*var\(--lf-color-record\)/su,
     );
   });
+
+  test.each([REFERENCE_COMPONENTS_CSS, WEB_COMPONENTS_CSS])(
+    '디스클레이머와 보조 안내는 큰 볼드 보조문으로 읽힌다: %s',
+    (path) => {
+      const css = readFileSync(path, 'utf8');
+      const disclaimer = /\.lf-disclaimer\s*\{(?<body>[^}]*)\}/su.exec(css)?.groups?.body;
+
+      expect(disclaimer).toContain('font-size: var(--lf-type-caption-size)');
+      expect(disclaimer).toContain('line-height: var(--lf-line-caption)');
+      expect(disclaimer).toContain('font-weight: var(--lf-weight-bold)');
+      expect(disclaimer).toContain('color: var(--lf-color-text-secondary)');
+    },
+  );
+
+  test.each([REFERENCE_COMPONENTS_CSS, WEB_COMPONENTS_CSS])(
+    '보조 캡션·메타·필드 라벨·목록 설명은 14/22 큰 볼드 보조문이다: %s',
+    (path) => {
+      const css = readFileSync(path, 'utf8');
+      for (const selector of [
+        'lf-body--secondary',
+        'lf-caption',
+        'lf-field__label',
+        'lf-list-item__supporting',
+        'lf-card__meta',
+      ]) {
+        const body = new RegExp(`\\.${selector}\\s*\\{(?<body>[^}]*)\\}`, 'su').exec(css)
+          ?.groups?.body;
+
+        expect(body).toContain('font-size: var(--lf-type-label-size)');
+        expect(body).toContain('line-height: var(--lf-line-body)');
+        expect(body).toContain('font-weight: var(--lf-weight-bold)');
+        expect(body).toContain('color: var(--lf-color-text-secondary)');
+      }
+    },
+  );
+
+  test.each([REFERENCE_COMPONENTS_CSS, WEB_COMPONENTS_CSS])(
+    '필드 힌트는 12.5/18 볼드 보조문이고 증빙 타일은 고대비 잉크다: %s',
+    (path) => {
+      const css = readFileSync(path, 'utf8');
+      const hint = /\.lf-field__hint\s*\{(?<body>[^}]*)\}/su.exec(css)?.groups?.body;
+      const proof = /\.lf-proof\s*\{(?<body>[^}]*)\}/su.exec(css)?.groups?.body;
+
+      for (const body of [hint, proof]) {
+        expect(body).toContain('font-size: var(--lf-type-caption-size)');
+        expect(body).toContain('line-height: var(--lf-line-caption)');
+        expect(body).toContain('font-weight: var(--lf-weight-bold)');
+      }
+      expect(hint).toContain('color: var(--lf-color-text-secondary)');
+      expect(proof).toContain('color: var(--lf-color-text)');
+    },
+  );
+
+  test('앱 전용 보조 문구도 같은 가독성 계층을 쓴다', () => {
+    const create = readFileSync(REFERENCE_APP_CREATE_CSS, 'utf8');
+    const detail = readFileSync(REFERENCE_APP_DETAIL_CSS, 'utf8');
+    const support = readFileSync(REFERENCE_APP_SUPPORT_CSS, 'utf8');
+
+    expect(create).toMatch(
+      /\.lf-field__optional\s*\{[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-text-secondary\)/su,
+    );
+    expect(create).toMatch(
+      /\.lf-proof--thumb \.lf-proof__filename\s*\{[^}]*font-size:\s*var\(--lf-type-caption-size\)[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-text\)/su,
+    );
+    expect(detail).toMatch(
+      /\.lf-photo__caption\s*\{[^}]*font-size:\s*var\(--lf-type-caption-size\)[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-text\)/su,
+    );
+    expect(support).toMatch(
+      /\.lf-trust-card__note\s*\{[^}]*font-size:\s*var\(--lf-type-caption-size\)[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-primary-ink\)/su,
+    );
+  });
+
+  test.each([REFERENCE_WEB_SCREEN_CSS, WEB_SCREEN_CSS])(
+    '증빙 추가 타일 라벨은 12.5/18 볼드 보조문이다: %s',
+    (path) => {
+      const css = readFileSync(path, 'utf8');
+      expect(css).toMatch(
+        /\.lf-attach-btn__label\s*\{[^}]*font-size:\s*var\(--lf-type-caption-size\)[^}]*line-height:\s*var\(--lf-line-caption\)[^}]*font-weight:\s*var\(--lf-weight-bold\)/su,
+      );
+      expect(css).toMatch(
+        /\.lf-diff-old\s*\{[^}]*color:\s*var\(--lf-color-text-secondary\)/su,
+      );
+    },
+  );
 });
 
 describe('치수는 px 를 뗀 숫자다 — CSS px 값이 곧 RN dp 다', () => {
@@ -274,6 +379,15 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
 });
 
 describe('접근성 하한', () => {
+  test.each([
+    ['보조문/크림 바탕', colors.textSecondary, colors.background],
+    ['보조문/종이 표면', colors.textSecondary, colors.surface],
+    ['증빙문/뮤트 표면', colors.text, colors.surfaceMuted],
+    ['지킴율 설명/버터 카드', colors.primaryInk, colors.primaryContainer],
+  ] as const)('%s 텍스트 대비는 WCAG AA 4.5:1 이상이다', (_, foreground, background) => {
+    expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+  });
+
   test.each([
     ['default', colors.primary],
     ['hover', colors.primaryHover],

@@ -61,6 +61,18 @@ icon set, and a Promise Seam motion rework remain unconfirmed and were not built
 5. **Web lockstep confirmed**: `apps/web/src/styles/components.css` received the same shared-class
    merges (user-confirmed 2026-08-27), keeping its documented divergences (pinky PNG). W screens
    carry the shared-class sticker look; their per-screen decorations stay unconfirmed.
+6. **Supporting-copy legibility correction** (PO-confirmed 2026-08-27): `.lf-disclaimer` and RN's
+   matching `LfText` variant move from micro 11.5/16, regular 400, `text-faint` to caption 12.5/18,
+   bold 700, `text-secondary`. The immutable legal copy is unchanged; the rule also covers generic
+   supporting guidance that shares this class, including SCR-W04's app-install push notice.
+   Follow-up browser review widened that correction to the complete small-copy hierarchy:
+   `.lf-card__meta`, `.lf-body--secondary`, `.lf-caption`, `.lf-field__label`, and
+   `.lf-list-item__supporting` are label 14/22 + bold + `text-secondary`; `.lf-field__hint`, proof
+   labels, and photo captions are caption 12.5/18 + bold. Proof text uses full `text` ink on
+   `surface-muted`, where `text-secondary` measured only 4.41:1. RN mirrors the hierarchy through
+   `caption`, `sectionTitle`, `listMeta`, and bold `secondary` body text. The A06 upload filename
+   and A08 slot-release explanation were also restored in RN where the frozen reference already
+   carried them.
 
 ## Deviations from the bundle (deliberate, recorded here)
 
@@ -96,5 +108,7 @@ icon set, and a Promise Seam motion rework remain unconfirmed and were not built
   badge/chip clipping; Android dashed-border rendering; elevation approximation of the offset
   sticker shadow) are listed in `docs/DEVELOPMENT_STATUS.md`.
 - Verified 2026-08-27: typecheck (5 projects), vitest 104 files / 2,017 tests, jest-expo
-  72 suites / 723 tests, and side-by-side Chrome comparison of the six merged reference screens
-  against the bundle's own preview.
+  72 suites / 737 tests, Web build (133 modules), side-by-side Chrome comparison of the six merged
+  reference screens against the bundle preview, follow-up 360×800 screenshots of A05·A06·A08·W04,
+  and a 25-page / 77-element changed-class browser audit with no text or viewport horizontal
+  overflow.

@@ -179,6 +179,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     await settle();
 
     expect(view.getByText('사용 중 2 / 5')).toBeTruthy();
+    expect(view.getByText('약속이 종결되면 슬롯은 다시 비워져요')).toBeTruthy();
     expect(view.getByLabelText('약속 슬롯 5개 중 2개 사용 중')).toBeTruthy();
 
     await fireEvent.press(view.getByRole('button', { name: '약속 슬롯 추가' }));

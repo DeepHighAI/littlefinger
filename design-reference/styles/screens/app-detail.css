@@ -208,7 +208,12 @@
 
 .lf-photo .material-symbols-rounded { font-size: 22px; color: var(--lf-color-text-muted); }
 
-.lf-photo__caption { font-size: var(--lf-type-micro-size); color: var(--lf-color-text-muted); }
+.lf-photo__caption {
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
 
 .lf-photo--add {
   background: none;

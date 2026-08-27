@@ -184,8 +184,9 @@
 
 .lf-trust-card__note {
   margin-top: var(--lf-space-2);
-  font-size: var(--lf-type-micro-size);
-  line-height: var(--lf-line-micro);
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-primary-ink);
 }
 

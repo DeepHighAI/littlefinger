@@ -73,9 +73,10 @@ describe('LfText', () => {
     ['confirmationHeadline', 22, weight.heavy],
     ['title', type.title, weight.bold],
     ['subtitle', type.subtitle, weight.bold],
-    ['sectionTitle', type.caption, weight.bold],
+    ['sectionTitle', type.label, weight.bold],
+    ['listMeta', type.label, weight.bold],
     ['body', type.body, weight.regular],
-    ['caption', type.caption, weight.regular],
+    ['caption', type.label, weight.bold],
   ] as const)('%s 는 원본 CSS 와 같은 크기·굵기를 쓴다', async (variant, expectedSize, expectedWeight) => {
     const view = await render(<LfText testID="t" variant={variant} />);
     const s = styleOf(view, 't') as TextStyle;
@@ -83,14 +84,22 @@ describe('LfText', () => {
     expect(s.fontWeight).toBe(expectedWeight);
   });
 
-  test('secondary 는 보조 텍스트 색을 쓴다', async () => {
+  test('secondary 는 큰 볼드 보조문 색과 굵기를 쓴다', async () => {
     const view = await render(<LfText testID="t" secondary />);
-    expect((styleOf(view, 't') as TextStyle).color).toBe(colors.textSecondary);
+    expect(styleOf(view, 't') as TextStyle).toMatchObject({
+      color: colors.textSecondary,
+      fontWeight: weight.bold,
+    });
   });
 
-  test('caption 은 흐린 색이다', async () => {
+  test('caption 은 14/22 큰 볼드 보조문으로 읽힌다', async () => {
     const view = await render(<LfText testID="t" variant="caption" />);
-    expect((styleOf(view, 't') as TextStyle).color).toBe(colors.textMuted);
+    expect(styleOf(view, 't') as TextStyle).toMatchObject({
+      color: colors.textSecondary,
+      fontSize: type.label,
+      lineHeight: line.body,
+      fontWeight: weight.bold,
+    });
   });
 
   test('색을 직접 넘길 수 없다 — 토큰 밖 값이 새는 걸 막는다', async () => {
@@ -99,9 +108,14 @@ describe('LfText', () => {
     expect((styleOf(view, 't') as TextStyle).color).not.toBe('#FF0000');
   });
 
-  test('디스클레이머 변형은 가장 흐린 색을 쓴다', async () => {
+  test('디스클레이머 변형은 큰 볼드 보조문으로 읽힌다', async () => {
     const view = await render(<LfText testID="t" variant="disclaimer" />);
-    expect((styleOf(view, 't') as TextStyle).color).toBe(colors.textFaint);
+    expect(styleOf(view, 't') as TextStyle).toMatchObject({
+      color: colors.textSecondary,
+      fontSize: type.caption,
+      lineHeight: line.caption,
+      fontWeight: weight.bold,
+    });
   });
 });
 

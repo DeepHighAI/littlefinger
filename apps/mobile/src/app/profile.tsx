@@ -293,6 +293,7 @@ export default function ProfileScreen(): React.JSX.Element {
                 <LfText accessibilityLabel={SLOT.usageAccessibility(slot.used, slot.capacity)}>
                   {SLOT.usage(slot.used, slot.capacity)}
                 </LfText>
+                <LfText variant="caption">{SLOT.profileExplain}</LfText>
               </View>
               <LfButton
                 label={SLOT.profileAdd}

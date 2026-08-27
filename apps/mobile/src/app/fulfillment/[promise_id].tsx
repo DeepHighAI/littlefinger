@@ -135,6 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     gap: space[2],
   },
+  evidenceFileName: { width: size.evidenceThumb, marginTop: space[1] },
   evidenceImage: {
     width: '100%',
     height: '100%',
@@ -389,6 +390,11 @@ function LocalEvidenceTile({
       >
         <LfIcon name="close" color="onPrimary" />
       </Pressable>
+      <View style={styles.evidenceFileName}>
+        <LfText variant="disclaimer" align="center" numberOfLines={1}>
+          {upload.asset.file_name}
+        </LfText>
+      </View>
     </View>
   );
 }

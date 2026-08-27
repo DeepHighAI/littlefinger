@@ -331,6 +331,7 @@ describe('SCR-A06 이행 확인', () => {
     await settle();
 
     expect(uploadEvidenceMock).toHaveBeenCalledTimes(3);
+    for (const asset of assets) expect(view.getByText(asset.file_name)).toBeTruthy();
     expect(
       view.getByRole('button', { name: '제출' }).props.accessibilityState,
     ).toMatchObject({ disabled: true });
