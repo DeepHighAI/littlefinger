@@ -1,6 +1,6 @@
 import { Pressable, type PressableProps, StyleSheet, Text } from 'react-native';
 
-import { brandFontFamily, type BrandFontWeight } from '../theme/fonts';
+import { textFontFamily, type TextFontWeight } from '../theme/fonts';
 import { colors, elevation, radius, size, space, type, weight } from '../theme/tokens';
 
 /**
@@ -86,7 +86,7 @@ const labelColor: Record<LfButtonVariant, string> = {
 };
 
 /** 변형별 라벨 굵기. 스타일 객체에서 캐내지 않고 여기서 한 번에 선언한다. */
-const labelWeight: Record<LfButtonVariant, BrandFontWeight> = {
+const labelWeight: Record<LfButtonVariant, TextFontWeight> = {
   filled: weight.heavy,
   tonal: weight.heavy,
   outlined: weight.bold,
@@ -147,7 +147,7 @@ export function LfButton({
           fontWeight: labelWeight[variant],
           color: labelColor[variant],
           textAlign: 'center',
-          fontFamily: brandFontFamily(labelWeight[variant]),
+          fontFamily: textFontFamily(labelWeight[variant]),
           // 링크형 보조 액션은 CSS 원본처럼 밑줄로 구분한다 (underline-offset 은 RN 미지원)
           textDecorationLine: variant === 'text' ? 'underline' : 'none',
         }}

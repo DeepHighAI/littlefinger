@@ -1,6 +1,6 @@
 import { StyleSheet, TextInput, type TextInputProps } from 'react-native';
 
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, radius, size, space, type, weight } from '../theme/tokens';
 
 // 잉크 테두리 입력 필드 (ADR 0012)
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingHorizontal: space[6],
     paddingVertical: space[5],
-    fontFamily: brandFontFamily(weight.regular),
+    fontFamily: textFontFamily(weight.regular),
     fontSize: type.body,
     textAlignVertical: 'top',
   },

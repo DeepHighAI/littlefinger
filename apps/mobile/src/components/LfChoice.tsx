@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, radius, size, space, type, weight } from '../theme/tokens';
 
 export interface LfChoiceProps {
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.text,
-    fontFamily: brandFontFamily(weight.medium),
+    fontFamily: textFontFamily(weight.medium),
     fontWeight: weight.medium,
     fontSize: type.label,
   },

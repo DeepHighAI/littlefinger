@@ -75,7 +75,7 @@
      TYPE (변경 없음)
      --------------------------------------------------------- */
   --lf-font-brand: 'Pretendard', Roboto, system-ui, sans-serif;
-  --lf-font-mono:  'Roboto Mono', ui-monospace, Menlo, monospace;
+  --lf-font-mono:  'Pretendard', Roboto, system-ui, sans-serif;
 
   --lf-type-display-size: 28px;
   --lf-type-title-size:   21px;

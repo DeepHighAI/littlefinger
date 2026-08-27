@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, space, type, weight } from '../theme/tokens';
 
 /** 원본 `.lf-notice` — 잉크&스티커에서는 잉크 밑줄 스타일 안내다 (ADR 0012). */
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     fontSize: type.caption,
     fontWeight: weight.bold,
     color: colors.textSecondary,
-    fontFamily: brandFontFamily(weight.bold),
+    fontFamily: textFontFamily(weight.bold),
   },
 });
 

@@ -6,13 +6,12 @@
 
 /* design-reference 사본에서 **한 곳만** 다르다: 원본 9행의 Google Fonts @import 를 지웠다.
    04 §5-3 이 self-host 를 요구하고, 3초 예산에 외부 요청을 얹을 수 없다(PO 2026-07-29).
-   그 @import 가 싣던 셋은 각각 자체 호스팅으로 옮겼다:
+   그 @import 가 싣던 폰트는 각각 자체 호스팅으로 옮겼다:
      Material Symbols Rounded → styles/icons.css (tools/subset-icon-font.js 가 만든 40 KB 서브셋)
-     Roboto Mono              → main.tsx 의 @fontsource/roboto-mono
-     Gaegu                    → main.tsx 의 @fontsource/gaegu (브랜드 서체)
+     Pretendard               → public/fonts/PretendardVariable.woff2 (모든 사용자 텍스트)
    나머지는 canonical 원본과 동일하다 — 회귀는 토큰 테스트로 잡는다. */
 
-/* Pretendard Variable — 폴백 서체로 유지.
+/* Pretendard Variable — 한국어·영어와 모든 텍스트 역할의 단일 서체.
    public/ 에 두는 이유: Vite 해시 경로는 CSS 를 읽은 뒤에야 드러나 index.html 의
    preload 가 가리킬 수 없다. 고정 경로여야 첫 요청부터 폰트가 내려온다(CLS). */
 @font-face {
@@ -101,11 +100,11 @@
   --lf-color-scrim:        rgba(20, 15, 8, 0.42);
 
   /* ---------------------------------------------------------
-     TYPE — Gaegu 손글씨. 가독을 위해 한 단계씩 키운 스케일.
+     TYPE — Pretendard 단일 서체. 언어·역할별 예외를 두지 않는다.
      --------------------------------------------------------- */
-  /* 'Pretendard Fallback' 은 웹 CLS 완충용 메트릭 폴백 — 번들에서 빠졌지만 유지 (ADR 0012) */
-  --lf-font-brand: 'Gaegu', 'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
-  --lf-font-mono:  'Roboto Mono', ui-monospace, Menlo, monospace;
+  /* 'Pretendard Fallback' 은 웹 CLS 완충용 메트릭 폴백이다. */
+  --lf-font-brand: 'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
+  --lf-font-mono:  'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
 
   --lf-type-display-size: 30px;
   --lf-type-list-dday-size: 16px;
@@ -125,11 +124,11 @@
   --lf-line-caption: 18px;
   --lf-line-micro:   16px;
 
-  /* Gaegu 는 400/700 두 웨이트 — heavy 는 700으로 수렴 */
+  /* Pretendard 정적/가변 웨이트와 1:1로 대응 */
   --lf-weight-regular: 400;
-  --lf-weight-medium:  400;
+  --lf-weight-medium:  600;
   --lf-weight-bold:    700;
-  --lf-weight-heavy:   700;
+  --lf-weight-heavy:   800;
 
   /* ---------------------------------------------------------
      SHAPE — 셋로그식 오버라운드 + 필

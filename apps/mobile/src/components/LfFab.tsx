@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
 
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, elevation, gutter, radius, size, space, type, weight } from '../theme/tokens';
 import { LfPinky } from './LfPinky';
 
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     color: colors.onAction,
     fontSize: type.body,
     fontWeight: weight.bold,
-    fontFamily: brandFontFamily(weight.bold),
+    fontFamily: textFontFamily(weight.bold),
   },
 });
 

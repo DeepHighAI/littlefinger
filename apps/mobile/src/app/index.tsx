@@ -19,7 +19,7 @@ import { openLegalDocument } from '../lib/legal-native.ts';
 import { useLabels } from '../lib/locale-native';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
 import { LOGIN_LABEL } from '../screens/login-labels.ts';
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, line, size, space, type, weight } from '../theme/tokens';
 
 /**
@@ -41,7 +41,7 @@ const testAuth = __DEV__
   : null;
 
 const LOGIN_GUTTER = 28;
-// 잉크&스티커 워드마크 — Gaegu 40/46, 자간 3 (.lf-login__wordmark)
+// 잉크&스티커 워드마크 — Pretendard 40/46, 자간 3 (.lf-login__wordmark)
 const WORDMARK_SIZE = 40;
 const WORDMARK_LINE = 46;
 const WORDMARK_TRACKING = 3;
@@ -71,13 +71,13 @@ const styles = StyleSheet.create({
     fontWeight: weight.bold,
     letterSpacing: WORDMARK_TRACKING,
     color: colors.text,
-    fontFamily: brandFontFamily(weight.bold),
+    fontFamily: textFontFamily(weight.bold),
   },
   subtitle: {
     marginTop: space[3],
     fontSize: SUBTITLE_SIZE,
     color: colors.textSecondary,
-    fontFamily: brandFontFamily(weight.regular),
+    fontFamily: textFontFamily(weight.regular),
   },
   hook: { marginTop: space[7] },
   actions: {
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     lineHeight: line.micro,
     color: colors.textMuted,
     textAlign: 'center',
-    fontFamily: brandFontFamily(weight.regular),
+    fontFamily: textFontFamily(weight.regular),
   },
   termsLinks: {
     flexDirection: 'row',
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     lineHeight: line.micro,
     color: colors.error,
     textAlign: 'center',
-    fontFamily: brandFontFamily(weight.medium),
+    fontFamily: textFontFamily(weight.medium),
   },
   termsLink: { textDecorationLine: 'underline' },
   testLogin: {
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     fontSize: type.caption,
     color: colors.textMuted,
     textAlign: 'center',
-    fontFamily: brandFontFamily(weight.bold),
+    fontFamily: textFontFamily(weight.bold),
   },
 });
 

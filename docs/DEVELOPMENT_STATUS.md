@@ -6,7 +6,8 @@ Snapshot date: **2026-08-27 KST**.
 
 The PO confirmed the **잉크 & 스티커** (Ink & Sticker, Setlog 시안 1a) restyle — full token value
 swap (115 names/count frozen, 72 values moved: ink `#221C13` on cream `#F3ECDC`, butter/lavender/
-apricot stickers, black filled CTA, Gaegu 400/700, offset sticker shadows) plus the six confirmed
+apricot stickers, black filled CTA, Pretendard 400/600/700/800 (ADR 0014), offset sticker shadows)
+plus the six confirmed
 screens A00·A01·A02·A03·A05(ACTIVE)·A08. Applied across all three targets (design-reference in-place
 merge — no override layer shipped; RN tokens/components/screens; web tokens + lockstep
 components.css per PO confirmation) with the value-pinning tests moved deliberately. This
@@ -22,6 +23,13 @@ the decisions and deviations.
   Hash-pinning tests lock every native derivative and byte equality across the three UI targets.
   Clean Browser-plugin passes on reference SCR-A02 and the Vite SCR-W01 route found no console
   warning, overlay, or horizontal overflow; computed colours were exact ink/butter tokens.
+- **Unified Pretendard typography (PO-confirmed 2026-08-27, ADR 0014):** Korean and English now
+  use Pretendard for every display, body, metadata, fingerprint, timer, and decorative text role.
+  RN loads local static 400/600/700/800 files; reference/web self-host Pretendard Variable. Gaegu
+  and Roboto Mono packages/imports were removed, while Material Symbols remains icon-only. Gates:
+  typecheck 5 projects · Vitest **106 files / 2,023 tests** · Jest **72 suites / 743 tests** · web
+  production build **130 modules** — PASS. Browser visual verification is still pending because
+  the Browser tool blocked reloading the existing localhost tab under its URL policy.
 - **Play internal-test package (2026-08-27)**: EAS production build
   `7bb7d3cd-1c16-4e79-8fbf-0fcb5609e065` finished from commit `ec62dbd` as
   `com.littlefinger.app` `0.1.0` (`versionCode 9`). The downloaded 81,440,969-byte
@@ -44,8 +52,8 @@ the decisions and deviations.
   pages / 77 text elements** with no text or viewport horizontal overflow;
   gates: typecheck 5 projects · Vitest **104 files / 2,017** · Jest **72 suites / 737 tests** · Web
   build **133 modules** — PASS.
-- Still pending (device QA): font-scale **1.5 reflow with Gaegu** (wide tracking — D-Day
-  badge/chip clipping first), Android dashed-border rendering, elevation approximation of the
+- Still pending (device QA): font-scale **1.5 reflow with Pretendard** (D-Day badge/chip clipping
+  first), Android dashed-border rendering, elevation approximation of the
   offset sticker shadow, and a real-device pass of the six restyled screens.
 - PO-확인: the English twins added for the A03 typewriter line ("→ Shall we write a new
   promise?") and the A00 mascot label ("Littlefinger mascot").

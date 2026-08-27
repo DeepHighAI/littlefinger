@@ -97,7 +97,7 @@
      TYPE
      --------------------------------------------------------- */
   --lf-font-brand: 'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
-  --lf-font-mono:  'Roboto Mono', ui-monospace, Menlo, monospace;
+  --lf-font-mono:  'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
 
   --lf-type-display-size: 28px; /* D-Day 대형 숫자 */
   --lf-type-title-size:   21px; /* 화면 타이틀 · 상세 제목 */

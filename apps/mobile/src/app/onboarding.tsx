@@ -12,7 +12,7 @@ import { useLabels } from '../lib/locale-native';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
 import { completeOnboardingNative } from '../lib/onboarding-native.ts';
 import { ONBOARDING_LABEL } from '../screens/onboarding-labels.ts';
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, line, radius, size, space, type, weight } from '../theme/tokens';
 
 const BODY_GUTTER = 28;
@@ -28,14 +28,14 @@ const styles = StyleSheet.create({
   skipText: {
     color: colors.textMuted,
     fontSize: type.body,
-    fontFamily: brandFontFamily(weight.medium),
+    fontFamily: textFontFamily(weight.medium),
     textDecorationLine: 'underline',
   },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[8], paddingHorizontal: BODY_GUTTER },
   // 배지 상자는 걷어내고 마스코트가 그대로 앉는다 (.lf-onboarding__badge 리셋)
   badge: { alignItems: 'center', justifyContent: 'center' },
-  headline: { color: colors.text, fontSize: type.title, lineHeight: line.title, fontFamily: brandFontFamily(weight.heavy), textAlign: 'center' },
-  subcopy: { marginTop: space[4], color: colors.textSecondary, fontSize: type.body, lineHeight: line.body, fontFamily: brandFontFamily(weight.regular), textAlign: 'center' },
+  headline: { color: colors.text, fontSize: type.title, lineHeight: line.title, fontFamily: textFontFamily(weight.heavy), textAlign: 'center' },
+  subcopy: { marginTop: space[4], color: colors.textSecondary, fontSize: type.body, lineHeight: line.body, fontFamily: textFontFamily(weight.regular), textAlign: 'center' },
   steps: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   step: { width: STEP_WIDTH, alignItems: 'center', gap: space[1] },
   stepIcon: {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   // 2번째 단계 = 버터, 3번째 단계 = 라벤더 스티커 톤
   stepIconButter: { backgroundColor: colors.primaryContainer },
   stepIconLavender: { backgroundColor: colors.rewardContainer },
-  stepLabel: { color: colors.textSecondary, fontSize: type.micro, fontFamily: brandFontFamily(weight.bold) },
+  stepLabel: { color: colors.textSecondary, fontSize: type.micro, fontFamily: textFontFamily(weight.bold) },
   arrow: { marginBottom: space[7] },
   actions: { paddingHorizontal: space[8], paddingBottom: space[8] },
 });

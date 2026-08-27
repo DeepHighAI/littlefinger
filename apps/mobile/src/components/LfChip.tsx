@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, radius, space, type, weight } from '../theme/tokens';
 
 export type LfChipTone =
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: CHIP_FONT_SIZE,
     fontWeight: weight.bold,
-    fontFamily: brandFontFamily(weight.bold),
+    fontFamily: textFontFamily(weight.bold),
   },
   textMd: {
     fontSize: type.body,

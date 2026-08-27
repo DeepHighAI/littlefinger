@@ -6,14 +6,14 @@ import { LfButton } from '../components/LfButton';
 import { LfPinky } from '../components/LfPinky';
 import { useLabels } from '../lib/locale-native';
 import { NOT_FOUND_LABEL } from '../screens/not-found-labels.ts';
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, line, space, type, weight } from '../theme/tokens';
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background, padding: space[8] },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[8] },
-  title: { color: colors.text, fontSize: type.title, lineHeight: line.title, fontFamily: brandFontFamily(weight.bold), textAlign: 'center' },
-  copy: { color: colors.textSecondary, fontSize: type.body, lineHeight: line.body, fontFamily: brandFontFamily(weight.regular), textAlign: 'center' },
+  title: { color: colors.text, fontSize: type.title, lineHeight: line.title, fontFamily: textFontFamily(weight.bold), textAlign: 'center' },
+  copy: { color: colors.textSecondary, fontSize: type.body, lineHeight: line.body, fontFamily: textFontFamily(weight.regular), textAlign: 'center' },
 });
 
 // 딥링크가 어긋났을 때의 첫인상이다. expo-router 기본 화면은 영어·시스템 폰트라

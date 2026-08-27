@@ -6,14 +6,14 @@ import { LfPinky } from '../components/LfPinky';
 import { useLabels } from '../lib/locale-native';
 import { openAndroidStore } from '../lib/minimum-app-version-native.ts';
 import { UPDATE_REQUIRED_LABEL } from '../screens/update-required-labels.ts';
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, line, space, type, weight } from '../theme/tokens';
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background, padding: space[8] },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[8] },
-  title: { color: colors.text, fontSize: type.title, lineHeight: line.title, fontFamily: brandFontFamily(weight.heavy), textAlign: 'center' },
-  copy: { color: colors.textSecondary, fontSize: type.body, lineHeight: line.body, fontFamily: brandFontFamily(weight.regular), textAlign: 'center' },
+  title: { color: colors.text, fontSize: type.title, lineHeight: line.title, fontFamily: textFontFamily(weight.heavy), textAlign: 'center' },
+  copy: { color: colors.textSecondary, fontSize: type.body, lineHeight: line.body, fontFamily: textFontFamily(weight.regular), textAlign: 'center' },
 });
 
 export default function UpdateRequiredScreen(): React.JSX.Element {

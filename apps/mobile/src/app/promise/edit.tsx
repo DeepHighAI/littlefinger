@@ -52,7 +52,8 @@ import {
   type PromiseDraftFields,
 } from '../../lib/promise-draft.ts';
 import { PROMISE_EDIT_LABEL } from '../../screens/promise-edit-labels.ts';
-import { colors, duration, gutter, size, space } from '../../theme/tokens';
+import { textFontFamily } from '../../theme/fonts';
+import { colors, duration, gutter, size, space, weight } from '../../theme/tokens';
 
 const CATEGORIES = Object.keys(PROMISE_CATEGORY_LABEL) as PromiseCategory[];
 const KEEPERS = Object.keys(KEEPER_LABEL) as Keeper[];
@@ -85,11 +86,11 @@ const styles = StyleSheet.create({
     paddingBottom: space[5],
   },
   intro: { paddingHorizontal: gutter.app, paddingBottom: space[5], gap: space[2] },
-  // 잉크&스티커 타자기 인트로 (.sl-typeline) — 모노 13px, 장식 전용 (ADR 0012)
+  // 장식 문구도 사용자 텍스트와 같은 Pretendard를 써서 화면 간 서체를 통일한다.
   typeline: {
-    fontFamily: 'monospace',
+    fontFamily: textFontFamily(weight.medium),
     fontSize: TYPELINE_FONT_SIZE,
-    fontWeight: '500',
+    fontWeight: weight.medium,
     color: colors.textSecondary,
   },
   scroll: { flex: 1 },

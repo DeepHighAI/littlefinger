@@ -1,6 +1,6 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
-import { brandFontFamily, type BrandFontWeight } from '../theme/fonts';
+import { textFontFamily, type TextFontWeight } from '../theme/fonts';
 import { colors, line, type, weight } from '../theme/tokens';
 
 /**
@@ -134,14 +134,14 @@ export function LfText({
   ...rest
 }: LfTextProps): React.JSX.Element {
   const base = styles[variant];
-  const fontWeight = (secondary ? weight.bold : base.fontWeight) as BrandFontWeight;
+  const fontWeight = (secondary ? weight.bold : base.fontWeight) as TextFontWeight;
 
   return (
     <Text
       {...rest}
       style={[
         base,
-        { fontFamily: brandFontFamily(fontWeight) },
+        { fontFamily: textFontFamily(fontWeight) },
         secondary && { color: colors.textSecondary, fontWeight: weight.bold },
         align !== undefined && { textAlign: align },
       ]}

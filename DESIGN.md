@@ -16,8 +16,8 @@ everything, stickers carry the moods.
   durable record, apricot for time/response attention.
 - **Thick ink borders + hard offset shadows** (blur 0) make surfaces read as stickers laid on
   paper; key stickers sit at a slight hand-placed tilt (stamp −0.8°, pinned banner −1.2°).
-- **Gaegu handwriting** is the product typeface; decorative ink doodles and the butter mascot
-  appear on entry screens only.
+- **Pretendard is the single product typeface** for Korean, English, display, body, metadata, and
+  record strings; decorative ink doodles and the butter mascot appear on entry screens only.
 
 The implementation reference is `design-reference/` (the merged baseline). Existing product
 policy and state semantics still outrank this document.
@@ -83,10 +83,12 @@ must not redraw, stretch, split, or recolour its two hands independently.
 
 ## Typography
 
-- Gaegu (400/700) is the product typeface, with Pretendard (and the web's metric fallback) behind
-  it. Roboto Mono stays for fingerprints, timers, and the A03 typewriter intro.
-- Gaegu has exactly two weights: heavy === bold (700); medium === regular (400). Weight 800 no
-  longer exists anywhere.
+- Pretendard is the only user-visible typeface. Korean and English, headings and body copy,
+  fingerprints, timers, and decorative intro lines all use the same family; there is no display
+  or monospace exception (ADR 0014).
+- The weight contract is regular 400, medium 600, bold 700, and heavy 800. React Native loads four
+  static files because Android variable-font weight selection is unreliable; the reference and
+  acceptance web self-host Pretendard Variable.
 - The type scale sits one step larger than the previous system (body 15, label 14) to keep the
   handwriting face legible.
 - User-visible captions, sentence-length metadata, secondary body copy, field labels, and list
@@ -96,8 +98,8 @@ must not redraw, stretch, split, or recolour its two hands independently.
   700. Use `text-secondary` on cream/paper, but full `text` ink on `surface-muted` because the
   secondary pair is only 4.41:1 there. The micro scale and `text-faint` are not for user-visible
   guidance.
-- Typography must reflow at font scale 1.5 without clipping or relying on fixed-height text boxes —
-  Gaegu's wide tracking makes D-Day badges and chips the first things to re-check on device.
+- Typography must reflow at font scale 1.5 without clipping or relying on fixed-height text boxes;
+  D-Day badges, chips, and dense metadata rows are the first things to re-check on device.
 
 ## Shape, spacing, and containment
 
@@ -119,12 +121,12 @@ must not redraw, stretch, split, or recolour its two hands independently.
   lavender D-Day badges; ink/outline filter chips; black Create action bottom-center; two small
   sparkle doodles.
 - **Create:** cream canvas, paper fields with 2px ink borders; ink-inverted selected choices;
-  mono typewriter intro line; black Send CTA.
+  Pretendard intro line; black Send CTA.
 - **Confirmed detail:** tilted stamp sticker with approvals and fingerprint; lavender record
   metadata; butter status chip; lavender reward / apricot penalty patches; equal neutral treatment
   for both DISPUTED claims.
 - **Entry (onboarding/login):** butter mascot + ink doodles; pill step icons (paper/butter/
-  lavender); Gaegu wordmark; underlined notice.
+  lavender); Pretendard wordmark; underlined notice.
 - **Profile:** butter trust hero with ink ring; ink-bordered slot card and switches; dashed row
   separators.
 - **Acceptance web:** the same shared-class sticker look and semantic roles apply via the token
@@ -175,3 +177,5 @@ first, then mirrored and tested.
 - 2026-08-27: PO confirmed Type A — Pinky Loop as the production brand mark: launcher = ink/paper,
   in-product = ink/butter with its inverse. The previous green mark and abstract oval-gap proposal
   are superseded (ADR 0013).
+- 2026-08-27: PO replaced the Gaegu/Roboto Mono typography split with Pretendard for every Korean
+  and English text role. Pretendard 400/600/700/800 is the single cross-surface contract (ADR 0014).

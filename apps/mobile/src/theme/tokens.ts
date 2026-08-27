@@ -88,17 +88,17 @@ export const colors = {
 
 /**
  * RN 은 CSS 처럼 폰트 스택을 못 받고 패밀리 하나만 받는다.
- * 실제 굵기별 파일 선택은 `LfText` 가 한다 — Gaegu 는 400/700 두 정적 웨이트만
- * 있으므로 `fonts.ts` 의 매핑을 거친다(04 §5-4 의 정적 파일 원칙 유지).
+ * 실제 굵기별 파일 선택은 `LfText` 가 한다. Pretendard 400/600/700/800 정적 파일은
+ * `fonts.ts` 의 매핑을 거친다(04 §5-4 의 정적 파일 원칙 유지).
  *
  * **여기 값은 tokens.css 와의 이름 패리티용이지 등록된 RN 패밀리가 아니다.**
- * 네이티브에 등록된 이름은 `Gaegu-Regular` 등 굵기별 이름뿐이라,
+ * 네이티브에 등록된 이름은 `Pretendard-Regular` 등 굵기별 이름뿐이라,
  * `fontFamily.brand` 를 style 에 직접 넣으면 조용히 시스템 폰트로 떨어진다 —
- * 반드시 `brandFontFamily(weight)` 를 거친다.
+ * 반드시 `textFontFamily(weight)` 를 거친다.
  */
 export const fontFamily = {
-  brand: 'Gaegu',
-  mono: 'Roboto Mono',
+  brand: 'Pretendard',
+  mono: 'Pretendard',
 } as const;
 
 export const type = {
@@ -123,12 +123,12 @@ export const line = {
   micro: 16,
 } as const;
 
-/** RN `fontWeight` 는 문자열을 받는다. Gaegu 는 400/700 뿐 — medium→400, heavy→700 수렴. */
+/** RN `fontWeight` 는 문자열을 받는다. 실제 Pretendard 정적 파일 네 종과 1:1이다. */
 export const weight = {
   regular: '400',
-  medium: '400',
+  medium: '600',
   bold: '700',
-  heavy: '700',
+  heavy: '800',
 } as const;
 
 /** 셋로그식 오버라운드 + 필 (ADR 0012). */

@@ -13,7 +13,7 @@ import { LfChip } from '../components/LfChip';
 import { LfRow } from '../components/LfRow';
 import { LfText } from '../components/LfText';
 import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, radius, size, space, type as typography, weight } from '../theme/tokens';
 import { createNativeAdLoader } from './admob-loader.ts';
 import { useLabels } from './locale-native';
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     color: colors.onPrimary,
-    fontFamily: brandFontFamily(weight.bold),
+    fontFamily: textFontFamily(weight.bold),
     fontSize: typography.bodyLg,
     fontWeight: weight.bold,
   },

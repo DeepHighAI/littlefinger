@@ -332,9 +332,12 @@ describe('치수는 px 를 뗀 숫자다 — CSS px 값이 곧 RN dp 다', () =>
 });
 
 describe('RN 에서 모양이 달라지는 토큰', () => {
+  test('한국어·영어와 모든 텍스트 역할은 Pretendard 한 패밀리를 쓴다', () => {
+    expect(fontFamily).toEqual({ brand: 'Pretendard', mono: 'Pretendard' });
+  });
+
   test('웨이트는 문자열이다 — RN fontWeight 가 문자열을 받는다', () => {
-    // Gaegu 는 400/700 뿐 — medium→400, heavy→700 수렴 (ADR 0012)
-    expect(weight).toEqual({ regular: '400', medium: '400', bold: '700', heavy: '700' });
+    expect(weight).toEqual({ regular: '400', medium: '600', bold: '700', heavy: '800' });
     for (const value of Object.values(weight)) {
       expect(typeof value).toBe('string');
     }

@@ -34,7 +34,7 @@ import {
   notificationInboxReducer,
   unreadNotificationIds,
 } from '../screens/scr-a07-notification-state.ts';
-import { brandFontFamily } from '../theme/fonts';
+import { textFontFamily } from '../theme/fonts';
 import { colors, gutter, radius, size, space, type, weight } from '../theme/tokens';
 
 const styles = StyleSheet.create({
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: type.label,
     fontWeight: weight.bold,
-    fontFamily: brandFontFamily(weight.bold),
+    fontFamily: textFontFamily(weight.bold),
   },
   body: { padding: gutter.app, paddingBottom: space[9], gap: space[7] },
   section: { gap: space[3] },
@@ -95,19 +95,19 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: type.label,
     fontWeight: weight.medium,
-    fontFamily: brandFontFamily(weight.medium),
+    fontFamily: textFontFamily(weight.medium),
   },
   unreadHeadline: {
     color: colors.record,
     fontWeight: weight.bold,
-    fontFamily: brandFontFamily(weight.bold),
+    fontFamily: textFontFamily(weight.bold),
   },
   meta: {
     marginTop: space[1],
     color: colors.textMuted,
     fontSize: type.caption,
     fontWeight: weight.regular,
-    fontFamily: brandFontFamily(weight.regular),
+    fontFamily: textFontFamily(weight.regular),
   },
   unreadDot: {
     width: space[3],
