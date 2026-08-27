@@ -8,8 +8,8 @@ import { colors } from '../theme/tokens';
  */
 
 export type LfPinkySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-/** 소프트 액션 면만 밝은 아이보리로 반전하고 나머지는 승인된 진한 그린을 유지한다. */
-export type LfPinkyTone = 'default' | 'record' | 'onContainer' | 'onPrimary';
+/** 잉크·버터 두 색만 반전해 브랜드 마크의 정체성을 고정한다. */
+export type LfPinkyTone = 'default' | 'onContainer' | 'onPrimary';
 
 export interface LfPinkyProps {
   size?: LfPinkySize;
@@ -30,7 +30,6 @@ const BRAND_SYMBOL = require('../../assets/images/brand-symbol.png') as number;
 
 function tint(tone: LfPinkyTone): string {
   if (tone === 'onPrimary') return colors.brandSymbolOnAction;
-  if (tone === 'record') return colors.record;
   return colors.brandSymbol;
 }
 

@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 export function LfHelper({ text }: LfHelperProps): React.JSX.Element {
   return (
     <View style={styles.root}>
-      <LfPinky size="xs" tone="record" />
+      <LfPinky size="xs" />
       <View style={styles.copy}><LfText secondary>{text}</LfText></View>
     </View>
   );

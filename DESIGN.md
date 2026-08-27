@@ -65,6 +65,22 @@ Rules:
 8. Kakao and Google login buttons keep their official guide colours; only the shape (pill + ink
    border) is themed.
 
+## Brand mark
+
+The approved mark is **Type A — Pinky Loop** (PO-confirmed 2026-08-27): two equal hand silhouettes
+whose little fingers visibly hook in the centre. The mark is a single-colour alpha mask; screens
+must not redraw, stretch, split, or recolour its two hands independently.
+
+- **Launcher icon:** ink `#221C13` field with paper-white `#FFFDF4` hands. Android/iOS own the
+  platform mask, so exported launcher artwork has no baked corner radius or presentation shadow.
+- **In-product primary:** ink hands on a butter `#F6E7A3` container.
+- **In-product inverse:** butter hands on an ink container, including the central Create action.
+- Lavender/apricot/danger are never brand-mark colours. They remain semantic UI colours around
+  the mark, not inside it.
+- `apps/mobile/assets/images/brand-symbol.png`, `apps/web/src/assets/images/brand-symbol.png`, and
+  `design-reference/assets/images/brand-symbol.png` are byte-identical copies of the approved
+  730×458 RGBA mask. Platform derivatives must preserve that silhouette.
+
 ## Typography
 
 - Gaegu (400/700) is the product typeface, with Pretendard (and the web's metric fallback) behind
@@ -156,3 +172,6 @@ first, then mirrored and tested.
   screens (A00·A01·A02·A03·A05 ACTIVE·A08). Palette A, the asymmetric hero, and the Karrot
   full-bleed home rows are superseded (ADR 0012). Per-screen decoration beyond the six screens,
   hand-drawn icons, and the Seam rework remain unconfirmed.
+- 2026-08-27: PO confirmed Type A — Pinky Loop as the production brand mark: launcher = ink/paper,
+  in-product = ink/butter with its inverse. The previous green mark and abstract oval-gap proposal
+  are superseded (ADR 0013).

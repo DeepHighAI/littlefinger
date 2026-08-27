@@ -1,4 +1,5 @@
 import brandSymbolUrl from '../assets/images/brand-symbol.png';
+import brandSymbolOnActionUrl from '../assets/images/brand-symbol-on-action.png';
 
 export type LfPinkySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type LfPinkyTone = 'default' | 'onContainer' | 'onPrimary';
@@ -30,7 +31,7 @@ export function LfPinky({
   return (
     <img
       className={className}
-      src={brandSymbolUrl}
+      src={tone === 'onPrimary' ? brandSymbolOnActionUrl : brandSymbolUrl}
       alt={accessibilityLabel ?? ''}
       {...(accessibilityLabel === undefined ? { 'aria-hidden': true } : {})}
     />

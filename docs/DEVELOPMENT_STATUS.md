@@ -13,9 +13,22 @@ components.css per PO confirmation) with the value-pinning tests moved deliberat
 supersedes the 2026-08-23 palette-A baseline below; `DESIGN.md` was rewritten and ADR 0012 records
 the decisions and deviations.
 
-- Gates (2026-08-27): typecheck 5 projects · Vitest **104 files / 2,017** · Jest **72 suites /
-  723** (fonts.test 4→2 weight params −4, +2 decor smoke tests) — PASS. Six merged reference
-  screens compared side-by-side in Chrome against the bundle's own preview.
+- Gates (2026-08-27): typecheck 5 projects · Vitest **105 files / 2,020** · Jest **72 suites /
+  738** — PASS. Six merged reference screens compared side-by-side in Chrome against the bundle's
+  own preview; the acceptance-web production build transformed **134 modules** successfully.
+- **Type A Pinky Loop brand mark (PO-confirmed 2026-08-27, ADR 0013):** one approved silhouette
+  now drives the launcher, adaptive icon, splash, notification icon, RN, acceptance web, and
+  frozen reference. Launcher = ink/paper-white; in-product = ink/butter or butter/ink inverse.
+  Hash-pinning tests lock every native derivative and byte equality across the three UI targets.
+  Clean Browser-plugin passes on reference SCR-A02 and the Vite SCR-W01 route found no console
+  warning, overlay, or horizontal overflow; computed colours were exact ink/butter tokens.
+- **Play internal-test package (2026-08-27)**: EAS production build `c91b19e7` finished from
+  commit `f180d53` as `com.littlefinger.app` `0.1.0` (`versionCode 8`). The downloaded
+  `dist/littlefinger-internal-v0.1.0-code8.aab` passed bundletool 1.18.1 validation and JAR
+  signature verification; min/target SDK are 24/36 and all four Android ABIs are present. Its
+  upload-certificate SHA-256 matches the versionCode 6 AAB already used for the Play internal
+  track, and the artifact SHA-256 is
+  `1D6412FB0F3177C4326FC9C6FE59D34A2E1B348F17FDE94D78908B2F58E96041`.
 - PO legibility correction (2026-08-27): shared disclaimer/supporting copy moved from micro
   11.5/16 + regular + `text-faint` to caption 12.5/18 + bold + `text-secondary` across the
   reference, acceptance web, and RN. SCR-W04 browser verification measured 4.88:1 contrast on

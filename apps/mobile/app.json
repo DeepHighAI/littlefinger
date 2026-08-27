@@ -11,7 +11,7 @@
       "package": "com.littlefinger.app",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E7F4ED",
+        "backgroundColor": "#221C13",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -23,7 +23,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F7F8F6",
+          "backgroundColor": "#F3ECDC",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -35,7 +35,7 @@
         {
           "defaultChannel": "default",
           "icon": "./assets/images/android-icon-monochrome.png",
-          "color": "#0B6B4B"
+          "color": "#F6E7A3"
         }
       ],
       "@react-native-community/datetimepicker",

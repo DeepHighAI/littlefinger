@@ -294,16 +294,17 @@ describe('LfPinky', () => {
     expect(view.getByRole('image', { name: '새끼손가락 약속' })).toBeTruthy();
   });
 
-  test('소프트 액션 면에서는 밝은 아이보리로 대비한다', async () => {
+  test('잉크 액션 면에서는 버터색으로 반전한다', async () => {
     const view = await render(<LfPinky testID="pinky" tone="onPrimary" />);
     const mark = view.getByTestId('pinky', { includeHiddenElements: true });
     expect(flatten(mark.props.style).tintColor).toBe(colors.brandSymbolOnAction);
+    expect(flatten(mark.props.style).tintColor).toBe('#F6E7A3');
   });
 
-  test('정보 맥락에서는 Record Blue로 표시한다', async () => {
-    const view = await render(<LfPinky testID="pinky" tone="record" />);
+  test('밝은 컨테이너에서는 잉크색을 유지한다', async () => {
+    const view = await render(<LfPinky testID="pinky" tone="onContainer" />);
     const mark = view.getByTestId('pinky', { includeHiddenElements: true });
-    expect(flatten(mark.props.style).tintColor).toBe(colors.record);
+    expect(flatten(mark.props.style).tintColor).toBe(colors.brandSymbol);
   });
 });
 

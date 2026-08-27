@@ -14,8 +14,7 @@
   flex: none;
 }
 
-/* 단색 PNG의 알파는 보존하고 primary 배경에서만 흰색으로 반전한다. */
-.lf-pinky--on-primary { filter: brightness(0) invert(1); }
+/* on-primary는 컴포넌트가 동일 알파의 버터 PNG를 선택한다. 필터로 색을 근사하지 않는다. */
 
 /* 완성된 손 모양을 훼손하지 않고 전체 마크를 짧게 반응시킨다. */
 .lf-pinky--hooked { animation: lf-pinky-hook var(--lf-duration-hook) ease-in-out infinite; }
@@ -1228,7 +1227,7 @@
 }
 
 /* 로그인 — 마스코트 아래 소형 핑키 글리프 */
-.sl-glyph { --lf-pinky-size: 38px; --lf-pinky-stroke: 10; margin-top: 4px; }
+.sl-glyph { --lf-pinky-size: 38px; margin-top: 4px; }
 
 /* 작성 화면 타자기 인트로 */
 .sl-typeline {
