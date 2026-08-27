@@ -52,11 +52,8 @@ const styles = StyleSheet.create({
   profileText: { flex: 1 },
   trustCard: {
     backgroundColor: colors.primaryContainer,
-    borderTopLeftRadius: radius.hero,
-    borderTopRightRadius: radius.hero,
-    borderBottomRightRadius: radius.hero,
-    borderBottomLeftRadius: radius.heroTail,
-    padding: space[8],
+    borderRadius: radius.xl,
+    padding: space[7],
   },
   stats: { flex: 1 },
   settingText: { flex: 1 },

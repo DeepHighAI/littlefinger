@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A02 홈·약속 목록 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-entry.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+<link rel="stylesheet" href="../../styles/setlog-restyle.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A02" data-screen-name="홈·약속 목록">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <div class="sl-doodles" aria-hidden="true">
+        <svg style="right:12px;top:150px;width:20px" viewBox="0 0 40 40"><path class="sl-ink" d="M20 4C21 14 26 19 36 20 26 21 21 26 20 36 19 26 14 21 4 20 14 19 19 14 20 4Z"/></svg>
+        <svg style="left:8px;bottom:170px;width:16px;transform:rotate(14deg)" viewBox="0 0 40 40"><path class="sl-ink" d="M20 4C21 14 26 19 36 20 26 21 21 26 20 36 19 26 14 21 4 20 14 19 19 14 20 4Z"/></svg>
+      </div>
+
+      <header class="lf-appbar lf-appbar--brand">
+        <svg class="lf-pinky lf-pinky--sm lf-pinky--hooked" viewBox="0 0 120 120" aria-hidden="true">
+          <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+          <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+        </svg>
+        <h1 class="lf-appbar__title">리틀핑거</h1>
+        <button class="lf-icon-button" type="button" aria-label="알림">
+          <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
+          <span class="lf-icon-button__dot" aria-hidden="true"></span>
+        </button>
+        <div class="lf-avatar" aria-hidden="true">지</div>
+      </header>
+
+      <p class="lf-body--secondary lf-home__greeting">지우님, 이번 주 약속 3개 순항 중!</p>
+
+      <div class="lf-tabs" role="tablist" aria-label="약속 상태 필터">
+        <!-- 홈 탭은 진행·대기 둘뿐이다(PO 2026-08-26, ADR 0011) — 종결은 SCR-A09 히스토리로 -->
+        <button class="lf-tab" type="button" role="tab" aria-selected="true">진행 중 2</button>
+        <button class="lf-tab" type="button" role="tab" aria-selected="false">대기 1</button>
+      </div>
+
+      <div class="lf-screen__body lf-home__body">
+
+        <!-- 임박 약속 배너 — 당근식 라운드 스트립 (ADR 0008) -->
+        <div class="lf-home__pinned">
+          <div class="lf-home__pinned-main">
+            <p class="lf-home__pinned-flag">
+              <span class="material-symbols-rounded" aria-hidden="true">alarm</span>
+              <span>내일까지!</span>
+            </p>
+            <p class="lf-home__pinned-title">월말까지 야식 끊기</p>
+          </div>
+          <p class="lf-dday lf-dday--xl">D-1</p>
+        </div>
+
+        <ul class="lf-home__list">
+
+          <!-- 진행 중 약속 — 풀폭 행, 상태는 메타의 강조 텍스트 (§8) -->
+          <li class="lf-home__row">
+            <div class="lf-home__row-main">
+              <p class="lf-home__row-title">매주 화·목 아침 러닝 같이 하기</p>
+              <p class="lf-home__row-meta"><strong>진행 중</strong> · 종료일 8/11 (화) · 지우 — 민준</p>
+            </div>
+            <span class="lf-home__row-dday">D-17</span>
+          </li>
+
+          <!-- 이행 확인이 필요한 약속 — 행 내부에 응답 CTA -->
+          <li class="lf-home__row">
+            <div class="lf-home__row-main">
+              <p class="lf-home__row-title">월급날까지 배달앱 금지</p>
+              <p class="lf-home__row-meta"><strong>이행 확인 필요</strong> · 응답 기한 6일</p>
+              <button class="lf-btn lf-btn--filled lf-home__checking-cta" type="button">지켜졌나요? 답하기</button>
+            </div>
+          </li>
+
+        </ul>
+
+        <!-- 종결 약속 진입점 — SCR-A09 히스토리 (ADR 0011) -->
+        <button type="button" class="lf-btn lf-btn--text lf-btn--block">지난 약속 히스토리 보기</button>
+
+        <!-- 광고 슬롯 — MVP에서는 비활성 표기만 (요청서 §8) -->
+        <div class="lf-ad-slot">
+          <span class="material-symbols-rounded" aria-hidden="true">ads_click</span>
+          <span>광고 자리 · MVP에서는 비활성</span>
+        </div>
+
+      </div>
+
+      <button class="lf-fab" type="button">
+        <svg class="lf-pinky lf-pinky--xs lf-pinky--on-primary" viewBox="0 0 120 120" aria-hidden="true">
+          <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
+          <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+        </svg>
+        <span>약속 만들기</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

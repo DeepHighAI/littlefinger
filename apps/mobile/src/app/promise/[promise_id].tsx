@@ -87,6 +87,8 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const WITNESS_INVITE_STATUSES = new Set(['PENDING', 'ACTIVE', 'AMEND_PENDING', 'CHECKING']);
 const HISTORY_SHEET_MAX_HEIGHT = '88%';
+const ACTIVE_STAMP_BORDER_WIDTH = 2.5;
+const ACTIVE_OUTCOME_BORDER_WIDTH = 2.2;
 
 type ScreenPhase = 'loading' | 'ready' | 'not-found' | 'error';
 interface IntentKey {
@@ -98,6 +100,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   screenFriendly: { backgroundColor: colors.primarySoft },
   screenRecord: { backgroundColor: colors.surfaceMuted },
+  screenApprovedActive: { backgroundColor: colors.background },
   back: {
     minWidth: size.touchMin,
     minHeight: size.touchMin,
@@ -145,6 +148,42 @@ const styles = StyleSheet.create({
   },
   // 확정 스탬프의 손붙임 기울기 (.lf-stamp rotate, ADR 0012)
   recordStamp: { transform: [{ rotate: '-0.8deg' }] },
+  activeMeta: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  activeEndDate: { flexDirection: 'row', gap: space[1] },
+  activeMetaSpacer: { flex: 1 },
+  activeStamp: {
+    alignItems: 'center',
+    gap: space[2],
+    padding: space[8],
+    borderRadius: radius.record,
+    borderWidth: ACTIVE_STAMP_BORDER_WIDTH,
+    borderColor: colors.text,
+    backgroundColor: colors.surface,
+    transform: [{ rotate: '-0.8deg' }],
+    ...elevation.card,
+  },
+  activeSeam: { alignSelf: 'stretch' },
+  activeApprovals: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: space[2],
+  },
+  activeApproval: { alignItems: 'center', gap: space[1] },
+  activeContent: { gap: space[3] },
+  activeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
+  activeOutcomes: { flexDirection: 'row', gap: space[3] },
+  activeOutcome: {
+    flex: 1,
+    gap: space[1],
+    paddingVertical: space[5],
+    paddingHorizontal: space[5],
+    borderRadius: radius.lg,
+    borderWidth: ACTIVE_OUTCOME_BORDER_WIDTH,
+    borderColor: colors.text,
+  },
+  activeReward: { backgroundColor: colors.rewardContainer },
+  activePenalty: { backgroundColor: colors.penaltyContainer },
   value: { flex: 1, alignItems: 'flex-end' },
   people: { gap: space[5] },
   personText: { flex: 1 },
@@ -209,10 +248,12 @@ function BackButton({ onPress }: { onPress(): void }): React.JSX.Element {
 function ScreenFrame({
   onBack,
   mode = 'terminal-neutral',
+  approvedActive = false,
   children,
 }: {
   onBack(): void;
   mode?: PromiseDetailVisualMode;
+  approvedActive?: boolean;
   children: React.ReactNode;
 }): React.JSX.Element {
   const LABEL = useLabels(SCR_A05_LABEL);
@@ -222,6 +263,7 @@ function ScreenFrame({
         styles.screen,
         mode === 'friendly' && styles.screenFriendly,
         mode === 'record' && styles.screenRecord,
+        approvedActive && styles.screenApprovedActive,
       ]}
       testID={`promise-detail-${mode}`}
     >
@@ -900,40 +942,120 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   }
 
   return (
-    <ScreenFrame onBack={() => router.back()} mode={visualMode}>
+    <ScreenFrame
+      onBack={() => router.back()}
+      mode={visualMode}
+      approvedActive={detail.status === 'ACTIVE'}
+    >
       <ScrollView contentContainerStyle={styles.body}>
-        <View
-          style={[
-            styles.status,
-            visualMode === 'friendly' && styles.statusFriendly,
-            visualMode === 'record' && styles.statusRecord,
-            visualMode === 'terminal-neutral' && styles.statusTerminal,
-          ]}
-        >
-          <LfChip label={status.label} tone={status.tone} />
-          <LfText
-            variant={visualMode === 'record' ? 'confirmationHeadline' : 'headline'}
-            align="center"
-          >
-            {status.headline}
-          </LfText>
-          <LfText variant="caption" align="center">
-            {LABEL.statusSubtitle[detail.status]}
-          </LfText>
-        </View>
-
-        <LfCard variant={contentCardVariant}>
-          <View style={styles.detailText}>
+        {detail.status === 'ACTIVE' ? (
+          <>
+            <View style={styles.activeMeta}>
+              <LfChip label={status.label} tone={status.tone} />
+              <View style={styles.activeEndDate}>
+                <LfText variant="caption">{LABEL.endDate}</LfText>
+                <LfText variant="caption">{formatDetailDate(detail.end_date, locale)}</LfText>
+              </View>
+              <View style={styles.activeMetaSpacer} />
+              <LfText variant="dday">{formatDetailDday(detail.end_date, new Date())}</LfText>
+            </View>
             <LfText variant="title">{detail.title}</LfText>
-            <LfText>{detail.body}</LfText>
-            <LfRow>
-              <LfChip label={`${LABEL.category} · ${PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category]}`} />
-              <LfChip label={`${LABEL.keeper} · ${KEEPER_LABEL_BY_LOCALE[locale][detail.keeper]}`} />
-            </LfRow>
-            <InfoRow label={LABEL.endDate} value={formatDetailDate(detail.end_date, locale)} />
-            <InfoRow label={LABEL.dday} value={formatDetailDday(detail.end_date, new Date())} />
-          </View>
-        </LfCard>
+
+            <View style={styles.activeStamp}>
+              <View style={styles.activeSeam}>
+                <LfPromiseSeam />
+              </View>
+              <LfText variant="subtitle" align="center">{status.headline}</LfText>
+              {detail.current_version.activated_at !== null && (
+                <LfText variant="caption" align="center">
+                  {formatDetailInstant(detail.current_version.activated_at)}
+                </LfText>
+              )}
+              {detail.approvals.length > 0 && (
+                <View style={styles.activeApprovals}>
+                  {detail.approvals.map((approval, index) => (
+                    <View
+                      key={`${approval.acted_at}.${approval.role}.${index}`}
+                      style={styles.activeApproval}
+                    >
+                      <LfChip
+                        label={`${approval.actor.nickname} · ${LABEL.approvalAction[approval.action]}`}
+                        tone="outline"
+                      />
+                      <LfText variant="caption">{formatDetailInstant(approval.acted_at)}</LfText>
+                    </View>
+                  ))}
+                </View>
+              )}
+              <LfText variant="caption" align="center">
+                {fingerprintText(detail.current_version.fingerprint, locale)}
+              </LfText>
+            </View>
+
+            <View style={styles.activeContent}>
+              <LfText variant="sectionTitle">{LABEL.content}</LfText>
+              <LfText>{detail.body}</LfText>
+              <View style={styles.activeChips}>
+                <LfChip
+                  label={`${LABEL.category} · ${PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category]}`}
+                />
+                <LfChip
+                  label={`${LABEL.keeper} · ${KEEPER_LABEL_BY_LOCALE[locale][detail.keeper]}`}
+                />
+              </View>
+            </View>
+
+            <View style={styles.activeOutcomes}>
+              <View style={[styles.activeOutcome, styles.activeReward]}>
+                <LfText variant="sectionTitle">{LABEL.reward}</LfText>
+                <LfText>{detail.reward ?? LABEL.noReward}</LfText>
+              </View>
+              <View style={[styles.activeOutcome, styles.activePenalty]}>
+                <LfText variant="sectionTitle">{LABEL.penalty}</LfText>
+                <LfText>{detail.penalty ?? LABEL.noPenalty}</LfText>
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            <View
+              style={[
+                styles.status,
+                visualMode === 'friendly' && styles.statusFriendly,
+                visualMode === 'record' && styles.statusRecord,
+                visualMode === 'terminal-neutral' && styles.statusTerminal,
+              ]}
+            >
+              <LfChip label={status.label} tone={status.tone} />
+              <LfText
+                variant={visualMode === 'record' ? 'confirmationHeadline' : 'headline'}
+                align="center"
+              >
+                {status.headline}
+              </LfText>
+              <LfText variant="caption" align="center">
+                {LABEL.statusSubtitle[detail.status]}
+              </LfText>
+            </View>
+
+            <LfCard variant={contentCardVariant}>
+              <View style={styles.detailText}>
+                <LfText variant="title">{detail.title}</LfText>
+                <LfText>{detail.body}</LfText>
+                <LfRow>
+                  <LfChip
+                    label={`${LABEL.category} · ${PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category]}`}
+                  />
+                  <LfChip
+                    label={`${LABEL.keeper} · ${KEEPER_LABEL_BY_LOCALE[locale][detail.keeper]}`}
+                  />
+                </LfRow>
+                <InfoRow label={LABEL.endDate} value={formatDetailDate(detail.end_date, locale)} />
+                <InfoRow label={LABEL.dday} value={formatDetailDday(detail.end_date, new Date())} />
+              </View>
+            </LfCard>
+          </>
+        )}
 
         <LfStack gap={4}>
           <LfText variant="sectionTitle">{LABEL.people}</LfText>
@@ -950,12 +1072,14 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           </LfCard>
         </LfStack>
 
-        <LfStack gap={4}>
-          <LfText variant="sectionTitle">{LABEL.reward}</LfText>
-          <LfCard variant="container"><LfText>{detail.reward ?? LABEL.noReward}</LfText></LfCard>
-          <LfText variant="sectionTitle">{LABEL.penalty}</LfText>
-          <LfCard><LfText>{detail.penalty ?? LABEL.noPenalty}</LfText></LfCard>
-        </LfStack>
+        {detail.status !== 'ACTIVE' && (
+          <LfStack gap={4}>
+            <LfText variant="sectionTitle">{LABEL.reward}</LfText>
+            <LfCard variant="container"><LfText>{detail.reward ?? LABEL.noReward}</LfText></LfCard>
+            <LfText variant="sectionTitle">{LABEL.penalty}</LfText>
+            <LfCard><LfText>{detail.penalty ?? LABEL.noPenalty}</LfText></LfCard>
+          </LfStack>
+        )}
 
         {detail.status === 'PENDING' && detail.invitation !== null && (
           <LfCard variant={visualMode === 'record' ? 'record' : 'container'}>
@@ -1023,51 +1147,68 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         <FulfillmentSection detail={detail} onReportEvidence={confirmEvidenceReport} />
 
-        <LfStack gap={4}>
-          <LfText variant="sectionTitle">{LABEL.record}</LfText>
-          <View style={visualMode === 'record' ? styles.recordStamp : null}>
-          <LfCard variant={visualMode === 'record' ? 'record' : 'container'}>
-            <View style={[styles.info, visualMode === 'record' && styles.recordMetadata]}>
-              {/* 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다
-                  (PO 2026-08-20). 최초 확정 시각은 승인 이력에 그대로 남는다. */}
-              {detail.current_version.activated_at !== null && (
-                <>
-                  <LfPromiseSeam />
-                  <LfText variant="caption">{formatDetailInstant(detail.current_version.activated_at)}</LfText>
-                </>
-              )}
-              <LfText variant="caption">{fingerprintText(detail.current_version.fingerprint, locale)}</LfText>
+        {detail.status === 'ACTIVE' ? (
+          <LfStack gap={4}>
+            {canShowVersionHistory ? (
+              <LfButton
+                label={LABEL.versionHistoryAction}
+                variant="outlined"
+                block
+                onPress={() => void openVersionHistory()}
+              />
+            ) : null}
+            <LfDisclaimer />
+          </LfStack>
+        ) : (
+          <LfStack gap={4}>
+            <LfText variant="sectionTitle">{LABEL.record}</LfText>
+            <View style={visualMode === 'record' ? styles.recordStamp : null}>
+              <LfCard variant={visualMode === 'record' ? 'record' : 'container'}>
+                <View style={[styles.info, visualMode === 'record' && styles.recordMetadata]}>
+                  {/* 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다
+                      (PO 2026-08-20). 최초 확정 시각은 승인 이력에 그대로 남는다. */}
+                  {detail.current_version.activated_at !== null && (
+                    <>
+                      <LfPromiseSeam />
+                      <LfText variant="caption">
+                        {formatDetailInstant(detail.current_version.activated_at)}
+                      </LfText>
+                    </>
+                  )}
+                  <LfText variant="caption">
+                    {fingerprintText(detail.current_version.fingerprint, locale)}
+                  </LfText>
+                </View>
+              </LfCard>
             </View>
-          </LfCard>
-          </View>
-          {detail.approvals.length > 0 && (
-            <LfStack gap={3}>
-              <LfText variant="sectionTitle">{LABEL.approvals}</LfText>
-              {detail.approvals.map((approval, index) => (
-                <LfCard
-                  key={`${approval.acted_at}.${approval.role}.${index}`}
-                  variant={contentCardVariant}
-                >
-                  <InfoRow
-                    label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]}`}
-                    value={LABEL.approvalAction[approval.action]}
-                  />
-                  <LfText variant="caption">{formatDetailInstant(approval.acted_at)}</LfText>
-                  {approval.comment !== null && <LfText>{approval.comment}</LfText>}
-                </LfCard>
-              ))}
-            </LfStack>
-          )}
-          {detail.status === 'ACTIVE' && <LfDisclaimer />}
-          {canShowVersionHistory ? (
-            <LfButton
-              label={LABEL.versionHistoryAction}
-              variant="outlined"
-              block
-              onPress={() => void openVersionHistory()}
-            />
-          ) : null}
-        </LfStack>
+            {detail.approvals.length > 0 && (
+              <LfStack gap={3}>
+                <LfText variant="sectionTitle">{LABEL.approvals}</LfText>
+                {detail.approvals.map((approval, index) => (
+                  <LfCard
+                    key={`${approval.acted_at}.${approval.role}.${index}`}
+                    variant={contentCardVariant}
+                  >
+                    <InfoRow
+                      label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]}`}
+                      value={LABEL.approvalAction[approval.action]}
+                    />
+                    <LfText variant="caption">{formatDetailInstant(approval.acted_at)}</LfText>
+                    {approval.comment !== null && <LfText>{approval.comment}</LfText>}
+                  </LfCard>
+                ))}
+              </LfStack>
+            )}
+            {canShowVersionHistory ? (
+              <LfButton
+                label={LABEL.versionHistoryAction}
+                variant="outlined"
+                block
+                onPress={() => void openVersionHistory()}
+              />
+            ) : null}
+          </LfStack>
+        )}
 
         {terminalReason !== null && <LfCard><LfText>{terminalReason}</LfText></LfCard>}
 

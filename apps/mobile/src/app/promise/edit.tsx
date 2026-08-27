@@ -374,7 +374,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     : (direction === 1 ? FadeInRight : FadeInLeft).duration(duration.medium);
 
   const stepOne = (
-    <LfCard><LfStack gap={7}>
+    <LfCard variant="flat"><LfStack gap={7}>
       <LfField label={LABEL.titleField} required error={errorFor('title')}>
         <LfInput
           accessibilityLabel={LABEL.titleField}
@@ -410,7 +410,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   );
 
   const stepTwo = (
-    <LfCard><LfStack gap={7}>
+    <LfCard variant="flat"><LfStack gap={7}>
       <LfField label={LABEL.endDate} required error={errorFor('end_date')}>
         <LfPicker
           accessibilityLabel={LABEL.endDatePicker}

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A03 약속 작성 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-create.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+<link rel="stylesheet" href="../../styles/setlog-restyle.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A03" data-screen-name="약속 작성">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+
+    <!-- 작성자가 F-02 필드를 입력하는 화면. SCR-A05 DRAFT 상태 화면과 겸용. -->
+    <div class="lf-screen">
+
+      <div class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="닫기">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+        <h1 class="lf-appbar__title">약속 만들기</h1>
+        <span class="lf-chip lf-chip--neutral">작성 중</span>
+      </div>
+
+      <form class="lf-screen__body lf-gap-6" id="scr-a03-form" novalidate>
+
+        <p class="sl-typeline" aria-hidden="true">→ 새로운 약속을 적어볼까요?</p>
+
+        <div class="lf-field">
+          <label class="lf-field__label" for="a03-title">제목</label>
+          <input class="lf-input" id="a03-title" name="title" type="text" value="매주 화·목 아침 러닝 같이 하기">
+        </div>
+
+        <div class="lf-field">
+          <label class="lf-field__label" for="a03-content">내용</label>
+          <textarea class="lf-input lf-textarea" id="a03-content" name="content">8월 11일까지 매주 화·목 아침 7시, 반포한강공원에서 함께 러닝한다. 우천 시 다음 날로 순연.</textarea>
+        </div>
+
+        <fieldset class="lf-field">
+          <legend class="lf-field__label">카테고리</legend>
+          <div class="lf-choices" role="group" aria-label="카테고리 선택">
+            <button class="lf-choice" type="button" aria-pressed="true">습관</button>
+            <button class="lf-choice" type="button" aria-pressed="false">내기</button>
+            <button class="lf-choice" type="button" aria-pressed="false">금전</button>
+            <button class="lf-choice" type="button" aria-pressed="false">기타</button>
+          </div>
+        </fieldset>
+
+        <div class="lf-field">
+          <span class="lf-field__label" id="a03-end-date-label">종료일 <span class="lf-field__required">필수</span></span>
+          <button class="lf-picker" type="button" aria-labelledby="a03-end-date-label" aria-haspopup="dialog">
+            <span class="material-symbols-rounded" aria-hidden="true">event</span>
+            <span class="lf-picker__value">2026-08-11 (화)</span>
+            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+          </button>
+        </div>
+
+        <fieldset class="lf-field">
+          <legend class="lf-field__label">지킬 사람</legend>
+          <div class="lf-choices" role="group" aria-label="지킬 사람 선택">
+            <button class="lf-choice" type="button" aria-pressed="false">나</button>
+            <button class="lf-choice" type="button" aria-pressed="false">상대</button>
+            <button class="lf-choice" type="button" aria-pressed="true">둘 다</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="lf-field">
+          <legend class="lf-field__label">보상 <span class="lf-field__optional">선택</span></legend>
+          <div class="lf-choices" role="group" aria-label="보상 프리셋 선택">
+            <button class="lf-choice" type="button" aria-pressed="false">밥 사기</button>
+            <button class="lf-choice" type="button" aria-pressed="false">커피 사기</button>
+            <button class="lf-choice" type="button" aria-pressed="false">소원 하나</button>
+            <button class="lf-choice" type="button" aria-pressed="true">
+              <span class="material-symbols-rounded" aria-hidden="true">edit</span><span>직접 입력</span>
+            </button>
+          </div>
+          <label class="lf-sr-only" for="a03-reward-custom">보상 직접 입력 내용</label>
+          <input class="lf-input" id="a03-reward-custom" name="reward-custom" type="text" value="성공하면 오마카세 사주기">
+        </fieldset>
+
+        <fieldset class="lf-field">
+          <legend class="lf-field__label">벌칙 <span class="lf-field__optional">선택</span></legend>
+          <div class="lf-choices" role="group" aria-label="벌칙 프리셋 선택">
+            <button class="lf-choice" type="button" aria-pressed="true">커피 셔틀</button>
+            <button class="lf-choice" type="button" aria-pressed="false">설거지 담당</button>
+            <button class="lf-choice" type="button" aria-pressed="false">직접 입력</button>
+          </div>
+        </fieldset>
+
+        <div class="lf-card lf-row lf-gap-5">
+          <div class="lf-grow">
+            <p class="lf-list-item__headline">증인도 초대할래요?</p>
+            <p class="lf-list-item__supporting">최대 2명 · 내용 확인만 해요 (판정 없음)</p>
+          </div>
+          <button class="lf-switch" type="button" role="switch" aria-checked="true" aria-label="증인 사용 여부"></button>
+        </div>
+
+      </form>
+
+      <div class="lf-screen__actions">
+        <button class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="submit" form="scr-a03-form">
+          <span class="material-symbols-rounded" aria-hidden="true">send</span>
+          <span>상대에게 보내기</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../frame.js"></script>
+</body>
+</html>
