@@ -22,13 +22,15 @@ the decisions and deviations.
   Hash-pinning tests lock every native derivative and byte equality across the three UI targets.
   Clean Browser-plugin passes on reference SCR-A02 and the Vite SCR-W01 route found no console
   warning, overlay, or horizontal overflow; computed colours were exact ink/butter tokens.
-- **Play internal-test package (2026-08-27)**: EAS production build `c91b19e7` finished from
-  commit `f180d53` as `com.littlefinger.app` `0.1.0` (`versionCode 8`). The downloaded
-  `dist/littlefinger-internal-v0.1.0-code8.aab` passed bundletool 1.18.1 validation and JAR
-  signature verification; min/target SDK are 24/36 and all four Android ABIs are present. Its
-  upload-certificate SHA-256 matches the versionCode 6 AAB already used for the Play internal
-  track, and the artifact SHA-256 is
-  `1D6412FB0F3177C4326FC9C6FE59D34A2E1B348F17FDE94D78908B2F58E96041`.
+- **Play internal-test package (2026-08-27)**: EAS production build
+  `7bb7d3cd-1c16-4e79-8fbf-0fcb5609e065` finished from commit `ec62dbd` as
+  `com.littlefinger.app` `0.1.0` (`versionCode 9`). The downloaded 81,440,969-byte
+  `dist/littlefinger-internal-v0.1.0-code9.aab` passed bundletool 1.18.1 validation and JAR
+  signature verification; min/target SDK are 24/36 and arm64-v8a, armeabi-v7a, x86, and x86_64
+  are present. Extracted xxxhdpi launcher/splash/notification resources were visually checked
+  against Type A. The upload-certificate SHA-256 still matches the versionCode 6/8 AABs already
+  used for the Play internal track, and the artifact SHA-256 is
+  `3FD91C6E482296897257FB6726670DABF5584E05689C5D13436D00D08E46AC4D`.
 - PO legibility correction (2026-08-27): shared disclaimer/supporting copy moved from micro
   11.5/16 + regular + `text-faint` to caption 12.5/18 + bold + `text-secondary` across the
   reference, acceptance web, and RN. SCR-W04 browser verification measured 4.88:1 contrast on
