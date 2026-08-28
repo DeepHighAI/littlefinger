@@ -1,6 +1,6 @@
 # Development Status
 
-Snapshot date: **2026-08-27 KST**.
+Snapshot date: **2026-08-28 KST**.
 
 ## Visual-system baseline: 잉크 & 스티커 (2026-08-27, ADR 0012)
 
@@ -39,14 +39,36 @@ the decisions and deviations.
   against Type A. The upload-certificate SHA-256 still matches the versionCode 6/8 AABs already
   used for the Play internal track, and the artifact SHA-256 is
   `3FD91C6E482296897257FB6726670DABF5584E05689C5D13436D00D08E46AC4D`.
-- **Review corrections ready locally (2026-08-27; not deployed):** refunded/charged-back Play
-  purchases now lose their slot through the daily Voided Purchases reconciliation ledger; account
-  withdrawal creates an Auth-deletion outbox in the same transaction and retries leased work every
-  15 minutes until deletion succeeds. Play Data Safety now marks the opt-in push token correctly as
-  optional, and the Setlog reference bundle moved from the transient `docs/handoff/` directory to
-  `docs/디자인/`. Gates: typecheck 5 projects · Vitest **107 files / 2,038 tests** · Jest **72
-  suites / 752 tests** · `check:agents` · `git diff --check` — PASS. Migration and both internal
-  workers still require deploy plus the Vault values in `docs/setup/slot-iap-admob-console.md`.
+- **Review corrections deployed (2026-08-28):** refunded/charged-back Play purchases now lose their
+  slot through the daily Voided Purchases reconciliation ledger; account withdrawal creates an
+  Auth-deletion outbox in the same transaction and retries leased work every 15 minutes until
+  deletion succeeds. Play Data Safety now marks the opt-in push token correctly as optional, and
+  the Setlog reference bundle moved from the transient `docs/handoff/` directory to `docs/디자인/`.
+  Gates: typecheck 5 projects · Vitest **107 files / 2,038 tests** · Jest **72 suites / 752 tests**
+  · `check:agents` · `git diff --check` — PASS.
+  - `PURCHASE_RECONCILE_SECRET` and `ACCOUNT_DELETE_RETRY_SECRET` set as Edge secrets, with the
+    matching `purchase_reconcile_url/secret` and `account_delete_retry_url/secret` in Vault.
+  - `20260827000001_reconciliation_workers.sql` applied. The WITHDRAWN backfill matched **0 rows**,
+    so no existing identity was touched. `slot_purchase_revocations` and `auth_deletion_outbox`
+    carry RLS, the `users_enqueue_auth_deletion` trigger is active, and `lf_slot_capacity(uuid)` was
+    replaced in place — every existing caller now excludes revoked purchases.
+  - Deployed with `--use-api`: `purchase-reconcile` v1, `account-delete-retry` v1,
+    `account-withdraw` v7. `purchase-verify` stays at v4 — its refactor is behaviour-identical, so
+    the deployed bundle predates it.
+  - Verified live: both workers answer a wrong shared secret with 401 `E_AUTH_REQUIRED`;
+    `account-delete-retry` returns 200 `{"claimed_count":0,...}`, and the `*/15` cron job fired at
+    22:15 KST with `net._http_response.status_code = 200`, proving the Vault → pg_net → worker
+    chain end to end.
+  - **Open — `purchase-reconcile` fails at the Google call.** A correct-secret invocation returns
+    500 `E_INTERNAL`. The service-account OAuth is not the cause: probing `purchase-verify` with an
+    invalid purchase token returned 422 `E_VALIDATION`, which is only reachable after a successful
+    Play API round trip. So the failure is `purchases/voidedpurchases` itself, and two candidates
+    remain untested: (1) the Play Console permission that endpoint requires and
+    `purchases/products` does not — Step 5 of `docs/setup/slot-iap-admob-console.md` asks for it,
+    but it has never been confirmed granted; (2) our own `startTime`, which is set to exactly
+    `now - 30 days` and therefore sits on the boundary of the window Google accepts. The underlying
+    status code would separate them, and it is not recoverable from logs — see
+    `docs/notes/environment-gotchas.md`.
 - PO legibility correction (2026-08-27): shared disclaimer/supporting copy moved from micro
   11.5/16 + regular + `text-faint` to caption 12.5/18 + bold + `text-secondary` across the
   reference, acceptance web, and RN. SCR-W04 browser verification measured 4.88:1 contrast on

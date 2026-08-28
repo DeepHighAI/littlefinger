@@ -214,3 +214,23 @@ unknown codes). Measured with `E_SLOT_LIMIT`: the DB raised it correctly, `slot-
 like a client bug, and the profile purchase path "working" while the send path "failed" was the
 tell. Rule: **when the shared error vocabulary changes, redeploy every function whose RPC can
 raise the new code** (grep the migrations for the raise site, then its callers).
+
+## An unmapped Edge failure erases its own cause (2026-08-28)
+
+`_shared/http.ts` `failureResponse` logs an unrecognized raise as
+`'unmapped RPC failure'` with `{reason: 'UNMAPPED_ERROR'}` — the raised message never reaches the
+log. That is deliberate for the *response* (§9 keeps Postgres table and column names out of it),
+but it also means a 500 `E_INTERNAL` from a function's own `throw new Error('…')` leaves **no
+diagnosable trace anywhere**. `purchase-reconcile`'s first live run threw
+`GOOGLE_VOIDED_PURCHASES_<status>` and the status code was unrecoverable from
+`function_logs`, `function_edge_logs`, and the Dashboard alike.
+
+The way around it is a **differential probe**: find a deployed function that shares the failing
+dependency but maps its failure to a distinguishable code, and call that instead.
+`purchase-verify` shares the service-account OAuth provider with `purchase-reconcile` and answers
+an invalid purchase token with 422 `E_VALIDATION` — a response only reachable *after* a successful
+Google round trip. One call proved OAuth healthy and moved the whole suspect set onto the
+`purchases/voidedpurchases` endpoint — which both needs a Play Console permission
+(financial data / orders) that `purchases/products` does not, **and** is called with a `startTime`
+of exactly `now - 30 days`, the edge of the window Google accepts. The probe cannot separate those
+two; only the status code can.
