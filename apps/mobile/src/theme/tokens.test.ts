@@ -106,7 +106,7 @@ function contrastRatio(foreground: string, background: string): number {
 
 describe('토큰이 하나도 누락되지 않았다', () => {
   test('canonical tokens.css 는 hover·pressed 상태와 승인된 화면 토큰을 정의한다', () => {
-    expect(cssTokens.size).toBe(115);
+    expect(cssTokens.size).toBe(116);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -205,6 +205,17 @@ describe('잉크&스티커 웹 토큰도 같은 계약을 쓴다', () => {
       expect(disclaimer).toContain('line-height: var(--lf-line-caption)');
       expect(disclaimer).toContain('font-weight: var(--lf-weight-bold)');
       expect(disclaimer).toContain('color: var(--lf-color-text-secondary)');
+    },
+  );
+
+  test.each([REFERENCE_COMPONENTS_CSS, WEB_COMPONENTS_CSS])(
+    '입력 포커스는 잉크 테두리 밖에 별도 포커스 링으로 표시된다: %s',
+    (path) => {
+      const css = readFileSync(path, 'utf8');
+      const focus = /\.lf-input:focus-visible\s*\{(?<body>[^}]*)\}/su.exec(css)?.groups?.body;
+
+      expect(focus).toContain('outline: 2px solid var(--lf-color-focus-ring)');
+      expect(focus).toContain('outline-offset: var(--lf-space-1)');
     },
   );
 
@@ -385,10 +396,22 @@ describe('접근성 하한', () => {
   test.each([
     ['보조문/크림 바탕', colors.textSecondary, colors.background],
     ['보조문/종이 표면', colors.textSecondary, colors.surface],
+    ['뮤트문/크림 바탕', colors.textMuted, colors.background],
+    ['뮤트문/종이 표면', colors.textMuted, colors.surface],
+    ['희미문/크림 바탕', colors.textFaint, colors.background],
+    ['희미문/종이 표면', colors.textFaint, colors.surface],
     ['증빙문/뮤트 표면', colors.text, colors.surfaceMuted],
     ['지킴율 설명/버터 카드', colors.primaryInk, colors.primaryContainer],
   ] as const)('%s 텍스트 대비는 WCAG AA 4.5:1 이상이다', (_, foreground, background) => {
     expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test.each([
+    ['크림 바탕', colors.background],
+    ['종이 표면', colors.surface],
+  ] as const)('포커스 링/%s 대비는 WCAG 비텍스트 기준 3:1 이상이다', (_, background) => {
+    expect(contrastRatio(colors.focusRing, background)).toBeGreaterThanOrEqual(3);
+    expect(colors.focusRing).not.toBe(colors.text);
   });
 
   test.each([

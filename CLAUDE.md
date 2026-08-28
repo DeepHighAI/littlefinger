@@ -198,7 +198,7 @@ a diff is ever needed.
 The app framework (open point N-3) is **decided: React Native + Expo** (PO, 2026-07-25; ADR 0002).
 
 `design-reference/` holds the approved UI as a **framework-free HTML/CSS screen library** — 27
-screens, 115 design tokens, 110 `lf-*` component classes. It is read-only during implementation.
+screens, 116 design tokens, 110 `lf-*` component classes. It is read-only during implementation.
 The sole exception is an explicit PO-approved restyle previewed first and recorded in `DESIGN.md`
 and an ADR; that change creates a new frozen comparison baseline. Preview it with `npm run preview`.
 
@@ -272,7 +272,7 @@ keepRate denominator counts **only promises where I am the obligor**, and shows 
 Read [`DESIGN.md`](DESIGN.md) before changing UI. It defines the approved **잉크 & 스티커**
 (Ink & Sticker, Setlog 시안 1a — ADR 0012) system: cream paper canvas, one warm ink for
 text/borders/filled CTA, sticker containers (butter=brand/positive, lavender=durable record,
-apricot=deadline/response), Gaegu 400/700 as the brand face, thick ink borders with offset
+apricot=deadline/response), Pretendard 400/600/700/800 as the single product typeface, thick ink borders with offset
 sticker shadows, and red as danger-only. The product hierarchy in §4 and the hard constraints
 in §8 still win.
 
@@ -309,10 +309,10 @@ Preview-only scaffolding that **must be stripped during the port**: the `lf-devi
 KakaoTalk in-app browser plays that role). Keep the `lf-screen` structure and every `lf-*` class.
 
 Two port gotchas already discovered, do not rediscover them:
-- Web font files (`PretendardVariable.woff2`, @fontsource css) are **web-only** — RN loads static
-  per-weight files because RN Android's variable-font weight axis is unreliable. Since ADR 0012
-  the brand face is Gaegu (400/700 only, via `@expo-google-fonts/gaegu` → `theme/fontAssets.ts`);
-  weight tokens medium/heavy converge to 400/700 — weight 800 no longer exists anywhere.
+- The web/reference target self-hosts `PretendardVariable.woff2`; RN loads Pretendard static files
+  for 400/600/700/800 because RN Android's variable-font weight axis is unreliable. Since ADR 0014,
+  Korean, English, display, body, metadata, and record strings all use Pretendard with no font-role
+  exception. `theme/fontAssets.ts` and `theme/fonts.ts` are the native loading and weight map.
 - Material Symbols Rounded is not bundled with Expo — use `@expo/vector-icons` MaterialIcons behind
   an `LfIcon` wrapper so the swap point stays in one file. Screens never import icons directly.
 

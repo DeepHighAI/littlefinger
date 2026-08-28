@@ -1,7 +1,7 @@
 /* =============================================================
    Little Finger — Design Tokens ("잉크 & 스티커" Setlog restyle)
    Source: design-reference/styles/tokens.css (2026-08-27 시안 1a, ADR 0012).
-   토큰 이름·개수는 기존과 동일, 값만 교체 — 회귀는 토큰 테스트로 잡는다.
+   canonical과 같은 토큰 계약을 쓰며 회귀는 토큰 테스트로 잡는다.
    ============================================================= */
 
 /* design-reference 사본에서 **한 곳만** 다르다: 원본 9행의 Google Fonts @import 를 지웠다.
@@ -63,12 +63,13 @@
   --lf-color-outline:        #E0D5BA;
   --lf-color-outline-strong: #B8AB92;
   --lf-color-outline-icon:   #8A7E66;
+  --lf-color-focus-ring:     #6B58A8;
 
   /* 텍스트 — 따뜻한 잉크 위계 */
   --lf-color-text:           #221C13;
   --lf-color-text-secondary: #6F6552;
-  --lf-color-text-muted:     #9A8E75;
-  --lf-color-text-faint:     #B3A78C;
+  --lf-color-text-muted:     #706652;
+  --lf-color-text-faint:     #716653;
 
   /* 보상 / 벌칙 — 보상=라벤더, 벌칙=살구 */
   --lf-color-reward-container:     #E7DFF6;

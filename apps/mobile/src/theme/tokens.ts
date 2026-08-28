@@ -51,12 +51,13 @@ export const colors = {
   outline: '#E0D5BA',
   outlineStrong: '#B8AB92',
   outlineIcon: '#8A7E66',
+  focusRing: '#6B58A8',
 
   // 텍스트 — 따뜻한 잉크 위계.
   text: '#221C13',
   textSecondary: '#6F6552',
-  textMuted: '#9A8E75',
-  textFaint: '#B3A78C',
+  textMuted: '#706652',
+  textFaint: '#716653',
 
   // 보상 / 벌칙 (§9 용어: Reward=보상, Penalty=벌칙) — 보상=라벤더, 벌칙=살구
   rewardContainer: '#E7DFF6',

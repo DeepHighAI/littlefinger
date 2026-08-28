@@ -1,8 +1,8 @@
 /* =============================================================
    Little Finger — Design Tokens ("잉크 & 스티커" Setlog restyle)
-   2026-08-27 PO 컨펌 시안 1a 기준. 토큰 이름·개수는 기존과 동일 —
-   apps/mobile/src/theme/tokens.ts · apps/web/src/styles/tokens.css 미러링 시
-   값만 갱신한다 (tokens.test.ts는 의도적으로 함께 이동).
+   2026-08-27 PO 컨펌 시안 1a 기준.
+   apps/mobile/src/theme/tokens.ts · apps/web/src/styles/tokens.css 와 항상 같은 계약을 쓴다
+   (tokens.test.ts가 값과 누락을 검증한다).
    ============================================================= */
 
 /* @import 는 반드시 다른 규칙보다 먼저 (CSS 명세) */
@@ -58,12 +58,13 @@
   --lf-color-outline:        #E0D5BA;
   --lf-color-outline-strong: #B8AB92;
   --lf-color-outline-icon:   #8A7E66;
+  --lf-color-focus-ring:     #6B58A8;
 
   /* 텍스트 — 따뜻한 잉크 위계 */
   --lf-color-text:           #221C13;
   --lf-color-text-secondary: #6F6552;
-  --lf-color-text-muted:     #9A8E75;
-  --lf-color-text-faint:     #B3A78C;
+  --lf-color-text-muted:     #706652;
+  --lf-color-text-faint:     #716653;
 
   /* 보상 / 벌칙 — 보상=라벤더, 벌칙=살구 */
   --lf-color-reward-container:     #E7DFF6;

@@ -703,8 +703,8 @@
 .lf-input::placeholder { color: var(--lf-color-text-muted); }
 
 .lf-input:focus-visible {
-  outline: 2px solid var(--lf-color-primary);
-  outline-offset: -2px;
+  outline: 2px solid var(--lf-color-focus-ring);
+  outline-offset: var(--lf-space-1);
 }
 
 .lf-textarea {
