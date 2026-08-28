@@ -9,6 +9,7 @@ export interface AccountWithdrawDeps extends Deps {
   accountIdPepper: string;
   accountIdentifier: (actor: string) => Promise<string>;
   deleteAuthUser: (actor: string) => Promise<void>;
+  markAuthDeletionComplete: (actor: string) => Promise<void>;
 }
 
 export function createAccountWithdrawHandler(deps: AccountWithdrawDeps) {
@@ -28,8 +29,9 @@ export function createAccountWithdrawHandler(deps: AccountWithdrawDeps) {
       if (payload === null) throw new Error('INVALID_ACCOUNT_WITHDRAW_RESPONSE');
       try {
         await deps.deleteAuthUser(actor);
+        await deps.markAuthDeletionComplete(actor);
       } catch (raised) {
-        // public 계정은 이미 WITHDRAWN이라 접근은 막혔다. 인증 삭제 장애로 그 사실을 되돌리지 않는다.
+        // 같은 트랜잭션에서 outbox가 생겼으므로 여기서 실패해도 worker가 삭제를 이어간다.
         deps.log.error('auth user deletion failed after account withdrawal', raised);
       }
       return jsonResponse(payload, 200);

@@ -18,7 +18,12 @@ const REPO_ROOT = resolve(__dirname, '../..');
 const FUNCTIONS_DIR = resolve(REPO_ROOT, 'supabase/functions');
 
 // 클라이언트 엔드포인트가 아닌 서버 내부 함수 — pg_cron 배치와 서버 간 호출 전용.
-const INTERNAL_FUNCTIONS = new Set(['push-send', 'evidence-purge']);
+const INTERNAL_FUNCTIONS = new Set([
+  'push-send',
+  'evidence-purge',
+  'purchase-reconcile',
+  'account-delete-retry',
+]);
 
 function dependencyNames(packageJsonPath: string): string[] {
   const pkg = JSON.parse(readFileSync(resolve(REPO_ROOT, packageJsonPath), 'utf8')) as {

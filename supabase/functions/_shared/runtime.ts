@@ -35,7 +35,13 @@ function createSecrets(): Secrets {
   };
 }
 
-const ACTIVE_ACTOR_EXEMPT_RPCS = new Set(['lf_account_withdraw']);
+const ACTIVE_ACTOR_EXEMPT_RPCS = new Set([
+  'lf_account_withdraw',
+  // 탈퇴 뒤에만 실행되는 내부 삭제 outbox다. ACTIVE 검사를 걸면 영원히 claim만 반복한다.
+  'lf_auth_deletion_complete',
+  'lf_auth_deletion_complete_immediate',
+  'lf_auth_deletion_retry',
+]);
 
 function actorArgument(args: Record<string, unknown>): string | null {
   const actor = args['p_actor'] ?? args['p_user_id'];

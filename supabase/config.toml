@@ -207,6 +207,13 @@ verify_jwt = true
 [functions.purchase-verify]
 verify_jwt = true
 
+# Play Voided Purchases API 대사와 Auth 삭제 재시도는 cron 공유 비밀로만 호출한다.
+[functions.purchase-reconcile]
+verify_jwt = false
+
+[functions.account-delete-retry]
+verify_jwt = false
+
 # ============================================================
 # 카카오 프로바이더 블록을 **의도적으로 두지 않는다.**
 #

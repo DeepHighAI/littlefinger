@@ -39,6 +39,14 @@ the decisions and deviations.
   against Type A. The upload-certificate SHA-256 still matches the versionCode 6/8 AABs already
   used for the Play internal track, and the artifact SHA-256 is
   `3FD91C6E482296897257FB6726670DABF5584E05689C5D13436D00D08E46AC4D`.
+- **Review corrections ready locally (2026-08-27; not deployed):** refunded/charged-back Play
+  purchases now lose their slot through the daily Voided Purchases reconciliation ledger; account
+  withdrawal creates an Auth-deletion outbox in the same transaction and retries leased work every
+  15 minutes until deletion succeeds. Play Data Safety now marks the opt-in push token correctly as
+  optional, and the Setlog reference bundle moved from the transient `docs/handoff/` directory to
+  `docs/디자인/`. Gates: typecheck 5 projects · Vitest **107 files / 2,038 tests** · Jest **72
+  suites / 752 tests** · `check:agents` · `git diff --check` — PASS. Migration and both internal
+  workers still require deploy plus the Vault values in `docs/setup/slot-iap-admob-console.md`.
 - PO legibility correction (2026-08-27): shared disclaimer/supporting copy moved from micro
   11.5/16 + regular + `text-faint` to caption 12.5/18 + bold + `text-secondary` across the
   reference, acceptance web, and RN. SCR-W04 browser verification measured 4.88:1 contrast on
@@ -202,7 +210,8 @@ review of the published texts completed the same day.
   session, and KakaoTalk in-app browser fallback copy match the EC-A/I contract.
 - Account lifecycle: withdrawal removes DRAFTs, declines PENDING records and revokes invites,
   withdraws AMEND_PENDING requests, preserves confirmed records, removes device tokens, anonymizes
-  personal data, and fences all later Edge RPC calls. Auth deletion failure cannot restore access.
+  personal data, and fences all later Edge RPC calls. Auth deletion failure cannot restore access;
+  the transactionally-created deletion outbox retries until the Auth identity is actually gone.
 - Re-registration: the same Kakao account receives a new user ID after completed withdrawal and
   does not inherit promises or trust history.
 - Account/safety surfaces: temporary nickname update, terminal promise hide/unhide, shared-record

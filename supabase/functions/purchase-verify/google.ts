@@ -25,6 +25,11 @@ export interface GoogleVerifierConfig {
   now?: () => Date;
 }
 
+export type GoogleAccessTokenConfig = Pick<
+  GoogleVerifierConfig,
+  'serviceAccountJson' | 'fetchImpl' | 'now'
+>;
+
 const OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const ANDROID_PUBLISHER_SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 
@@ -112,19 +117,15 @@ function asPurchase(value: unknown): GoogleProductPurchase | null {
   };
 }
 
-/**
- * 구매 조회. **유효하지 않은 구매는 `null`** (핸들러가 E_VALIDATION 으로 바꾼다),
- * Google 쪽 장애는 throw (껍데기의 500 평탄화로 떨어진다) — 두 실패는 성격이 다르다:
- * 앞은 사용자의 영수증 문제, 뒤는 재시도하면 되는 우리 쪽 사정이다.
- */
-export function createGooglePurchaseVerifier(
-  config: GoogleVerifierConfig,
-): (productId: string, purchaseToken: string) => Promise<GoogleProductPurchase | null> {
+/** 같은 서비스 계정 OAuth 경계를 구매 검증과 취소 구매 대사가 공유한다. */
+export function createGoogleAccessTokenProvider(
+  config: GoogleAccessTokenConfig,
+): () => Promise<string> {
   const account = parseServiceAccount(config.serviceAccountJson);
   const fetchImpl = config.fetchImpl ?? fetch;
   const now = config.now ?? (() => new Date());
 
-  return async function verify(productId, purchaseToken) {
+  return async function accessToken() {
     const assertion = await signedAssertion(account, now().getTime());
     const tokenResponse = await fetchImpl(OAUTH_TOKEN_URL, {
       method: 'POST',
@@ -142,12 +143,29 @@ export function createGooglePurchaseVerifier(
     if (typeof accessToken !== 'string' || accessToken.length === 0) {
       throw new Error('GOOGLE_OAUTH_TOKEN_MALFORMED');
     }
+    return accessToken;
+  };
+}
+
+/**
+ * 구매 조회. **유효하지 않은 구매는 `null`** (핸들러가 E_VALIDATION 으로 바꾼다),
+ * Google 쪽 장애는 throw (껍데기의 500 평탄화로 떨어진다) — 두 실패는 성격이 다르다:
+ * 앞은 사용자의 영수증 문제, 뒤는 재시도하면 되는 우리 쪽 사정이다.
+ */
+export function createGooglePurchaseVerifier(
+  config: GoogleVerifierConfig,
+): (productId: string, purchaseToken: string) => Promise<GoogleProductPurchase | null> {
+  const fetchImpl = config.fetchImpl ?? fetch;
+  const accessToken = createGoogleAccessTokenProvider(config);
+
+  return async function verify(productId, purchaseToken) {
+    const token = await accessToken();
 
     const purchaseResponse = await fetchImpl(
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/` +
         `${encodeURIComponent(config.packageName)}/purchases/products/` +
         `${encodeURIComponent(productId)}/tokens/${encodeURIComponent(purchaseToken)}`,
-      { headers: { authorization: `Bearer ${accessToken}` } },
+      { headers: { authorization: `Bearer ${token}` } },
     );
     // 400·404·410 은 "그런 구매가 없다/이미 무효다" — 사용자 영수증 문제라 null 로 돌려
     // E_VALIDATION 이 되게 한다. 그 밖의 비정상은 Google 쪽 사정이므로 던진다.

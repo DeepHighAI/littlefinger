@@ -18,7 +18,10 @@ export function createAccountWithdrawDeps(): AccountWithdrawDeps {
     },
     deleteAuthUser: async (actor) => {
       const { error } = await admin.auth.admin.deleteUser(actor);
-      if (error !== null) throw error;
+      if (error !== null && error.status !== 404) throw error;
+    },
+    markAuthDeletionComplete: async (actor) => {
+      await base.rpc('lf_auth_deletion_complete_immediate', { p_user_id: actor });
     },
   };
 }

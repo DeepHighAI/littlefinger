@@ -28,7 +28,7 @@ unless the code has changed since 2026-08-23.
 | Personal info → Email address | Yes | No | **Optional** | Account management only | stored only in Supabase Auth when the user opts in at Kakao consent; the app never reads it (CLAUDE.md §6-1) |
 | Photos and videos → Photos | Yes | No | Optional | App functionality (이행 증빙) | EXIF-stripped, private bucket, 10-min signed URLs (`evidence-*` functions) |
 | App activity → Other user-generated content | Yes | No | Required for the feature | App functionality (약속 기록) | promises/approvals/fulfillments tables |
-| Device or other IDs → Device or other IDs | Yes | No | Required for push | App functionality (푸시) | Expo push token → `device-token-register`, relayed via exp.host/FCM |
+| Device or other IDs → Device or other IDs | Yes | No | **Optional** | App functionality (푸시) | notification permission can be denied without blocking app use; only an opted-in device registers an Expo push token via `device-token-register`, relayed through Expo/FCM |
 | Device or other IDs → Advertising ID | Yes (when ads shown) | **Yes → Google (AdMob)** | Optional | Advertising | `react-native-google-mobile-ads` 16.3.3 ships in the build; UMP consent gate before load (`apps/mobile/src/lib/admob-loader.ts`); slot dark while `ads_enabled=false` |
 
 Declare **nothing** for: location (EXIF stripped by design), contacts, messages, financial info,

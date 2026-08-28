@@ -273,6 +273,39 @@ describe('lf_slot_grant', () => {
   });
 });
 
+describe('lf_slot_revoke', () => {
+  test('환불·차지백은 구매 행을 보존하면서 슬롯 권리만 멱등 회수한다', async () => {
+    const buyer = await createUser(db, '슬롯환불');
+    const token = `token-${randomUUID()}`;
+    await grant(buyer, `order-${randomUUID()}`, token);
+    expect((await slotStatus(buyer)).capacity).toBe(FREE_PROMISE_SLOTS + 1);
+
+    const first = await db.asService(
+      `select public.lf_slot_revoke($1, now(), 1, 1) as revoked`,
+      [token],
+    );
+    const second = await db.asService(
+      `select public.lf_slot_revoke($1, now(), 1, 1) as revoked`,
+      [token],
+    );
+
+    expect(first.rows[0]?.['revoked']).toBe(true);
+    expect(second.rows[0]?.['revoked']).toBe(false);
+    expect((await slotStatus(buyer)).capacity).toBe(FREE_PROMISE_SLOTS);
+    expect((await db.asAdmin(
+      `select count(*)::int as n from public.slot_purchases where purchase_token = $1`,
+      [token],
+    )).rows[0]?.['n']).toBe(1);
+  });
+
+  test('다른 앱의 알 수 없는 토큰은 아무 권리도 바꾸지 않는다', async () => {
+    const result = await db.asService(
+      `select public.lf_slot_revoke('unknown-token', now(), 0, 0) as revoked`,
+    );
+    expect(result.rows[0]?.['revoked']).toBe(false);
+  });
+});
+
 // ══════════════════════════════════════════════════════════════
 // RLS — 구매 이력은 본인만
 // ══════════════════════════════════════════════════════════════
@@ -341,6 +374,7 @@ describe('슬롯 권한 기준선', () => {
       'public.lf_slot_capacity(uuid)',
       'public.lf_slot_status(uuid)',
       'public.lf_slot_grant(uuid, text, text, text, timestamptz)',
+      'public.lf_slot_revoke(text, timestamptz, integer, integer)',
       'public.lf_assert_slot_available(uuid)',
     ];
     for (const signature of signatures) {
@@ -355,5 +389,28 @@ describe('슬롯 권한 기준선', () => {
       expect(row.auth_ok, `${signature} 의 authenticated 실행 권한`).toBe(false);
       expect(row.service_ok, `${signature} 의 service_role 실행 권한`).toBe(true);
     }
+  });
+
+  test('취소 구매 원장은 Data API 역할에서 직접 읽거나 쓸 수 없다', async () => {
+    const buyer = await createUser(db, '회수원장권한');
+    await expect(
+      db.asUser(buyer, `select * from public.slot_purchase_revocations`),
+    ).rejects.toThrow(/permission denied/u);
+  });
+
+  test('내부 대사 스케줄은 재적용해도 정확히 두 작업만 한 건씩 남긴다', async () => {
+    await db.asService(`select public.lf_schedule_reconciliation_workers()`);
+    await db.asService(`select public.lf_schedule_reconciliation_workers()`);
+    const { rows } = await db.asAdmin(
+      `select jobname, count(*)::int as count, min(schedule) as schedule
+         from cron.job
+        where jobname in ('lf-purchase-reconcile', 'lf-account-delete-retry')
+        group by jobname
+        order by jobname`,
+    );
+    expect(rows).toEqual([
+      { jobname: 'lf-account-delete-retry', count: 1, schedule: '*/15 * * * *' },
+      { jobname: 'lf-purchase-reconcile', count: 1, schedule: '17 3 * * *' },
+    ]);
   });
 });

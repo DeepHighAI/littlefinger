@@ -90,11 +90,13 @@ describe('account and safety Edge Functions', () => {
   test('탈퇴는 ACCOUNT_ID_PEPPER 해시만 RPC에 보내고 auth 삭제 실패와 응답을 분리한다', async () => {
     const s = spy({ status: 'WITHDRAWN' });
     const deleteAuthUser = vi.fn().mockRejectedValue(new Error('auth unavailable'));
+    const markAuthDeletionComplete = vi.fn();
     const accountDeps = {
       ...s.deps,
       accountIdPepper: 'account-pepper',
       accountIdentifier: vi.fn().mockResolvedValue('kakao-123'),
       deleteAuthUser,
+      markAuthDeletionComplete,
     };
     const response = await withdraw!.createAccountWithdrawHandler!(accountDeps as never)(
       request('account-withdraw', {}),
@@ -111,7 +113,24 @@ describe('account and safety Edge Functions', () => {
       },
     }]);
     expect(deleteAuthUser).toHaveBeenCalledWith(ACTOR_ID);
+    expect(markAuthDeletionComplete).not.toHaveBeenCalled();
     expect(s.logs).toHaveLength(1);
+  });
+
+  test('Auth 즉시 삭제가 성공하면 outbox도 완료 처리한다', async () => {
+    const s = spy({ status: 'WITHDRAWN' });
+    const markAuthDeletionComplete = vi.fn().mockResolvedValue(undefined);
+    const response = await withdraw!.createAccountWithdrawHandler!({
+      ...s.deps,
+      accountIdPepper: 'account-pepper',
+      accountIdentifier: vi.fn().mockResolvedValue('google-123'),
+      deleteAuthUser: vi.fn().mockResolvedValue(undefined),
+      markAuthDeletionComplete,
+    } as never)(request('account-withdraw', {}));
+
+    expect(response.status).toBe(200);
+    expect(markAuthDeletionComplete).toHaveBeenCalledWith(ACTOR_ID);
+    expect(s.logs).toEqual([]);
   });
 
   test('닉네임·숨김·차단 요청은 JWT actor와 엄격한 본문만 RPC에 전달한다', async () => {

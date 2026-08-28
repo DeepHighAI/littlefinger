@@ -73,6 +73,35 @@ the domain AdMob crawls for `app-ads.txt` (step 7).
    `*service-account*.json`, but the baseline is deleting it once the secret is set).
    Setting the secret restarts `purchase-verify`, which until then fails at boot by design.
 
+4. Generate two unrelated random worker secrets and set the Edge runtime values:
+
+   ```bash
+   npx supabase secrets set PURCHASE_RECONCILE_SECRET='<random-secret>' \
+     ACCOUNT_DELETE_RETRY_SECRET='<different-random-secret>'
+   ```
+
+5. In Supabase Vault, add the deployed function URLs and the exact matching secret values:
+
+   | Vault name | Value |
+   |---|---|
+   | `purchase_reconcile_url` | `https://<project-ref>.supabase.co/functions/v1/purchase-reconcile` |
+   | `purchase_reconcile_secret` | same value as `PURCHASE_RECONCILE_SECRET` |
+   | `account_delete_retry_url` | `https://<project-ref>.supabase.co/functions/v1/account-delete-retry` |
+   | `account_delete_retry_secret` | same value as `ACCOUNT_DELETE_RETRY_SECRET` |
+
+   The migration schedules purchase reconciliation daily and Auth deletion retry every 15 minutes.
+   Missing Vault values make the cron call fail closed; they never open either worker publicly.
+
+6. Deploy the two workers with the repository-required API bundler, then apply the migration:
+
+   ```bash
+   npx supabase functions deploy purchase-reconcile --use-api
+   npx supabase functions deploy account-delete-retry --use-api
+   npx supabase db push
+   ```
+
+   Do **not** use `supabase config push`; authentication settings remain Dashboard-owned.
+
 ## Step 6 — Purchase E2E (first real verification)
 
 On a device with a license-tester account and the closed-track build: send promises until the 6th

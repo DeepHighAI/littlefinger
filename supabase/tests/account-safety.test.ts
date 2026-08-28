@@ -145,10 +145,66 @@ describe('account lifecycle completion', () => {
     expect((await db.asAdmin(`select status::text from public.amend_requests where promise_id = $1`, [amend])).rows).toEqual([{ status: 'WITHDRAWN' }]);
     expect((await db.asAdmin(`select id from public.device_tokens where user_id = $1`, [actor])).rows).toEqual([]);
 
+    expect((await db.asAdmin(
+      `select status, attempt_count from public.auth_deletion_outbox where user_id = $1`,
+      [actor],
+    )).rows).toEqual([{ status: 'PENDING', attempt_count: 0 }]);
+
     await db.asAdmin(`delete from auth.users where id = $1`, [actor]);
     expect((await db.asAdmin(`select id from public.users where id = $1`, [actor])).rows).toHaveLength(1);
     expect((await db.asUser(actor, `select id from public.users where id = $1`, [actor])).rows).toEqual([]);
     await expect(db.asService(`select public.lf_assert_actor($1)`, [actor])).rejects.toThrow(/E_FORBIDDEN/u);
+  });
+
+  test('Auth 삭제 outbox는 lease 실패를 재예약하고 성공할 때만 완료된다', async () => {
+    const actor = await createUser(db, '삭제재시도');
+    await rpc('lf_account_withdraw', [actor, `withdrawn:${'b'.repeat(64)}`]);
+
+    const now = '2099-08-27T00:00:00Z';
+    const first = await db.asService(
+      `select public.lf_auth_deletion_claim($1::timestamptz, 10) as payload`,
+      [now],
+    );
+    const firstItem = (first.rows[0]?.['payload'] as { items: { user_id: string; lease_id: string }[] })
+      .items.find((item) => item.user_id === actor);
+    expect(firstItem?.user_id).toBe(actor);
+
+    const retried = await db.asService(
+      `select public.lf_auth_deletion_retry($1, $2, 'AUTH_UNAVAILABLE', $3::timestamptz) as ok`,
+      [actor, firstItem?.lease_id, now],
+    );
+    expect(retried.rows[0]?.['ok']).toBe(true);
+    expect((await db.asAdmin(
+      `select status, attempt_count, last_error from public.auth_deletion_outbox where user_id = $1`,
+      [actor],
+    )).rows).toEqual([{ status: 'PENDING', attempt_count: 1, last_error: 'AUTH_UNAVAILABLE' }]);
+
+    const second = await db.asService(
+      `select public.lf_auth_deletion_claim($1::timestamptz, 10) as payload`,
+      ['2099-08-27T00:02:00Z'],
+    );
+    const secondItem = (second.rows[0]?.['payload'] as { items: { user_id: string; lease_id: string }[] })
+      .items.find((item) => item.user_id === actor);
+    const completed = await db.asService(
+      `select public.lf_auth_deletion_complete($1, $2) as ok`,
+      [actor, secondItem?.lease_id],
+    );
+    expect(completed.rows[0]?.['ok']).toBe(true);
+    expect((await db.asAdmin(
+      `select status, processed_at is not null as processed
+         from public.auth_deletion_outbox where user_id = $1`,
+      [actor],
+    )).rows).toEqual([{ status: 'PROCESSED', processed: true }]);
+  });
+
+  test('Auth 삭제 outbox는 Data API와 service_role의 직접 표 접근을 모두 거부한다', async () => {
+    const actor = await createUser(db, '삭제원장권한');
+    await expect(
+      db.asUser(actor, `select * from public.auth_deletion_outbox`),
+    ).rejects.toThrow(/permission denied/u);
+    await expect(
+      db.asService(`select * from public.auth_deletion_outbox`),
+    ).rejects.toThrow(/permission denied/u);
   });
 
   test('EC-A07 같은 카카오 계정 재가입은 새 user_id를 받고 이전 기록을 승계하지 않는다', async () => {

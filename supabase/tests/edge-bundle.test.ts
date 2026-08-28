@@ -70,6 +70,8 @@ const VERIFY_JWT: Record<string, boolean> = {
   'user-block': true,
   'safety-report': true,
   'evidence-purge': false,
+  'purchase-reconcile': false,
+  'account-delete-retry': false,
   // 로그인 뒤 자기 행 보정이다. 익명에게 열리면 아무 계정의 대진값이나 남의 요청으로
   // 채워질 수 있다 — p_user_id 는 JWT 에서만 온다.
   'user-provision': true,
@@ -80,7 +82,9 @@ const ENTRYPOINTS = Object.keys(VERIFY_JWT).map((slug) => `${slug}/index.ts`);
 test('WITHDRAWN JWT는 탈퇴 재시도 외 모든 사용자 RPC보다 먼저 ACTIVE 검사를 거친다', () => {
   const runtime = readFileSync(join(FUNCTIONS_DIR, '_shared/runtime.ts'), 'utf8');
 
-  expect(runtime).toContain("const ACTIVE_ACTOR_EXEMPT_RPCS = new Set(['lf_account_withdraw'])");
+  expect(runtime).toContain("'lf_account_withdraw'");
+  expect(runtime).toContain("'lf_auth_deletion_complete'");
+  expect(runtime).toContain("'lf_auth_deletion_retry'");
   expect(runtime).toMatch(/args\['p_actor'\]\s*\?\?\s*args\['p_user_id'\]/u);
   expect(runtime).toContain("admin.rpc('lf_assert_actor', { p_user_id: actor })");
   expect(runtime.indexOf("admin.rpc('lf_assert_actor'"))

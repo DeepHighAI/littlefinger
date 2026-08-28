@@ -17,7 +17,8 @@ policy choice here is a PO decision recorded as a spec amendment, not an interpr
 `used` counts promises where I am the **creator** and the status is in-progress per §4-1-4
 (`PENDING · ACTIVE · AMEND_PENDING · CHECKING`). Terminal states return the slot. DRAFT is excluded
 — the EC-H05 DRAFT-20 cap keeps that role. The accepting partner never consumes a slot.
-`capacity = FREE_PROMISE_SLOTS(5) + Σ granted_slots` from purchases; purchases are permanent.
+`capacity = FREE_PROMISE_SLOTS(5) + Σ granted_slots` from purchases that have not been voided.
+Completed purchases persist, while refunded or charged-back purchases lose their slot entitlement.
 
 Enforcement lives in **one place**: `lf_invite_issue_row` (the T-02 body), because all three send
 entry points (`lf_promise_create` send branch, `lf_promise_invite`, `lf_promise_draft_update` send
@@ -68,6 +69,12 @@ needed in the original for refund reconciliation and is not personal data. The
 `GOOGLE_PLAY_SERVICE_ACCOUNT` key JSON lives only in Supabase Secrets (`.env.example` forbidden
 list + `.gitignore` patterns added).
 
+`purchase-reconcile` runs daily against Google Play's Voided Purchases API with an overlapping
+30-day window. `slot_purchase_revocations.purchase_id` makes the overlap idempotent; capacity
+excludes a purchase as soon as its revocation is recorded. Existing promises are never deleted or
+rewritten if capacity falls below usage — the next send stays blocked until usage drops or another
+valid slot is purchased.
+
 ### D6 — Ad placements expanded to A02 + A07 + A08 (PO 2026-08-24, F-12/§3 amendment)
 
 One native-ad slot at the bottom of 홈(SCR-A02), 알림함(SCR-A07), and 프로필(SCR-A08). The P4
@@ -86,6 +93,9 @@ the component does not render at all.
   2026-08-25).
 - New Edge Functions `slot-status` and `purchase-verify` (deployed; `purchase-verify` boots only
   once `GOOGLE_PLAY_SERVICE_ACCOUNT` is set).
+- Refund reconciliation adds the append-only `slot_purchase_revocations` ledger and internal
+  `purchase-reconcile` worker. The migration schedules it daily; its URL and shared secret live in
+  Vault, and `verify_jwt=false` is paired with constant-time header authentication.
 - Shared contract: `FREE_PROMISE_SLOTS`, `SLOT_PRODUCT_ID`, `SLOT_PRICE_KRW_DEFAULT` (display
   fallback only — the store's localized price is authoritative), `SlotStatusResponse` +
   `asSlotStatusResponse`, `ENDPOINT.slotStatus/purchaseVerify`.

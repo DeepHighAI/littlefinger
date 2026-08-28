@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import type { Deps } from '../functions/_shared/deps.ts';
+import { createGoogleVoidedPurchaseLister } from '../functions/purchase-reconcile/google.ts';
 import type { GoogleProductPurchase } from '../functions/purchase-verify/google.ts';
 import { createGooglePurchaseVerifier } from '../functions/purchase-verify/google.ts';
 import { createPurchaseVerifyHandler } from '../functions/purchase-verify/handler.ts';
@@ -286,5 +287,49 @@ describe('createGooglePurchaseVerifier', () => {
     });
 
     await expect(verify('promise_slot_plus1', 'x')).rejects.toThrow('GOOGLE_PLAY_API_503');
+  });
+});
+
+describe('createGoogleVoidedPurchaseLister', () => {
+  test('OAuth는 한 번만 받고 nextPageToken 끝까지 순회한다', async () => {
+    const calls: Request[] = [];
+    let page = 0;
+    const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init);
+      calls.push(request);
+      if (request.url.startsWith('https://oauth2.googleapis.com/token')) {
+        return new Response(JSON.stringify({ access_token: 'ya29.voided' }), { status: 200 });
+      }
+      page += 1;
+      return new Response(JSON.stringify(page === 1 ? {
+        voidedPurchases: [{
+          purchaseToken: 'token-a',
+          voidedTimeMillis: '1787788800000',
+          voidedSource: 1,
+          voidedReason: 1,
+        }],
+        tokenPagination: { nextPageToken: 'next' },
+      } : {
+        voidedPurchases: [{
+          purchaseToken: 'token-b',
+          voidedTimeMillis: '1787788801000',
+          voidedSource: 0,
+          voidedReason: 0,
+        }],
+      }), { status: 200 });
+    }) as typeof fetch;
+    const list = createGoogleVoidedPurchaseLister({
+      serviceAccountJson: await testServiceAccountJson(),
+      packageName: 'com.littlefinger.app',
+      fetchImpl,
+      now: () => new Date('2026-08-27T00:00:00Z'),
+    });
+
+    const purchases = await list(1785196800000, 1787788800000);
+
+    expect(purchases.map((item) => item.purchaseToken)).toEqual(['token-a', 'token-b']);
+    expect(calls).toHaveLength(3);
+    expect(calls[2]?.url).toContain('pageSelection.token=next');
+    expect(calls[1]?.headers.get('authorization')).toBe('Bearer ya29.voided');
   });
 });
