@@ -979,7 +979,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                       style={styles.activeApproval}
                     >
                       <LfChip
-                        label={`${approval.actor.nickname} · ${LABEL.approvalAction[approval.action]}`}
+                        label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]} · ${LABEL.approvalAction[approval.action]}`}
                         tone="outline"
                       />
                       <LfText variant="caption">{formatDetailInstant(approval.acted_at)}</LfText>
