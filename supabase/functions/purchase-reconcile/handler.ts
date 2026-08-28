@@ -3,6 +3,11 @@ import { ApiError } from '../_shared/errors.ts';
 import { corsPreflight, failureResponse, jsonResponse } from '../_shared/http.ts';
 import type { GoogleVoidedPurchase } from './google.ts';
 
+// Google 이 받아주는 창은 30일이고, 정확히 30일을 보내면 요청이 처리되는 사이에 흐른
+// 시간만큼 이미 범위 밖이다. 하루를 빼서 경계에서 물러선다 — 원장 PK 가 겹침을 흡수하므로
+// 창이 좁아져도 놓치는 구매는 없다.
+const RECONCILE_WINDOW_DAYS = 29;
+
 export interface PurchaseReconcileDeps extends Pick<Deps, 'rpc' | 'log' | 'now'> {
   reconcileSecret: string;
   listVoidedPurchases: (
@@ -35,7 +40,7 @@ export function createPurchaseReconcileHandler(deps: PurchaseReconcileDeps) {
       }
 
       const endTimeMs = deps.now().getTime();
-      const startTimeMs = endTimeMs - 30 * 24 * 60 * 60 * 1000;
+      const startTimeMs = endTimeMs - RECONCILE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
       const purchases = await deps.listVoidedPurchases(startTimeMs, endTimeMs);
       let revokedCount = 0;
 

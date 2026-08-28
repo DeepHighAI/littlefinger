@@ -70,7 +70,11 @@ needed in the original for refund reconciliation and is not personal data. The
 list + `.gitignore` patterns added).
 
 `purchase-reconcile` runs daily against Google Play's Voided Purchases API with an overlapping
-30-day window. `slot_purchase_revocations.purchase_id` makes the overlap idempotent; capacity
+**29**-day window. 30 is what the API accepts and therefore what the first implementation sent, but
+a `startTime` of exactly `now - 30 days` is already outside the window by the time Google evaluates
+it — measured live 2026-08-28, where 30 failed the whole call and 29 returned 200. Backing off one
+day costs nothing because the ledger's primary key absorbs the overlap.
+`slot_purchase_revocations.purchase_id` makes the overlap idempotent; capacity
 excludes a purchase as soon as its revocation is recorded. Existing promises are never deleted or
 rewritten if capacity falls below usage — the next send stays blocked until usage drops or another
 valid slot is purchased.

@@ -231,6 +231,9 @@ dependency but maps its failure to a distinguishable code, and call that instead
 an invalid purchase token with 422 `E_VALIDATION` — a response only reachable *after* a successful
 Google round trip. One call proved OAuth healthy and moved the whole suspect set onto the
 `purchases/voidedpurchases` endpoint — which both needs a Play Console permission
-(financial data / orders) that `purchases/products` does not, **and** is called with a `startTime`
+(financial data / orders) that `purchases/products` does not, **and** was called with a `startTime`
 of exactly `now - 30 days`, the edge of the window Google accepts. The probe cannot separate those
-two; only the status code can.
+two, so the cheaper candidate was tested by deploying it: **29 days returned 200 where 30 had
+failed**, which answered both questions at once — the boundary was the bug, and the Play Console
+permission was there all along. When a status code is unreadable, a one-line change that only one
+hypothesis predicts is faster than any amount of log archaeology.

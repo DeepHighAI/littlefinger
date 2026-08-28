@@ -59,16 +59,12 @@ the decisions and deviations.
     `account-delete-retry` returns 200 `{"claimed_count":0,...}`, and the `*/15` cron job fired at
     22:15 KST with `net._http_response.status_code = 200`, proving the Vault → pg_net → worker
     chain end to end.
-  - **Open — `purchase-reconcile` fails at the Google call.** A correct-secret invocation returns
-    500 `E_INTERNAL`. The service-account OAuth is not the cause: probing `purchase-verify` with an
-    invalid purchase token returned 422 `E_VALIDATION`, which is only reachable after a successful
-    Play API round trip. So the failure is `purchases/voidedpurchases` itself, and two candidates
-    remain untested: (1) the Play Console permission that endpoint requires and
-    `purchases/products` does not — Step 5 of `docs/setup/slot-iap-admob-console.md` asks for it,
-    but it has never been confirmed granted; (2) our own `startTime`, which is set to exactly
-    `now - 30 days` and therefore sits on the boundary of the window Google accepts. The underlying
-    status code would separate them, and it is not recoverable from logs — see
-    `docs/notes/environment-gotchas.md`.
+  - `purchase-reconcile` first answered a correct-secret invocation with 500 `E_INTERNAL`. The
+    cause was our own reconciliation window: a `startTime` of exactly `now - 30 days` is already
+    outside the range Google accepts by the time the request is evaluated. Narrowing it to **29
+    days** returned 200 `{"checked_count":0,"revoked_count":0}` on the same deployment, which also
+    proves the Play Console financial-data permission is granted. The window is pinned by a test
+    and recorded in ADR 0009; the diagnosis path is in `docs/notes/environment-gotchas.md`.
 - PO legibility correction (2026-08-27): shared disclaimer/supporting copy moved from micro
   11.5/16 + regular + `text-faint` to caption 12.5/18 + bold + `text-secondary` across the
   reference, acceptance web, and RN. SCR-W04 browser verification measured 4.88:1 contrast on

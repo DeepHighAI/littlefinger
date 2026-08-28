@@ -71,6 +71,22 @@ describe('purchase-reconcile', () => {
     expect(listVoidedPurchases).not.toHaveBeenCalled();
     expect(rpc).not.toHaveBeenCalled();
   });
+
+  // 30일은 Google 이 거절한다(2026-08-28 라이브 확인). 이 값을 되돌리면 워커가 통째로 죽는다.
+  test('대사 창은 Google 경계에서 하루 물러선 29일이다', async () => {
+    const listVoidedPurchases = vi.fn().mockResolvedValue([]);
+    await createPurchaseReconcileHandler({
+      reconcileSecret: 'right-secret',
+      now: () => NOW,
+      log,
+      listVoidedPurchases,
+      rpc: vi.fn(),
+    })(internalRequest('x-purchase-reconcile-secret', 'right-secret'));
+
+    const [startTimeMs, endTimeMs] = listVoidedPurchases.mock.calls[0] as [number, number];
+    expect(endTimeMs).toBe(NOW.getTime());
+    expect(endTimeMs - startTimeMs).toBe(29 * 24 * 60 * 60 * 1000);
+  });
 });
 
 describe('account-delete-retry', () => {
