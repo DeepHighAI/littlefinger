@@ -9,7 +9,7 @@ The PO commissioned a full visual direction change and confirmed the "잉크 & �
 sticker) concept: a cream paper canvas, a single warm-ink foreground, butter/lavender/apricot
 sticker containers, thick ink borders with hard offset "sticker" shadows, a black filled CTA, and
 Gaegu (400/700) as the handwriting brand typeface. The deliverable arrived as a high-fidelity
-reference bundle (`docs/handoff/setlog-restyle/`, landed in git before application) covering six
+reference bundle (`docs/디자인/setlog-restyle/`, landed in git before application) covering six
 screens — SCR-A00·A01·A02·A03·A05(ACTIVE)·A08 — plus a complete token value swap.
 
 This is the third PO-approved restyle after Fresh Green (2026-08-18) and Karrot/palette A

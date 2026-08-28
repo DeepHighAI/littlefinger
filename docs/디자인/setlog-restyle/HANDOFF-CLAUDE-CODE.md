@@ -77,7 +77,7 @@ littlefinger 저장소의 기존 환경(React Native + Expo 앱, Vite 수락 웹
 ## Claude Code에 붙여넣을 프롬프트 (예시)
 
 ```
-docs/handoff/에 setlog-restyle 번들을 풀어뒀어. HANDOFF-CLAUDE-CODE.md를 읽고
+docs/디자인/에 setlog-restyle 번들을 풀어뒀어. HANDOFF-CLAUDE-CODE.md를 읽고
 그 절차대로 "잉크 & 스티커" 리스타일을 반영해줘. 순서: (1) design-reference에
 번들 반영 + setlog-restyle.css를 components.css에 병합, (2) tokens.ts / 웹 tokens.css
 미러 + tokens.test.ts 이동, (3) Gaegu 폰트 로드, (4) Lf* 컴포넌트와 컨펌 6화면
