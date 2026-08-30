@@ -1045,6 +1045,24 @@
 
 .lf-ad-slot .material-symbols-rounded { font-size: 18px; color: var(--lf-color-outline-icon); }
 
+/* 홈 인피드 배너 — 진행·대기 탭이 6건 이상일 때 5번째 카드(임박 배너 포함) 뒤 1구좌 (ADR 0015 D7).
+   ads_enabled=false·SDK 실패·no-fill 이면 렌더하지 않고 빈 자리도 남기지 않는다.
+   외곽 치수는 .lf-ad-slot 과 같고, 리스트 행이라 좌우 여백만 .lf-home__row 를 따른다. */
+.lf-home__ad {
+  list-style: none;
+  margin: 0 var(--lf-gutter-app) var(--lf-space-5);
+  border: 2px dashed var(--lf-color-outline-strong);
+  border-radius: var(--lf-radius-md);
+  padding: var(--lf-space-4) var(--lf-space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-home__ad .material-symbols-rounded { font-size: 18px; color: var(--lf-color-outline-icon); }
+
 /* -------------------------------------------------------------
    COMPARE — 변경 전/후 (AMEND_PENDING) · 양측 주장 (DISPUTED)
    ------------------------------------------------------------- */

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOD-05 혜택 시트 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-support.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<!-- ADR 0015 (PO 2026-08-30): 혜택 시트. 두 모드가 같은 골격을 쓴다 —
+     DURATION(약속 기간 늘리기: SCR-A03 발송이 E_END_DATE_RANGE 에 막혔을 때, 작성자만 광고 가능)과
+     RETENTION(내 기록 보관하기: SCR-A05 보관 행의 [보관 기간 늘리기]). 이 파일은 DURATION 을 보여 준다.
+     보상형 광고는 사용자가 직접 시작하는 혜택이라 신뢰 순간 시트 안에 들어올 수 있다(§8 P4 개정, D7).
+     재촉·타이머·유도 문구 없이 규칙만 서술한다. 광고를 볼 수 없으면 잠김이고 무료 대체 경로는 없다(D6).
+     가격은 스토어 현지화 가격이 정본이고 ₩2,000 은 표시 폴백이다(D5). 문구 출처: promise-entitlement-labels.ts(ko). -->
+<body class="lf-page" data-screen-id="MOD-05" data-screen-name="혜택 시트 · 약속 기간">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <!-- 배경 — 약속 작성(조건 단계) 화면이 비치는 자리표시자 -->
+      <div class="lf-backdrop" aria-hidden="true">
+        <header class="lf-appbar">
+          <span class="lf-appbar__title">약속 만들기</span>
+        </header>
+        <div class="lf-backdrop__body">
+          <div class="lf-backdrop__block lf-backdrop__block--60"></div>
+          <div class="lf-backdrop__block lf-backdrop__block--96"></div>
+          <div class="lf-backdrop__block lf-backdrop__block--120"></div>
+        </div>
+      </div>
+
+      <div class="lf-scrim"></div>
+
+      <div class="lf-sheet" role="dialog" aria-modal="true" aria-labelledby="mod05-title">
+        <div class="lf-sheet__handle" aria-hidden="true"></div>
+
+        <div class="lf-row">
+          <h1 class="lf-sheet__title lf-grow" id="mod05-title">약속 기간 늘리기</h1>
+          <button class="lf-icon-button" type="button" aria-label="닫기">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </div>
+
+        <!-- 서버가 E_END_DATE_RANGE 로 막아 열린 경우(reason=END_DATE_RANGE)에만 보이는 안내.
+             공용 오류 문구는 중립이라 광고·구매 규칙은 이 시트가 직접 말한다 -->
+        <p class="lf-slot-sheet__notice">고른 종료일이 지금 설정할 수 있는 범위를 넘었어요. 광고 1편 = 30일 연장 · 영구 보관 구매 = 종료일 무제한</p>
+
+        <p class="lf-body--secondary">광고 1개를 보면 이 약속의 종료일 범위가 30일 늘어나요.</p>
+
+        <!-- 현재 상한 — 만든 날 + 30일(END_DATE_FREE_DAYS). 보상마다 30일씩 누적된다(D2) -->
+        <p class="lf-slot-sheet__usage">
+          <span class="material-symbols-rounded" aria-hidden="true">event</span>
+          <span>현재 설정 가능한 마지막 날 ·</span>
+          <span>2026-08-11 (화)</span>
+        </p>
+
+        <!-- 보상형 광고 CTA — 작성자에게만 보인다. 상대방은 "종료일 범위는 작성자만 늘릴 수 있어요." 캡션만 본다 -->
+        <button type="button" class="lf-btn lf-btn--outlined lf-btn--block">광고 보고 30일 늘리기</button>
+
+        <div class="lf-slot-sheet__offer">
+          <p class="lf-subtitle">영구 보관</p>
+          <p class="lf-caption">이 약속을 내 계정에 영구 보관해요. 작성자가 구매하면 종료일 없는 약속도 제안할 수 있어요.</p>
+          <!-- 가격은 Google Play 현지화 가격이 정본 — 스토어 값을 못 받았을 때만 ₩2,000 폴백을 보여 준다 -->
+          <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">₩2,000에 영구 보관</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

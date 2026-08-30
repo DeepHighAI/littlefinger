@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-W05 증인 확인 · 종료일 없음 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/web.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<!-- ADR 0015 D2 (PO 2026-08-30): 종료일 없는 약속의 증인 화면. 증인은 D-Day 대신 "종료일 없음" 텍스트를 본다.
+     증인에게는 마무리 요청 권한이 없다(D3 — 당사자만). 광고·결제 없음, 읽기 전용, 판정 권한 없음은 그대로다.
+     문구 출처: scr-w05-labels.ts(ko). -->
+<body class="lf-page" data-screen-id="SCR-W05" data-screen-name="증인 확인 · 종료일 없음">
+
+<div class="lf-device">
+  <div class="lf-device__viewport">
+
+    <!-- 카톡 인앱 브라우저에서 열리는 화면. 광고 금지, 주 CTA 1개(확인 서명).
+         증인은 읽기 전용 — 판정 권한이 없음을 배너로 명시한다. -->
+    <div class="lf-screen">
+
+      <div class="lf-browserbar">
+        <button class="lf-icon-button" type="button" aria-label="닫기">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+        <div class="lf-browserbar__identity">
+          <span class="lf-browserbar__name">리틀핑거</span>
+          <span class="lf-browserbar__host">littlefinger-app.web.app</span>
+        </div>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </div>
+
+      <div class="lf-screen__body lf-screen__body--web">
+
+        <h1 class="lf-title lf-title--web">증인으로 약속을 확인해 주세요</h1>
+
+        <!-- 증인은 판정 권한이 없다는 점을 명확히 (요청서 §3) -->
+        <div class="lf-info-banner">
+          <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+          <p class="lf-info-banner__text">증인은 내용을 확인만 해요 — 누가 옳은지 판정하지 않아요</p>
+        </div>
+
+        <div class="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
+          <div class="lf-card__header">
+            <span class="lf-chip lf-chip--neutral">읽기 전용</span>
+            <span class="lf-chip lf-chip--status">진행 중</span>
+          </div>
+          <h2 class="lf-subtitle">매주 일요일 부모님께 안부 전화하기</h2>
+          <p class="lf-body">매주 일요일 저녁에 각자 부모님께 안부 전화를 한다. 못 한 주는 다음 날 안에 한다.</p>
+          <hr class="lf-divider">
+          <!-- 종료일이 없으니 날짜 대신 "종료일 없음" — D-Day 도 없다 -->
+          <div class="lf-meta__row">
+            <span class="material-symbols-rounded" aria-hidden="true">event</span>
+            <span class="lf-body--secondary">카테고리 습관 · 종료일 없음 · 지킬 사람 둘 다</span>
+          </div>
+          <div class="lf-row lf-gap-2">
+            <span class="lf-avatar lf-avatar--sm lf-avatar--solid">지</span>
+            <span class="lf-avatar lf-avatar--sm lf-avatar--alt">민</span>
+            <span class="lf-caption">지우 · 민준의 약속 · 2026-07-05 20:31 (KST) 확인</span>
+          </div>
+        </div>
+
+        <p class="lf-caption lf-text-center">확인하면 확인 시각이 기록돼요</p>
+
+      </div>
+
+      <div class="lf-screen__actions lf-screen__actions--web">
+        <button class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button">
+          <span class="material-symbols-rounded" aria-hidden="true">draw</span>
+          <span>내용을 확인했습니다</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../frame.js"></script>
+</body>
+</html>

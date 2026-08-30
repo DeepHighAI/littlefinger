@@ -114,6 +114,50 @@
 .lf-icon-reward  { font-size: 16px; color: var(--lf-color-reward-label); flex: none; }
 
 /* -------------------------------------------------------------
+   RETENTION ROW — 내 기록 보관 (ADR 0015 D4). 참여자 개인의 보관 기한과 연장 진입점.
+   보관은 "이미 기록된 것"의 메타데이터라 라벤더(기록) 컨테이너를 쓴다 — 성공·마감 의미가 아니다.
+   영구 보관이면 연장 버튼이 없다. 종결 상태(COMPLETED·BROKEN·DISPUTED·UNRESOLVED)와
+   활성화된 뒤의 모든 상태에 놓인다.
+   ------------------------------------------------------------- */
+.lf-retention-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-4);
+  padding: var(--lf-space-4) var(--lf-space-6);
+  border-radius: var(--lf-radius-md);
+  background: var(--lf-color-record-container);
+}
+
+.lf-retention-row > .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--lf-color-record);
+  flex: none;
+}
+
+.lf-retention-row__body { flex: 1; min-width: 0; }
+
+.lf-retention-row__label {
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-record);
+}
+
+.lf-retention-row__value {
+  font-size: var(--lf-type-label-size);
+  line-height: var(--lf-line-body);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+/* 연장 텍스트 버튼 — 48dp 터치 높이는 .lf-btn 이 보장한다. 라벤더 위라 잉크로 올린다 */
+.lf-retention-row .lf-btn--text {
+  flex: none;
+  padding: 0 var(--lf-space-3);
+  color: var(--lf-color-text);
+}
+
+/* -------------------------------------------------------------
    INFO ROW — 아이콘 + (라벨 위 · 값 아래) 한 줄 정보 (COMPLETED 보상 안내)
    ------------------------------------------------------------- */
 .lf-info-row { display: flex; align-items: center; gap: var(--lf-space-4); }

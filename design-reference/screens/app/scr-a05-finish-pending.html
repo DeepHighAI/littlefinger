@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A05 / AMEND_PENDING 마무리 협의 중 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-detail.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<!-- ADR 0015 D3 (PO 2026-08-30): 종료일 없는 약속의 마무리 요청(amend_requests.type = FINISH). 상태는 AMEND_PENDING 이라
+     칩은 "변경 협의 중" 그대로다 — 바꿀 내용이 없으니 전후 비교 대신 요청 카드만 놓인다. 승인하면 CHECKING 으로 가고
+     승인 시각이 이행 확인·보관의 기준이 된다. 거절·철회·만료는 ACTIVE 로 돌아간다(T-19…T-21).
+     이 파일은 상대편(지우) 시점: [마무리하고 이행 확인 시작]·[거절]. 요청자(민준) 시점은 그 자리에 [요청 철회] 한 개만 보인다.
+     문구 출처: scr-a05-labels.ts(ko). -->
+<body class="lf-page" data-screen-id="SCR-A05 / AMEND_PENDING" data-screen-name="마무리 협의 중 (FINISH)">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <header class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <h1 class="lf-appbar__title">약속 상세</h1>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </header>
+
+      <div class="lf-screen__body">
+
+        <div class="lf-row lf-gap-3">
+          <span class="lf-chip lf-chip--amend">변경 협의 중</span>
+          <span class="lf-caption">종료일 없음</span>
+        </div>
+
+        <h2 class="lf-title">매주 일요일 부모님께 안부 전화하기</h2>
+
+        <p class="lf-note lf-note--emphasis">
+          <span class="material-symbols-rounded" aria-hidden="true">flag</span>
+          <span>민준님이 이 약속의 마무리를 요청했어요.</span>
+        </p>
+
+        <div class="lf-card lf-stack lf-gap-4">
+          <p class="lf-section-title">변경 협의</p>
+
+          <div class="lf-compare__item">
+            <p class="lf-compare__label">요청자</p>
+            <p class="lf-compare__value">민준</p>
+          </div>
+          <div class="lf-compare__item">
+            <p class="lf-compare__label">요청 시각</p>
+            <p class="lf-compare__value">2026-07-25 09:12 (KST)</p>
+          </div>
+          <!-- 변경·파기 이유는 선택 입력 — 없으면 이 행이 빠진다 -->
+          <div class="lf-compare__item">
+            <p class="lf-compare__label">변경·파기 이유</p>
+            <p class="lf-compare__value">이제 습관이 됐으니 여기서 마무리하고 결과를 남기자!</p>
+          </div>
+
+          <hr class="lf-divider">
+
+          <!-- 상대편 시점 — 승인이 주 액션, 거절은 아웃라인. 라벨이 길어 반폭 버튼에서 두 줄로 꺾이므로 세로로 쌓는다
+               (출시본 RN 은 가로 2분할 — 기준선을 따라 세로 배치로 맞추는 것이 좋다).
+               요청자 시점: <button class="lf-btn lf-btn--outlined lf-btn--block">요청 철회</button> 하나만 -->
+          <div class="lf-stack lf-gap-3">
+            <button class="lf-btn lf-btn--filled lf-btn--block" type="button">마무리하고 이행 확인 시작</button>
+            <button class="lf-btn lf-btn--outlined lf-btn--block" type="button">거절</button>
+          </div>
+        </div>
+
+        <div class="lf-stack lf-gap-3">
+          <div>
+            <p class="lf-section-title">내용</p>
+            <p class="lf-body">매주 일요일 저녁에 각자 부모님께 안부 전화를 한다. 못 한 주는 다음 날 안에 한다.</p>
+          </div>
+          <ul class="lf-row lf-gap-2 lf-wrap">
+            <li class="lf-chip">카테고리 · 습관</li>
+            <li class="lf-chip">지킬 사람 · 둘 다</li>
+            <li class="lf-chip">종료일 없음</li>
+          </ul>
+        </div>
+
+        <div class="lf-compare__item lf-row lf-gap-3">
+          <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">history</span>
+          <span class="lf-body--secondary lf-grow">확정 기록(v1)은 버전 이력에 그대로 남아요</span>
+          <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">chevron_right</span>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

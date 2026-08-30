@@ -56,6 +56,9 @@
             <span class="lf-picker__value">2026-08-11 (화)</span>
             <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
           </button>
+          <!-- ADR 0015 D2 (PO 2026-08-30): 무료 범위는 만든 날 + 30일. 넘는 날짜는 보내는 순간 E_END_DATE_RANGE 로 막히고
+               MOD-05 가 열린다. 슬롯 한도(E_SLOT_LIMIT)가 먼저 답한다. 문구 출처: promise-edit-labels.ts(ko) durationNotice -->
+          <p class="lf-field__hint">새 약속은 만든 날부터 30일까지 무료예요. 더 긴 기간은 보상형 광고 또는 영구 보관으로 열 수 있어요.</p>
         </div>
 
         <fieldset class="lf-field">

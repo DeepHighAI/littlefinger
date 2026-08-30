@@ -179,3 +179,13 @@ first, then mirrored and tested.
   are superseded (ADR 0013).
 - 2026-08-27: PO replaced the Gaegu/Roboto Mono typography split with Pretendard for every Korean
   and English text role. Pretendard 400/600/700/800 is the single cross-surface contract (ADR 0014).
+- 2026-08-30: PO approved the seven ADR 0015 surfaces as design-reference baselines (ADR 0015):
+  MOD-05 혜택 시트 (rewarded 30-day extension + ₩2,000 permanent retention, plus its locked
+  state), MOD-02 role-based witness capacity (free 1 + rewarded 1, locked slot), the SCR-A02
+  in-feed banner after the fifth card at six or more rows, SCR-A05 ACTIVE with no end date and
+  the AMEND_PENDING (FINISH) agreement, the SCR-A03 free-range helper line, MOD-01 with the
+  "종료일 없음" choice, and the SCR-W04 / SCR-W05 no-end and finish views. P4 is amended:
+  exposure ads stay out of every trust moment and the whole acceptance web, but a rewarded ad
+  the user starts may live inside a trust-moment sheet for witness, duration, and
+  personal-retention benefits (ADR 0015 D7). The retention row uses lavender (durable record),
+  never success or attention colour.

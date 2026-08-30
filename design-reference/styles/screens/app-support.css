@@ -1,7 +1,7 @@
 /* =============================================================
    Little Finger — App 화면 전용 보조 클래스 (app-support)
    components.css에 없는, 아래 화면 전용 클래스만 담는다.
-   담당 화면: SCR-A07(알림함) · SCR-A08(마이) · MOD-01/02/03(모달 시트) · MOD-04(슬롯 결제)
+   담당 화면: SCR-A07(알림함) · SCR-A08(마이) · MOD-01/02/03(모달 시트) · MOD-04(슬롯 결제) · MOD-05(혜택 시트)
    ============================================================= */
 
 /* -------------------------------------------------------------
@@ -295,7 +295,28 @@
   color: var(--lf-color-text-muted);
 }
 
-/* "서명 완료" 배지 — 보상 토큰과 동일한 색상쌍을 재사용 */
+/* 잠긴 증인 자리 — 역할별 보상형 광고 자리 (ADR 0015 D1). 빈 자리(--empty)와 달리
+   아직 열리지 않은 자리라 배경을 낮추고 자물쇠 + "잠김" 텍스트로 상태를 말한다(§8: 색만으로 구분 금지).
+   안내 행 아래에 해제 CTA 가 붙으므로 세로 배치다. */
+.lf-witness-slot--locked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--lf-space-4);
+  border: 1.5px dashed var(--lf-color-outline-strong);
+  background: var(--lf-color-surface-muted);
+}
+
+/* surface-muted 위에서는 보조 잉크 대비가 4.41:1 뿐이라 본문 잉크를 쓴다 (DESIGN.md 타이포) */
+.lf-witness-slot--locked .lf-witness__empty-label,
+.lf-witness-slot--locked .lf-witness__meta {
+  color: var(--lf-color-text);
+}
+
+.lf-witness-slot--locked .lf-witness__avatar--empty .material-symbols-rounded {
+  color: var(--lf-color-text-secondary);
+}
+
+/* "확인 완료" 배지 — 보상 토큰과 동일한 색상쌍을 재사용 */
 .lf-chip--signed {
   background: var(--lf-color-reward-container);
   color: var(--lf-color-on-reward-container);
@@ -354,7 +375,8 @@
 .lf-backdrop__block--60  { height: 60px; }
 
 /* -------------------------------------------------------------
-   MOD-04 — 슬롯 결제 시트 (ADR 0009)
+   MOD-04 — 슬롯 결제 시트 (ADR 0009) · MOD-05 — 혜택 시트 (ADR 0015) 가 같은 골격을 쓴다:
+   막힌 이유 안내(--notice) · 현재 상태 한 줄(--usage) · 구매 항목(--offer)
    ------------------------------------------------------------- */
 
 /* 발송이 막혀 열린 경우의 가득 참 안내 — 마감·응답 필요 계열(Apricot)이 자리다 */
@@ -369,6 +391,7 @@
 
 .lf-slot-sheet__usage {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--lf-space-4);
   font-size: var(--lf-type-subtitle-size);
@@ -380,6 +403,9 @@
   font-size: 22px;
   color: var(--lf-color-primary);
 }
+
+/* 날짜·시각 토큰이 하이픈에서 끊기지 않도록 — 라벨과 값을 각각 한 덩어리로 둔다 (MOD-05) */
+.lf-slot-sheet__usage > span { white-space: nowrap; }
 
 /* 구매 항목 — 상자 하나, 재촉 없는 서술형(§8) */
 .lf-slot-sheet__offer {

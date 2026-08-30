@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOD-01 변경·파기 요청 · 종료일 없음 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-support.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<!-- ADR 0015 D2 (PO 2026-08-30): 변경 요청 시트의 종료일 필드에 "종료일 없음" 선택지가 붙는 변형.
+     이 선택지는 작성자의 영구 보관 구매가 유효할 때(duration.unlimited)만 보인다 — 상대방의 개인 구매는 공유 상한을
+     바꾸지 않는다(D5). 제안은 여전히 상대 승인이 있어야 성립한다. 무료 범위를 넘는 날짜는 보내는 순간 E_END_DATE_RANGE 로
+     막히고 MOD-05 가 열린다. 종료일을 그대로 두는 요청은 상한 검사를 건너뛴다.
+     문구 출처: scr-a05-labels.ts(ko, MOD_01_LABEL). -->
+<body class="lf-page" data-screen-id="MOD-01" data-screen-name="변경·파기 요청 · 종료일 없음">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <!-- 배경 — 약속 상세(SCR-A05) 화면이 흐릿하게 비치는 자리표시자. 실제 콘텐츠가 아니므로 스크린리더에서 숨김 -->
+      <div class="lf-backdrop" aria-hidden="true">
+        <header class="lf-appbar">
+          <button class="lf-icon-button lf-icon-button--strong" type="button" tabindex="-1" aria-label="뒤로가기">
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+          </button>
+          <span class="lf-appbar__title">약속 상세</span>
+        </header>
+        <div class="lf-backdrop__body">
+          <div class="lf-row lf-gap-3">
+            <span class="lf-chip lf-chip--status">진행 중</span>
+            <span class="lf-dday lf-dday--lg lf-push-right">D-17</span>
+          </div>
+          <p class="lf-title">매주 화·목 아침 러닝 같이 하기</p>
+        </div>
+      </div>
+
+      <div class="lf-scrim"></div>
+
+      <div class="lf-sheet" role="dialog" aria-modal="true" aria-labelledby="mod01-noend-title">
+        <div class="lf-sheet__handle" aria-hidden="true"></div>
+        <div class="lf-row lf-gap-3">
+          <h1 class="lf-sheet__title lf-grow" id="mod01-noend-title">변경·파기 요청</h1>
+          <button class="lf-icon-button" type="button" aria-label="변경·파기 요청 닫기">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </div>
+
+        <!-- F-11: 내용 변경 또는 파기 요청 중 선택 -->
+        <div class="lf-segmented" role="tablist" aria-label="요청 종류">
+          <button type="button" class="lf-segmented__item" role="tab" aria-selected="true">내용 변경</button>
+          <button type="button" class="lf-segmented__item" role="tab" aria-selected="false">파기 요청</button>
+        </div>
+
+        <p class="lf-caption">상대가 승인하면 적용돼요. 승인 전까지는 지금 약속이 그대로 유지돼요.</p>
+
+        <!-- 제목·내용·카테고리 필드는 mod-01-amend-request.html 과 같다 — 여기서는 종료일 필드만 펼쳐 보인다 -->
+        <div class="lf-field">
+          <span class="lf-field__label" id="mod01-end-date-label">종료일</span>
+          <button class="lf-picker" type="button" aria-labelledby="mod01-end-date-label" aria-haspopup="dialog">
+            <span class="material-symbols-rounded" aria-hidden="true">event</span>
+            <span class="lf-picker__value">종료일 없음</span>
+            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+          </button>
+          <!-- 작성자의 영구 보관 구매가 유효할 때만 렌더되는 선택지 -->
+          <div class="lf-choices" role="group" aria-label="종료일 없음 선택">
+            <button class="lf-choice" type="button" aria-pressed="true">종료일 없음</button>
+          </div>
+          <p class="lf-field__hint">무료 기간을 넘기면 광고로 30일씩 늘리거나 영구 보관을 구매할 수 있어요.</p>
+        </div>
+
+        <div class="lf-field">
+          <label class="lf-field__label" for="amend-noend-reason">변경 이유</label>
+          <textarea id="amend-noend-reason" class="lf-input lf-textarea" placeholder="변경이나 파기를 요청하는 이유를 남겨주세요.">습관으로 굳었으니 기한 없이 계속 이어가자!</textarea>
+        </div>
+
+        <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">요청 보내기</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-W04 참여 약속 열람·응답 · 마무리 요청 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/web.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<!-- ADR 0015 D3·D7 (PO 2026-08-30): 수락 웹에서 종료일 없는 약속의 마무리 합의. 당사자 누구나 요청하고 상대가 승인·거절한다.
+     웹은 광고도 결제도 싣지 않는다 — 종료일 없음을 보여 주고 마무리(FINISH)에 응답할 뿐, 기간·보관 혜택은 앱(MOD-05)에서만 연다.
+     첫 카드: 상대가 보낸 마무리 요청(AMEND_PENDING · FINISH)에 응답하는 시점. 둘째 카드: 종료일 없는 ACTIVE 약속 —
+     [변경·파기 요청] 시트의 세그먼트에 "마무리 요청" 탭이 세 번째로 붙고(종료일 없을 때만) 안내는
+     "상대가 승인한 시각부터 이행 확인과 개인 보관 기간이 시작돼요." 다. 문구 출처: scr-w04-labels.ts(ko). -->
+<body class="lf-page" data-screen-id="SCR-W04" data-screen-name="참여 약속 열람·응답 · 마무리 요청">
+
+<div class="lf-device">
+  <div class="lf-device__viewport">
+
+    <!-- 카톡 인앱 브라우저에서 열리는 화면. 광고 금지. 카드별 상황에 따라 주 CTA가 다르다. -->
+    <div class="lf-screen">
+
+      <div class="lf-browserbar">
+        <button class="lf-icon-button" type="button" aria-label="닫기">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+        <div class="lf-browserbar__identity">
+          <span class="lf-browserbar__name">리틀핑거</span>
+          <span class="lf-browserbar__host">littlefinger-app.web.app</span>
+        </div>
+        <button class="lf-icon-button" type="button" aria-label="더보기">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+      </div>
+
+      <div class="lf-screen__body lf-screen__body--web">
+
+        <h1 class="lf-title lf-title--web">참여 중인 약속</h1>
+        <p class="lf-caption lf-caption--accent">응답이 필요해요 · 1건</p>
+
+        <ul class="lf-stack lf-gap-5">
+
+          <!-- AMEND_PENDING(FINISH) — 상대의 마무리 요청에 응답하는 카드 -->
+          <li>
+            <div class="lf-card lf-card--web lf-card--emphasis lf-text-left">
+              <div class="lf-card__header">
+                <span class="lf-chip lf-chip--pending">변경 협의 중</span>
+                <span class="lf-card__spacer"></span>
+                <span class="lf-caption">오늘</span>
+              </div>
+              <h2 class="lf-card__title">매주 일요일 부모님께 안부 전화하기</h2>
+              <p class="lf-card__meta">종료일 없음</p>
+
+              <div class="lf-stack lf-gap-4 lf-mt-4">
+                <div class="lf-info-banner">
+                  <span class="material-symbols-rounded" aria-hidden="true">flag</span>
+                  <p class="lf-info-banner__text">지우님이 약속 마무리를 요청했어요</p>
+                </div>
+                <p class="lf-caption">요청자 · 지우</p>
+                <p class="lf-caption">요청 시각 · 2026-07-25 09:12 (KST)</p>
+                <p class="lf-body">이제 습관이 됐으니 여기서 마무리하고 결과를 남기자!</p>
+
+                <!-- 요청자 본인 시점에는 이 자리에 [요청 철회] 아웃라인 버튼 하나만 보인다 -->
+                <div class="lf-row lf-gap-3">
+                  <button class="lf-btn lf-btn--filled lf-btn--grow" type="button">마무리 승인</button>
+                  <button class="lf-btn lf-btn--outlined lf-btn--grow" type="button">거절</button>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          <!-- ACTIVE · 종료일 없음 — 변경·파기 요청 시트에 "마무리 요청" 탭이 붙는 카드 -->
+          <li>
+            <div class="lf-card lf-card--web lf-text-left">
+              <div class="lf-card__header">
+                <span class="lf-chip lf-chip--status">진행 중</span>
+              </div>
+              <h2 class="lf-card__title">매달 1일 함께 가계부 정리하기</h2>
+              <p class="lf-card__meta">종료일 없음</p>
+
+              <!-- 누르면 시트: [내용 변경 | 파기 요청 | 마무리 요청] — 마무리 탭 안내:
+                   "상대가 승인한 시각부터 이행 확인과 개인 보관 기간이 시작돼요." · 변경 이유(선택) · [요청 보내기] -->
+              <button class="lf-btn lf-btn--outlined lf-btn--block lf-mt-4" type="button">변경·파기 요청</button>
+            </div>
+          </li>
+
+        </ul>
+
+        <p class="lf-disclaimer lf-text-center">앱을 설치하면 푸시로 바로 알려드려요</p>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../frame.js"></script>
+</body>
+</html>
