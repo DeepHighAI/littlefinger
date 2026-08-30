@@ -21,12 +21,12 @@ baseline (rejecting only the no-fill fallback), and two batches landed locally:
    reminders, J-02 never moves it), EC-tagged tests, config twins cross-check, evidence tests
    rewritten, mobile FINISH flow + monetization-native/api tests, banner consent gate.
 
-**Nothing is committed or deployed.** Working tree: ~120 changed/new files.
+**Committed on `main` (2026-08-30), nothing deployed, nothing pushed:** `28f6e0d` ADR 0015 batch · `fc9fb1d` legal v6 · `b89159c` release runbook / smoke SQL / QA matrix / CI · `bf80b52` web no-end label fix · `b36760a` design-reference baselines.
 
 ## Verification state (last run this session)
 
 `npm run typecheck` 5/5 · Vitest 109 files / 2,124 tests · jest-expo 78 suites / 807 tests ·
-`check:agents` · `git diff --check` — all green.
+`check:agents` · `git diff --check` — all green (re-run after the last commit).
 
 ## Files that matter
 
@@ -45,19 +45,21 @@ baseline (rejecting only the no-fill fallback), and two batches landed locally:
 
 ## Blocked / PO items (all in the plan file's "PO 확인 필요" and DEVELOPMENT_STATUS)
 
-- **Legal (release blocker, 법무):** privacy policy v6 (rewarded/banner ads, SSV pseudonymous id,
-  purchases, retention/purge), terms 유료 서비스·환불·청약철회 clause, Play Data Safety re-submit.
-  `apps/web/src/legal/legal-content.ts` still says evidence is kept 365 days.
-- **Design baselines (PO approval):** none of the seven new UI surfaces has a `design-reference/`
-  file (MOD-05 entitlement sheet, MOD-02 locked row, A02 banner, A05 retention/FINISH, A03/MOD-01
-  no-end, W04 FINISH tab, W05 no-end).
+- **Legal:** Terms/Privacy `2026-08-30.1` are written and committed (migration `20260830000001`);
+  external 법무 review runs in parallel — its feedback becomes `.2` and is required before **store
+  publication** (not before internal testing). Data Safety runbook re-grounded.
+- **Design baselines:** all seven surfaces now have `design-reference/` files (gallery entries,
+  DESIGN.md log). PO previews them with `npm run preview`; two baseline-only slot tags in MOD-02
+  (`무료 1` / `광고 1 · 잠김`) are marked `PO 확인 필요` in the file comment.
 - **Operator release + device QA:** Play product, 4 AdMob units + SSV callback, EAS/Edge/Vault
   secrets, 0.2.0 production build, then the QA list in the release doc.
 
 ## Exact next step
 
-1. Commit the working tree as one change (`feat: rewarded benefits, permanent access, retention purge (ADR 0015)`)
-   after `npm test && npm run typecheck && npm run check:agents`.
-2. Hand the legal items to 법무 with the three documents above; in parallel produce the
-   design-reference baselines for PO preview (`npm run preview`).
-3. Only after both: operator release per `docs/setup/monetization-retention-release.md`.
+1. PO fills the §1 console checklist in `docs/setup/monetization-retention-release.md` (Play product,
+   license testers, internal track opt-in URL, 4 AdMob unit ids, SSV callback ×3, test device ids)
+   and hands the values back; 법무 gets `/legal/terms` + `/legal/privacy` (v `2026-08-30.1`).
+2. Engineer runs runbook §2 in order: secrets → Vault → EAS env → build → validate → internal track →
+   `db push` (two migrations) → `functions deploy --use-api` → verification SQL → smoke SQL; records
+   versionCode/function versions in `DEVELOPMENT_STATUS.md` "Remote deployment state".
+3. Device QA per `docs/qa/ADR0015_DEVICE_QA.md`; push `main` to origin so the new CI gate runs.
