@@ -358,6 +358,21 @@ not authorize font subsetting or chunk splitting in this pass; the build warning
 
 ## Remote deployment state
 
+### Build 0.2.0 / versionCode 10 (2026-08-30, internal-test candidate)
+
+EAS production build `8f83b014-79b9-4357-bb33-413737f65206` from commit `9816a6f` → downloaded to
+`dist/littlefinger-internal-v0.2.0-code10.aab` (83,261,324 B). `bundletool 1.18.1 validate` OK;
+manifest: versionCode 10, versionName 0.2.0, minSdk 24, targetSdk 36, four ABIs, AdMob
+`APPLICATION_ID = ca-app-pub-9625042173735017~2273644771`, `com.android.vending.BILLING` and
+`com.google.android.gms.permission.AD_ID` present; `jarsigner -verify` → "jar verified." (Play App
+Signing upload key, expires 2053-12-15). **The four new EAS production variables
+(`EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID`, `…_REWARDED_{WITNESS,DURATION,RETENTION}_UNIT_ID`) hold Google
+test unit ids** (PO decision 2026-08-30: build now, real units later) — banner/native render test
+ads, purchases and every screen are testable, but **rewarded grants cannot be verified with this
+build** (test units send no SSV callback). A rebuild (versionCode 11) follows once the real unit
+ids replace them. Not yet uploaded to the internal track; migration and functions not deployed.
+
+
 The test project `vepnrrmxvsytguocicfe` is linked under `batisututu@gmail.com`. All migrations
 through `20260820000004_security_hardening.sql` are applied, `ACCOUNT_ID_PEPPER` is set
 independently, and all **47/47** local Edge Functions are deployed with `--use-api` and report
