@@ -21,7 +21,7 @@ baseline (rejecting only the no-fill fallback), and two batches landed locally:
    reminders, J-02 never moves it), EC-tagged tests, config twins cross-check, evidence tests
    rewritten, mobile FINISH flow + monetization-native/api tests, banner consent gate.
 
-**Committed on `main` (2026-08-30), nothing deployed, nothing pushed:** `28f6e0d` ADR 0015 batch · `fc9fb1d` legal v6 · `b89159c` release runbook / smoke SQL / QA matrix / CI · `bf80b52` web no-end label fix · `b36760a` design-reference baselines.
+**Committed on `main` (2026-08-30) and DEPLOYED (migrations + 56 functions; build 10 on the internal track); not pushed to origin:** `28f6e0d` ADR 0015 batch · `fc9fb1d` legal v6 · `b89159c` release runbook / smoke SQL / QA matrix / CI · `bf80b52` web no-end label fix · `b36760a` design-reference baselines.
 
 ## Verification state (last run this session)
 
@@ -59,9 +59,9 @@ baseline (rejecting only the no-fill fallback), and two batches landed locally:
 1. PO fills the §1 console checklist in `docs/setup/monetization-retention-release.md` (Play product,
    license testers, internal track opt-in URL, 4 AdMob unit ids, SSV callback ×3, test device ids)
    and hands the values back; 법무 gets `/legal/terms` + `/legal/privacy` (v `2026-08-30.1`).
-2. **Done so far:** EAS production env has the 4 AdMob vars (Google test ids) and build 0.2.0 / versionCode 10
-   is validated in `dist/littlefinger-internal-v0.2.0-code10.aab`. Engineer continues runbook §2 from
-   §2-7: internal track upload (PO, or `eas submit` with a service-account key) →
+2. **Done:** build 10 on the internal track, secrets + Vault set, both migrations applied, all 56
+   functions deployed and smoke-tested (see DEVELOPMENT_STATUS "ADR 0015 deployed"). Remaining:
+   real AdMob unit ids → replace the 3 Edge secrets + 4 EAS vars → rebuild (versionCode 11) →
    `db push` (two migrations) → `functions deploy --use-api` → verification SQL → smoke SQL; records
    versionCode/function versions in `DEVELOPMENT_STATUS.md` "Remote deployment state".
 3. Device QA per `docs/qa/ADR0015_DEVICE_QA.md`; push `main` to origin so the new CI gate runs.

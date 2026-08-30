@@ -358,6 +358,30 @@ not authorize font subsetting or chunk splitting in this pass; the build warning
 
 ## Remote deployment state
 
+### ADR 0015 deployed to the linked project (2026-08-30)
+
+Order followed: build 0.2.0 / versionCode 10 uploaded to the Play **internal testing** track by the
+PO → Edge secrets `RETENTION_WORKER_SECRET` + `ADMOB_REWARDED_{WITNESS,DURATION,RETENTION}_UNIT_ID`
+(Google test unit ids for now) → Vault `retention_maintenance_url` / `retention_worker_secret` →
+`npx supabase db push` applied **`20260829103504_rewarded_ads_retention_bm`** and
+**`20260830000001_legal_v6_paid_products_retention`** → `npx supabase functions deploy --use-api`
+redeployed all **56** functions (5 new: `promise-entitlements`, `reward-intent-create`,
+`reward-status`, `reward-callback`, `retention-maintenance`), all ACTIVE.
+
+Verified live: cron `lf-retention-maintenance` (`17 * * * *`) exists once and is active;
+`app_configs` = `ads_enabled=false`, `rewarded_ads_enabled=true`, `min_app_version="0.2.0"`;
+`lf_current_terms_version() = lf_current_privacy_version() = 2026-08-30.1`; no live `purge_after`,
+retention trigger and function gone; RLS on the 7 new tables; 16 `promise_access_graces` rows
+backfilled; `supabase/tests/remote/adr0015-smoke.sql` passed via the Management API SQL endpoint;
+`reward-callback` answers 401 without / with a bogus signature (`{"granted":false}`);
+`retention-maintenance` answers 401 to a wrong secret and 200
+`{"maintenance":{"queued":0,"warned":0},"claimed_count":0,"purged_count":0,"failed_count":0}` to the
+real one (first worker run); `promise-entitlements` answers 401 without a JWT.
+
+Not done from this machine: a fresh DB backup (no `pg_dump`/Docker here; the weekly
+`supabase-backup.yml` artifact is the fallback) — recorded as a known gap. Rewarded grants stay
+unverifiable until real AdMob units replace the test ids (Edge secrets + EAS env + rebuild).
+
 ### Build 0.2.0 / versionCode 10 (2026-08-30, internal-test candidate)
 
 EAS production build `8f83b014-79b9-4357-bb33-413737f65206` from commit `9816a6f` → downloaded to
