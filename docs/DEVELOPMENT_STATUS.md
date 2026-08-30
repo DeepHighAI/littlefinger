@@ -427,6 +427,29 @@ Approved plan executed in full; every phase committed and pushed (`f1cd06d`…`a
   (The English disclaimer's DRAFT flag was lifted 2026-08-22 — the completed 법무 review
   covered that sentence; see "Legal documents finalized" below.)
 
+## Legal documents v6 — paid products, rewarded ads, record retention (2026-08-30)
+
+Terms **`2026-08-30.1`** and Privacy **`2026-08-30.1`** (migration `20260830000001`, shared
+`LEGAL_DOCUMENTS`, `apps/web/src/legal/legal-content.ts`). Terms: 제13조 유료 상품과 결제 (two
+products, Google Play pricing/receipts, entitlement on server verification, 청약철회 restriction for
+digital content with the 7-day unused exception, refund via Play or task@deephigh.ai within 3
+business days, revocation semantics, minors, dispute mediation), 제14조 기록의 열람 기간과 삭제
+(30-day access right per participant, +30 d per rewarded ad, permanent purchase, non-restorable
+expiry, purge after the last participant, unformed-record TTLs), 제12조 rewarded-ad clauses (③–⑤:
+opt-in only, server-confirmed, locked when unavailable, purchases do not remove ads), 제9조 ④⑤
+(duration ceiling, no-end promises), 제7조/제20조 free-of-charge wording narrowed to free features,
+company block + 통신판매업 신고번호 **2026-대구북구-0751** and email. Old 제13조–제20조 renumbered to
+제15조–제22조. Privacy: purchase and rewarded-ad data in §1, purposes in §2, retention by access
+right + 5-year purchase records + 15-minute intent TTL in §3 (365-day evidence line removed),
+two-phase purge in §4, Google Play / AdMob SSV delegation and transfer in §6, display vs rewarded
+ads and the pseudonymous SSV id in §7, server verification in §9. English twins are paragraph-
+for-paragraph parallel (`legal-document.test.tsx` parity guard; drift guard now pins
+`RETENTION_*`, `END_DATE_*`, `REWARD_INTENT_TTL_MIN`, the 신고번호). Effective immediately (no real
+users pre-launch; the 30-day unfavourable-change notice has no addressee yet). **External 법무
+review is running in parallel and is required before store publication** — feedback lands as
+`2026-08-30.2`. `docs/setup/play-data-safety.md` re-grounded the same day (User IDs shared
+pseudonymously with Google for SSV, Purchase history collected, deletion by access expiry).
+
 ## Legal documents finalized (2026-08-22)
 
 The placeholder drafts at `/legal/terms` and `/legal/privacy` were replaced with the final Terms

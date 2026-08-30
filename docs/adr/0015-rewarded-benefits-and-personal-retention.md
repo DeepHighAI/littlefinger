@@ -130,3 +130,10 @@ lease id. Re-running any stage is safe.
   nullable end dates and lets either party request or respond to FINISH without ads or payments.
 - Operator work is required before release: three rewarded units, one banner unit, SSV callback,
   the Play product, Edge secrets, Vault worker URL/secret, migration deploy, and a new Android build.
+- Legal: the Terms and the Privacy Policy are document text, so this is a re-version of both —
+  **TERMS `2026-08-30.1`** (new 제13조 유료 상품과 결제, 제14조 기록의 열람 기간과 삭제, 제12조 보상형
+  광고, 제9조 종료일 없는 약속, 통신판매업 신고번호 2026-대구북구-0751) and **PRIVACY `2026-08-30.1`**
+  (purchase and rewarded-ad data, retention by access right, Google Play / AdMob SSV delegation,
+  365-day evidence line removed). Migration `20260830000001_legal_v6_paid_products_retention.sql`
+  bumps both `lf_current_*_version()`. Effective immediately (pre-launch, no real users); external
+  법무 review runs in parallel and lands as `.2` before store publication (PO 2026-08-30).

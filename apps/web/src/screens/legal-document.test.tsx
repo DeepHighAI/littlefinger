@@ -1,11 +1,17 @@
 // @vitest-environment jsdom
 import {
   DRAFT_TTL_DAYS,
+  END_DATE_EXTENSION_DAYS,
+  END_DATE_FREE_DAYS,
   EVIDENCE_SIGNED_URL_MIN,
   INVITE_TTL_HOURS,
   LEGAL_DISCLAIMER,
   NOTIFICATION_RETENTION_DAYS,
   QUIET_HOURS_KST,
+  RETENTION_EXTENSION_DAYS,
+  RETENTION_FREE_DAYS,
+  RETENTION_WARNING_DAYS,
+  REWARD_INTENT_TTL_MIN,
   type LegalDocumentKind,
 } from '@littlefinger/shared';
 import { cleanup, render, screen } from '@testing-library/react';
@@ -24,12 +30,12 @@ function fullText(locale: 'ko' | 'en', kind: LegalDocumentKind): string {
 
 describe('public legal documents', () => {
   it.each([
-    ['TERMS', '이용약관', '제1조 (목적)', '버전 2026-08-22.3 · 시행일 2026-08-22'],
+    ['TERMS', '이용약관', '제1조 (목적)', '버전 2026-08-30.1 · 시행일 2026-08-30'],
     [
       'PRIVACY',
       '개인정보 처리방침',
       '1. 처리하는 개인정보의 항목과 수집 방법',
-      '버전 2026-08-25.1 · 시행일 2026-08-25',
+      '버전 2026-08-30.1 · 시행일 2026-08-30',
     ],
   ] as const)('renders the final %s document without auth or ads', (kind, title, section, versionLine) => {
     const { container } = render(<LegalDocument kind={kind} />);
@@ -49,9 +55,10 @@ describe('public legal documents', () => {
       '제1조 (목적)', '제2조 (정의)', '제3조 (약관의 게시와 개정)', '제4조 (이용계약의 체결)',
       '제5조 (계정의 관리)', '제6조 (개인정보의 보호)', '제7조 (서비스의 내용)',
       '제8조 (서비스의 성격과 한계)', '제9조 (약속의 확정과 변경)', '제10조 (분쟁에 대한 중립)',
-      '제11조 (알림)', '제12조 (광고)', '제13조 (사용자의 의무)', '제14조 (콘텐츠의 권리와 책임)',
-      '제15조 (서비스의 변경과 중단)', '제16조 (이용제한)', '제17조 (탈퇴와 기록의 보존)',
-      '제18조 (손해배상과 면책)', '제19조 (준거법과 관할)', '제20조 (언어)', '부칙', '회사 정보',
+      '제11조 (알림)', '제12조 (광고)', '제13조 (유료 상품과 결제)', '제14조 (기록의 열람 기간과 삭제)',
+      '제15조 (사용자의 의무)', '제16조 (콘텐츠의 권리와 책임)', '제17조 (서비스의 변경과 중단)',
+      '제18조 (이용제한)', '제19조 (탈퇴와 기록의 보존)', '제20조 (손해배상과 면책)',
+      '제21조 (준거법과 관할)', '제22조 (언어)', '부칙', '회사 정보',
     ]) {
       expect(screen.getByRole('heading', { level: 2, name: heading })).toBeTruthy();
     }
@@ -82,9 +89,10 @@ describe('public legal documents', () => {
       expect(text).toContain(locale === 'ko' ? '주식회사 딥하이' : 'DeepHigh Co., Ltd.');
       expect(text).toContain(locale === 'ko' ? '심충섭' : 'Chungseob Shim');
       expect(text).toContain(locale === 'ko' ? '02-3443-1028' : '+82-2-3443-1028');
+      // 유료 상품을 팔면서부터 통신판매업 신고번호가 두 문서 모두에 있다 (PO 2026-08-30).
+      expect(text).toContain('2026-대구북구-0751'.replace('대구북구', locale === 'ko' ? '대구북구' : 'Daegu Buk-gu'));
+      expect(text).toContain('task@deephigh.ai');
     }
-    // 보호책임자 문의 이메일은 방침에만 있다 (PO 2026-08-22).
-    expect(fullText(locale, 'PRIVACY')).toContain('task@deephigh.ai');
   });
 
   // 본문 수치는 버전 고정 문서라 리터럴이다 — config 가 바뀌면 여기서 깨져
@@ -95,11 +103,19 @@ describe('public legal documents', () => {
     expect(privacy).toContain(String(NOTIFICATION_RETENTION_DAYS));
     expect(privacy).toContain(String(INVITE_TTL_HOURS));
     expect(privacy).toContain(String(EVIDENCE_SIGNED_URL_MIN));
+    expect(privacy).toContain(String(RETENTION_FREE_DAYS));
+    expect(privacy).toContain(String(RETENTION_EXTENSION_DAYS));
+    expect(privacy).toContain(String(REWARD_INTENT_TTL_MIN));
 
     const terms = fullText(locale, 'TERMS');
     expect(terms).toContain(String(INVITE_TTL_HOURS));
     expect(terms).toContain(`${QUIET_HOURS_KST.startHour}:00`);
     expect(terms).toContain(`${String(QUIET_HOURS_KST.endHour).padStart(2, '0')}:00`);
+    expect(terms).toContain(String(END_DATE_FREE_DAYS));
+    expect(terms).toContain(String(END_DATE_EXTENSION_DAYS));
+    expect(terms).toContain(String(RETENTION_FREE_DAYS));
+    expect(terms).toContain(String(DRAFT_TTL_DAYS));
+    for (const days of RETENTION_WARNING_DAYS) expect(terms).toContain(`${days}일`.replace('일', locale === 'ko' ? '일' : ' day'));
   });
 
   it('keeps ko and en structurally in sync', () => {
