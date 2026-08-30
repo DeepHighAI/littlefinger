@@ -453,8 +453,8 @@ export function ScrW02PromiseReview(): React.JSX.Element {
   // 클라이언트가 D-Day 로 판단한다 — `lf_invite_preview` 는 종료일을 보지 않고 정상 응답을
   // 준다(그래야 EC-B10 의 출구를 그릴 수 있다). 규칙은 서버와 같다:
   // `end_date < 오늘(KST)`. 최종 판정은 언제나 승인 트랜잭션이다.
-  const dday = ddayFrom(preview.end_date, new Date());
-  const endDatePassed = dday < 0 || actionError?.endDatePassed === true;
+  const dday = preview.end_date === null ? null : ddayFrom(preview.end_date, new Date());
+  const endDatePassed = (dday !== null && dday < 0) || actionError?.endDatePassed === true;
 
   // 5~300자는 `packages/shared` 의 §5-3 규칙 그대로다. 화면에서 다시 세면 정규화 순서가
   // 갈리고(§2-3), 서버가 통과시키는 입력을 화면이 막거나 그 반대가 된다.
@@ -511,11 +511,10 @@ export function ScrW02PromiseReview(): React.JSX.Element {
               {/* EC-F09 — 날짜 옆 `(KST)` 고정 표기. 같은 흐름의 SCR-W03 이 지키는 규칙을
                   여기서만 빼면, 해외에서 여는 사람이 두 화면의 날짜를 다르게 읽는다. */}
               <span className="lf-meta__value">
-                {formatKstDate(preview.end_date, locale)}
-                {KST_MARK}
+                {preview.end_date === null ? L.noEndDate : `${formatKstDate(preview.end_date, locale)}${KST_MARK}`}
               </span>
               <span className="lf-dday" data-testid="dday">
-                {formatDday(dday)}
+                {dday === null ? '' : formatDday(dday)}
               </span>
             </div>
             <div className="lf-meta__row">

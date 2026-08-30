@@ -3,20 +3,22 @@ import { describe, expect, test } from 'vitest';
 import { INVITE_TTL_HOURS, WITNESS_MAX } from './config.ts';
 import { ERROR_CODES, ERROR_HTTP_STATUS, ERROR_MESSAGE } from './errors.ts';
 
-// 근거: 02_세부기능명세서 §2-3 에러 코드표 + E_SLOT_LIMIT 개정(PO 2026-08-24)
+// 근거: 02_세부기능명세서 §2-3 에러 코드표 + 수익화 개정(PO 2026-08-29)
 describe('ERROR_CODES', () => {
-  test('명세의 14개 코드 + 슬롯 한도 코드를 빠짐없이 정의한다', () => {
+  test('명세와 수익화 오류 코드를 빠짐없이 정의한다', () => {
     expect([...ERROR_CODES].sort()).toEqual(
       [
         'E_AUTH_REQUIRED',
         'E_BLOCKED',
         'E_DUPLICATE_ROLE',
+        'E_END_DATE_RANGE',
         'E_FORBIDDEN',
         'E_INVITE_EXPIRED',
         'E_INVITE_REVOKED',
         'E_INVITE_USED',
         'E_NOT_FOUND',
         'E_RATE_LIMIT',
+        'E_REWARD_NOT_ELIGIBLE',
         'E_SELF_INVITE',
         'E_SLOT_LIMIT',
         'E_STATE_CONFLICT',
@@ -88,8 +90,8 @@ describe('ERROR_MESSAGE', () => {
     expect(ERROR_MESSAGE.E_INVITE_EXPIRED).toContain('72');
   });
 
-  test('증인 상한 문구의 인원은 WITNESS_MAX 에서 온다', () => {
-    expect(ERROR_MESSAGE.E_WITNESS_LIMIT).toBe(`증인은 최대 ${WITNESS_MAX}명까지예요.`);
-    expect(ERROR_MESSAGE.E_WITNESS_LIMIT).toContain('2');
+  test('증인 제한은 구매·광고 여부를 노출하지 않는 중립 문구다', () => {
+    expect(WITNESS_MAX).toBe(3);
+    expect(ERROR_MESSAGE.E_WITNESS_LIMIT).toBe('지금 사용할 수 있는 증인 자리를 모두 사용했어요.');
   });
 });

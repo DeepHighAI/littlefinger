@@ -17,7 +17,7 @@ export interface PromiseDraftFields {
   title: string;
   body: string;
   category: PromiseCategory | '';
-  end_date: string;
+  end_date: string | null;
   keeper: Keeper;
   reward: string;
   penalty: string;

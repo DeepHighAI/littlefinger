@@ -46,15 +46,19 @@ describe('F-05 증인 공개 계약', () => {
     });
   });
 
-  test('초대 목록은 최대 두 슬롯과 점유 수를 엄격히 검증한다', () => {
+  test('초대 목록은 역할별 용량과 최대 세 슬롯을 엄격히 검증한다', () => {
     const value = {
       promise_id: PROMISE_ID,
       occupied_count: 1,
       capacity: 2,
+      witness_max: 3,
+      creator_capacity: 1,
+      partner_capacity: 1,
       witnesses: [SLOT],
     };
     expect(parseList?.(value)).toEqual(value);
     expect(parseList?.({ ...value, capacity: 3 })).toBeNull();
+    expect(parseList?.({ ...value, witness_max: 2 })).toBeNull();
     expect(parseList?.({ ...value, witnesses: [SLOT, SLOT, SLOT] })).toBeNull();
     expect(parseList?.({ ...value, internal_token_hash: 'secret' })).toBeNull();
     expect(parseList?.({ ...value, witnesses: [{ ...SLOT, expires_at: 'not-an-instant' }] })).toBeNull();

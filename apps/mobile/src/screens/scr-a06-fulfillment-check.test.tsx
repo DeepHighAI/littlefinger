@@ -1098,4 +1098,12 @@ describe('SCR-A06 이행 확인', () => {
     expect(view.getAllByText('2026-08-12 01:30 (KST)').length).toBeGreaterThan(0);
     expect(view.getByText('1차 확인 기록')).toBeTruthy();
   });
+
+  test('마무리 합의로 CHECKING에 들어온 무기한 약속은 날짜 대신 합의 완료를 표시한다', async () => {
+    loadDetailMock.mockResolvedValue(makeDetail({ end_date: null }));
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+    expect(view.getByText('마무리 합의 완료')).toBeTruthy();
+    expect(view.queryByText(/종료일 .*KST/u)).toBeNull();
+  });
 });

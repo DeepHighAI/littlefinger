@@ -19,6 +19,7 @@ const ko = {
   // ── 검토 (§4-3-4, SCR-W02 동형) ──
   reviewHeadline: (nickname: string) => `${nickname}님과의 약속, 꼼꼼히 봐주세요`,
   endDate: '종료일',
+  noEndDate: '종료일 없음',
   keeper: '지킬 사람',
   category: '카테고리',
   reward: '보상',
@@ -69,6 +70,7 @@ const en = {
   authError: 'Sign-in is not working right now. Please try again shortly.',
   reviewHeadline: (nickname: string) => `Review your promise with ${nickname} carefully`,
   endDate: 'End date',
+  noEndDate: 'No end date',
   keeper: 'Who keeps it',
   category: 'Category',
   reward: 'Reward',

@@ -16,6 +16,7 @@ const ALLOWED_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ['ACTIVE', 'AMEND_PENDING'], // T-07 변경·파기 요청
   ['AMEND_PENDING', 'ACTIVE'], // T-08 변경 승인 · T-09 거절/철회/만료
   ['AMEND_PENDING', 'CANCELED'], // T-10 파기 승인
+  ['AMEND_PENDING', 'CHECKING'], // T-20 종료일 없는 약속 종료 승인
   ['ACTIVE', 'CHECKING'], // T-11 종료일 익일 00:00 KST
   ['CHECKING', 'COMPLETED'], // T-12 양측 KEPT
   ['CHECKING', 'BROKEN'], // T-13 양측 NOT_KEPT
@@ -26,9 +27,9 @@ const ALLOWED_PAIRS: ReadonlyArray<readonly [string, string]> = [
 ];
 
 describe('TRANSITIONS', () => {
-  test('T-01 부터 T-18 까지 빠짐없이 정의한다', () => {
+  test('T-01 부터 T-21 까지 빠짐없이 정의한다', () => {
     const ids = TRANSITIONS.map((t) => t.id);
-    const expected = Array.from({ length: 18 }, (_, i) => `T-${String(i + 1).padStart(2, '0')}`);
+    const expected = Array.from({ length: 21 }, (_, i) => `T-${String(i + 1).padStart(2, '0')}`);
     expect(ids).toEqual(expected);
   });
 

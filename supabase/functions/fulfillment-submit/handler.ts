@@ -39,7 +39,6 @@ export function createFulfillmentSubmitHandler(deps: Deps) {
       if (!UUID_PATTERN.test(promiseId)) {
         throw new ApiError('E_VALIDATION', { field: 'promise_id' });
       }
-
       const answer = body['answer'];
       if (answer !== 'KEPT' && answer !== 'NOT_KEPT') {
         throw new ApiError('E_VALIDATION', { field: 'answer' });

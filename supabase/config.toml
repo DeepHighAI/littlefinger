@@ -211,6 +211,23 @@ verify_jwt = true
 [functions.purchase-reconcile]
 verify_jwt = false
 
+[functions.promise-entitlements]
+verify_jwt = true
+
+[functions.reward-intent-create]
+verify_jwt = true
+
+[functions.reward-status]
+verify_jwt = true
+
+# Google AdMob SSV 공개 콜백. ECDSA 검증 뒤에만 보상을 부여한다.
+[functions.reward-callback]
+verify_jwt = false
+
+# pg_cron은 공유 비밀 헤더로만 호출한다.
+[functions.retention-maintenance]
+verify_jwt = false
+
 [functions.account-delete-retry]
 verify_jwt = false
 

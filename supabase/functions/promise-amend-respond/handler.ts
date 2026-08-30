@@ -13,7 +13,7 @@ export function createPromiseAmendRespondHandler(deps: Deps) {
       const actor = await deps.authenticate(request.headers.get('authorization'));
       const idempotencyKey = idempotencyKeyOf(request);
       const input = promiseAmendRespondRequestOf(await jsonBody(request, 'promise_id'));
-      const payload = asPromiseAmendRespondResponse(await deps.rpc('lf_promise_amend_respond', {
+      const payload = asPromiseAmendRespondResponse(await deps.rpc('lf_promise_amend_respond_v2', {
         p_idempotency_key: idempotencyKey,
         p_actor: actor,
         p_promise_id: input.promise_id,

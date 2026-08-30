@@ -12,6 +12,7 @@ import type {
   WitnessSignResponse,
   WitnessSlotView,
 } from './api.ts';
+import { WITNESS_MAX } from './config.ts';
 import { isIsoInstant } from './datetime.ts';
 import { PROMISE_STATUSES, type PromiseStatus } from './promise.ts';
 
@@ -127,7 +128,7 @@ function asContent(value: unknown): WitnessDetailContent | null {
     record === null
     || typeof record['body'] !== 'string'
     || !['HABIT', 'BET', 'MONEY', 'ETC'].includes(record['category'] as string)
-    || !isIsoDate(record['end_date'])
+    || (record['end_date'] !== null && !isIsoDate(record['end_date']))
     || !['CREATOR', 'PARTNER', 'BOTH'].includes(record['keeper'] as string)
     || (record['reward'] !== null && typeof record['reward'] !== 'string')
     || (record['penalty'] !== null && typeof record['penalty'] !== 'string')
@@ -197,14 +198,29 @@ function asFulfillment(value: unknown): WitnessFulfillmentView | null {
 }
 
 export function asWitnessInviteListResponse(value: unknown): WitnessInviteListResponse | null {
-  const record = exactRecord(value, ['promise_id', 'occupied_count', 'capacity', 'witnesses']);
+  const record = exactRecord(value, [
+    'promise_id',
+    'occupied_count',
+    'capacity',
+    'witness_max',
+    'creator_capacity',
+    'partner_capacity',
+    'witnesses',
+  ]);
   if (
     record === null
     || !isUuid(record['promise_id'])
-    || record['capacity'] !== 2
+    || !Number.isInteger(record['capacity'])
+    || !Number.isInteger(record['witness_max'])
+    || !Number.isInteger(record['creator_capacity'])
+    || !Number.isInteger(record['partner_capacity'])
+    || (record['capacity'] as number) < 1
+    || record['witness_max'] !== WITNESS_MAX
+    || (record['creator_capacity'] as number) + (record['partner_capacity'] as number)
+      !== record['capacity']
     || !Number.isInteger(record['occupied_count'])
     || !Array.isArray(record['witnesses'])
-    || record['witnesses'].length > 2
+    || record['witnesses'].length > (record['capacity'] as number)
     || record['occupied_count'] !== record['witnesses'].length
   ) return null;
   const witnesses = record['witnesses'].map(asSlot);

@@ -11,6 +11,7 @@ interface SheetProps {
   visible: boolean;
   detail: PromiseDetailResponse;
   now: Date;
+  durationUnlimited: boolean;
   onClose(): void;
   onSubmit(input: PromiseAmendCreateRequest): Promise<void>;
   pickEndDate(value: string, onSelect: (value: string) => void): void;
@@ -82,6 +83,7 @@ function props(overrides: Partial<SheetProps> = {}): SheetProps {
     visible: true,
     detail: detail(),
     now: new Date('2026-08-17T00:00:00Z'),
+    durationUnlimited: false,
     onClose: jest.fn(),
     onSubmit: jest.fn().mockResolvedValue(undefined),
     pickEndDate: jest.fn(),
@@ -105,6 +107,15 @@ function hiddenScrimProps(node: unknown): Record<string, unknown> | null {
 }
 
 describe('MOD-01 변경·파기 요청', () => {
+  test('"종료일 없음" 선택지는 무기한이 열린 약속에서만 보인다', async () => {
+    const closed = await render(<PromiseAmendSheet {...props()} />);
+    expect(closed.queryByRole('button', { name: '종료일 없음' })).toBeNull();
+    await closed.unmount();
+
+    const open = await render(<PromiseAmendSheet {...props({ durationUnlimited: true })} />);
+    expect(open.getByRole('button', { name: '종료일 없음' })).toBeTruthy();
+  });
+
   test('dismiss scrim is absent from the Android accessibility tree', async () => {
     const view = await render(<PromiseAmendSheet {...props()} />);
     expect(hiddenScrimProps(view.toJSON())?.['importantForAccessibility']).toBe(
@@ -162,7 +173,7 @@ describe('MOD-01 변경·파기 요청', () => {
     const view = await render(<PromiseAmendSheet {...props({ onSubmit, pickEndDate })} />);
 
     await fireEvent.press(view.getByRole('button', { name: '종료일 선택' }));
-    expect(view.getByText('종료일은 내일부터 1년 안으로 정해주세요.')).toBeTruthy();
+    expect(view.getByText('종료일은 내일 이후의 날짜로 정해주세요.')).toBeTruthy();
     expect(view.getByRole('button', { name: '요청 보내기' }).props.accessibilityState).toMatchObject({ disabled: true });
   });
 

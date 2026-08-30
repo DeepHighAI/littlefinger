@@ -35,6 +35,13 @@ describe('F-06 알림 계약', () => {
       }),
     ).toMatchObject({ title: '민준님이 약속 파기를 요청했어요' });
     expect(
+      render('NT-15', {
+        promiseTitle: '매일 걷기',
+        partnerNickname: '민준',
+        amendType: 'FINISH',
+      }),
+    ).toMatchObject({ title: '민준님이 약속 마무리를 요청했어요' });
+    expect(
       render('NT-16', { promiseTitle: '매일 걷기', amendDecision: 'APPROVE' }),
     ).toMatchObject({ title: '요청이 승인됐어요', deeplink: 'SCR-A05' });
     expect(
@@ -54,6 +61,9 @@ describe('F-06 알림 계약', () => {
 
     expect(() =>
       render('NT-15', { promiseTitle: '매일 걷기', partnerNickname: '민준' }),
+    ).toThrow('INVALID_NOTIFICATION_TEMPLATE_ARGS');
+    expect(() =>
+      render('NT-15', { promiseTitle: '매일 걷기', partnerNickname: '민준', amendType: 'toString' }),
     ).toThrow('INVALID_NOTIFICATION_TEMPLATE_ARGS');
     expect(() =>
       render('NT-16', { promiseTitle: '매일 걷기', amendDecision: 'MAYBE' }),

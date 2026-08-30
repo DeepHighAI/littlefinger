@@ -1,6 +1,90 @@
 # Development Status
 
-Snapshot date: **2026-08-28 KST**.
+Snapshot date: **2026-08-29 KST**.
+
+## Rewarded benefits + personal retention (2026-08-29, ADR 0015)
+
+Implemented locally from the PO-confirmed monetization cross-check:
+
+- Creator free witness 1 + creator rewarded 1 + partner rewarded 1 (promise max 3), with inviter
+  provenance and reusable capacity after leave; existing witness counts are grandfathered.
+- KST creation +30-day duration ceiling, repeatable creator +30-day rewarded grants, nullable
+  no-end proposals only after an effective creator permanent purchase, and mutual approval for all
+  ACTIVE duration changes.
+- Per-participant retention from finite end-date or no-end finish approval, 30 free days,
+  repeatable +30-day rewards, ₩2,000 personal permanent access, irreversible individual expiry,
+  deployment grace, unformed-record TTLs, D-7/D-1 warnings, and storage-first final purge that
+  preserves de-identified keepRate aggregates.
+- AdMob SSV intent/status/callback flow (Google P-256 verification; client earned events do not
+  grant), no free fallback when an ad cannot be shown (locked — PO 2026-08-29), separate
+  `rewarded_ads_enabled`, and Android-only payment/ad code.
+- SCR-A02 ACTIVE/WAITING in-feed adaptive banner after the fifth visual card for tab counts >=6;
+  the existing A02/A07/A08 bottom native ads remain. All exposure placements still disappear with
+  `ads_enabled=false`; permanent purchasers remain eligible for ads.
+- `promise_permanent_access` purchase verification binds both Google account and promise profile,
+  recovers unconsumed purchases, and uses the existing voided-purchase ledger for refunds without
+  undoing counterpart-approved no-end or finish agreements.
+
+### Review and fix batch (2026-08-29, same day)
+
+A three-lane review (DB / Edge / client+docs) of the local implementation found that it differed
+from the PO's two-round Q&A in six places (witness 3 vs 2, no-end promises + FINISH, per-participant
+retention anchored at the end date, hard purge with aggregates, no-fill fallback). **The PO accepted
+the implemented design as the baseline and asked for defects only** — except the no-fill fallback,
+which is removed (the server cannot verify no-fill; "locked when the ad cannot be shown" stands).
+
+Fixed in the same batch (all in the unapplied migration + local code; nothing deployed):
+- P0: fallback endpoint/RPC/UI/spec removed; `slot_purchases` scope check no longer contradicts the
+  `on delete set null` FK (promise deletes with a permanent purchase row succeed); purge finalize
+  nulls `reports.evidence_id` before the cascade; no-end ACTIVE promises no longer listed twice on
+  the home tab; `min_app_version` → 0.2.0 inside the migration (`app.json` 0.2.0) with the deploy
+  order (build first, then migration) in the release doc; `E_END_DATE_RANGE` copy is neutral so
+  the acceptance web never shows ad/purchase guidance; the in-feed banner runs through the UMP
+  consent gate.
+- Server: reward grant takes the advisory lock before the intent row (no ABBA with intent-create);
+  the intent TTL is judged against the signed SSV timestamp and a miss never rejects the intent;
+  grace + reward stacking formula; FINISH request/approve/decline now notify (NT-15/NT-16 with
+  `amendType: 'FINISH'`) and schedule the 3-day reminder; D-7/D-1 warning windows are a full day;
+  privilege baseline covers every new signature and the trigger functions; one witness "used"
+  predicate; deploy-time grace for every activated record; purge finalize re-checks access; an
+  amend that keeps `end_date` skips the duration ceiling.
+- Edge: verify_jwt lock covers the five new functions; verifier-key refetch only on an unknown
+  `key_id` and throttled; `promise_id` UUID-validated; SSV tampered-query and DER→P1363 fixed
+  vectors; `retention-maintenance` composes from `createDeps()` + a separate storage runtime.
+- Client: partner sees no DURATION button; rewarded show timeout; policy numbers from config;
+  spec↔code copy aligned (E_WITNESS_LIMIT, NT-22/23, "마무리 요청", "영구 보관"); W05 null end date;
+  unconsumed permanent purchases reconcile only against their own promise; ads gate retries a
+  failed SDK init.
+
+Verification after the batch: `npm run typecheck` 5/5; Vitest **109 files / 2,102 tests**;
+jest-expo **75 suites / 778 tests**; `check:agents` and `git diff --check` clean.
+
+### Leftover closure (2026-08-30)
+
+PO decisions on the audit: dead codes `E_REWARD_PENDING` / `E_PURGING` **deleted** (17 codes);
+**J-08's 365-day evidence deletion retired** — evidence dies with the record (retention purge) or on
+user removal only, `EVIDENCE_RETENTION_DAYS` removed, `purge_after` left as a nulled legacy column,
+the weekly `lf-evidence-purge` job now handles `removed_at` objects only; the `benefit` module
+renamed to `entitlement` (CLAUDE.md §7); expired access disappears silently as designed. Spec `02`
+v1.3 and `04` v1.2 caught up with the implementation (error table, screen table incl. MOD-04/05,
+ADR 0015 tables and enums, §6-5, J-08/J-11, NT-15/16 FINISH, quiet hours for NT-22/23, §9 rows,
+EC-J01…EC-L03, §11-3, §13). Tests added: no-end lifecycle (approve creates no D-n reminders, J-02
+never moves it), nine EC-tagged cases (traceability 57 → 66), config twins (`RETENTION_WARNING_DAYS`,
+`REWARD_INTENT_TTL_MIN`), evidence tests rewritten for the retired rule, mobile FINISH flow,
+`monetization-native`/`monetization-api` units, banner consent gate + SDK-init retry.
+Still open (not code): legal documents (privacy v6, paid-service terms, Data Safety),
+design-reference baselines for the seven new UI surfaces, operator release, device QA — see
+`docs/handoff/2026-08-30-monetization-retention-fix-batch.md`.
+
+Not deployed: the migration, five new Edge Functions (`promise-entitlements`, `reward-intent-create`, `reward-status`, `reward-callback`, `retention-maintenance`) plus seven changed ones (`fulfillment-submit`, `promise-amend-request`, `promise-amend-respond`, `promise-create`, `promise-draft-update`, `promise-invite`, `purchase-verify`), Supabase/Vault secrets, AdMob units + SSV
+callback, Play product, and a new native build all remain operator release work. Local verification
+results (2026-08-30, after the fix batch and the leftover closure): `npm run typecheck` **5 projects PASS**; Vitest **109 files / 2,124 tests PASS**;
+jest-expo **78 suites / 807 tests PASS**; web production build **131 modules PASS**;
+`npm run check:agents` and `git diff --check` PASS. Google AdMob's current SSV specification was
+cross-checked: the signed query boundary is preserved, P-256 keys refresh within 24 hours, and only
+configured rewarded units can grant. Android real-device visual and native rewarded/IAP QA is still
+pending because this session has no connected `adb` device; execute the checklist in
+`docs/setup/monetization-retention-release.md` with a Play-signed build.
 
 ## Visual-system baseline: 잉크 & 스티커 (2026-08-27, ADR 0012)
 

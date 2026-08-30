@@ -36,6 +36,9 @@ const LIST_RESPONSE = {
   promise_id: PROMISE_ID,
   occupied_count: 0,
   capacity: 2,
+  witness_max: 3,
+  creator_capacity: 1,
+  partner_capacity: 1,
   witnesses: [],
 } as const;
 

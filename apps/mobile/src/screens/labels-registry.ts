@@ -11,6 +11,7 @@ import { NOT_FOUND_LABEL } from './not-found-labels.ts';
 import { ONBOARDING_LABEL } from './onboarding-labels.ts';
 import { PROFILE_NICKNAME_LABEL } from './profile-nickname-labels.ts';
 import { PROMISE_EDIT_LABEL } from './promise-edit-labels.ts';
+import { PROMISE_ENTITLEMENT_LABEL } from './promise-entitlement-labels.ts';
 import { SCR_A02_LABEL } from './scr-a02-labels.ts';
 import { MOD_01_LABEL, SCR_A05_LABEL } from './scr-a05-labels.ts';
 import { SCR_A06_LABEL } from './scr-a06-labels.ts';
@@ -38,6 +39,7 @@ export const MOBILE_LABEL_CATALOGS = {
   ONBOARDING_LABEL,
   PROFILE_NICKNAME_LABEL,
   PROMISE_EDIT_LABEL,
+  PROMISE_ENTITLEMENT_LABEL,
   SCR_A02_LABEL,
   SCR_A05_LABEL,
   SCR_A06_LABEL,

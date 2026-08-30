@@ -212,7 +212,7 @@ describe('F-11 amend agreement Edge Functions', () => {
     );
 
     expect(respondSpy.rpcCalls[0]).toEqual({
-      fn: 'lf_promise_amend_respond',
+      fn: 'lf_promise_amend_respond_v2',
       args: expect.objectContaining({
         p_idempotency_key: IDEMPOTENCY_KEY,
         p_actor: ACTOR_ID,

@@ -39,7 +39,7 @@ function asDraft(row: Record<string, unknown>): PromiseDraftFields {
     title: String(row.title),
     body: String(row.body),
     category: row.category as PromiseDraftFields['category'],
-    end_date: String(row.end_date),
+    end_date: row.end_date === null ? null : String(row.end_date),
     keeper: row.keeper as PromiseDraftFields['keeper'],
     reward: row.reward === null ? '' : String(row.reward),
     penalty: row.penalty === null ? '' : String(row.penalty),
@@ -133,13 +133,13 @@ function isoDateAtKstMidnight(value: string): Date {
 }
 
 export function openEndDatePicker(
-  value: string,
+  value: string | null,
   onSelect: (isoDate: string) => void,
 ): void {
   const today = isoDateAtKstMidnight(toKstDate(new Date()));
   const minimumDate = new Date(today.getTime() + DAY_MS);
   const maximumDate = new Date(today.getTime() + END_DATE_MAX_DAYS * DAY_MS);
-  const selected = value === '' ? minimumDate : isoDateAtKstMidnight(value);
+  const selected = value === '' || value === null ? minimumDate : isoDateAtKstMidnight(value);
 
   DateTimePickerAndroid.open({
     value: selected,

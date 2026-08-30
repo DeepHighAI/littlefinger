@@ -38,7 +38,9 @@ export type NotificationEvent =
   | 'NT-18'
   | 'NT-19'
   | 'NT-20'
-  | 'NT-21';
+  | 'NT-21'
+  | 'NT-22'
+  | 'NT-23';
 
 export type ReminderKind =
   | 'D7'
@@ -51,7 +53,9 @@ export type ReminderKind =
   | 'AMEND_REMIND'
   | 'INVITE_EXPIRE_SOON'
   | 'DRAFT_RESUME'
-  | 'DRAFT_DELETE_SOON';
+  | 'DRAFT_DELETE_SOON'
+  | 'RETENTION_D7'
+  | 'RETENTION_D1';
 
 export type FulfillmentNotificationEvent = Extract<
   NotificationEvent,
@@ -90,6 +94,8 @@ export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: str
   'NT-19': () => '다시 확인해 달라는 요청이 왔어요',
   'NT-20': () => '작성 중인 약속이 있어요',
   'NT-21': () => '작성 중인 약속이 7일 뒤 삭제돼요',
+  'NT-22': () => '약속 기록이 7일 뒤 정리돼요',
+  'NT-23': () => '약속 기록이 내일 정리돼요',
 };
 
 /**
@@ -124,15 +130,24 @@ export const NOTIFICATION_DEEPLINK: Record<NotificationEvent, NotificationDeepli
   'NT-19': 'SCR-A06',
   'NT-20': 'SCR-A03',
   'NT-21': 'SCR-A03',
+  'NT-22': 'SCR-A05',
+  'NT-23': 'SCR-A05',
 };
 
 export interface NotificationTemplateArgs {
   promiseTitle: string;
   partnerNickname?: string;
   days?: number;
-  amendType?: 'AMEND' | 'CANCEL';
+  amendType?: 'AMEND' | 'CANCEL' | 'FINISH';
   amendDecision?: 'APPROVE' | 'DECLINE';
 }
+
+/** NT-15 "{상대}님이 약속 {변경/파기/마무리}을 요청했어요" 의 목적어. 종료 합의(FINISH)도 같은 경로다. */
+const AMEND_REQUEST_OBJECT: Record<NonNullable<NotificationTemplateArgs['amendType']>, string> = {
+  AMEND: '변경을',
+  CANCEL: '파기를',
+  FINISH: '마무리를',
+};
 
 export interface RenderedNotificationTemplate {
   title: string;
@@ -153,15 +168,18 @@ export function renderNotificationTemplate(
   }
 
   if (event === 'NT-15') {
+    // 프로토타입 키('toString' 등)가 값으로 새지 않도록 문자열인지까지 본다.
+    const amendObject: unknown =
+      args.amendType === undefined ? undefined : AMEND_REQUEST_OBJECT[args.amendType];
     if (
       typeof args.partnerNickname !== 'string' ||
       args.partnerNickname.length === 0 ||
-      (args.amendType !== 'AMEND' && args.amendType !== 'CANCEL')
+      typeof amendObject !== 'string'
     ) {
       throw new Error('INVALID_NOTIFICATION_TEMPLATE_ARGS');
     }
     return {
-      title: `${args.partnerNickname}님이 약속 ${args.amendType === 'AMEND' ? '변경을' : '파기를'} 요청했어요`,
+      title: `${args.partnerNickname}님이 약속 ${amendObject} 요청했어요`,
       body: args.promiseTitle,
       deeplink: NOTIFICATION_DEEPLINK[event],
     };

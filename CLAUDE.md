@@ -40,6 +40,9 @@ session goes somewhere permanent first.** Environment traps and hard-won debuggi
 rationale → `docs/adr/`. Status → `docs/DEVELOPMENT_STATUS.md`. Rules → this file. If a fact has no
 home outside the handoff, it is not yet preserved.
 
+**`docs/plans/` keeps one file per accepted initiative** and is deleted when its ADR lands — the
+2026-08-29 monetization plan stays until ADR 0015 is deployed, then goes.
+
 The one exception now in the directory is
 `2026-07-26-kakao-supabase-oauth-findings.md`: §6-1 and `supabase/config.toml` cite it as the source
 of truth for the Dashboard auth config, so it is a reference document that merely lives there.
@@ -170,10 +173,10 @@ truth over them.
 
 | # | Path | Ver | Role |
 |---|---|---|---|
-| 1 | `docs/기획/01_상위기획서.md` | v1.2 | Product definition · state machine · policy — final authority |
-| 2 | `docs/기획/02_세부기능명세서.md` | v1.1 | Per-feature screens · fields · data model · transitions · edge cases |
-| 3 | `docs/기획/04_AI-Agent_코딩가이드.md` | v1.0 | Confirmed stack · repo layout · **port rules** · Supabase schema · security |
-| 4 | `docs/디자인/01_와이어프레임_디자인요청서.md` | v1.1 | Screen inventory (SCR-ID) · glossary · design constraints |
+| 1 | `docs/기획/01_상위기획서.md` | v1.3 | Product definition · state machine · policy — final authority |
+| 2 | `docs/기획/02_세부기능명세서.md` | v1.2 | Per-feature screens · fields · data model · transitions · edge cases |
+| 3 | `docs/기획/04_AI-Agent_코딩가이드.md` | v1.1 | Confirmed stack · repo layout · **port rules** · Supabase schema · security |
+| 4 | `docs/디자인/01_와이어프레임_디자인요청서.md` | v1.2 | Screen inventory (SCR-ID) · glossary · design constraints |
 | 5 | `design-reference/concept-4.html` | — | Original approved UI canvas (핑키 / 1d) |
 | 6 | `docs/adr/` | — | Implementation decision records |
 
@@ -219,7 +222,7 @@ Port rules are fully specified in `04` §3–§5. **Follow them; do not improvis
 |---|---|---|
 | `promise.ts` | 11 `PromiseStatus` values, label maps, entity shapes, `LEGAL_DISCLAIMER` | `02` §2-4·§6-3 |
 | `config.ts` | **every policy number** | `02` §11-3 |
-| `errors.ts` | 14 error codes + HTTP status + user-facing copy | `02` §2-3 |
+| `errors.ts` | 17 error codes + HTTP status + user-facing copy | `02` §2-3 |
 | `text.ts` | input normalization (**NFC**), code-point length | `02` §2-3 |
 | `validation.ts` | the `02` §5 field rules, as pure functions | `02` §5 |
 | `datetime.ts` | KST D-Day, imminence, CHECKING window, quiet hours | `02` §2-2·§6-4 |
@@ -230,6 +233,7 @@ Port rules are fully specified in `04` §3–§5. **Follow them; do not improvis
 | `i18n.ts` | `Locale`/`Localized<T>`, `resolveLocale`, `resolveInitialLocale`, `catalogKeyPaths`, **`LOCALE_DETECTION_ENABLED`** (ON since 2026-08-20 — the one switch that forces Korean back) | ADR 0006 |
 | `app-links.ts` | `ANDROID_PACKAGE_NAME`, Play Store URL builder, `invitePathOf`, `buildInviteAppIntentUri` (intent:// with store fallback) | ADR 0007 |
 | `slots.ts` | `asSlotStatusResponse` — 유료 슬롯 현황 파서. 수치의 정본은 서버(`lf_slot_status`)이고 클라이언트는 세지 않는다 | ADR 0009 |
+| `monetization.ts` | `asPromiseEntitlementsView` · `asRewardIntentResponse` · `asRewardStatusResponse` — 약속별 혜택(증인 용량·기간 상한·개인 보관·영구 보관)과 보상형 광고 intent 파서. 지급의 정본은 서버 원장이고 클라이언트 `EARNED_REWARD` 는 아무것도 부여하지 않는다 | ADR 0015 |
 
 Naming follows **`02`, not `04`** where they conflict (PO, 2026-07-26): `keeper` not `obligor`,
 `INVITE_TTL_HOURS` not `INVITE_EXPIRY_HOURS`, `CHECK_DEADLINE_DAYS`, `WITNESS_MAX`,
@@ -259,8 +263,9 @@ Lifecycle:
 
 ```
 DRAFT → PENDING → ACTIVE → CHECKING → COMPLETED | BROKEN | DISPUTED | UNRESOLVED
-                     ↕                      ↑
-              AMEND_PENDING → CANCELED      └── DISPUTED (재협의로 CHECKING 재진입)
+                     ↕          ↑           ↑
+              AMEND_PENDING ────┘ (T-20: 무기한 약속 마무리 승인)
+                     └→ CANCELED           └── DISPUTED (재협의로 CHECKING 재진입)
         PENDING → DECLINED
 ```
 
@@ -337,6 +342,14 @@ Functions only (`04` §7-3): `invite-resolve`, `promise-approve` (state transiti
 `fulfillment-submit` (the COMPLETED/BROKEN/DISPUTED verdict), `evidence-sign-url`, `push-send`
 (quiet hours 21:00–08:00 KST).
 
+Monetization and retention joined that server-owned boundary on 2026-08-29 (ADR 0015):
+`promise-entitlements`, `reward-intent-create`, `reward-status`, the public
+ECDSA-verified `reward-callback`, `purchase-verify`, and the secret-gated `retention-maintenance`.
+Rewarded benefits are append-only server grants; a client `EARNED_REWARD` event never grants.
+Record access is participant-specific after activation, and once one participant's access expires
+it cannot be restored. The final participant expiry triggers storage-first, lease-fenced purge;
+de-identified keepRate aggregates survive the source-record deletion.
+
 **`promise-create` and `promise-invite` joined that list** (2026-07-27), which `04` §7-3 did not
 anticipate — it left T-01 to the client over RLS. Two things forced the move: EC-H05's "DRAFT 20건 ·
 일 30건" can only be counted where creation happens, and `content_hash` is server-generated (§9). The
@@ -403,8 +416,8 @@ and the weekly `supabase db dump` backup are load-bearing, not optional.
 | DB · auth · storage · server logic · batch | **Supabase Free** (Postgres · Auth · Storage · Edge Functions · pg_cron) |
 | Web hosting | **Firebase Hosting Spark** on the existing `littlefinger-app-philwoo` project |
 | Push | expo-notifications + Expo Push Service |
-| Ads | `react-native-google-mobile-ads` (AdMob) — SCR-A02·A07·A08 bottom slots (expanded PO 2026-08-24, ADR 0009) |
-| In-app purchase | **expo-iap** (Google Play Billing) — promise slots only, verified server-side by `purchase-verify` |
+| Ads | `react-native-google-mobile-ads` (AdMob) — SCR-A02·A07·A08 bottom native slots, A02 in-feed banner, and rewarded witness/duration/retention benefits (ADR 0009·0015) |
+| In-app purchase | **expo-iap** (Google Play Billing) — promise slots + per-promise personal permanent access, verified server-side by `purchase-verify` |
 
 **Do not use**: Vercel (Hobby plan forbids ad-monetized services) · Firebase Blaze · Next.js ·
 react-native-web / Expo Web for the acceptance web · `@react-native-kakao/*` (unofficial) ·
@@ -480,16 +493,25 @@ verbatim in code, DB, and design; screen labels **always** go through `PROMISE_S
 | 확정 기록 지문 | `fingerprint` | 기록 지문 | hash, 해시, 서명 |
 | 초대 링크 | `inviteLink` | 초대 링크 | 공유 링크, url |
 | 약속 슬롯 | `slot` | 슬롯 | quota, 좌석, ticket |
+| 약속별 혜택(증인 용량·기간 상한·보관) | `entitlement` | 혜택 | benefit(식별자), perk, unlock |
+| 보상형 광고 | `rewarded ad` / `reward` | 보상형 광고 | 리워드 광고, 동영상 광고 |
+| 개인 보관(열람권) | `retention` / `access` | 보관 | 보존(화면 문구), archive |
+| 영구 보관 | `permanent access` | 영구 보관 | 영구보존, forever |
+| 무기한 약속 마무리 | `finish` | 마무리 | 종료(식별자·문구), close |
 | 슬롯 구매 | `purchase` | 구매 | payment, order, 결제(코드 식별자로는 금지) |
 
 ---
 
 ## 8. Hard constraints — no document below §4 can override these
 
-1. **No ads at moments of trust.** Creation, review, approval, confirmation and fulfillment screens,
-   plus **the entire acceptance web**, carry no ads. The only slots are the SCR-A02, SCR-A07 and
-   SCR-A08 bottoms (A07·A08 expanded by the PO 2026-08-24, ADR 0009). When
-   `ads_enabled=false`, the component is **not rendered at all** — no reserved empty space.
+1. **No exposure ads at moments of trust.** Creation, review, approval, confirmation and
+   fulfillment screens, plus **the entire acceptance web**, carry no banner/native ads. Exposure
+   slots are SCR-A02/A07/A08 bottoms plus one A02 ACTIVE/WAITING in-feed banner after the fifth
+   visual card when the tab has at least six records (ADR 0009·0015). A user-initiated rewarded ad
+   is allowed only for witness, duration, or personal-retention benefits in the Android app; SSV,
+   never the client earned event, grants it; when the ad cannot be shown the benefit stays locked —
+   there is no free fallback (PO 2026-08-29). When `ads_enabled=false`, exposure components are not
+   rendered at all; `rewarded_ads_enabled` is a separate gate.
 2. **`LEGAL_DISCLAIMER` is verbatim and immutable.** Since 2026-08-20 it is a per-locale pair
    (`LEGAL_DISCLAIMER_BY_LOCALE`): the **ko text stays verbatim-immutable** (same object as the
    legacy const), and the **en text passed external 법무 검토 (PO confirmed 2026-08-22), so both

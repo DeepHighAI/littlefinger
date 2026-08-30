@@ -1,8 +1,13 @@
-import { SLOT_PRODUCT_ID } from '../../../packages/shared/src/config.ts';
+import {
+  PERMANENT_ACCESS_PRODUCT_ID,
+  SLOT_PRODUCT_ID,
+} from '../../../packages/shared/src/config.ts';
+import { asPromiseEntitlementsView } from '../../../packages/shared/src/monetization.ts';
 import { asSlotStatusResponse } from '../../../packages/shared/src/slots.ts';
 import type { Deps } from '../_shared/deps.ts';
 import { ApiError } from '../_shared/errors.ts';
 import { corsPreflight, failureResponse, jsonResponse } from '../_shared/http.ts';
+import { uuidField } from '../_shared/monetization.ts';
 import { jsonBody, requiredString } from '../_shared/request.ts';
 import type { GoogleProductPurchase } from './google.ts';
 
@@ -32,10 +37,15 @@ export function createPurchaseVerifyHandler(deps: PurchaseVerifyDeps) {
       const productId = requiredString(body, 'product_id', 'product_id');
       const purchaseToken = requiredString(body, 'purchase_token', 'purchase_token');
 
-      // 파는 상품은 슬롯 하나뿐이다. 다른 상품 ID 는 우리 클라이언트가 보낸 요청이 아니다.
-      if (productId !== SLOT_PRODUCT_ID) {
+      // 파는 상품은 슬롯과 약속별 영구 보관 둘뿐이다. 다른 상품 ID 는 우리 클라이언트가 보낸
+      // 요청이 아니다.
+      if (productId !== SLOT_PRODUCT_ID && productId !== PERMANENT_ACCESS_PRODUCT_ID) {
         throw new ApiError('E_VALIDATION', { field: 'product_id' });
       }
+      // UUID 가 아닌 값은 RPC 의 uuid 캐스팅에서 죽어 500 이 된다 — 여기서 422 로 끝낸다.
+      const promiseId = productId === PERMANENT_ACCESS_PRODUCT_ID
+        ? uuidField(body, 'promise_id')
+        : null;
 
       const purchase = await deps.verifyPurchase(productId, purchaseToken);
 
@@ -45,7 +55,9 @@ export function createPurchaseVerifyHandler(deps: PurchaseVerifyDeps) {
         purchase === null ||
         purchase.purchaseState !== 0 ||
         purchase.orderId === null ||
-        purchase.obfuscatedExternalAccountId !== actor
+        purchase.obfuscatedExternalAccountId !== actor ||
+        (productId === PERMANENT_ACCESS_PRODUCT_ID &&
+          purchase.obfuscatedExternalProfileId !== promiseId)
       ) {
         throw new ApiError('E_VALIDATION', { field: 'purchase_token' });
       }
@@ -55,16 +67,22 @@ export function createPurchaseVerifyHandler(deps: PurchaseVerifyDeps) {
           ? deps.now().toISOString()
           : new Date(Number(purchase.purchaseTimeMillis)).toISOString();
 
-      const payload = asSlotStatusResponse(
-        await deps.rpc('lf_slot_grant', {
+      const raw = await deps.rpc(
+        productId === SLOT_PRODUCT_ID ? 'lf_slot_grant' : 'lf_permanent_access_grant', {
           p_user_id: actor,
+          ...(productId === PERMANENT_ACCESS_PRODUCT_ID
+            ? { p_promise_id: promiseId }
+            : {}),
           p_product_id: productId,
           p_order_id: purchase.orderId,
           p_purchase_token: purchaseToken,
           p_purchase_time: purchaseTime,
-        }),
+        },
       );
-      if (payload === null) throw new Error('INVALID_SLOT_GRANT_RESPONSE');
+      const payload = productId === SLOT_PRODUCT_ID
+        ? asSlotStatusResponse(raw)
+        : asPromiseEntitlementsView(raw);
+      if (payload === null) throw new Error('INVALID_PURCHASE_GRANT_RESPONSE');
       return jsonResponse(payload, 200);
     } catch (raised) {
       return failureResponse(raised, { log: deps.log.error });

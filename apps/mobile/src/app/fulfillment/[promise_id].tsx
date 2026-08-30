@@ -932,8 +932,9 @@ export default function FulfillmentScreen(): React.JSX.Element {
           <LfStack gap={3}>
             <LfText variant="subtitle">{detail.title}</LfText>
             <LfText variant="caption">
-              {LABEL.endDate(formatKstDate(detail.end_date, locale))}
-              {KST_MARK}
+              {detail.end_date === null
+                ? LABEL.noEndDate
+                : `${LABEL.endDate(formatKstDate(detail.end_date, locale))}${KST_MARK}`}
             </LfText>
             <LfText variant="caption">
               {LABEL.keeper(detail.keeper)}

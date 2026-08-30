@@ -1,4 +1,5 @@
 import {
+  END_DATE_FREE_DAYS,
   KEEPER_LABEL,
   KEEPER_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL,
@@ -9,7 +10,7 @@ import {
   type PromiseCategory,
 } from '@littlefinger/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Text, ToastAndroid, View } from 'react-native';
 import Animated, { FadeInLeft, FadeInRight, useReducedMotion } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,6 +32,7 @@ import { LfText } from '../../components/LfText';
 import { LfTextarea } from '../../components/LfTextarea';
 import { LfWizardProgress, type LfWizardStep } from '../../components/LfWizardProgress';
 import { SlotPaywallSheet } from '../../components/slot-paywall-sheet.tsx';
+import { PromiseEntitlementSheet } from '../../components/promise-entitlement-sheet.tsx';
 import { DraftAutosave } from '../../lib/draft-autosave.ts';
 import { useLabels, useLocale } from '../../lib/locale-native';
 import { localizedApiMessage, MobileApiError } from '../../lib/mobile-api.ts';
@@ -136,6 +138,8 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const router = useRouter();
   const params = useLocalSearchParams<{ promise_id?: string | string[] }>();
   const promiseId = routePromiseId(params.promise_id);
+  const [serverPromiseId, setServerPromiseId] = useState(promiseId);
+  const autosavePromiseId = useRef(promiseId);
   const reduceMotion = useReducedMotion();
   const [step, setStep] = useState<LfWizardStep>(1);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -151,10 +155,11 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const [formNotice, setFormNotice] = useState<string | null>(null);
   const [amendComment, setAmendComment] = useState<string | null>(null);
   const [slotSheetOpen, setSlotSheetOpen] = useState(false);
+  const [durationSheetOpen, setDurationSheetOpen] = useState(false);
 
   const autosave = useMemo(
-    () => new DraftAutosave(async (nextDraft) => await saveEditorLocalDraft(promiseId, nextDraft)),
-    [promiseId],
+    () => new DraftAutosave(async (nextDraft) => await saveEditorLocalDraft(autosavePromiseId.current, nextDraft)),
+    [],
   );
 
   useEffect(() => {
@@ -294,8 +299,11 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     setSubmitError(null);
     try {
       await autosave.flush();
-      const response = await submitEditorDraft(draft, promiseId, send);
+      const response = await submitEditorDraft(draft, serverPromiseId, send);
       await clearEditorLocalDraft(promiseId);
+      if (serverPromiseId !== null && serverPromiseId !== promiseId) {
+        await clearEditorLocalDraft(serverPromiseId);
+      }
       if (response.status === 'PENDING') {
         router.push({
           pathname: '/invite',
@@ -312,6 +320,21 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         // 서버 트랜잭션은 통째로 롤백됐지만 내용은 로컬 자동저장에 그대로 있다 —
         // 오류 줄 대신 결제 시트가 출구를 안내하고, 구매 후 [보내기]를 다시 누르면 된다.
         setSlotSheetOpen(true);
+      } else if (error instanceof MobileApiError && error.code === 'E_END_DATE_RANGE') {
+        try {
+          let entitlementPromiseId = serverPromiseId;
+          if (entitlementPromiseId === null) {
+            const saved = await submitEditorDraft(draft, null, false);
+            entitlementPromiseId = saved.promise_id;
+            autosavePromiseId.current = entitlementPromiseId;
+            setServerPromiseId(entitlementPromiseId);
+          }
+          setDurationSheetOpen(true);
+        } catch (saveError) {
+          setSubmitError(saveError instanceof MobileApiError
+            ? localizedApiMessage(saveError, locale)
+            : LABEL.genericError);
+        }
       } else if (error instanceof MobileApiError && error.field !== undefined) {
         const field = error.field as PromiseDraftField;
         setServerErrors((current) => ({ ...current, [field]: error.message }));
@@ -415,13 +438,23 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       <LfField label={LABEL.endDate} required error={errorFor('end_date')}>
         <LfPicker
           accessibilityLabel={LABEL.endDatePicker}
-          value={draft.end_date === '' ? undefined : draft.end_date}
+          value={draft.end_date === '' ? undefined : draft.end_date === null ? LABEL.noEndDate : draft.end_date}
           placeholder={LABEL.endDatePicker}
           onPress={() => {
             touch('end_date');
             openEndDatePicker(draft.end_date, (value) => updateDraft('end_date', value));
           }}
         />
+        <LfButton
+          label={LABEL.endDateNoEnd}
+          variant="text"
+          block
+          onPress={() => {
+            touch('end_date');
+            updateDraft('end_date', null);
+          }}
+        />
+        <LfText variant="caption">{LABEL.durationNotice(END_DATE_FREE_DAYS)}</LfText>
       </LfField>
       <LfField label={LABEL.keeper} required error={errorFor('keeper')}>
         <View style={styles.choices}>
@@ -507,7 +540,10 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             onPress={() => { setDirection(-1); setStep(2); }}
           />
         </LfRow>
-        <ReviewValue label={LABEL.endDate} value={formatKstDate(draft.end_date)} />
+        <ReviewValue
+          label={LABEL.endDate}
+          value={draft.end_date === null ? LABEL.noEndDate : formatKstDate(draft.end_date, locale)}
+        />
         <ReviewValue label={LABEL.keeper} value={KEEPER_LABEL_BY_LOCALE[locale][draft.keeper]} />
         <ReviewValue label={LABEL.reward} value={draft.reward === '' ? LABEL.none : draft.reward} />
         <ReviewValue label={LABEL.penalty} value={draft.penalty === '' ? LABEL.none : draft.penalty} />
@@ -614,6 +650,19 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           void performSubmit(true);
         }}
       />
+      {serverPromiseId !== null ? (
+        <PromiseEntitlementSheet
+          visible={durationSheetOpen}
+          promiseId={serverPromiseId}
+          mode="DURATION"
+          reason="END_DATE_RANGE"
+          onClose={() => setDurationSheetOpen(false)}
+          onChanged={() => {
+            setDurationSheetOpen(false);
+            setTimeout(() => void performSubmit(true), 0);
+          }}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

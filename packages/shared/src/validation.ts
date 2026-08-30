@@ -100,8 +100,8 @@ export function validateKeeper(value: string): ValidationResult {
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const END_DATE_MESSAGE: Localized<string> = {
-  ko: '종료일은 내일부터 1년 안으로 정해주세요.',
-  en: 'Choose an end date between tomorrow and one year from today.',
+  ko: '종료일은 내일 이후의 날짜로 정해주세요.',
+  en: 'Choose an end date from tomorrow onward.',
 };
 
 /** `YYYY-MM-DD` 가 실제로 존재하는 날짜인지 — 2026-13-01 같은 값을 거른다. */
@@ -123,10 +123,11 @@ function isRealIsoDate(value: string): boolean {
  * 같은 함수로 재검증할 수 있어야 하기 때문이다(T-03·T-08).
  */
 export function validateEndDate(
-  value: string,
+  value: string | null,
   now: Date,
   locale: Locale = 'ko',
 ): ValidationResult {
+  if (value === null) return VALID;
   if (!isRealIsoDate(value)) return invalid(END_DATE_MESSAGE[locale]);
 
   const todayKst = Date.parse(`${toKstDate(now)}T00:00:00Z`);

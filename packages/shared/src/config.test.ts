@@ -10,12 +10,13 @@ import {
   DEVICE_TOKEN_MAX,
   DRAFT_MAX_CONCURRENT,
   DRAFT_TTL_DAYS,
+  END_DATE_EXTENSION_DAYS,
+  END_DATE_FREE_DAYS,
   END_DATE_MAX_DAYS,
   EVIDENCE_FULL_MAX_PX,
   EVIDENCE_JPEG_QUALITY,
   EVIDENCE_MAX_COUNT,
   EVIDENCE_MAX_MB,
-  EVIDENCE_RETENTION_DAYS,
   EVIDENCE_SIGNED_URL_MIN,
   EVIDENCE_THUMB_MAX_PX,
   FULFILLMENT_COMMENT_MAX,
@@ -25,6 +26,10 @@ import {
   PROMISE_MAX_PER_DAY,
   QUIET_HOURS_KST,
   REFRESH_TOKEN_TTL_DAYS,
+  RETENTION_EXTENSION_DAYS,
+  RETENTION_FREE_DAYS,
+  REWARD_SHOW_TIMEOUT_MS,
+  REWARD_INTENT_TTL_MIN,
   REMINDER_OFFSETS_DAYS,
   REMINDER_SEND_HOUR_KST,
   TRUST_MIN_SAMPLE,
@@ -38,8 +43,8 @@ describe('PO 확정값 (변경 금지)', () => {
     expect(INVITE_TTL_HOURS).toBe(72);
   });
 
-  test('증인은 최대 2명이다', () => {
-    expect(WITNESS_MAX).toBe(2);
+  test('증인은 역할별 보상 슬롯을 포함해 최대 3명이다', () => {
+    expect(WITNESS_MAX).toBe(3);
   });
 
   test('광고 활성화 검토 기준은 일 확정 100건이다', () => {
@@ -48,6 +53,18 @@ describe('PO 확정값 (변경 금지)', () => {
 
   test('광고는 기본적으로 꺼져 있다', () => {
     expect(ADS_ENABLED_DEFAULT).toBe(false);
+  });
+
+  test('기간·개인 보관 광고는 30일이고 no-fill 대체는 계정당 24시간 1회다', () => {
+    expect(END_DATE_FREE_DAYS).toBe(30);
+    expect(END_DATE_EXTENSION_DAYS).toBe(30);
+    expect(RETENTION_FREE_DAYS).toBe(30);
+    expect(RETENTION_EXTENSION_DAYS).toBe(30);
+    expect(REWARD_SHOW_TIMEOUT_MS).toBe(20_000);
+  });
+
+  test('SSV 보상 의도는 15분 뒤 만료한다', () => {
+    expect(REWARD_INTENT_TTL_MIN).toBe(15);
   });
 });
 
@@ -105,12 +122,11 @@ describe('기본안 (PO 미확정 — 원격으로 바뀔 수 있다)', () => {
     expect(DEVICE_TOKEN_MAX).toBe(3);
   });
 
-  test('종료일은 오늘+365일까지다', () => {
-    expect(END_DATE_MAX_DAYS).toBe(365);
+  test('반복 연장을 가로막지 않는 기술상 날짜 상한을 둔다', () => {
+    expect(END_DATE_MAX_DAYS).toBe(36_500);
   });
 
   test('증빙 보존은 365일, DRAFT 보존은 90일이다', () => {
-    expect(EVIDENCE_RETENTION_DAYS).toBe(365);
     expect(DRAFT_TTL_DAYS).toBe(90);
   });
 

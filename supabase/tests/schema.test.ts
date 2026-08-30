@@ -185,6 +185,70 @@ describe('MOD-03 completion celebration transaction schema', () => {
   });
 });
 
+describe('보상형 광고·개인 보존 마이그레이션 (20260829103504)', () => {
+  const migration = readFileSync(
+    join(MIGRATIONS_DIR, '20260829103504_rewarded_ads_retention_bm.sql'),
+    'utf8',
+  ).toLowerCase();
+
+  test('광고 미노출 대체 지급은 어디에도 남아 있지 않다', () => {
+    expect(lower).not.toContain('no_fill_fallback');
+    expect(lower).not.toContain('fallback_granted');
+    expect(lower).not.toContain('lf_reward_fallback');
+  });
+
+  test('영구보존 원장은 promise_id 를 강제하지 않는다 (FK on delete set null 과 맞춘다)', () => {
+    expect(migration).toMatch(
+      /or \(product_id = 'promise_permanent_access' and granted_slots = 0\)/u,
+    );
+    expect(migration).toContain('references public.promises (id) on delete set null');
+  });
+
+  test('응답 모양이 바뀌었으므로 min_app_version 을 0.2.0 으로 올린다', () => {
+    expect(migration).toMatch(
+      /update public\.app_configs set value = pg_catalog\.to_jsonb\('0\.2\.0'::text\)\s+where key = 'min_app_version'/u,
+    );
+  });
+
+  test('트리거 함수와 새 RPC 도 서버 전용 revoke·grant 를 갖는다', () => {
+    for (const signature of [
+      'public.lf_duration_baseline_insert()',
+      'public.lf_assert_duration_entitlement()',
+      'public.lf_assert_amend_duration_entitlement()',
+      'public.lf_approval_notification_outbox()',
+    ]) {
+      expect(migration).toContain(`revoke all on function ${signature} from public, anon, authenticated`);
+      expect(migration).toContain(`grant execute on function ${signature} to service_role`);
+    }
+    for (const name of [
+      'lf_witness_used',
+      'lf_reward_intent_create',
+      'lf_reward_grant',
+      'lf_reward_status',
+      'lf_permanent_access_grant',
+      'lf_retention_maintenance',
+      'lf_purge_job_claim',
+      'lf_purge_job_finalize',
+      'lf_promise_finish_request',
+      'lf_promise_finish_respond',
+      'lf_promise_amend_respond_v2',
+      'lf_promise_home_list',
+    ]) {
+      expect(migration).toMatch(new RegExp(`public\\.${name}\\([^)]*\\)[\\s\\S]*?from public, anon, authenticated`, 'u'));
+      expect(migration).toMatch(new RegExp(`public\\.${name}\\([^)]*\\)[\\s\\S]*?to service_role`, 'u'));
+    }
+  });
+
+  test('새로 만들거나 다시 정의한 함수는 전부 빈 search_path 다', () => {
+    const definitions = [...migration.matchAll(/create or replace function public\.([a-z_0-9]+)\(([\s\S]*?)\bas \$\$/gu)];
+    expect(definitions.length).toBeGreaterThan(0);
+    const leaking = definitions
+      .filter((m) => !/set search_path\s*=\s*''/u.test(m[2] ?? ''))
+      .map((m) => m[1]);
+    expect(leaking).toEqual([]);
+  });
+});
+
 /** `create table [if not exists] [public.]name` 에서 이름만 뽑는다. */
 function declaredTables(): string[] {
   const names: string[] = [];

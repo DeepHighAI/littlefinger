@@ -15,6 +15,8 @@ export interface GoogleProductPurchase {
   purchaseTimeMillis: string | null;
   /** 구매 시점에 클라이언트가 심은 사용자 바인딩. 계정 간 토큰 재사용을 막는 근거다. */
   obfuscatedExternalAccountId: string | null;
+  /** 약속별 상품의 promise_id 바인딩. */
+  obfuscatedExternalProfileId: string | null;
 }
 
 export interface GoogleVerifierConfig {
@@ -113,6 +115,10 @@ function asPurchase(value: unknown): GoogleProductPurchase | null {
     obfuscatedExternalAccountId:
       typeof record['obfuscatedExternalAccountId'] === 'string'
         ? record['obfuscatedExternalAccountId']
+        : null,
+    obfuscatedExternalProfileId:
+      typeof record['obfuscatedExternalProfileId'] === 'string'
+        ? record['obfuscatedExternalProfileId']
         : null,
   };
 }

@@ -43,10 +43,14 @@ const APPROVAL_ACTIONS = [
   'CANCEL_REQUEST',
   'CANCEL_APPROVE',
   'CANCEL_DECLINE',
+  'FINISH_REQUEST',
+  'FINISH_APPROVE',
+  'FINISH_DECLINE',
+  'FINISH_WITHDRAW',
   'WITNESS_SIGN',
 ] as const;
 const INVITATION_STATUSES = ['PENDING', 'USED', 'EXPIRED', 'REVOKED'] as const;
-const AMEND_TYPES = ['AMEND', 'CANCEL'] as const;
+const AMEND_TYPES = ['AMEND', 'CANCEL', 'FINISH'] as const;
 const AMEND_STATUSES = ['PENDING', 'APPROVED', 'DECLINED', 'WITHDRAWN', 'EXPIRED'] as const;
 const FULFILLMENT_STATUSES: readonly PromiseDetailStatus[] = [
   'CHECKING',
@@ -170,7 +174,7 @@ export function asPromiseDetailVersion(value: unknown): PromiseDetailVersion | n
     typeof record['title'] !== 'string' ||
     typeof record['body'] !== 'string' ||
     !CATEGORIES.includes(record['category'] as PromiseCategory) ||
-    !isIsoDate(record['end_date']) ||
+    (record['end_date'] !== null && !isIsoDate(record['end_date'])) ||
     !KEEPERS.includes(record['keeper'] as Keeper) ||
     !isNullableString(record['reward']) ||
     !isNullableString(record['penalty']) ||
@@ -405,7 +409,7 @@ export function asPromiseDetailResponse(value: unknown): PromiseDetailResponse |
     typeof record['title'] !== 'string' ||
     typeof record['body'] !== 'string' ||
     !CATEGORIES.includes(record['category'] as PromiseCategory) ||
-    !isIsoDate(record['end_date']) ||
+    (record['end_date'] !== null && !isIsoDate(record['end_date'])) ||
     !KEEPERS.includes(record['keeper'] as Keeper) ||
     !isNullableString(record['reward']) ||
     !isNullableString(record['penalty']) ||

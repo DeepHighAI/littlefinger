@@ -33,6 +33,10 @@ jest.mock('../components/LfAdSlot', () => {
   const { View } = jest.requireActual('react-native') as typeof import('react-native');
   return { LfAdSlot: ({ enabled }: { enabled: boolean }) => enabled ? <View testID="lf-ad-slot" /> : null };
 });
+jest.mock('../components/LfBannerAd.tsx', () => {
+  const { View } = jest.requireActual('react-native') as typeof import('react-native');
+  return { LfBannerAd: ({ enabled }: { enabled: boolean }) => enabled ? <View testID="lf-banner-ad" /> : null };
+});
 
 const NOW = new Date('2026-08-16T00:00:00Z');
 const ACTIVE_ID = '11111111-1111-4111-8111-111111111111';
@@ -203,6 +207,40 @@ describe('SCR-A02 Soft Promise 홈', () => {
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
     expect(view.getAllByTestId('lf-ad-slot')).toHaveLength(1);
+  });
+
+  test('띠배너는 히어로 없는 목록의 인덱스 5에 한 번 들어가고, 광고가 꺼지면 목록에 없다', async () => {
+    const sixCards = [1, 2, 3, 4, 5, 6].map((index) => card({
+      id: `${String(index).repeat(8)}-${String(index).repeat(4)}-4${String(index).repeat(3)}-8${String(index).repeat(3)}-${String(index).repeat(12)}`,
+      title: `대기 ${index}`,
+      status: 'PENDING',
+    }));
+    jest.mocked(listHomePromises).mockImplementation(async (input: { tab: string }) =>
+      input.tab === 'WAITING'
+        ? { ...response({ items: sixCards }), counts: { ACTIVE: 0, WAITING: 6, COMPLETED: 0 } }
+        : response());
+
+    jest.mocked(readAdsEnabled).mockResolvedValue(true);
+    const enabled = await render(<HomeScreen now={NOW} />);
+    await settle();
+    await fireEvent.press(enabled.getByRole('tab', { name: /대기/u }));
+    await settle();
+    const data = enabled.getByTestId('home-list').props.data as Array<{ kind: string }>;
+    expect(data).toHaveLength(7);
+    expect(data[5]?.kind).toBe('BANNER');
+    expect(data.filter((item) => item.kind === 'BANNER')).toHaveLength(1);
+    expect(enabled.getAllByTestId('lf-banner-ad')).toHaveLength(1);
+    await cleanup();
+
+    jest.mocked(readAdsEnabled).mockResolvedValue(false);
+    const disabled = await render(<HomeScreen now={NOW} />);
+    await settle();
+    await fireEvent.press(disabled.getByRole('tab', { name: /대기/u }));
+    await settle();
+    const plain = disabled.getByTestId('home-list').props.data as Array<{ kind: string }>;
+    expect(plain).toHaveLength(6);
+    expect(plain.every((item) => item.kind === 'PROMISE')).toBe(true);
+    expect(disabled.queryByTestId('lf-banner-ad')).toBeNull();
   });
 
   test('페이지 추가와 재포커스 새로고침은 ACTIVE 계약을 유지한다', async () => {

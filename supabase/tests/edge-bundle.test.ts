@@ -72,6 +72,13 @@ const VERIFY_JWT: Record<string, boolean> = {
   'evidence-purge': false,
   'purchase-reconcile': false,
   'account-delete-retry': false,
+  'promise-entitlements': true,
+  'reward-intent-create': true,
+  'reward-status': true,
+  // AdMob SSV 는 Google 서버가 부르는 공개 GET 이다 — JWT 대신 ECDSA 서명이 인증이다.
+  'reward-callback': false,
+  // pg_cron 이 공유 비밀 헤더로 부른다.
+  'retention-maintenance': false,
   // 로그인 뒤 자기 행 보정이다. 익명에게 열리면 아무 계정의 대진값이나 남의 요청으로
   // 채워질 수 있다 — p_user_id 는 JWT 에서만 온다.
   'user-provision': true,

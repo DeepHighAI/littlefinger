@@ -21,7 +21,7 @@ import * as validationRuntime from './validation.ts';
 // 길이 제한을 통과하지 못하고, 한글 조합형 자모도 NFC 로 합쳐진 뒤 세어진다.
 // 실패 문구는 명세 원문 그대로 쓴다 — 지어내지 않는다.
 
-const MAX_DATE_MSG = '종료일은 내일부터 1년 안으로 정해주세요.';
+const MAX_DATE_MSG = '종료일은 내일 이후의 날짜로 정해주세요.';
 
 /** 편의: 유효하면 true */
 const ok = (result: { valid: boolean }) => result.valid;
@@ -178,20 +178,18 @@ describe('validateEndDate — 내일부터 오늘+365일까지, KST 기준', () 
     expect(ok(validateEndDate('2027-07-26', now))).toBe(true);
   });
 
-  test('오늘+366일은 거절한다', () => {
-    expect(ok(validateEndDate('2027-07-27', now))).toBe(false);
+  test('광고 연장으로 1년을 넘긴 날짜도 클라이언트 검증은 통과한다', () => {
+    expect(ok(validateEndDate('2027-07-27', now))).toBe(true);
   });
 
-  test('윤년을 지나면 상한 날짜가 하루 당겨진다', () => {
-    // 2027-07-26 기준 +365일은 2028-02-29 를 포함하므로 2028-07-25 다.
+  test('윤년을 지난 날짜도 서버가 부여한 범위 안이면 입력할 수 있다', () => {
     const beforeLeapYear = new Date('2027-07-25T15:00:00Z'); // KST 2027-07-26
     expect(ok(validateEndDate('2028-07-25', beforeLeapYear))).toBe(true);
-    expect(ok(validateEndDate('2028-07-26', beforeLeapYear))).toBe(false);
+    expect(ok(validateEndDate('2028-07-26', beforeLeapYear))).toBe(true);
   });
 
   test('상한은 END_DATE_MAX_DAYS 에서 온다', () => {
-    // 숫자 365 를 검증 로직에 박지 않았는지 확인한다.
-    expect(END_DATE_MAX_DAYS).toBe(365);
+    expect(END_DATE_MAX_DAYS).toBe(36_500);
   });
 
   test('KST 로 날이 바뀌면 하한도 함께 움직인다', () => {

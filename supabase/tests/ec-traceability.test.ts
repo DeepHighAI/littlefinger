@@ -61,16 +61,25 @@ const EC_EVIDENCE = {
   'EC-I02': 'apps/web/src/screens/scr-w01-invite-landing.test.tsx',
   'EC-I03': 'apps/web/src/screens/scr-w03-approval-complete.test.tsx',
   'EC-I04': 'packages/shared/src/app-version.test.ts',
+  'EC-J01': 'supabase/tests/monetization-retention.test.ts',
+  'EC-J02': 'supabase/tests/monetization-retention.test.ts',
+  'EC-J03': 'supabase/tests/monetization-retention.test.ts',
+  'EC-J04': 'supabase/tests/monetization-retention.test.ts',
+  'EC-K01': 'supabase/tests/monetization-retention.test.ts',
+  'EC-K02': 'supabase/tests/monetization-retention.test.ts',
+  'EC-L01': 'supabase/tests/monetization-retention.test.ts',
+  'EC-L02': 'supabase/tests/monetization-retention.test.ts',
+  'EC-L03': 'supabase/tests/monetization-retention.test.ts',
 } as const;
 
 const EC_IDS = Object.keys(EC_EVIDENCE).sort();
 
 describe('02 §10 edge-case traceability', () => {
-  test('명세의 EC-A01~EC-I04 57개와 추적 계약이 정확히 일치한다', () => {
+  test('명세의 EC-A01~EC-L03 66개와 추적 계약이 정확히 일치한다', () => {
     const spec = readFileSync(resolve('docs/기획/02_세부기능명세서.md'), 'utf8');
-    const specIds = [...new Set(spec.match(/EC-[A-I][0-9]{2}/gu) ?? [])].sort();
+    const specIds = [...new Set(spec.match(/EC-[A-L][0-9]{2}/gu) ?? [])].sort();
 
-    expect(EC_IDS).toHaveLength(57);
+    expect(EC_IDS).toHaveLength(66);
     expect(EC_IDS).toEqual(specIds);
   });
 

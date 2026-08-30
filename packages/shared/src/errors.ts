@@ -10,7 +10,7 @@
  * 코드를 분리했다 — 클라이언트가 이 코드를 보고 결제 시트를 연다.
  */
 
-import { INVITE_TTL_HOURS, WITNESS_MAX } from './config.ts';
+import { INVITE_TTL_HOURS } from './config.ts';
 import type { Localized } from './i18n.ts';
 
 export const ERROR_CODES = [
@@ -29,6 +29,8 @@ export const ERROR_CODES = [
   'E_RATE_LIMIT',
   'E_UPLOAD_FAILED',
   'E_SLOT_LIMIT',
+  'E_END_DATE_RANGE',
+  'E_REWARD_NOT_ELIGIBLE',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -49,6 +51,8 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   E_RATE_LIMIT: 429,
   E_UPLOAD_FAILED: 400,
   E_SLOT_LIMIT: 402,
+  E_END_DATE_RANGE: 402,
+  E_REWARD_NOT_ELIGIBLE: 422,
 };
 
 /**
@@ -68,12 +72,15 @@ export const ERROR_MESSAGE: Record<ErrorCode, string | null> = {
   E_VALIDATION: null,
   E_SELF_INVITE: '본인은 상대방이 될 수 없어요.',
   E_DUPLICATE_ROLE: '이미 이 약속에 참여하고 있어요.',
-  E_WITNESS_LIMIT: `증인은 최대 ${WITNESS_MAX}명까지예요.`,
+  E_WITNESS_LIMIT: '지금 사용할 수 있는 증인 자리를 모두 사용했어요.',
   E_BLOCKED: '초대를 받을 수 없습니다.',
   E_RATE_LIMIT: '잠시 후 다시 시도해 주세요.',
   E_UPLOAD_FAILED: '사진을 올리지 못했어요. 다시 시도해 주세요.',
   // 용량은 사용자마다 다르므로(무료 5 + 구매 수) 숫자를 문구에 넣지 않는다.
   E_SLOT_LIMIT: '약속 슬롯이 가득 찼어요. 슬롯을 추가하면 새 약속을 보낼 수 있어요.',
+  // 수락 웹에도 그대로 노출되는 문구다 — 광고·구매 안내는 앱 카탈로그(promise-benefit-labels)의 몫(§8-1).
+  E_END_DATE_RANGE: '설정할 수 있는 종료일 범위를 넘었어요.',
+  E_REWARD_NOT_ELIGIBLE: '지금은 이 혜택을 받을 수 없어요.',
 };
 
 /**
@@ -94,10 +101,12 @@ export const ERROR_MESSAGE_BY_LOCALE: Localized<Record<ErrorCode, string | null>
     E_VALIDATION: null,
     E_SELF_INVITE: 'You cannot be your own partner.',
     E_DUPLICATE_ROLE: 'You are already part of this promise.',
-    E_WITNESS_LIMIT: `Up to ${WITNESS_MAX} witnesses are allowed.`,
+    E_WITNESS_LIMIT: 'All currently available witness spots are in use.',
     E_BLOCKED: 'This invite cannot be accepted.',
     E_RATE_LIMIT: 'Please try again in a moment.',
     E_UPLOAD_FAILED: 'The photo could not be uploaded. Please try again.',
     E_SLOT_LIMIT: 'Your promise slots are full. Add a slot to send a new promise.',
+    E_END_DATE_RANGE: 'This end date is beyond the allowed range.',
+    E_REWARD_NOT_ELIGIBLE: 'This benefit is not available right now.',
   },
 };

@@ -117,11 +117,16 @@ describe('F-05 witness invitation transactions', () => {
     expect(inviteBody).toMatch(/from public\.promises[\s\S]*where id = p_promise_id[\s\S]*for update;/u);
   });
 
-  test('joined creator and partner issue distinct slots and list them without raw tokens', async () => {
+  test('작성자 기본 슬롯과 상대방 보상 슬롯은 서로 독립적으로 발급된다', async () => {
     const creator = await createUser(db, '증인발급작성자');
     const partner = await createUser(db, '증인발급상대');
     const promiseId = await createPromise(db, { creatorId: creator, partnerId: partner, status: 'ACTIVE' });
     await activatePromise(promiseId);
+    await db.asAdmin(
+      `insert into public.promise_reward_grants (promise_id,user_id,action,source)
+       values ($1,$2,'WITNESS_PARTNER','MIGRATION')`,
+      [promiseId, partner],
+    );
     const firstHash = newTokenHash();
     const secondHash = newTokenHash();
 
@@ -165,6 +170,16 @@ describe('F-05 witness invitation transactions', () => {
       status: 'ACTIVE',
     });
     await activatePromise(promiseId);
+    await db.asAdmin(
+      `update public.promise_participants set invited_by_user_id=$2
+        where promise_id=$1 and role='WITNESS'`,
+      [promiseId, creator],
+    );
+    await db.asAdmin(
+      `insert into public.promise_reward_grants (promise_id,user_id,action,source)
+       values ($1,$2,'WITNESS_CREATOR','MIGRATION')`,
+      [promiseId, creator],
+    );
     await expect(issue({ actor: creator, promiseId, hash: newTokenHash() })).resolves.toMatchObject({
       promise_id: promiseId,
     });

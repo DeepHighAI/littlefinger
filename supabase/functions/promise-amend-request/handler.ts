@@ -16,15 +16,25 @@ export function createPromiseAmendRequestHandler(deps: Deps) {
       const actor = await deps.authenticate(request.headers.get('authorization'));
       const idempotencyKey = idempotencyKeyOf(request);
       const input = promiseAmendCreateRequestOf(await jsonBody(request, 'promise_id'), deps.now());
-      const payload = asPromiseAmendCreateResponse(await deps.rpc('lf_promise_amend_request', {
-        p_idempotency_key: idempotencyKey,
-        p_actor: actor,
-        p_promise_id: input.promise_id,
-        p_type: input.type,
-        p_proposed: input.proposed,
-        p_reason: input.reason,
-        ...await amendAuditArgs(request, deps),
-      }));
+      const audit = await amendAuditArgs(request, deps);
+      const payload = asPromiseAmendCreateResponse(await deps.rpc(
+        input.type === 'FINISH' ? 'lf_promise_finish_request' : 'lf_promise_amend_request',
+        input.type === 'FINISH' ? {
+          p_idempotency_key: idempotencyKey,
+          p_actor: actor,
+          p_promise_id: input.promise_id,
+          p_reason: input.reason,
+          ...audit,
+        } : {
+          p_idempotency_key: idempotencyKey,
+          p_actor: actor,
+          p_promise_id: input.promise_id,
+          p_type: input.type,
+          p_proposed: input.proposed,
+          p_reason: input.reason,
+          ...audit,
+        },
+      ));
       if (payload === null) throw new Error('INVALID_PROMISE_AMEND_CREATE_RESPONSE');
       return jsonResponse(payload, 200);
     } catch (raised) {

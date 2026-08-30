@@ -11,7 +11,7 @@ import {
 } from '../lib/slot-purchase-native.ts';
 import { loadSlotStatus } from '../lib/slots-native.ts';
 import { SLOT_LABEL } from '../screens/slot-labels.ts';
-import { colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
+import { border, colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
 import { LfIcon } from './LfIcon.tsx';
 import { LfRow } from './LfRow.tsx';
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...elevation.sheet,
     // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: 2.5,
+    borderWidth: border.sheet,
     borderBottomWidth: 0,
     borderColor: colors.text,
   },

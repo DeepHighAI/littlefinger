@@ -237,3 +237,15 @@ two, so the cheaper candidate was tested by deploying it: **29 days returned 200
 failed**, which answered both questions at once — the boundary was the bug, and the Play Console
 permission was there all along. When a status code is unreadable, a one-line change that only one
 hypothesis predicts is faster than any amount of log archaeology.
+
+## PGlite is single-connection — lock-order deadlocks cannot be reproduced
+
+The harness (`supabase/tests/harness.ts`) runs one PGlite session, so a test can never hold a row
+lock in connection A while connection B takes an advisory lock. The ABBA hazard between
+`lf_reward_intent_create` (advisory → intent row) and `lf_reward_grant` (must be the same order)
+is therefore pinned by a *definition-order* assertion in
+`supabase/tests/monetization-retention.test.ts` ("잠금 순서는 두 경로 모두 약속 advisory lock → intent
+행이다") that reads both function bodies with `pg_get_functiondef` and checks the advisory lock
+call precedes the `for update`. It proves the source, not the runtime; a real two-connection test
+needs a linked project (`supabase/tests/remote/`). Do not "fix" the assertion by rewriting it as a
+concurrency test on PGlite — it will pass vacuously.

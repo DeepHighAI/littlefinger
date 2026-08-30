@@ -1,8 +1,10 @@
 import {
   ENDPOINT,
+  asPromiseEntitlementsView,
   asSlotStatusResponse,
   type Endpoint,
   type PurchaseVerifyResponse,
+  type PromiseEntitlementsView,
   type SlotStatusResponse,
 } from '@littlefinger/shared';
 
@@ -41,4 +43,20 @@ export async function verifySlotPurchase(
       { idempotent: false },
     ),
   );
+}
+
+export async function verifyPermanentAccessPurchase(
+  promiseId: string,
+  productId: string,
+  purchaseToken: string,
+  deps: SlotsApiDeps,
+): Promise<PromiseEntitlementsView> {
+  const response = await deps.call<PurchaseVerifyResponse>(
+    ENDPOINT.purchaseVerify,
+    { product_id: productId, purchase_token: purchaseToken, promise_id: promiseId },
+    { idempotent: false },
+  );
+  const parsed = asPromiseEntitlementsView(response);
+  if (parsed === null) throw new MobileApiError(null, INVALID_RESPONSE_MESSAGE);
+  return parsed;
 }

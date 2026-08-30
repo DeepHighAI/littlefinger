@@ -109,9 +109,7 @@ function asCard(value: unknown, tab: PromiseHomeTab, pinned: boolean): PromiseHo
     typeof status !== 'string' ||
     !(PROMISE_STATUSES as readonly string[]).includes(status) ||
     !TAB_STATUSES[tab].includes(status as PromiseStatus) ||
-    (record['end_date'] === null
-      ? status !== 'DRAFT'
-      : !isIsoDate(record['end_date'])) ||
+    (record['end_date'] !== null && !isIsoDate(record['end_date'])) ||
     !isIsoInstant(record['updated_at']) ||
     (record['closed_at'] !== null && !isIsoInstant(record['closed_at'])) ||
     !ROLES.includes(record['my_role'] as (typeof ROLES)[number]) ||
@@ -134,7 +132,7 @@ function asCursor(value: unknown, tab: PromiseHomeTab): PromiseHomeCursor | null
       record === null ||
       record['tab'] !== tab ||
       (record['status_rank'] !== 0 && record['status_rank'] !== 1) ||
-      !isIsoDate(record['end_date']) ||
+      (record['end_date'] !== null && !isIsoDate(record['end_date'])) ||
       !isUuid(record['promise_id'])
     ) return null;
     return record as unknown as PromiseHomeCursor;

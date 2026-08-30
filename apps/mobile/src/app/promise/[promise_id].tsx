@@ -10,6 +10,7 @@ import {
   type PromiseDetailPerson,
   type PromiseDetailResponse,
   type PromiseDetailVersion,
+  type PromiseEntitlementsView,
   type PromiseAmendCreateRequest,
   type PromiseAmendDecision,
   type PromiseVersionListResponse,
@@ -41,6 +42,7 @@ import { LfStack } from '../../components/LfStack';
 import { LfText } from '../../components/LfText';
 import { CompletionCelebrationSheet } from '../../components/completion-celebration-sheet.tsx';
 import { PromiseAmendSheet } from '../../components/promise-amend-sheet.tsx';
+import { PromiseEntitlementSheet } from '../../components/promise-entitlement-sheet.tsx';
 import { WitnessInviteSheet } from '../../components/witness-invite-sheet.tsx';
 import {
   blockUserNative,
@@ -58,6 +60,7 @@ import {
 } from '../../lib/fulfillment-native.ts';
 import { useLabels, useLocale } from '../../lib/locale-native';
 import { MobileApiError } from '../../lib/mobile-api.ts';
+import { getPromiseEntitlements } from '../../lib/monetization-native.ts';
 import {
   createPromiseAmendIdempotencyKey,
   listPromiseVersions,
@@ -81,7 +84,7 @@ import {
   type PromiseDetailVisualMode,
 } from '../../screens/scr-a05-detail-state.ts';
 import { MOD_01_LABEL, SCR_A05_LABEL } from '../../screens/scr-a05-labels.ts';
-import { colors, elevation, gutter, radius, size, space } from '../../theme/tokens';
+import { border, colors, elevation, gutter, radius, size, space } from '../../theme/tokens';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -220,7 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...elevation.sheet,
     // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: 2.5,
+    borderWidth: border.sheet,
     borderBottomWidth: 0,
     borderColor: colors.text,
   },
@@ -574,11 +577,13 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   const promiseId = promiseIdOf(params.promise_id);
   const [phase, setPhase] = useState<ScreenPhase>('loading');
   const [detail, setDetail] = useState<PromiseDetailResponse | null>(null);
+  const [entitlements, setEntitlements] = useState<PromiseEntitlementsView | null>(null);
   const [actionError, setActionError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [witnessSheetOpen, setWitnessSheetOpen] = useState(false);
   const [amendSheetOpen, setAmendSheetOpen] = useState(false);
   const [versionSheetOpen, setVersionSheetOpen] = useState(false);
+  const [entitlementMode, setEntitlementMode] = useState<'DURATION' | 'RETENTION' | null>(null);
   const [celebration, setCelebration] = useState<CompletionCelebrationView | null>(null);
   const [versionState, setVersionState] = useState<
     { phase: 'idle' | 'loading' | 'error' } | {
@@ -605,6 +610,13 @@ export default function PromiseDetailScreen(): React.JSX.Element {
       const nextDetail = await getPromiseDetail(promiseId);
       setDetail(nextDetail);
       setPhase('ready');
+      void getPromiseEntitlements(promiseId)
+        .then((next) => {
+          if (activePromiseId.current === promiseId) setEntitlements(next);
+        })
+        .catch(() => {
+          if (activePromiseId.current === promiseId) setEntitlements(null);
+        });
       if (
         nextDetail.status === 'COMPLETED' &&
         (nextDetail.my_role === 'CREATOR' || nextDetail.my_role === 'PARTNER') &&
@@ -633,6 +645,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     claimAttemptedFor.current = null;
     shownAttemptedFor.current = null;
     setCelebration(null);
+    setEntitlements(null);
     reopenKey.current = null;
     amendRequestKey.current = null;
     amendRespondKey.current = null;
@@ -640,6 +653,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     actionPending.current = false;
     setAmendSheetOpen(false);
     setVersionSheetOpen(false);
+    setEntitlementMode(null);
     setVersionState({ phase: 'idle' });
     void refresh();
     return () => {
@@ -690,6 +704,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     && (detail.my_role === 'CREATOR' || detail.my_role === 'PARTNER');
   const canRequestAmend = detail.status === 'ACTIVE'
     && (detail.my_role === 'CREATOR' || detail.my_role === 'PARTNER');
+  const canRequestFinish = canRequestAmend && detail.end_date === null;
   const canShowVersionHistory = !['DECLINED', 'CANCELED'].includes(detail.status)
     && detail.current_version.activated_at !== null;
   const terminal = ['COMPLETED', 'BROKEN', 'DISPUTED', 'UNRESOLVED', 'DECLINED', 'CANCELED']
@@ -720,7 +735,9 @@ export default function PromiseDetailScreen(): React.JSX.Element {
       && (error.code === 'E_VALIDATION' || error.code === 'E_STATE_CONFLICT');
   }
 
-  async function submitAmend(input: PromiseAmendCreateRequest): Promise<void> {
+  async function submitAmend(
+    input: PromiseAmendCreateRequest,
+  ): Promise<void | 'DURATION_ENTITLEMENT_REQUIRED'> {
     if (actionPending.current) return;
     actionPending.current = true;
     setBusy(true);
@@ -736,6 +753,11 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         setAmendSheetOpen(false);
       }
     } catch (error) {
+      if (error instanceof MobileApiError && error.code === 'E_END_DATE_RANGE') {
+        setActionError(false);
+        setEntitlementMode('DURATION');
+        return 'DURATION_ENTITLEMENT_REQUIRED';
+      }
       setActionError(true);
       if (shouldRefreshAfterAmendError(error)) await refresh();
       throw error;
@@ -743,6 +765,20 @@ export default function PromiseDetailScreen(): React.JSX.Element {
       actionPending.current = false;
       setBusy(false);
     }
+  }
+
+  function confirmFinish(): void {
+    const detailId = detail?.promise_id;
+    if (!canRequestFinish || actionPending.current || detailId === undefined) return;
+    Alert.alert(LABEL.finishConfirmTitle, LABEL.finishConfirmBody, [
+      { text: LABEL.cancel, style: 'cancel' },
+      {
+        text: LABEL.finishConfirmAction,
+        onPress: () => {
+          void submitAmend({ promise_id: detailId, type: 'FINISH' }).catch(() => undefined);
+        },
+      },
+    ]);
   }
 
   async function respondAmend(decision: PromiseAmendDecision): Promise<void> {
@@ -957,7 +993,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                 <LfText variant="caption">{formatDetailDate(detail.end_date, locale)}</LfText>
               </View>
               <View style={styles.activeMetaSpacer} />
-              <LfText variant="dday">{formatDetailDday(detail.end_date, new Date())}</LfText>
+              <LfText variant="dday">{formatDetailDday(detail.end_date, new Date(), locale)}</LfText>
             </View>
             <LfText variant="title">{detail.title}</LfText>
 
@@ -1051,7 +1087,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                   />
                 </LfRow>
                 <InfoRow label={LABEL.endDate} value={formatDetailDate(detail.end_date, locale)} />
-                <InfoRow label={LABEL.dday} value={formatDetailDday(detail.end_date, new Date())} />
+                <InfoRow label={LABEL.dday} value={formatDetailDday(detail.end_date, new Date(), locale)} />
               </View>
             </LfCard>
           </>
@@ -1104,6 +1140,10 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                 before={detail.current_version}
                 after={pendingAmend.proposed_version}
               />
+            ) : pendingAmend.type === 'FINISH' ? (
+              <LfCard variant="container">
+                <LfText>{LABEL.finishRequested(pendingAmend.requester.nickname)}</LfText>
+              </LfCard>
             ) : (
               <LfCard variant="container">
                 <LfText>{LABEL.cancelRequested(pendingAmend.requester.nickname)}</LfText>
@@ -1128,7 +1168,9 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                 <LfButton
                   label={pendingAmend.type === 'AMEND'
                     ? LABEL.amendApproveAction
-                    : LABEL.cancelApproveAction}
+                    : pendingAmend.type === 'FINISH'
+                      ? LABEL.finishApproveAction
+                      : LABEL.cancelApproveAction}
                   grow
                   disabled={busy}
                   onPress={() => void respondAmend('APPROVE')}
@@ -1146,6 +1188,31 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         )}
 
         <FulfillmentSection detail={detail} onReportEvidence={confirmEvidenceReport} />
+
+        {entitlements !== null && detail.current_version.activated_at !== null ? (
+          <LfStack gap={4}>
+            <LfText variant="sectionTitle">{LABEL.retention}</LfText>
+            <LfCard variant="container">
+              <LfStack gap={3}>
+                <LfText>
+                  {entitlements.retention.permanent
+                    ? LABEL.retentionPermanent
+                    : entitlements.retention.expires_at === null
+                      ? LABEL.retentionAwaitingFinish
+                      : `${LABEL.retentionExpires} · ${formatDetailInstant(entitlements.retention.expires_at)}`}
+                </LfText>
+                {!entitlements.retention.permanent ? (
+                  <LfButton
+                    label={LABEL.retentionManage}
+                    variant="outlined"
+                    block
+                    onPress={() => setEntitlementMode('RETENTION')}
+                  />
+                ) : null}
+              </LfStack>
+            </LfCard>
+          </LfStack>
+        ) : null}
 
         {detail.status === 'ACTIVE' ? (
           <LfStack gap={4}>
@@ -1220,6 +1287,15 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               block
               disabled={busy}
               onPress={() => setAmendSheetOpen(true)}
+            />
+          ) : null}
+          {canRequestFinish ? (
+            <LfButton
+              label={LABEL.finishRequestAction}
+              variant="outlined"
+              block
+              disabled={busy}
+              onPress={confirmFinish}
             />
           ) : null}
           {canNotifyPartner ? (
@@ -1334,10 +1410,19 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         visible={amendSheetOpen}
         detail={detail}
         now={new Date()}
+        durationUnlimited={entitlements?.duration.unlimited === true}
         onClose={() => setAmendSheetOpen(false)}
         onSubmit={submitAmend}
         pickEndDate={openEndDatePicker}
         confirmCancel={confirmCancel}
+      />
+      <PromiseEntitlementSheet
+        visible={entitlementMode !== null}
+        promiseId={detail.promise_id}
+        mode={entitlementMode ?? 'RETENTION'}
+        {...(entitlementMode === 'DURATION' ? { reason: 'END_DATE_RANGE' as const } : {})}
+        onClose={() => setEntitlementMode(null)}
+        onChanged={setEntitlements}
       />
       <VersionHistorySheet
         visible={versionSheetOpen}

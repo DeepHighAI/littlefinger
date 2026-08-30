@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import {
   DRAFT_TTL_DAYS,
-  EVIDENCE_RETENTION_DAYS,
   EVIDENCE_SIGNED_URL_MIN,
   INVITE_TTL_HOURS,
   LEGAL_DISCLAIMER,
@@ -94,7 +93,6 @@ describe('public legal documents', () => {
     const privacy = fullText(locale, 'PRIVACY');
     expect(privacy).toContain(String(DRAFT_TTL_DAYS));
     expect(privacy).toContain(String(NOTIFICATION_RETENTION_DAYS));
-    expect(privacy).toContain(String(EVIDENCE_RETENTION_DAYS));
     expect(privacy).toContain(String(INVITE_TTL_HOURS));
     expect(privacy).toContain(String(EVIDENCE_SIGNED_URL_MIN));
 

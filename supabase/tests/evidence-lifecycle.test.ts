@@ -411,23 +411,21 @@ describe('서명 대상과 전략적 응답 보호', () => {
 });
 
 describe('보존 기한과 J-08 정리', () => {
-  test('COMPLETED 종결일의 KST 날짜에서 365일 뒤를 보존 기한으로 기록한다', async () => {
+  test('종결해도 purge_after 를 매기지 않는다 — 증빙은 기록과 함께 산다(PO 2026-08-29)', async () => {
     const fixture = await seedChecking();
     const { evidenceId } = await bindOne(fixture);
     await submit(fixture, fixture.partnerId, 'KEPT');
 
-    const row = await one<{ purge_after: string; expected: string }>(
-      `select fe.purge_after::text,
-              ((p.closed_at at time zone 'Asia/Seoul')::date + 365)::text as expected
+    const row = await one<{ status: string; purge_after: string | null }>(
+      `select p.status::text, fe.purge_after::text
          from public.fulfillment_evidences fe
          join public.promises p on p.id = fe.promise_id
         where fe.id = $1`,
       [evidenceId],
     );
-    expect(row.purge_after).toBe(row.expected);
+    expect(row).toEqual({ status: 'COMPLETED', purge_after: null });
   });
-
-  test('J-03 UNRESOLVED 종결도 KST 종결일에서 365일 뒤를 기록한다', async () => {
+  test('J-03 UNRESOLVED 종결도 purge_after 를 매기지 않는다', async () => {
     const fixture = await seedChecking();
     const { evidenceId } = await bindOne(fixture);
     await db.asAdmin(
@@ -442,28 +440,16 @@ describe('보존 기한과 J-08 정리', () => {
          '2026-08-01T00:00:00Z'::timestamptz
        )`,
     );
-    const row = await one<{
-      status: string;
-      purge_after: string | null;
-      expected: string;
-    }>(
-      `select p.status,
-              fe.purge_after::text,
-              ((p.closed_at at time zone 'Asia/Seoul')::date + 365)::text as expected
+    const row = await one<{ status: string; purge_after: string | null }>(
+      `select p.status::text, fe.purge_after::text
          from public.promises p
          join public.fulfillment_evidences fe on fe.promise_id = p.id
         where fe.id = $1`,
       [evidenceId],
     );
-
-    expect(row).toEqual({
-      status: 'UNRESOLVED',
-      purge_after: row.expected,
-      expected: row.expected,
-    });
+    expect(row).toEqual({ status: 'UNRESOLVED', purge_after: null });
   });
-
-  test('기한 전 증빙은 유지하고 제거·기한 경과 증빙과 만료 임시 업로드만 대상으로 낸다', async () => {
+  test('제거된 증빙과 만료 임시 업로드만 대상이고 지난 purge_after 는 무시한다', async () => {
     const fixture = await seedChecking();
     const first = await bindOne(fixture);
     const expiredUpload = await reserve(fixture, fixture.partnerId);
@@ -475,19 +461,20 @@ describe('보존 기한과 J-08 정리', () => {
       [expiredUpload],
     );
 
-    const futureEvidence = await one<{ id: string }>(
+    const removedEvidence = await one<{ id: string }>(
       `insert into public.fulfillment_evidences (
          check_id, promise_id, uploaded_by, storage_key, thumb_key, mime, bytes, width, height,
-         purge_after
+         removed_at
        )
        select check_id, promise_id, uploaded_by,
-              storage_key || '-future', thumb_key || '-future', mime, bytes, width, height,
-              '2026-08-02'::date
+              storage_key || '-removed', thumb_key || '-removed', mime, bytes, width, height,
+              now()
          from public.fulfillment_evidences
         where id = $1
        returning id::text`,
       [first.evidenceId],
     );
+    // 옛 규칙이 남긴 기한 — 이제 어떤 경로도 읽지 않는다.
     await db.asAdmin(
       `update public.fulfillment_evidences
           set purge_after = '2026-07-30'
@@ -506,17 +493,11 @@ describe('보존 기한과 J-08 정리', () => {
        ) as payload`,
     );
 
-    expect(targets.payload.evidences.map((item) => item.evidence_id)).toContain(
-      first.evidenceId,
-    );
-    expect(targets.payload.evidences).not.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ evidence_id: futureEvidence.id }),
-      ]),
-    );
+    const evidenceIds = targets.payload.evidences.map((item) => item.evidence_id);
+    expect(evidenceIds).not.toContain(first.evidenceId);
+    expect(evidenceIds).toContain(removedEvidence.id);
     expect(targets.payload.uploads.map((item) => item.upload_id)).toContain(expiredUpload);
   });
-
   test('Storage 성공 대상으로 완료하기 전에는 purged_at을 기록하지 않고 완료 뒤에도 행을 보존한다', async () => {
     const fixture = await seedChecking();
     const { evidenceId } = await bindOne(fixture);

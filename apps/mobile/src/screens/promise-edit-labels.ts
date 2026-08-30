@@ -32,6 +32,10 @@ const ko = {
   category: '카테고리',
   endDate: '종료일',
   endDatePicker: '종료일 선택',
+  endDateNoEnd: '종료일 없이 계속',
+  noEndDate: '종료일 없음',
+  durationNotice: (days: number) =>
+    `새 약속은 만든 날부터 ${days}일까지 무료예요. 더 긴 기간은 보상형 광고 또는 영구 보관으로 열 수 있어요.`,
   keeper: '지킬 사람',
   reward: '보상',
   penalty: '벌칙',
@@ -80,6 +84,10 @@ const en = {
   category: 'Category',
   endDate: 'End date',
   endDatePicker: 'Choose end date',
+  endDateNoEnd: 'Continue without an end date',
+  noEndDate: 'No end date',
+  durationNotice: (days: number) =>
+    `New promises include up to ${days} days free. Unlock a longer range with a rewarded ad or permanent retention.`,
   keeper: 'Who keeps it',
   reward: 'Reward',
   penalty: 'Penalty',

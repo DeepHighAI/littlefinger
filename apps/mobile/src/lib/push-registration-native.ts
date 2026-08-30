@@ -1,4 +1,4 @@
-import type { Localized } from '@littlefinger/shared';
+import { ENDPOINT, type Localized } from '@littlefinger/shared';
 import type { Session } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
@@ -46,7 +46,7 @@ export async function registerPushForSession(session: Session): Promise<void> {
   await registerAndroidPushToken(session.access_token, {
     platform: Platform.OS,
     projectId: easProjectId(),
-    functionUrl: getMobileFunctionUrl('device-token-register'),
+    functionUrl: getMobileFunctionUrl(ENDPOINT.deviceTokenRegister),
     setAndroidChannel: setDefaultAndroidChannel,
     getPermission: async () => (await Notifications.getPermissionsAsync()).status,
     requestPermission: async () => (await Notifications.requestPermissionsAsync()).status,

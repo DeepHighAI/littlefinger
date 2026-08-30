@@ -1,6 +1,10 @@
-import type {
-  WitnessInviteListResponse,
-  WitnessSlotView,
+import {
+  WITNESS_CREATOR_FREE,
+  WITNESS_MAX,
+  WITNESS_REWARDED_PER_ROLE,
+  type PromiseEntitlementsView,
+  type WitnessInviteListResponse,
+  type WitnessSlotView,
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -12,6 +16,7 @@ import {
 } from 'react-native';
 
 import { useLabels } from '../lib/locale-native';
+import { getPromiseEntitlements, unlockWithRewardedAd } from '../lib/monetization-native.ts';
 import {
   issueWitnessInvite,
   listWitnesses,
@@ -19,7 +24,7 @@ import {
   type WitnessInviteWithToken,
 } from '../lib/witness-native.ts';
 import { MOD_02_LABEL } from '../screens/mod-02-labels.ts';
-import { colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
+import { border, colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
 import { LfAvatar } from './LfAvatar.tsx';
 import { LfButton } from './LfButton.tsx';
 import { LfChip } from './LfChip.tsx';
@@ -37,7 +42,10 @@ export interface WitnessInviteSheetProps {
 type LoadState =
   | { phase: 'LOADING' }
   | { phase: 'ERROR' }
-  | { phase: 'READY'; value: WitnessInviteListResponse };
+  | { phase: 'READY'; value: {
+    witnesses: WitnessInviteListResponse;
+    entitlements: PromiseEntitlementsView;
+  } };
 
 interface PendingShare {
   participantId: string | null;
@@ -65,7 +73,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...elevation.sheet,
     // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: 2.5,
+    borderWidth: border.sheet,
     borderBottomWidth: 0,
     borderColor: colors.text,
   },
@@ -194,6 +202,7 @@ export function WitnessInviteSheet({
   const [loadState, setLoadState] = useState<LoadState>({ phase: 'LOADING' });
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState(false);
+  const [rewardMessage, setRewardMessage] = useState<string | null>(null);
   const activeLoad = useRef(0);
   const actionPending = useRef(false);
   const pendingShare = useRef<PendingShare | null>(null);
@@ -202,7 +211,11 @@ export function WitnessInviteSheet({
     const loadId = ++activeLoad.current;
     setLoadState({ phase: 'LOADING' });
     try {
-      const value = await listWitnesses(promiseId);
+      const [witnesses, entitlements] = await Promise.all([
+        listWitnesses(promiseId),
+        getPromiseEntitlements(promiseId),
+      ]);
+      const value = { witnesses, entitlements };
       if (loadId === activeLoad.current) setLoadState({ phase: 'READY', value });
     } catch {
       if (loadId === activeLoad.current) setLoadState({ phase: 'ERROR' });
@@ -220,6 +233,7 @@ export function WitnessInviteSheet({
   useEffect(() => {
     pendingShare.current = null;
     setActionError(false);
+    setRewardMessage(null);
   }, [promiseId]);
 
   const share = useCallback(async (participantId: string | null) => {
@@ -244,9 +258,44 @@ export function WitnessInviteSheet({
     }
   }, [load, promiseId]);
 
+  const unlockWitness = useCallback(async () => {
+    if (busy || loadState.phase !== 'READY') return;
+    const action = loadState.value.entitlements.my_role === 'CREATOR'
+      ? 'WITNESS_CREATOR' as const
+      : 'WITNESS_PARTNER' as const;
+    setBusy(true);
+    setRewardMessage(null);
+    try {
+      const result = await unlockWithRewardedAd(promiseId, action);
+      if (result.phase === 'GRANTED') await load();
+      else if (result.phase === 'PENDING') setRewardMessage(LABEL.unlocking);
+      // 광고를 볼 수 없으면 자리는 잠긴 채로 남는다 — 무료 대체 경로는 없다.
+      else if (result.phase === 'UNAVAILABLE') setRewardMessage(LABEL.unlockUnavailable);
+    } catch {
+      setRewardMessage(LABEL.unlockError);
+    } finally {
+      setBusy(false);
+    }
+  }, [LABEL, busy, load, loadState, promiseId]);
+
   const ready = loadState.phase === 'READY' ? loadState.value : null;
-  const atCapacity = ready !== null && ready.occupied_count >= ready.capacity;
-  const remainingLabel = ready?.occupied_count === 0
+  const list = ready?.witnesses ?? null;
+  const actorRole = ready?.entitlements.my_role;
+  const actorCapacity = ready === null ? 0 : actorRole === 'CREATOR'
+    ? ready.entitlements.witness.creator_capacity
+    : ready.entitlements.witness.partner_capacity;
+  const actorUsed = ready === null ? 0 : actorRole === 'CREATOR'
+    ? ready.entitlements.witness.creator_used
+    : ready.entitlements.witness.partner_used;
+  const actorMaximum = actorRole === 'CREATOR'
+    ? WITNESS_CREATOR_FREE + WITNESS_REWARDED_PER_ROLE
+    : WITNESS_REWARDED_PER_ROLE;
+  const atCapacity = ready !== null && actorUsed >= actorCapacity;
+  // 자리가 0 인 사람은 '모두 사용'이 아니라 '아직 잠김'이다 — 쓴 적이 없기 때문이다.
+  const lockedOut = atCapacity && actorCapacity === 0;
+  const canUnlock = ready !== null &&
+    (actorRole === 'CREATOR' || actorRole === 'PARTNER') && actorCapacity < actorMaximum;
+  const remainingLabel = actorCapacity - actorUsed > 1
     ? LABEL.twoRemaining
     : LABEL.oneRemaining;
 
@@ -264,8 +313,8 @@ export function WitnessInviteSheet({
           <View style={styles.header}>
             <LfRow gap={3} grow>
               <LfText variant="title">{LABEL.title}</LfText>
-              {ready !== null ? (
-                <LfChip label={LABEL.count(ready.occupied_count, ready.capacity)} />
+              {list !== null ? (
+                <LfChip label={LABEL.count(list.occupied_count, list.capacity)} />
               ) : null}
             </LfRow>
             <Pressable
@@ -277,7 +326,7 @@ export function WitnessInviteSheet({
               <LfIcon name="close" />
             </Pressable>
           </View>
-          <LfText variant="caption">{LABEL.description}</LfText>
+          <LfText variant="caption">{LABEL.description(WITNESS_MAX)}</LfText>
 
           {loadState.phase === 'LOADING' ? (
             <View style={styles.centered}>
@@ -292,9 +341,9 @@ export function WitnessInviteSheet({
               </LfStack>
             </View>
           ) : null}
-          {ready !== null ? (
+          {ready !== null && list !== null ? (
             <ScrollView contentContainerStyle={styles.scrollContent}>
-              {ready.witnesses.map((slot) => (
+              {list.witnesses.map((slot) => (
                 <WitnessRow
                   key={slot.participant_id}
                   slot={slot}
@@ -307,8 +356,22 @@ export function WitnessInviteSheet({
                   <LfText variant="caption">{remainingLabel}</LfText>
                 </View>
               ) : (
-                <LfText variant="caption" align="center">{LABEL.atCapacity}</LfText>
+                <LfText variant="caption" align="center">
+                  {lockedOut ? LABEL.locked : LABEL.atCapacity}
+                </LfText>
               )}
+              {canUnlock ? (
+                <LfButton
+                  label={LABEL.unlock}
+                  variant="outlined"
+                  block
+                  disabled={busy}
+                  onPress={() => void unlockWitness()}
+                />
+              ) : null}
+              {rewardMessage !== null ? (
+                <LfText variant="caption" align="center">{rewardMessage}</LfText>
+              ) : null}
               <LfText variant="caption" align="center">{LABEL.hint}</LfText>
               {actionError ? (
                 <LfText variant="error" align="center">{LABEL.shareError}</LfText>

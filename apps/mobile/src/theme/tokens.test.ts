@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
+  border,
   colors,
   duration,
   easing,
@@ -106,7 +107,7 @@ function contrastRatio(foreground: string, background: string): number {
 
 describe('토큰이 하나도 누락되지 않았다', () => {
   test('canonical tokens.css 는 hover·pressed 상태와 승인된 화면 토큰을 정의한다', () => {
-    expect(cssTokens.size).toBe(116);
+    expect(cssTokens.size).toBe(117);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -118,6 +119,7 @@ describe('토큰이 하나도 누락되지 않았다', () => {
       { prefix: 'line-', keys: Object.keys(line), toKey: camel },
       { prefix: 'weight-', keys: Object.keys(weight), toKey: camel },
       { prefix: 'radius-', keys: Object.keys(radius), toKey: camel },
+      { prefix: 'border-', keys: Object.keys(border), toKey: camel },
       { prefix: 'space-', keys: Object.keys(space), toKey: (r) => r },
       { prefix: 'gutter-', keys: Object.keys(gutter), toKey: camel },
       { prefix: 'elevation-', keys: Object.keys(elevation), toKey: camel },
@@ -327,6 +329,15 @@ describe('치수는 px 를 뗀 숫자다 — CSS px 값이 곧 RN dp 다', () =>
     '--lf-%s = %s',
     (name, expected) => {
       expect(radius[camel(name.replace('radius-', '')) as keyof typeof radius]).toBe(
+        unitless(expected),
+      );
+    },
+  );
+
+  test.each([...cssTokens.entries()].filter(([n]) => n.startsWith('border-')))(
+    '--lf-%s = %s',
+    (name, expected) => {
+      expect(border[camel(name.replace('border-', '')) as keyof typeof border]).toBe(
         unitless(expected),
       );
     },

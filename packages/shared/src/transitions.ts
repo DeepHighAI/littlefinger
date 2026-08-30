@@ -41,6 +41,9 @@ export const TRANSITIONS: readonly Transition[] = [
   { id: 'T-16', from: 'DISPUTED', to: 'CHECKING', trigger: '재협의 요청' },
   { id: 'T-17', from: 'DISPUTED', to: 'DISPUTED', trigger: '재협의 라운드도 불일치·무응답' },
   { id: 'T-18', from: 'PENDING', to: 'DECLINED', trigger: '초대 대상이 수락 전 탈퇴' },
+  { id: 'T-19', from: 'ACTIVE', to: 'AMEND_PENDING', trigger: '종료일 없는 약속 마무리 요청' },
+  { id: 'T-20', from: 'AMEND_PENDING', to: 'CHECKING', trigger: '마무리 요청 승인' },
+  { id: 'T-21', from: 'AMEND_PENDING', to: 'ACTIVE', trigger: '마무리 요청 거절·철회·기한 만료' },
 ];
 
 const ALLOWED_PAIRS: ReadonlySet<string> = new Set(

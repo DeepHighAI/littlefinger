@@ -40,6 +40,7 @@ const ko = {
   reward: '보상',
   penalty: '벌칙',
   endDate: '종료일',
+  noEndDate: '종료일 없음',
   keeper: '지킬 사람',
   category: '카테고리',
 };
@@ -80,6 +81,7 @@ const en = {
   reward: 'Reward',
   penalty: 'Penalty',
   endDate: 'End date',
+  noEndDate: 'No end date',
   keeper: 'Who keeps it',
   category: 'Category',
 } satisfies typeof ko;

@@ -32,8 +32,16 @@ const invite: WitnessInviteResponse = {
 
 describe('mobile witness API', () => {
   test('list is read-only and strictly parses witness slots', async () => {
-    const s = spy({ promise_id: PROMISE_ID, occupied_count: 0, capacity: 2, witnesses: [] });
-    await expect(listWitnessesWith(PROMISE_ID, s.deps)).resolves.toMatchObject({ capacity: 2 });
+    const s = spy({
+      promise_id: PROMISE_ID,
+      occupied_count: 0,
+      capacity: 1,
+      witness_max: 3,
+      creator_capacity: 1,
+      partner_capacity: 0,
+      witnesses: [],
+    });
+    await expect(listWitnessesWith(PROMISE_ID, s.deps)).resolves.toMatchObject({ capacity: 1 });
     expect(s.calls).toEqual([{
       endpoint: 'witness-invite-list',
       body: { promise_id: PROMISE_ID },
@@ -58,7 +66,16 @@ describe('mobile witness API', () => {
   });
 
   test.each([
-    ['list', { promise_id: PROMISE_ID, occupied_count: 0, capacity: 2, witnesses: [], extra: true }],
+    ['list', {
+      promise_id: PROMISE_ID,
+      occupied_count: 0,
+      capacity: 1,
+      witness_max: 3,
+      creator_capacity: 1,
+      partner_capacity: 0,
+      witnesses: [],
+      extra: true,
+    }],
     ['issue', { ...invite, token_hash: 'a'.repeat(64) }],
   ] as const)('%s rejects a response outside the strict shared contract', async (kind, payload) => {
     const s = spy(payload);

@@ -38,18 +38,24 @@ jest.mock('./mobile-api-native.ts', () => ({
 }));
 
 jest.mock('./slots-native.ts', () => ({
+  verifyPermanentAccessPurchaseNative: jest.fn(),
   verifySlotPurchaseNative: jest.fn(),
 }));
 
-import { verifySlotPurchaseNative } from './slots-native.ts';
+import {
+  verifyPermanentAccessPurchaseNative,
+  verifySlotPurchaseNative,
+} from './slots-native.ts';
 import {
   loadSlotPrice,
   purchaseSlot,
+  reconcilePermanentAccessPurchase,
   reconcileSlotPurchases,
   SlotPurchaseCancelledError,
 } from './slot-purchase-native.ts';
 
 const verifyMock = jest.mocked(verifySlotPurchaseNative);
+const verifyPermanentMock = jest.mocked(verifyPermanentAccessPurchaseNative);
 
 const PURCHASE = {
   productId: 'promise_slot_plus1',
@@ -62,6 +68,57 @@ beforeEach(() => {
   mockFinishTransaction.mockResolvedValue(undefined);
   listeners.updated = null;
   listeners.failed = null;
+});
+
+describe('reconcilePermanentAccessPurchase', () => {
+  test('약속에 바인딩된 미소모 영구 보관 구매를 복구한다', async () => {
+    const purchase = {
+      productId: 'promise_permanent_access',
+      purchaseToken: 'permanent-token',
+      obfuscatedProfileIdAndroid: '11111111-1111-4111-8111-111111111111',
+    } as unknown as Purchase;
+    const entitlements = {
+      promise_id: '11111111-1111-4111-8111-111111111111',
+      my_role: 'CREATOR',
+      witness: {
+        creator_capacity: 1,
+        partner_capacity: 0,
+        creator_used: 0,
+        partner_used: 0,
+        max: 3,
+      },
+      duration: { ceiling_date: null, unlimited: true },
+      retention: { anchor_at: null, permanent: true, expires_at: null, renewable: false },
+    } as const;
+    mockGetAvailablePurchases.mockResolvedValue([purchase]);
+    verifyPermanentMock.mockResolvedValue(entitlements);
+
+    await expect(reconcilePermanentAccessPurchase(entitlements.promise_id)).resolves.toEqual(
+      entitlements,
+    );
+    expect(verifyPermanentMock).toHaveBeenCalledWith(
+      entitlements.promise_id,
+      'promise_permanent_access',
+      'permanent-token',
+    );
+    expect(mockFinishTransaction).toHaveBeenCalledWith({ purchase, isConsumable: true });
+  });
+
+  test('다른 약속에 바인딩됐거나 바인딩이 없는 구매는 검증도 소모도 하지 않는다', async () => {
+    mockGetAvailablePurchases.mockResolvedValue([
+      {
+        productId: 'promise_permanent_access',
+        purchaseToken: 'other-token',
+        obfuscatedProfileIdAndroid: '22222222-2222-4222-8222-222222222222',
+      } as unknown as Purchase,
+      { productId: 'promise_permanent_access', purchaseToken: 'unbound-token' } as unknown as Purchase,
+    ]);
+
+    await expect(reconcilePermanentAccessPurchase('11111111-1111-4111-8111-111111111111'))
+      .resolves.toBeNull();
+    expect(verifyPermanentMock).not.toHaveBeenCalled();
+    expect(mockFinishTransaction).not.toHaveBeenCalled();
+  });
 });
 
 describe('purchaseSlot', () => {

@@ -22,7 +22,10 @@ const INTERNAL_FUNCTIONS = new Set([
   'push-send',
   'evidence-purge',
   'purchase-reconcile',
+  'retention-maintenance',
   'account-delete-retry',
+  // AdMob SSV 웹훅 — Google 이 부르고 클라이언트는 절대 부르지 않으므로 ENDPOINT 에 없다.
+  'reward-callback',
 ]);
 
 function dependencyNames(packageJsonPath: string): string[] {

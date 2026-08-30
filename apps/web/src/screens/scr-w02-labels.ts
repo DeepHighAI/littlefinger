@@ -12,6 +12,7 @@ const ko = {
   // 여기서는 작성자 닉네임을 서버가 준다.
   headline: (nickname: string) => `${nickname}님과의 약속, 꼼꼼히 봐주세요`,
   endDate: '종료일',
+  noEndDate: '종료일 없음',
   keeper: '지킬 사람',
   category: '카테고리',
   reward: '보상',
@@ -55,6 +56,7 @@ const ko = {
 const en = {
   headline: (nickname: string) => `Review your promise with ${nickname} carefully`,
   endDate: 'End date',
+  noEndDate: 'No end date',
   keeper: 'Who keeps it',
   category: 'Category',
   reward: 'Reward',

@@ -27,7 +27,7 @@ const UUID_PATTERN =
 
 interface ParsedPromiseAmendCreateRequest {
   promise_id: string;
-  type: 'AMEND' | 'CANCEL';
+  type: 'AMEND' | 'CANCEL' | 'FINISH';
   proposed: PromiseAmendProposal | null;
   reason: string | null;
 }
@@ -86,7 +86,9 @@ function proposalOf(value: unknown, now: Date): PromiseAmendProposal {
   const title = requiredText('title');
   const content = requiredText('body');
   const category = requiredText('category');
-  const endDate = requiredText('end_date');
+  const rawEndDate = body['end_date'];
+  if (rawEndDate !== null && typeof rawEndDate !== 'string') validation('end_date');
+  const endDate = rawEndDate === null ? null : normalizeInput(rawEndDate);
   const keeper = requiredText('keeper');
   const reward = optionalNormalizedString(body, 'reward', 'reward');
   const penalty = optionalNormalizedString(body, 'penalty', 'penalty');
@@ -115,7 +117,7 @@ export function promiseAmendCreateRequestOf(
   now: Date,
 ): ParsedPromiseAmendCreateRequest {
   const type = body['type'];
-  if (type !== 'AMEND' && type !== 'CANCEL') validation('type');
+  if (type !== 'AMEND' && type !== 'CANCEL' && type !== 'FINISH') validation('type');
   const required = type === 'AMEND'
     ? ['promise_id', 'type', 'proposed']
     : ['promise_id', 'type'];

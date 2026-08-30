@@ -12,6 +12,7 @@ import {
 import { useLabels, useLocale } from '../lib/locale-native';
 import { MOD_03_LABEL } from '../screens/mod-03-completion-celebration-labels.ts';
 import {
+  border,
   colors,
   elevation,
   gutter,
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryContainer,
     ...elevation.sheet,
     // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: 2.5,
+    borderWidth: border.sheet,
     borderBottomWidth: 0,
     borderColor: colors.text,
   },

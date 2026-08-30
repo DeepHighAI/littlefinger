@@ -47,7 +47,7 @@ describe('SCR-A03 약속 초안 규칙', () => {
     expect(invalid.fields).toMatchObject({
       title: '제목을 2자 이상 입력해 주세요.',
       body: '어떤 약속인지 5자 이상 적어주세요.',
-      end_date: '종료일은 내일부터 1년 안으로 정해주세요.',
+      end_date: '종료일은 내일 이후의 날짜로 정해주세요.',
     });
     // 안내 이동은 문구 없는 실패까지 포함한 이 목록을 따른다(카테고리는 이제 선택 항목).
     expect(invalid.invalidFields).toEqual(['title', 'body', 'end_date']);

@@ -37,7 +37,13 @@ module.exports = ({ config }) => {
     plugins: [...plugins, adPlugin],
     extra: {
       ...config.extra,
-      admob: { nativeUnitId: admob.nativeUnitId },
+      admob: {
+        nativeUnitId: admob.nativeUnitId,
+        bannerUnitId: admob.bannerUnitId,
+        rewardedWitnessUnitId: admob.rewardedWitnessUnitId,
+        rewardedDurationUnitId: admob.rewardedDurationUnitId,
+        rewardedRetentionUnitId: admob.rewardedRetentionUnitId,
+      },
     },
   };
 };

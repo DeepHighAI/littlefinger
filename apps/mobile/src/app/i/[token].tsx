@@ -381,8 +381,10 @@ export default function InviteReviewScreen(): React.JSX.Element {
 
   // REVIEW — §4-3-4 전문. D-Day 는 클라이언트가 계산한다(서버는 end_date 만 준다).
   const { preview } = phase;
-  const dday = ddayFrom(preview.end_date, now);
-  const endDatePassed = dday < 0;
+  const schedule = preview.end_date === null
+    ? null
+    : { endDate: preview.end_date, dday: ddayFrom(preview.end_date, now) };
+  const endDatePassed = schedule !== null && schedule.dday < 0;
   const busy = pending !== null;
 
   return (
@@ -396,7 +398,7 @@ export default function InviteReviewScreen(): React.JSX.Element {
             <ReviewField label={L.category} value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][preview.category]} />
             <ReviewField
               label={L.endDate}
-              value={`${preview.end_date} · ${formatDday(dday)}`}
+              value={schedule === null ? L.noEndDate : `${schedule.endDate} · ${formatDday(schedule.dday)}`}
             />
             <ReviewField label={L.keeper} value={KEEPER_LABEL_BY_LOCALE[locale][preview.keeper]} />
             {preview.reward !== null && <ReviewField label={L.reward} value={preview.reward} />}

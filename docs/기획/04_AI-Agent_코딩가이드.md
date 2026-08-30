@@ -2,7 +2,7 @@
 
 **문서 목적**: AI 코딩 에이전트가 리틀핑거를 구현하기 위한 **기술 스택·구조·이식 규칙**의 최종 근거
 **전제**: 오픈 이슈 **N-3 확정 — React Native + Expo** (PO 결정, 2026-07-25)
-**작성일**: 2026-07-25 | **버전**: v1.0
+**작성일**: 2026-07-25 | **최종 수정**: 2026-08-29 | **버전**: v1.2
 
 ---
 
@@ -342,7 +342,7 @@ MVP 기본안: `@expo/vector-icons`의 `MaterialIcons`를 쓴다(Expo에 내장,
 
 `promise.ts`는 **기존 파일을 그대로 이동**한다. 이미 상태 11종, 라벨, 지킴율 포함/제외 상태, 정책 상수(`MAX_WITNESS_COUNT`, `INVITE_EXPIRY_HOURS`, `FULFILLMENT_RESPONSE_DEADLINE_DAYS`, `REMINDER_OFFSET_DAYS`, `IMMINENT_THRESHOLD_DAYS`), `LEGAL_DISCLAIMER`가 정의되어 있다.
 
-`config.ts`에는 세부기능명세서 §11-3의 **나머지** 설정값을 추가한다(`QUIET_HOURS_KST`, `ACCESS_TOKEN_TTL_MIN`, `REFRESH_TOKEN_TTL_DAYS`, `TRUST_MIN_SAMPLE`, `EVIDENCE_MAX_COUNT`, `EVIDENCE_MAX_MB`, `DRAFT_MAX_CONCURRENT`, `PROMISE_MAX_PER_DAY`, `INVITE_RESEND_MAX`, `DEVICE_TOKEN_MAX`, `END_DATE_MAX_DAYS`, `EVIDENCE_RETENTION_DAYS`, `DRAFT_TTL_DAYS`, `REMINDER_SEND_HOUR_KST`, `ADS_ACTIVATION_DAILY_CONFIRMS`).
+`config.ts`에는 세부기능명세서 §11-3의 **나머지** 설정값을 추가한다(`QUIET_HOURS_KST`, `ACCESS_TOKEN_TTL_MIN`, `REFRESH_TOKEN_TTL_DAYS`, `TRUST_MIN_SAMPLE`, `EVIDENCE_MAX_COUNT`, `EVIDENCE_MAX_MB`, `DRAFT_MAX_CONCURRENT`, `PROMISE_MAX_PER_DAY`, `INVITE_RESEND_MAX`, `DEVICE_TOKEN_MAX`, `END_DATE_MAX_DAYS`, `DRAFT_TTL_DAYS`, `REMINDER_SEND_HOUR_KST`, `ADS_ACTIVATION_DAILY_CONFIRMS`).
 
 **시각 규칙**: 저장은 UTC(`timestamptz`), 표시·계산은 **Asia/Seoul**. 클라이언트에서 기기 시간대를 신뢰하지 않고 KST로 고정 변환한다. 날짜 경계 판단(D-Day, 기한 만료)은 **서버(Edge Function/배치)가 기준**이고 클라이언트 계산은 표시용이다.
 
@@ -373,7 +373,14 @@ MVP 기본안: `@expo/vector-icons`의 `MaterialIcons`를 쓴다(Expo에 내장,
 |---|---|---|
 | `invite-resolve` | 초대 토큰 검증 → 약속 요약 반환 | 토큰은 **해시로만 저장**. 원본 대조는 서버에서 |
 | `promise-approve` | 상호 승인 처리 → ACTIVE 전환 → `content_hash` 생성 | 해시 생성과 상태 전이는 클라이언트가 못 하게 한다 |
-| `promise-decline` / `promise-amend` / `promise-cancel` | 상태 전이 (T-06~T-12) | 전이 규칙 단일 지점 |
+| `promise-create` / `promise-draft-update` / `promise-invite` | T-01·T-02와 DRAFT 수정 — 슬롯 한도·기간 상한·`content_hash`는 서버만 안다 | 2026-07-27 이동(CLAUDE.md §5-6) |
+| `invite-preview` | SCR-W02의 읽기 경로 — 승인 가드와 같은 순서, `stable` | ADR 0004 |
+| `promise-decline` / `promise-amend` / `promise-amend-request` / `promise-amend-respond` / `promise-amend-withdraw` | 상태 전이 (T-06~T-12, T-19~T-21 마무리 포함) | 전이 규칙 단일 지점 |
+| `slot-status` / `purchase-verify` / `purchase-reconcile` | 슬롯 현황, Play 구매 검증(슬롯·영구 보관 두 상품), 환불 회수 | ADR 0009·0015 |
+| `promise-entitlements` | 약속별 혜택 계산 결과(증인 용량·기간 상한·개인 보관) 조회 | 지급 원장은 서버 전용 |
+| `reward-intent-create` / `reward-status` | 보상형 광고 의도 발급·조회 | 클라이언트 `EARNED_REWARD`는 아무것도 부여하지 않는다 |
+| `reward-callback` | AdMob SSV 콜백(공개, `verify_jwt=false`) — Google P-256 서명 검증 뒤에만 지급 | 서명 없이는 지급 경로가 없다 |
+| `retention-maintenance` | 비밀 헤더 워커 — purge queue lease → 스토리지 삭제 → finalize | J-11의 Edge 반쪽 |
 | `fulfillment-submit` | 이행 확인 응답 기록 → 종결 상태 판정 (J-01) | 양측 응답 비교 후 COMPLETED/BROKEN/DISPUTED 결정 |
 | `evidence-sign-url` | 증빙 사진 서명 URL 발급(10분) | 비공개 버킷 유지 |
 | `push-send` | Expo Push 발송 | 조용시간(21:00–08:00 KST) 규칙 적용 |
@@ -383,7 +390,7 @@ MVP 기본안: `@expo/vector-icons`의 `MaterialIcons`를 쓴다(Expo에 내장,
 
 **`content_hash` 생성 규칙**(세부기능명세서 §6): SHA-256, **키 순서 고정**, 문자열 **NFC 정규화**. 이 함수는 `packages/shared`에 두지 않고 **Edge Function 안에만** 둔다(클라이언트가 위조 해시를 만들 수 없게).
 
-### 7-4. 배치 작업 (J-01~J-10)
+### 7-4. 배치 작업 (J-01~J-11)
 
 Supabase의 `pg_cron`으로 스케줄한다(Free 플랜 사용 가능). 각 배치는 **멱등**해야 한다 — 같은 날 두 번 돌아도 알림이 중복 발송되지 않도록 발송 이력을 확인하고 삽입한다.
 
@@ -396,9 +403,10 @@ Supabase의 `pg_cron`으로 스케줄한다(Free 플랜 사용 가능). 각 배�
 | J-05 변경 요청 자동 철회 | 매일 00:30 | 7일 |
 | J-06 DRAFT 알림·정리 | 매일 04:00 | NT-20/21 예약, 예고 발송 후 90일 삭제 |
 | J-07 일 지표 집계 | **현재 범위 보류** | ACTIVE 전환 시 `activated_count` 실시간 기록은 유지 |
-| J-08 증빙 만료 삭제 | 매주 일 05:00 | 365일 |
+| J-08 증빙 정리 | 매주 일 05:00 | 첨부자가 제거한 증빙 객체만 삭제(365일 자동 삭제는 2026-08-29 폐기) |
 | J-09 해시 검증 | 매주 일 05:30 | 사용자 화면 비노출 |
 | J-10 지킴율 재계산 | 매일 03:00 | 실시간 캐시 정합성 보정 |
+| J-11 보관 관리 | 매시 17분 | 개인 보관 만료 D-7/D-1 알림 멱등 생성, 마지막 열람권 종료 약속을 purge queue에 적재 → `retention-maintenance` 워커 |
 
 ### 7-5. Supabase 무료 플랜의 함정 — 반드시 처리
 
@@ -456,10 +464,11 @@ MVP는 **OS 기본 공유 시트**(RN `Share` API)로 초대 링크를 보낸다
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | `apps/mobile/.env` | anon 키 |
 | `EXPO_PUBLIC_WEB_BASE_URL` | `apps/mobile/.env` | 초대 링크 도메인 |
 | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | `apps/web/.env` | 동일 |
+| `EXPO_PUBLIC_ADMOB_ANDROID_APP_ID` · `EXPO_PUBLIC_ADMOB_NATIVE_UNIT_ID` · `EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID` · `EXPO_PUBLIC_ADMOB_REWARDED_{WITNESS,DURATION,RETENTION}_UNIT_ID` | EAS production env | 프로덕션 프로필에서만 필수, 그 외는 Google 테스트 유닛 |
 
 **절대 클라이언트에 넣지 않는 값** (Supabase Secrets / GitHub Secrets에만)
 
-`SUPABASE_SERVICE_ROLE_KEY`, `KAKAO_REST_API_KEY`, `KAKAO_CLIENT_SECRET`, `INVITE_TOKEN_PEPPER`(초대 토큰 해시용), `PII_HASH_SALT`(IP·User-Agent 해시용), `ACCOUNT_ID_PEPPER`(탈퇴 계정 식별자 비식별화용), `EXPO_ACCESS_TOKEN`(푸시 발송용). 세 pepper/salt는 서로 다른 값을 쓴다.
+`SUPABASE_SERVICE_ROLE_KEY`, `KAKAO_REST_API_KEY`, `KAKAO_CLIENT_SECRET`, `INVITE_TOKEN_PEPPER`(초대 토큰 해시용), `PII_HASH_SALT`(IP·User-Agent 해시용), `ACCOUNT_ID_PEPPER`(탈퇴 계정 식별자 비식별화용), `GOOGLE_PLAY_SERVICE_ACCOUNT`(구매 검증), `PURCHASE_RECONCILE_SECRET` · `ACCOUNT_DELETE_RETRY_SECRET` · `RETENTION_WORKER_SECRET` · `PUSH_SEND_SECRET` · `EVIDENCE_PURGE_SECRET`(cron→워커 비밀 헤더, 같은 값이 Vault에도 있다), `ADMOB_REWARDED_{WITNESS,DURATION,RETENTION}_UNIT_ID`(SSV 콜백 허용 유닛). 세 pepper/salt는 서로 다른 값을 쓴다.
 
 `.env*`는 `.gitignore`에 포함한다. `.env.example`만 커밋한다. **키를 커밋했다면 즉시 회전(regenerate)한다.**
 
@@ -490,13 +499,13 @@ MVP는 **OS 기본 공유 시트**(RN `Share` API)로 초대 링크를 보낸다
 14. SCR-A02 홈 목록 + 상태별 상세 9종 (SCR-A05)
 
 ### M3 — 나머지
-15. F-08 증인 초대(최대 2명) + SCR-W05
+15. F-08 증인 초대(작성자 무료 1+보상 1, 상대방 보상 1; 최대 3명) + SCR-W05
 16. F-09 약속 지킴율 (SCR-A08) — **"내가 지킬 사람인 약속"만 분모**(S-1·S-2 확정), 최소 표본 3건
 17. F-11 변경·파기 합의 (MOD-01) + F-12 설정
 18. MOD-03 완료 축하
 
 ### M4 — 출하
-19. `LfAdSlot` 배치(SCR-A02 하단 1구좌, `ads_enabled=false`로 **렌더 안 함**)
+19. 노출형 광고 배치(A02·A07·A08 하단 네이티브 + A02 6건 이상 인피드 배너, `ads_enabled=false`로 **렌더 안 함**)와 사용자 시작 보상형 광고(ADR 0015)
 20. 접근성 점검: 터치 타깃 48dp, 상태를 색상만으로 구분하지 않았는지, 스크린리더 라벨
 21. 세부기능명세서 §13 수락 기준 체크리스트 전수 확인
 22. **구글 플레이: 비공개 테스트 12명 / 14일 연속** — 착수 시점에 테스터 모집을 병행 시작
@@ -531,8 +540,9 @@ Expo SDK 57 (RN 0.86) · TypeScript · Expo Router | 수락 웹: Vite + React
 - 화면 라벨 하드코딩 금지 → PROMISE_STATUS_LABEL 등 라벨 상수 경유
 - 용어표에 없는 새 용어 만들기 금지 (약속=promise, 벌칙=penalty, 지킴율=keepRate,
   기록 지문=fingerprint, 엔티티 타입명은 PromiseRecord)
-- 신뢰 순간 광고 금지: 작성·검토·승인·확정·이행확인 화면과 수락 웹 전체.
-  광고는 SCR-A02 하단 1구좌뿐이고 ads_enabled=false면 렌더하지 않는다.
+- 신뢰 순간 노출형 광고 금지: 작성·검토·승인·확정·이행확인 화면과 수락 웹 전체.
+  노출형 광고는 A02·A07·A08 하단과 A02 인피드뿐이고 ads_enabled=false면 렌더하지 않는다.
+  사용자가 직접 시작하는 보상형 광고는 앱의 증인·기간·개인보관 혜택에서만 허용한다.
 - LEGAL_DISCLAIMER 문구 변경 금지. 상수만 렌더한다.
 - 계약서·도장·법원 메타포 금지. 단 확정 스탬프는 신뢰감을 준다.
 - DISPUTED 화면에서 어느 쪽이 옳은지 절대 표시하지 않는다 (기록자이지 심판이 아니다).
@@ -555,7 +565,7 @@ node design-reference/serve.js   # 원본 화면과 눈으로 대조
 
 세부기능명세서 §1·§11 및 디자인요청서 §8에서 옮겨온 것으로, **이 문서가 무효화할 수 없다.**
 
-1. **신뢰 순간 광고 없음**(원칙 P4) — 작성·검토·승인·확정·이행 확인 화면과 **수락 웹 전체**에 광고 금지. 광고 자리는 SCR-A02 하단 1구좌뿐이며, `ads_enabled=false`일 때 **컴포넌트를 렌더하지 않는다**(빈 자리도 만들지 않는다).
+1. **신뢰 순간 노출형 광고 없음**(원칙 P4) — 작성·검토·승인·확정·이행 확인 화면과 **수락 웹 전체**에 배너·네이티브 광고 금지. 노출형 광고는 A02·A07·A08 하단과 A02 인피드만 허용하며, `ads_enabled=false`일 때 **컴포넌트를 렌더하지 않는다**(빈 자리도 만들지 않는다). 사용자 시작 보상형 광고는 앱의 증인·기간·개인보관 혜택으로 제한한다.
 2. **디스클레이머 문구 고정**(원칙 P5) — `LEGAL_DISCLAIMER` 상수를 그대로 렌더. SCR-W02 / SCR-A05·SCR-W03 확정 영역 4곳에 노출.
 3. **계약서처럼 보이지 않게** — 도장·서류·법원 메타포 금지. 단 확정 스탬프 영역은 "제대로 기록됐다"는 신뢰감을 줄 것.
 4. **DISPUTED에서 판정 금지**(원칙 P1) — 양측 주장을 나란히 기록만 한다. 어느 쪽이 옳은지 암시하는 색·순서·아이콘도 금지.
@@ -602,3 +612,5 @@ node design-reference/serve.js   # 원본 화면과 눈으로 대조
 | 버전 | 일자 | 내용 |
 |---|---|---|
 | v1.0 | 2026-07-25 | 최초 작성 — N-3 확정(RN+Expo) 반영, 기존 HTML/CSS 구현 이식 규칙 포함 |
+| v1.1 | 2026-08-29 | ADR 0015 반영 — §10 빌드 순서(증인 수·광고 배치), §12-1 P4 문구(노출형/보상형 구분) |
+| v1.2 | 2026-08-29 | 구현 검토 후 정합 — §7-3 Edge Function 표 전면 갱신(누락 10개·유령 promise-cancel 제거), §7-4 J-11, §8 클라이언트 env·서버 시크릿 목록 현행화, EVIDENCE_RETENTION_DAYS 폐기 |

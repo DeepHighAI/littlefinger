@@ -11,6 +11,7 @@ import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, View } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfAdSlot } from '../components/LfAdSlot';
+import { LfBannerAd } from '../components/LfBannerAd.tsx';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfBottomNav } from '../components/LfBottomNav';
 import { LfButton } from '../components/LfButton';
@@ -29,6 +30,7 @@ import { useLabels } from '../lib/locale-native';
 import { loadTrustProfile } from '../lib/trust-profile-native.ts';
 import { createInitialHomeState, promiseHomeReducer } from '../screens/scr-a02-home-state.ts';
 import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
+import { homeListItemsOf } from '../screens/scr-a02-home-rows.ts';
 import { colors, gutter, radius, size, space } from '../theme/tokens';
 
 // 홈은 진행·대기 두 탭만 가진다(PO 2026-08-26, ADR 0011). 종결은 SCR-A09 히스토리의 몫이다.
@@ -216,6 +218,12 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
         (item) => item.promise_id !== heroId,
       )
     : selected.items ?? [];
+  const listItems = homeListItemsOf(
+    hero,
+    rows,
+    adsEnabled,
+    state.counts[state.selectedTab],
+  );
 
   const pageFooter = selected.pagePending || selected.pageFailed ? (
     <View style={styles.pageFooter}>
@@ -339,11 +347,15 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
           <FlatList
             testID="home-list"
             style={styles.list}
-            data={rows}
-            keyExtractor={(item) => item.promise_id}
-            renderItem={({ item }) => (
+            data={listItems}
+            keyExtractor={(item) => item.kind === 'BANNER'
+              ? `banner-${state.selectedTab}`
+              : item.promise.promise_id}
+            renderItem={({ item }) => item.kind === 'BANNER' ? (
+              <LfBannerAd enabled={adsEnabled} />
+            ) : (
               <PromiseListRow
-                item={item}
+                item={item.promise}
                 now={now}
                 onOpen={openPromise}
                 {...(isActiveTab ? {} : { onDelete: confirmDelete })}

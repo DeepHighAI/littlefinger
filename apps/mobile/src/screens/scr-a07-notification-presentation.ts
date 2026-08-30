@@ -59,6 +59,8 @@ const NOTIFICATION_EVENT_SEMANTIC_TYPE: Record<
   'NT-19': 'FULFILLMENT',
   'NT-20': 'AMEND',
   'NT-21': 'REMINDER',
+  'NT-22': 'REMINDER',
+  'NT-23': 'REMINDER',
 };
 
 // 라벨은 로케일에 따라 호출 시점에 고르므로 아이콘·톤만 정적 표에 남긴다.

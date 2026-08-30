@@ -113,10 +113,13 @@ describe('F-10 홈 목록 응답 경계', () => {
     ).toBeNull();
   });
 
-  test('종료일 null은 DRAFT에만 허용하고 pinned는 ACTIVE·CHECKING만 허용한다', () => {
+  test('무기한 ACTIVE와 nullable 커서를 허용하고 pinned는 ACTIVE·CHECKING만 허용한다', () => {
     expect(
       parse?.({ ...BASE_RESPONSE, items: [{ ...ACTIVE_CARD, end_date: null }] }, 'ACTIVE'),
-    ).toBeNull();
+    ).not.toBeNull();
+    expect(
+      parse?.({ ...BASE_RESPONSE, next_cursor: { ...BASE_RESPONSE.next_cursor, end_date: null } }, 'ACTIVE'),
+    ).not.toBeNull();
     expect(
       parse?.(
         {

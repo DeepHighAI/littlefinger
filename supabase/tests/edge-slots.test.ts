@@ -21,6 +21,7 @@ const PURCHASE_OK: GoogleProductPurchase = {
   orderId: 'GPA.1234-5678',
   purchaseTimeMillis: '1756000000000',
   obfuscatedExternalAccountId: ACTOR_ID,
+  obfuscatedExternalProfileId: null,
 };
 
 interface Spy {
@@ -157,6 +158,26 @@ describe('purchase-verify', () => {
     expect(base.rpcCalls).toEqual([]);
   });
 
+  test('영구 보관 상품의 promise_id 가 UUID 가 아니면 Google 에 묻지도 않는다', async () => {
+    const base = spy();
+    let called = false;
+    const handle = purchaseHandler(base, async () => {
+      called = true;
+      return PURCHASE_OK;
+    });
+
+    const response = await handle(request({
+      ...BODY,
+      product_id: 'promise_permanent_access',
+      promise_id: 'not-a-uuid',
+    }));
+
+    expect(response.status).toBe(422);
+    expect((await jsonOf(response))['field']).toBe('promise_id');
+    expect(called).toBe(false);
+    expect(base.rpcCalls).toEqual([]);
+  });
+
   test.each([
     ['없는 영수증', null],
     ['취소된 구매', { ...PURCHASE_OK, purchaseState: 1 }],
@@ -257,6 +278,7 @@ describe('createGooglePurchaseVerifier', () => {
       orderId: 'GPA.9',
       purchaseTimeMillis: '1756000000000',
       obfuscatedExternalAccountId: ACTOR_ID,
+      obfuscatedExternalProfileId: null,
     });
     expect(calls).toHaveLength(2);
     const assertion = new URLSearchParams(await calls[0]!.clone().text()).get('assertion');

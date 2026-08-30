@@ -185,6 +185,29 @@ describe('슬롯 한도', () => {
     expect(await codeOf(async () => inviteDraft(user, draftId))).toBe('E_SLOT_LIMIT');
   });
 
+  test('종료일 상한은 슬롯 한도 뒤에 판정된다 — 만석이면 E_SLOT_LIMIT, 자리가 나면 E_END_DATE_RANGE', async () => {
+    // 슬롯 가드는 lf_invite_issue_row 안에서, 종료일 상한(보상형 광고 전 30일)은 DRAFT → PENDING
+    // 상태 전이 트리거에서 걸린다. 결제해도 여전히 못 보내는 약속이 있다는 것을 문서로 남긴다.
+    const user = await createUser(db, '슬롯상한순서');
+    const draftId = await draftNew(user);
+    // 상한 트리거는 promises.end_date 를, 경과 검사는 버전 행을 읽는다 — 둘 다 같은 날짜로 둔다.
+    await db.asAdmin(
+      `update public.promise_versions set end_date = current_date + 60
+        where promise_id = $1 and version_no = 1`,
+      [draftId],
+    );
+    await db.asAdmin(`update public.promises set end_date = current_date + 60 where id = $1`, [draftId]);
+    for (let i = 0; i < FREE_PROMISE_SLOTS; i += 1) await sendNew(user, `약속 ${i}`);
+    expect(await codeOf(async () => inviteDraft(user, draftId))).toBe('E_SLOT_LIMIT');
+
+    const { rows } = await db.asAdmin(
+      `select promise_id from public.invitations where created_by = $1 limit 1`,
+      [user],
+    );
+    await setStatus(String(rows[0]?.['promise_id']), 'COMPLETED');
+    expect(await codeOf(async () => inviteDraft(user, draftId))).toBe('E_END_DATE_RANGE');
+  });
+
   test('draft-update 의 발송 분기도 같은 한도에 걸린다 (잠금 선취득 경로)', async () => {
     const user = await createUser(db, '슬롯수정발송');
     const draftId = await draftNew(user);

@@ -96,7 +96,15 @@ export type ApiValidationField =
   | 'hidden'
   | 'detail'
   | 'product_id'
-  | 'purchase_token';
+  | 'purchase_token'
+  | 'action'
+  | 'intent_id';
+
+export type RewardAction =
+  | 'WITNESS_CREATOR'
+  | 'WITNESS_PARTNER'
+  | 'DURATION_30D'
+  | 'RETENTION_30D';
 
 export type ApiErrorAction = 'AMEND_SUGGEST';
 
@@ -113,7 +121,7 @@ export interface PromiseCreateRequest {
   body: string;
   category: string;
   /** `YYYY-MM-DD`, KST 기준. 내일 ~ 오늘 + `END_DATE_MAX_DAYS`. */
-  end_date: string;
+  end_date: string | null;
   /** 생략하면 `BOTH` (§5-1 기본값). */
   keeper?: string;
   reward?: string;
@@ -202,7 +210,7 @@ export interface InvitePreviewResponse {
   body: string;
   category: PromiseCategory;
   /** `YYYY-MM-DD`, KST 기준. 지난 날짜여도 응답은 온다 — 화면은 그려야 하고 CTA 만 잠긴다(EC-B10). */
-  end_date: IsoDate;
+  end_date: IsoDate | null;
   keeper: Keeper;
   reward: string | null;
   penalty: string | null;
@@ -256,7 +264,10 @@ export interface WitnessInviteListRequest {
 export interface WitnessInviteListResponse {
   promise_id: string;
   occupied_count: number;
-  capacity: 2;
+  capacity: number;
+  witness_max: number;
+  creator_capacity: number;
+  partner_capacity: number;
   witnesses: readonly WitnessSlotView[];
 }
 
@@ -297,7 +308,7 @@ export interface WitnessDetailActor {
 export interface WitnessDetailContent {
   body: string;
   category: PromiseCategory;
-  end_date: IsoDate;
+  end_date: IsoDate | null;
   keeper: Keeper;
   reward: string | null;
   penalty: string | null;
@@ -424,7 +435,7 @@ export interface ParticipantPromiseSummary {
   promise_id: string;
   title: string;
   status: PromiseStatus;
-  end_date: IsoDate;
+  end_date: IsoDate | null;
   keeper: Keeper;
   updated_at: IsoDateTime;
   check_deadline_at: IsoDateTime | null;
@@ -453,7 +464,7 @@ export type PromiseHomeCursor =
   | {
       tab: 'ACTIVE';
       status_rank: number;
-      end_date: IsoDate;
+      end_date: IsoDate | null;
       promise_id: string;
     }
   | {
@@ -533,6 +544,10 @@ export type PromiseDetailApprovalAction =
   | 'CANCEL_REQUEST'
   | 'CANCEL_APPROVE'
   | 'CANCEL_DECLINE'
+  | 'FINISH_REQUEST'
+  | 'FINISH_APPROVE'
+  | 'FINISH_DECLINE'
+  | 'FINISH_WITHDRAW'
   | 'WITNESS_SIGN';
 
 export interface PromiseDetailApproval {
@@ -548,7 +563,7 @@ export interface PromiseDetailVersion {
   title: string;
   body: string;
   category: PromiseCategory;
-  end_date: IsoDate;
+  end_date: IsoDate | null;
   keeper: Keeper;
   reward: string | null;
   penalty: string | null;
@@ -581,7 +596,7 @@ export interface PromiseAmendProposal {
   title: string;
   body: string;
   category: PromiseCategory;
-  end_date: IsoDate;
+  end_date: IsoDate | null;
   keeper: Keeper;
   reward: string | null;
   penalty: string | null;
@@ -612,7 +627,7 @@ export interface PromiseAmendRespondRequest {
 
 export interface PromiseAmendRespondResponse {
   promise_id: string;
-  status: 'ACTIVE' | 'CANCELED';
+  status: 'ACTIVE' | 'CANCELED' | 'CHECKING';
   request_id: string;
   request_status: Extract<AmendStatus, 'APPROVED' | 'DECLINED'>;
   version_no: number | null;
@@ -662,7 +677,7 @@ export interface PromiseDetailResponse {
   title: string;
   body: string;
   category: PromiseCategory;
-  end_date: IsoDate;
+  end_date: IsoDate | null;
   keeper: Keeper;
   reward: string | null;
   penalty: string | null;
@@ -747,7 +762,7 @@ export interface PromiseFulfillmentDetailResponse {
   title: string;
   body: string;
   category: PromiseCategory;
-  end_date: IsoDate;
+  end_date: IsoDate | null;
   keeper: Keeper;
   reward: string | null;
   penalty: string | null;
@@ -939,10 +954,56 @@ export interface PurchaseVerifyRequest {
   product_id: string;
   /** Google Play 구매 토큰. 서버가 Play Developer API 로 직접 검증한다 — 영수증 자체는 신뢰하지 않는다. */
   purchase_token: string;
+  /** 약속별 영구보관 상품일 때 필수다. 슬롯 상품에는 싣지 않는다. */
+  promise_id?: string;
 }
 
-/** 검증 성공 = 슬롯이 이미 부여된 상태의 현황. 클라이언트는 이 응답을 받은 뒤에만 소모 처리한다. */
-export interface PurchaseVerifyResponse extends SlotStatusResponse {}
+export interface PromiseEntitlementsView {
+  promise_id: string;
+  my_role: ParticipantRole;
+  witness: {
+    creator_capacity: number;
+    partner_capacity: number;
+    creator_used: number;
+    partner_used: number;
+    max: number;
+  };
+  duration: {
+    ceiling_date: IsoDate | null;
+    unlimited: boolean;
+  };
+  retention: {
+    anchor_at: IsoDateTime | null;
+    expires_at: IsoDateTime | null;
+    permanent: boolean;
+    renewable: boolean;
+  };
+}
+
+export interface RewardIntentCreateRequest {
+  promise_id: string;
+  action: RewardAction;
+}
+
+export interface RewardIntentResponse {
+  intent_id: string;
+  status: 'PENDING' | 'GRANTED' | 'REJECTED';
+  opaque_user_id: string;
+  expires_at: IsoDateTime;
+}
+
+export interface RewardStatusRequest {
+  intent_id: string;
+}
+
+export interface RewardStatusResponse {
+  intent_id: string;
+  status: RewardIntentResponse['status'];
+  entitlements: PromiseEntitlementsView | null;
+}
+
+/** 상품에 따라 슬롯 현황 또는 약속별 권리를 반환한다. */
+export type PurchaseVerifyResponse = SlotStatusResponse | PromiseEntitlementsView;
 
 /**
  * Edge Function 슬러그. `04` §7-3 의 이름을 그대로 쓴다.
@@ -999,6 +1060,9 @@ export const ENDPOINT = {
   safetyReport: 'safety-report',
   slotStatus: 'slot-status',
   purchaseVerify: 'purchase-verify',
+  promiseEntitlements: 'promise-entitlements',
+  rewardIntentCreate: 'reward-intent-create',
+  rewardStatus: 'reward-status',
 } as const;
 
 export type Endpoint = (typeof ENDPOINT)[keyof typeof ENDPOINT];

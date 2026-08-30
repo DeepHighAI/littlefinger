@@ -25,7 +25,7 @@ interface ComparablePromiseContent {
   title: string;
   body: string;
   category: PromiseCategory;
-  end_date: string;
+  end_date: string | null;
   keeper: Keeper;
   reward: string | null;
   penalty: string | null;
@@ -97,7 +97,7 @@ export function asPromiseAmendCreateResponse(value: unknown): PromiseAmendCreate
     !isUuid(record['promise_id']) ||
     record['status'] !== 'AMEND_PENDING' ||
     !isUuid(record['request_id']) ||
-    (record['type'] !== 'AMEND' && record['type'] !== 'CANCEL') ||
+    (record['type'] !== 'AMEND' && record['type'] !== 'CANCEL' && record['type'] !== 'FINISH') ||
     !isIsoInstant(record['expires_at'])
   ) return null;
   return record as unknown as PromiseAmendCreateResponse;
@@ -114,12 +114,15 @@ export function asPromiseAmendRespondResponse(value: unknown): PromiseAmendRespo
   if (
     record === null ||
     !isUuid(record['promise_id']) ||
-    (record['status'] !== 'ACTIVE' && record['status'] !== 'CANCELED') ||
+    (record['status'] !== 'ACTIVE' && record['status'] !== 'CANCELED' &&
+      record['status'] !== 'CHECKING') ||
     !isUuid(record['request_id']) ||
     (record['request_status'] !== 'APPROVED' && record['request_status'] !== 'DECLINED') ||
     (record['version_no'] !== null &&
       (!Number.isInteger(record['version_no']) || (record['version_no'] as number) < 2)) ||
     (record['status'] === 'CANCELED' &&
+      (record['request_status'] !== 'APPROVED' || record['version_no'] !== null)) ||
+    (record['status'] === 'CHECKING' &&
       (record['request_status'] !== 'APPROVED' || record['version_no'] !== null)) ||
     (record['status'] === 'ACTIVE' &&
       record['request_status'] === 'APPROVED' &&

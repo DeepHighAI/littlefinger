@@ -146,6 +146,12 @@ export const radius = {
   pill: 9999,
 } as const;
 
+/** 굵은 잉크 테두리 굵기 (ADR 0012). 색은 colors.text 로 긋는다. */
+export const border = {
+  /** 바텀시트 상단·측면 테두리 — .lf-sheet 의 2.5px 그대로. */
+  sheet: 2.5,
+} as const;
+
 export const space = {
   1: 4,
   2: 6,

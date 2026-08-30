@@ -776,7 +776,7 @@ function AmendRequestSheet({
 }): React.JSX.Element {
   const L = useLabels(SCR_W04_LABEL);
   const { locale } = useLocale();
-  const [mode, setMode] = useState<'AMEND' | 'CANCEL'>('AMEND');
+  const [mode, setMode] = useState<'AMEND' | 'CANCEL' | 'FINISH'>('AMEND');
   const [proposal, setProposal] = useState<PromiseAmendProposal>(() => proposalOf(detail));
   const [reason, setReason] = useState('');
   const current = proposalOf(detail);
@@ -810,6 +810,14 @@ function AmendRequestSheet({
       });
       return;
     }
+    if (mode === 'FINISH') {
+      await onSubmit({
+        promise_id: detail.promise_id,
+        type: 'FINISH',
+        ...(normalizedReason === '' ? {} : { reason: normalizedReason }),
+      });
+      return;
+    }
     await onSubmit({
       promise_id: detail.promise_id,
       type: 'AMEND',
@@ -838,6 +846,9 @@ function AmendRequestSheet({
         <div className="lf-segmented">
           <button type="button" aria-pressed={mode === 'AMEND'} onClick={() => setMode('AMEND')}>{L.amendTab}</button>
           <button type="button" aria-pressed={mode === 'CANCEL'} onClick={() => setMode('CANCEL')}>{L.cancelTab}</button>
+          {detail.end_date === null ? (
+            <button type="button" aria-pressed={mode === 'FINISH'} onClick={() => setMode('FINISH')}>{L.finishTab}</button>
+          ) : null}
         </div>
         <p className="lf-info-banner">{L.amendCommonNotice}</p>
         {mode === 'AMEND' ? (
@@ -845,13 +856,13 @@ function AmendRequestSheet({
             <label className="lf-field">{L.amendField.title}<input className="lf-input" value={proposal.title} onChange={(event) => update('title', event.target.value)} /></label>
             <label className="lf-field">{L.amendField.body}<textarea className="lf-input lf-textarea" value={proposal.body} onChange={(event) => update('body', event.target.value)} /></label>
             <div className="lf-field"><span className="lf-field__label">{L.amendField.category}</span><div className="lf-choices">{CATEGORIES.map((category) => <button className="lf-choice" type="button" key={category} aria-pressed={proposal.category === category} onClick={() => update('category', category)}>{PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][category]}</button>)}</div></div>
-            <label className="lf-field">{L.amendField.end_date}<input className="lf-input" type="date" value={proposal.end_date} onChange={(event) => update('end_date', event.target.value)} /></label>
+            <label className="lf-field">{L.amendField.end_date}<input className="lf-input" type="date" value={proposal.end_date ?? ''} onChange={(event) => update('end_date', event.target.value)} /></label>
             <div className="lf-field"><span className="lf-field__label">{L.amendField.keeper}</span><div className="lf-choices">{KEEPERS.map((keeper) => <button className="lf-choice" type="button" key={keeper} aria-pressed={proposal.keeper === keeper} onClick={() => update('keeper', keeper)}>{KEEPER_LABEL_BY_LOCALE[locale][keeper]}</button>)}</div></div>
             <label className="lf-field">{L.amendField.reward}<input className="lf-input" value={proposal.reward ?? ''} onChange={(event) => update('reward', event.target.value === '' ? null : event.target.value)} /></label>
             <label className="lf-field">{L.amendField.penalty}<input className="lf-input" value={proposal.penalty ?? ''} onChange={(event) => update('penalty', event.target.value === '' ? null : event.target.value)} /></label>
             {!changed ? <p className="lf-field__hint">{L.noAmendChanges}</p> : null}
           </div>
-        ) : <p className="lf-info-banner">{L.cancelNotice}</p>}
+        ) : <p className="lf-info-banner">{mode === 'FINISH' ? L.finishNotice : L.cancelNotice}</p>}
         <label className="lf-field">
           <span className="lf-field__label">{L.amendReasonLabel} · {L.optionalLabel}</span>
           <textarea className="lf-input lf-textarea" aria-label={L.amendReasonLabel} placeholder={L.amendReasonPlaceholder} value={reason} onChange={(event) => setReason(event.target.value)} />
@@ -870,7 +881,7 @@ function amendFieldValue(
 ): string {
   if (field === 'category') return PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category];
   if (field === 'keeper') return KEEPER_LABEL_BY_LOCALE[locale][detail.keeper];
-  if (field === 'end_date') return formatKstDate(detail.end_date, locale);
+  if (field === 'end_date') return detail.end_date === null ? L.noEndDateLabel : formatKstDate(detail.end_date, locale);
   if (field === 'reward') return detail.reward ?? L.noRewardLabel;
   if (field === 'penalty') return detail.penalty ?? L.noPenaltyLabel;
   return detail[field];
@@ -903,6 +914,8 @@ function PendingAmendPanel({
     <div className="lf-stack lf-gap-4 lf-mt-4">
       {request.type === 'CANCEL' ? (
         <p className="lf-info-banner">{L.cancelRequested(request.requester.nickname)}</p>
+      ) : request.type === 'FINISH' ? (
+        <p className="lf-info-banner">{L.finishRequested(request.requester.nickname)}</p>
       ) : proposed !== null ? (
         <div className="lf-stack lf-gap-3">
           {fields.map((field) => (
@@ -920,7 +933,7 @@ function PendingAmendPanel({
         <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" disabled={pending} onClick={onWithdraw}>{L.amendWithdraw}</button>
       ) : (
         <div className="lf-row lf-gap-3">
-          <button className="lf-btn lf-btn--filled lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('APPROVE')}>{request.type === 'AMEND' ? L.amendApprove : L.cancelApprove}</button>
+          <button className="lf-btn lf-btn--filled lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('APPROVE')}>{request.type === 'AMEND' ? L.amendApprove : request.type === 'FINISH' ? L.finishApprove : L.cancelApprove}</button>
           <button className="lf-btn lf-btn--outlined lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('DECLINE')}>{L.amendDecline}</button>
         </div>
       )}
@@ -949,7 +962,7 @@ function VersionHistoryOverlay({
               <h4>{VERSION_PREFIX}{item.version.version_no}</h4>
               <p>{item.version.title}</p><p>{item.version.body}</p>
               <p>{PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][item.version.category]} · {KEEPER_LABEL_BY_LOCALE[locale][item.version.keeper]}</p>
-              <p>{formatKstDate(item.version.end_date, locale)}</p>
+              <p>{item.version.end_date === null ? L.noEndDateLabel : formatKstDate(item.version.end_date, locale)}</p>
               <p>{item.version.reward ?? L.noRewardLabel}</p><p>{item.version.penalty ?? L.noPenaltyLabel}</p>
               <p>{item.version.content_hash.slice(0, 8)}</p>
               {item.change_requester !== null ? <p>{item.change_requester.nickname}</p> : null}
@@ -1041,7 +1054,7 @@ function PromiseCard({
           {detail.title}
         </h2>
         <p className="lf-card__meta">
-          {L.endDateMeta(`${formatKstDate(detail.end_date, locale)}${KST_MARK}`)}
+          {L.endDateMeta(detail.end_date === null ? L.noEndDateLabel : `${formatKstDate(detail.end_date, locale)}${KST_MARK}`)}
         </p>
 
         {detail.status === 'ACTIVE' && (

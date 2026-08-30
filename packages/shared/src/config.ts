@@ -11,8 +11,14 @@
 /** 초대 링크 유효 시간. 1회용이며 만료 후에는 재발송만 가능하다. */
 export const INVITE_TTL_HOURS = 72;
 
-/** 증인 최대 인원 */
-export const WITNESS_MAX = 2;
+/** 약속별 증인 최대 인원 (작성자 2명 + 상대방 1명). */
+export const WITNESS_MAX = 3;
+
+/** 작성자에게 기본 제공되는 증인 슬롯. 상대방 기본 슬롯은 없다. */
+export const WITNESS_CREATOR_FREE = 1;
+
+/** 작성자·상대방이 각각 광고로 해제할 수 있는 증인 슬롯 수. */
+export const WITNESS_REWARDED_PER_ROLE = 1;
 
 /** 광고 활성화를 검토하는 일 확정 건수. 도달 시 운영자에게 알린다(F-12). */
 export const ADS_ACTIVATION_DAILY_CONFIRMS = 100;
@@ -22,6 +28,9 @@ export const ADS_ACTIVATION_DAILY_CONFIRMS = 100;
  * false 일 때 광고 컴포넌트는 **렌더 자체를 하지 않는다** — 빈 자리도 만들지 않는다(04 §12-1).
  */
 export const ADS_ENABLED_DEFAULT = false;
+
+/** 보상형 광고는 노출형 광고와 별도 운영 플래그를 사용한다. */
+export const REWARDED_ADS_ENABLED_DEFAULT = true;
 
 /**
  * 무료 약속 슬롯 수 (PO 2026-08-24). 내가 **작성자**인 '진행 중'(§4-1-4:
@@ -42,6 +51,12 @@ export const SLOT_PRODUCT_ID = 'promise_slot_plus1';
  * 이 값은 스토어 조회가 실패한 화면의 대체 표기 전용이다. 실제 청구액은 Play Console 설정이 결정한다.
  */
 export const SLOT_PRICE_KRW_DEFAULT = 1000;
+
+/** 약속별 무기한 설정 + 구매자 개인 영구보관 상품. */
+export const PERMANENT_ACCESS_PRODUCT_ID = 'promise_permanent_access';
+
+/** Play 가격 조회 실패 시 사용하는 한국 원화 대체값. */
+export const PERMANENT_ACCESS_PRICE_KRW_DEFAULT = 2000;
 
 // ── 기본안 — PO 미확정, 변경 가능 ─────────────────────────
 
@@ -95,11 +110,36 @@ export const PROMISE_HOME_PAGE_SIZE = 20;
 export const INVITE_RESEND_MAX = 10;
 export const DEVICE_TOKEN_MAX = 3;
 
-/** 종료일 상한 (오늘 + n일, KST) (S-7) */
-export const END_DATE_MAX_DAYS = 365;
+/** 새 약속의 무료 종료일 범위. */
+export const END_DATE_FREE_DAYS = 30;
 
-/** 증빙 사진 보존 기간(일). 종결 후 기준. */
-export const EVIDENCE_RETENTION_DAYS = 365;
+/** 보상형 광고 한 번이 늘리는 종료일 범위. */
+export const END_DATE_EXTENSION_DAYS = 30;
+
+/** 날짜 선택기가 표현할 수 있는 기술적 상한. 무기한은 `null`로 저장한다. */
+export const END_DATE_MAX_DAYS = 36_500;
+
+/** 종료일 다음 날부터 무료로 열람할 수 있는 보관 기간. */
+export const RETENTION_FREE_DAYS = 30;
+
+/** 보상형 광고 한 번이 구매자 개인 보관기간에 더하는 일수. */
+export const RETENTION_EXTENSION_DAYS = 30;
+
+/** 개인 보관 만료 사전 알림. */
+export const RETENTION_WARNING_DAYS: readonly number[] = [7, 1];
+
+/** AdMob SSV가 보상 의도를 소비할 수 있는 최대 시간. */
+export const REWARD_INTENT_TTL_MIN = 15;
+
+/** 광고 종료 뒤 SSV 결과를 화면에서 기다리는 시간과 조회 간격. */
+export const REWARD_SSV_WAIT_MS = 15_000;
+export const REWARD_SSV_POLL_MS = 2_000;
+
+/** 보상형 광고 로드·표시가 아무 이벤트도 내지 않을 때 '지금은 볼 수 없음'으로 접는 시간. */
+export const REWARD_SHOW_TIMEOUT_MS = 20_000;
+
+/** 홈 탭에서 인라인 배너를 삽입하는 약속 카드 수. */
+export const HOME_BANNER_AFTER_PROMISES = 5;
 
 /** 미수정 DRAFT 자동 삭제 기한(일) (J-06) */
 export const DRAFT_TTL_DAYS = 90;

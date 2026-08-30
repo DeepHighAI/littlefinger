@@ -1,0 +1,68 @@
+import type { Localized } from '@littlefinger/shared';
+
+const ko = {
+  durationTitle: '약속 기간 늘리기',
+  retentionTitle: '내 기록 보관하기',
+  close: '닫기',
+  loading: '사용 가능한 혜택을 확인하고 있어요',
+  loadError: '혜택 정보를 불러오지 못했어요.',
+  retry: '다시 시도',
+  durationDescription: (days: number) => `광고 1개를 보면 이 약속의 종료일 범위가 ${days}일 늘어나요.`,
+  retentionDescription: (days: number) => `광고 1개를 보면 나에게 보이는 기록 보관 기간이 ${days}일 늘어나요.`,
+  // E_END_DATE_RANGE 의 공용 문구는 중립이라, 광고·구매 안내는 이 시트가 직접 말한다.
+  endDateRangeGuide: (days: number) =>
+    `고른 종료일이 지금 설정할 수 있는 범위를 넘었어요. 광고 1편 = ${days}일 연장 · 영구 보관 구매 = 종료일 무제한`,
+  durationCreatorOnly: '종료일 범위는 작성자만 늘릴 수 있어요.',
+  ceiling: (date: string) => `현재 설정 가능한 마지막 날 · ${date}`,
+  unlimited: '종료일 없이 제안할 수 있어요',
+  expiry: (date: string) => `현재 내 보관 만료 · ${date}`,
+  permanent: '이 기록은 내 계정에 영구 보관돼요',
+  notRenewable: '마무리 시각이 정해진 뒤 보관 기간을 연장할 수 있어요.',
+  rewardDuration: (days: number) => `광고 보고 ${days}일 늘리기`,
+  rewardRetention: (days: number) => `광고 보고 내 보관 ${days}일 늘리기`,
+  rewarding: '광고 준비 중…',
+  unlocking: '광고 확인 결과를 반영하고 있어요. 잠시 후 다시 확인해 주세요.',
+  locked: '지금은 광고를 볼 수 없어 잠겨 있어요.',
+  rewardError: '혜택을 반영하지 못했어요. 잠시 후 다시 시도해 주세요.',
+  purchaseTitle: '영구 보관',
+  purchaseDescription: '이 약속을 내 계정에 영구 보관해요. 작성자가 구매하면 종료일 없는 약속도 제안할 수 있어요.',
+  priceFallback: (won: number) => `₩${won.toLocaleString('ko-KR')}`,
+  purchase: (price: string) => `${price}에 영구 보관`,
+  purchasing: '구매 확인 중…',
+  purchased: '영구 보관이 적용됐어요.',
+  purchaseError: '구매를 확인하지 못했어요. 결제되지 않았다면 다시 시도해 주세요.',
+};
+
+const en = {
+  durationTitle: 'Extend promise duration',
+  retentionTitle: 'Keep my record',
+  close: 'Close',
+  loading: 'Checking available benefits',
+  loadError: 'Could not load benefit information.',
+  retry: 'Try again',
+  durationDescription: (days: number) => `Watch one ad to extend this promise’s end-date range by ${days} days.`,
+  retentionDescription: (days: number) => `Watch one ad to keep this record visible to you for ${days} more days.`,
+  endDateRangeGuide: (days: number) =>
+    `The chosen end date is beyond the current range. One ad = +${days} days · Permanent retention = no end-date limit`,
+  durationCreatorOnly: 'Only the creator can extend the end-date range.',
+  ceiling: (date: string) => `Latest available end date · ${date}`,
+  unlimited: 'You can propose a promise with no end date',
+  expiry: (date: string) => `My current retention expiry · ${date}`,
+  permanent: 'This record is kept permanently for your account',
+  notRenewable: 'You can extend retention after the finish time is set.',
+  rewardDuration: (days: number) => `Watch an ad for ${days} days`,
+  rewardRetention: (days: number) => `Watch an ad to keep ${days} more days`,
+  rewarding: 'Preparing the ad…',
+  unlocking: 'Applying the ad reward. Check again shortly.',
+  locked: 'Ads are not available right now, so this stays locked.',
+  rewardError: 'Could not apply the benefit. Please try again shortly.',
+  purchaseTitle: 'Permanent retention',
+  purchaseDescription: 'Keep this promise permanently for your account. A creator purchase also unlocks no-end-date proposals.',
+  priceFallback: (won: number) => `₩${won.toLocaleString('en-US')}`,
+  purchase: (price: string) => `Keep permanently for ${price}`,
+  purchasing: 'Confirming purchase…',
+  purchased: 'Permanent retention is active.',
+  purchaseError: 'Could not verify the purchase. Try again if you were not charged.',
+} satisfies typeof ko;
+
+export const PROMISE_ENTITLEMENT_LABEL: Localized<typeof ko> = { ko, en };

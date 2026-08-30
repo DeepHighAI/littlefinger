@@ -169,7 +169,7 @@ function pendingAgreement({
 }: {
   promiseId?: string;
   myRole?: 'CREATOR' | 'PARTNER';
-  type?: 'AMEND' | 'CANCEL';
+  type?: 'AMEND' | 'CANCEL' | 'FINISH';
   requesterId?: string;
 } = {}): PromiseDetailResponse {
   return agreementDetail({
@@ -466,6 +466,36 @@ describe('SCR-W04 참여 약속', () => {
     expect(confirm).toHaveBeenCalledTimes(1);
     const call = fetchMock.mock.calls.find(([url]) => endpointOf(url) === ENDPOINT.promiseAmendRequest) as [string, RequestInit];
     expect(JSON.parse(String(call[1].body))).toEqual({ promise_id: PROMISE_A, type: 'CANCEL' });
+  });
+
+  it('종료일 없는 약속은 상대방도 FINISH를 요청할 수 있다', async () => {
+    installServer(
+      [summary({ status: 'ACTIVE', needs_response: false, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'ACTIVE', end_date: null }) },
+    );
+    renderAt();
+    fireEvent.click(await screen.findByRole('button', { name: '변경·파기 요청' }));
+    fireEvent.click(screen.getByRole('button', { name: '마무리 요청' }));
+    expect(screen.getByText('상대가 승인한 시각부터 이행 확인과 개인 보관 기간이 시작돼요.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
+
+    await waitFor(() => expect(mutationKeys(ENDPOINT.promiseAmendRequest)).toHaveLength(1));
+    const call = fetchMock.mock.calls.find(([url]) =>
+      endpointOf(url) === ENDPOINT.promiseAmendRequest) as [string, RequestInit];
+    expect(JSON.parse(String(call[1].body))).toEqual({ promise_id: PROMISE_A, type: 'FINISH' });
+  });
+
+  it('FINISH 요청 응답자는 마무리 승인과 거절을 대칭 제공한다', async () => {
+    const pending = pendingAgreement({ type: 'FINISH', myRole: 'PARTNER' });
+    installServer(
+      [summary({ status: 'AMEND_PENDING', needs_response: true, check_deadline_at: null })],
+      { [PROMISE_A]: detail({ status: 'AMEND_PENDING', my_role: 'PARTNER', end_date: null }) },
+      { [PROMISE_A]: { ...pending, end_date: null, current_version: { ...pending.current_version, end_date: null } } },
+    );
+    renderAt();
+    expect(await screen.findByText('지우님이 약속 마무리를 요청했어요')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '마무리 승인' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '거절' })).toBeTruthy();
   });
 
   it('AMEND_PENDING은 변경 필드만 표시하고 요청자 철회·응답자 승인/거절을 대칭 제공한다', async () => {

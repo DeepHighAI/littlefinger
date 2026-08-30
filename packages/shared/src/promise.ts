@@ -153,7 +153,7 @@ export type Surface = 'APP' | 'WEB';
 
 export type InvitationStatus = 'PENDING' | 'USED' | 'EXPIRED' | 'REVOKED';
 
-export type AmendType = 'AMEND' | 'CANCEL';
+export type AmendType = 'AMEND' | 'CANCEL' | 'FINISH';
 
 export type AmendStatus = 'PENDING' | 'APPROVED' | 'DECLINED' | 'WITHDRAWN' | 'EXPIRED';
 
@@ -228,7 +228,7 @@ export interface PromiseVersion {
   versionNo: number;
   title: string;
   body: string;
-  endDate: IsoDate;
+  endDate: IsoDate | null;
   stake: PromiseStake;
   createdAt: IsoDateTime;
 }
@@ -240,8 +240,8 @@ export interface PromiseRecord {
   title: string;
   body: string;
   category: PromiseCategory;
-  /** 종료일 — 필수. 익일 00:00 KST 에 CHECKING 으로 전환된다(T-11). */
-  endDate: IsoDate;
+  /** 종료일. `null`이면 양측이 종료에 합의할 때까지 계속되는 약속이다. */
+  endDate: IsoDate | null;
   keeper: Keeper;
   stake: PromiseStake;
   /** 증인 사용 여부. 사용 시 최대 WITNESS_MAX 명. */

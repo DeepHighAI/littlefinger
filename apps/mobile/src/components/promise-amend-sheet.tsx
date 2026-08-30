@@ -1,4 +1,5 @@
 import {
+  END_DATE_EXTENSION_DAYS,
   KEEPER_LABEL,
   KEEPER_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL,
@@ -24,7 +25,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useLabels, useLocale } from '../lib/locale-native';
 import { MOD_01_LABEL } from '../screens/scr-a05-labels.ts';
-import { colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
+import { border, colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
 import { LfChoice } from './LfChoice.tsx';
 import { LfField } from './LfField.tsx';
@@ -40,8 +41,10 @@ export interface PromiseAmendSheetProps {
   visible: boolean;
   detail: PromiseDetailResponse;
   now: Date;
+  /** 작성자의 영구 보관 구매로 무기한이 열린 약속만 '종료일 없음'을 제안할 수 있다. */
+  durationUnlimited: boolean;
   onClose(): void;
-  onSubmit(input: PromiseAmendCreateRequest): Promise<void>;
+  onSubmit(input: PromiseAmendCreateRequest): Promise<void | 'DURATION_ENTITLEMENT_REQUIRED'>;
   pickEndDate(value: string, onSelect: (value: string) => void): void;
   confirmCancel(): Promise<boolean>;
 }
@@ -69,7 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...elevation.sheet,
     // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: 2.5,
+    borderWidth: border.sheet,
     borderBottomWidth: 0,
     borderColor: colors.text,
   },
@@ -120,6 +123,7 @@ export function PromiseAmendSheet({
   visible,
   detail,
   now,
+  durationUnlimited,
   onClose,
   onSubmit,
   pickEndDate,
@@ -277,10 +281,18 @@ export function PromiseAmendSheet({
                 <LfField label={LABEL.endDateField} required error={validation.endDate.message ?? undefined}>
                   <LfPicker
                     accessibilityLabel={LABEL.endDateSelect}
-                    value={proposal.end_date}
+                    value={proposal.end_date ?? LABEL.noEndDate}
                     placeholder={LABEL.endDateSelect}
-                    onPress={() => pickEndDate(proposal.end_date, (value) => update('end_date', value))}
+                    onPress={() => pickEndDate(proposal.end_date ?? '', (value) => update('end_date', value))}
                   />
+                  {durationUnlimited ? (
+                    <LfChoice
+                      label={LABEL.noEndDate}
+                      selected={proposal.end_date === null}
+                      onPress={() => update('end_date', null)}
+                    />
+                  ) : null}
+                  <LfText variant="caption">{LABEL.durationEntitlementNotice(END_DATE_EXTENSION_DAYS)}</LfText>
                 </LfField>
                 <LfField label={LABEL.keeperField} required>
                   <View style={styles.choices}>

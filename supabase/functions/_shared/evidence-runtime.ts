@@ -1,15 +1,12 @@
 import * as magick from 'npm:@imagemagick/magick-wasm@0.0.39';
 
-import type {
-  EvidenceDeps,
-  EvidencePurgeDeps,
-  EvidenceStorage,
-} from './evidence.ts';
+import type { EvidenceDeps, EvidencePurgeDeps } from './evidence.ts';
 import {
   createEvidenceImageProcessor,
   type EvidenceImageProcessor,
 } from './evidence-image.ts';
-import { createAdminClient, createDeps, requireEnv } from './runtime.ts';
+import { createDeps, requireEnv } from './runtime.ts';
+import { createStorage } from './storage-runtime.ts';
 
 const MAGICK_WASM_URL =
   'https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.39/dist/magick.wasm';
@@ -41,32 +38,6 @@ function processImage(
 ): ReturnType<EvidenceImageProcessor> {
   processor ??= loadMagickProcessor();
   return processor.then(async (ready) => await ready(input));
-}
-
-function createStorage(): EvidenceStorage {
-  const admin = createAdminClient();
-  return {
-    upload: async (bucket, key, bytes, contentType) => {
-      const { error } = await admin.storage.from(bucket).upload(key, bytes, {
-        contentType,
-        // 동일 업로드 키 재시도는 같은 처리 결과로 수렴해야 한다.
-        upsert: true,
-      });
-      if (error !== null) throw new Error(error.message);
-    },
-    remove: async (bucket, keys) => {
-      if (keys.length === 0) return;
-      const { error } = await admin.storage.from(bucket).remove([...keys]);
-      if (error !== null) throw new Error(error.message);
-    },
-    sign: async (bucket, key, expiresIn) => {
-      const { data, error } = await admin.storage
-        .from(bucket)
-        .createSignedUrl(key, expiresIn);
-      if (error !== null) throw new Error(error.message);
-      return data.signedUrl;
-    },
-  };
 }
 
 export function createEvidenceDeps(): EvidenceDeps {

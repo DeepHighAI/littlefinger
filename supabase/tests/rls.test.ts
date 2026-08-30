@@ -29,7 +29,7 @@ afterAll(async () => {
 });
 
 describe('F-05 witness RPC boundary', () => {
-  test('five witness RPCs are service-role only', async () => {
+  test('seven witness RPCs are service-role only', async () => {
     const { rows } = await db.asAdmin(
       `select bool_and(not has_function_privilege('anon', p.oid, 'EXECUTE')) as anon_denied,
               bool_and(not has_function_privilege('authenticated', p.oid, 'EXECUTE')) as authenticated_denied,
@@ -40,14 +40,15 @@ describe('F-05 witness RPC boundary', () => {
         where n.nspname = 'public'
           and p.proname = any(array[
             'lf_witness_invite_list', 'lf_witness_invite', 'lf_witness_join',
-            'lf_witness_detail', 'lf_witness_sign'
+            'lf_witness_detail', 'lf_witness_detail_unfiltered', 'lf_witness_sign',
+            'lf_witness_used'
           ])`,
     );
     expect(rows[0]).toEqual({
       anon_denied: true,
       authenticated_denied: true,
       service_allowed: true,
-      count: 5,
+      count: 7,
     });
   });
 });

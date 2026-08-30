@@ -64,7 +64,11 @@ export function createPromiseCreateHandler(deps: Deps) {
       const title = requiredString(body, 'title', 'title');
       const content = requiredString(body, 'body', 'body');
       const category = requiredString(body, 'category', 'category');
-      const endDate = requiredString(body, 'end_date', 'end_date');
+      const endDateValue = body['end_date'];
+      if (endDateValue !== null && typeof endDateValue !== 'string') {
+        throw new ApiError('E_VALIDATION', { field: 'end_date' });
+      }
+      const endDate = endDateValue as string | null;
       const keeper = optionalString(body, 'keeper', 'keeper');
       const reward = optionalString(body, 'reward', 'reward');
       const penalty = optionalString(body, 'penalty', 'penalty');

@@ -253,7 +253,7 @@ describe('SCR-A03 3단계 약속 작성', () => {
 
     // 2단계(조건)로 이동해 종료일 안내를 보여준다 — 조용한 차단 금지.
     expect(view.getByRole('progressbar').props.accessibilityValue.now).toBe(2);
-    expect(view.getByText('종료일 — 종료일은 내일부터 1년 안으로 정해주세요.')).toBeTruthy();
+    expect(view.getByText('종료일 — 종료일은 내일 이후의 날짜로 정해주세요.')).toBeTruthy();
     expect(submitEditorDraft).not.toHaveBeenCalled();
   });
 

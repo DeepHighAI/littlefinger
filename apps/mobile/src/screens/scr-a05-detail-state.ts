@@ -106,16 +106,20 @@ export function detailStatusOf(
   };
 }
 
-export function formatDetailDate(value: IsoDate, locale: Locale = 'ko'): string {
-  return formatKstDate(value, locale);
+export function formatDetailDate(value: IsoDate | null, locale: Locale = 'ko'): string {
+  return value === null ? SCR_A05_LABEL[locale].noEndDate : formatKstDate(value, locale);
 }
 
 export function formatDetailInstant(value: IsoDateTime): string {
   return `${formatKstDateTime(new Date(value))}${KST_MARK}`;
 }
 
-export function formatDetailDday(endDate: IsoDate, now: Date): string {
-  return formatDday(ddayFrom(endDate, now));
+export function formatDetailDday(
+  endDate: IsoDate | null,
+  now: Date,
+  locale: Locale = 'ko',
+): string {
+  return endDate === null ? SCR_A05_LABEL[locale].noEndDate : formatDday(ddayFrom(endDate, now));
 }
 
 export function fingerprintText(value: string, locale: Locale = 'ko'): string {

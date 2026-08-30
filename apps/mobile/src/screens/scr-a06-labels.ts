@@ -76,6 +76,7 @@ const ko = {
   responseMissing: (role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>) =>
     `${PARTICIPANT_ROLE_LABEL[role]} 미응답`,
   endDate: (date: string) => `종료일 ${date}`,
+  noEndDate: '마무리 합의 완료',
   keeper: (keeper: Keeper) => `지킬 사람 ${KEEPER_LABEL[keeper]}`,
   status: (status: PromiseStatus) => PROMISE_STATUS_LABEL[status],
   role: (role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>) =>
@@ -142,6 +143,7 @@ const en = {
   responseMissing: (role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>) =>
     `${PARTICIPANT_ROLE_LABEL_BY_LOCALE.en[role]} did not respond`,
   endDate: (date: string) => `End date ${date}`,
+  noEndDate: 'Finish agreed',
   keeper: (keeper: Keeper) => `Kept by ${KEEPER_LABEL_BY_LOCALE.en[keeper]}`,
   status: (status: PromiseStatus) => PROMISE_STATUS_LABEL_BY_LOCALE.en[status],
   role: (role: Extract<ParticipantRole, 'CREATOR' | 'PARTNER'>) =>

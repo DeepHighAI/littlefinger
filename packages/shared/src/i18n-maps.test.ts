@@ -48,7 +48,9 @@ describe('shared *_BY_LOCALE maps', () => {
       Object.keys(ERROR_MESSAGE).sort(),
     );
     expect(ERROR_MESSAGE_BY_LOCALE.en.E_VALIDATION).toBeNull();
-    expect(ERROR_MESSAGE_BY_LOCALE.en.E_WITNESS_LIMIT).toContain('2');
+    expect(ERROR_MESSAGE_BY_LOCALE.en.E_WITNESS_LIMIT).toBe(
+      'All currently available witness spots are in use.',
+    );
   });
 
   test('고지 문구 ko·en 모두 확정(법무 검토 완료) — ko 는 확정 문구와 동일 참조다', () => {

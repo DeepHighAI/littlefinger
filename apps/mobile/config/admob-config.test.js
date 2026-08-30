@@ -1,15 +1,28 @@
 const {
   GOOGLE_TEST_ANDROID_APP_ID,
+  GOOGLE_TEST_BANNER_UNIT_ID,
   GOOGLE_TEST_NATIVE_UNIT_ID,
+  GOOGLE_TEST_REWARDED_UNIT_ID,
   resolveAdMobBuildConfig,
 } = require('./admob-config.js');
 const appConfig = require('../app.config.js');
 
 describe('F-12 AdMob build configuration', () => {
   test('development uses only the documented Google test App ID', () => {
-    expect(resolveAdMobBuildConfig({})).toEqual({
+    expect(resolveAdMobBuildConfig({
+      EXPO_PUBLIC_ADMOB_ANDROID_APP_ID: 'ca-app-pub-1234567890123456~1234567890',
+      EXPO_PUBLIC_ADMOB_NATIVE_UNIT_ID: 'ca-app-pub-1234567890123456/1234567890',
+      EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID: 'ca-app-pub-1234567890123456/2234567890',
+      EXPO_PUBLIC_ADMOB_REWARDED_WITNESS_UNIT_ID: 'ca-app-pub-1234567890123456/3234567890',
+      EXPO_PUBLIC_ADMOB_REWARDED_DURATION_UNIT_ID: 'ca-app-pub-1234567890123456/4234567890',
+      EXPO_PUBLIC_ADMOB_REWARDED_RETENTION_UNIT_ID: 'ca-app-pub-1234567890123456/5234567890',
+    })).toEqual({
       androidAppId: GOOGLE_TEST_ANDROID_APP_ID,
       nativeUnitId: GOOGLE_TEST_NATIVE_UNIT_ID,
+      bannerUnitId: GOOGLE_TEST_BANNER_UNIT_ID,
+      rewardedWitnessUnitId: GOOGLE_TEST_REWARDED_UNIT_ID,
+      rewardedDurationUnitId: GOOGLE_TEST_REWARDED_UNIT_ID,
+      rewardedRetentionUnitId: GOOGLE_TEST_REWARDED_UNIT_ID,
       production: false,
     });
   });
@@ -33,10 +46,18 @@ describe('F-12 AdMob build configuration', () => {
         EAS_BUILD_PROFILE: 'production',
         EXPO_PUBLIC_ADMOB_ANDROID_APP_ID: 'ca-app-pub-1234567890123456~1234567890',
         EXPO_PUBLIC_ADMOB_NATIVE_UNIT_ID: 'ca-app-pub-1234567890123456/1234567890',
+        EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID: 'ca-app-pub-1234567890123456/2234567890',
+        EXPO_PUBLIC_ADMOB_REWARDED_WITNESS_UNIT_ID: 'ca-app-pub-1234567890123456/3234567890',
+        EXPO_PUBLIC_ADMOB_REWARDED_DURATION_UNIT_ID: 'ca-app-pub-1234567890123456/4234567890',
+        EXPO_PUBLIC_ADMOB_REWARDED_RETENTION_UNIT_ID: 'ca-app-pub-1234567890123456/5234567890',
       }),
     ).toEqual({
       androidAppId: 'ca-app-pub-1234567890123456~1234567890',
       nativeUnitId: 'ca-app-pub-1234567890123456/1234567890',
+      bannerUnitId: 'ca-app-pub-1234567890123456/2234567890',
+      rewardedWitnessUnitId: 'ca-app-pub-1234567890123456/3234567890',
+      rewardedDurationUnitId: 'ca-app-pub-1234567890123456/4234567890',
+      rewardedRetentionUnitId: 'ca-app-pub-1234567890123456/5234567890',
       production: true,
     });
   });
@@ -74,7 +95,13 @@ describe('F-12 AdMob build configuration', () => {
     expect(config['react-native-google-mobile-ads']).toBeUndefined();
     expect(config.extra).toEqual({
       eas: { projectId: 'project-id' },
-      admob: { nativeUnitId: GOOGLE_TEST_NATIVE_UNIT_ID },
+      admob: {
+        nativeUnitId: GOOGLE_TEST_NATIVE_UNIT_ID,
+        bannerUnitId: GOOGLE_TEST_BANNER_UNIT_ID,
+        rewardedWitnessUnitId: GOOGLE_TEST_REWARDED_UNIT_ID,
+        rewardedDurationUnitId: GOOGLE_TEST_REWARDED_UNIT_ID,
+        rewardedRetentionUnitId: GOOGLE_TEST_REWARDED_UNIT_ID,
+      },
     });
   });
 });

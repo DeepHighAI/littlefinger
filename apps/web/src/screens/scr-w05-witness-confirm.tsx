@@ -4,6 +4,7 @@ import {
   PARTICIPANT_ROLE_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL_BY_LOCALE,
   PROMISE_STATUS_LABEL_BY_LOCALE,
+  formatKstDate,
   formatKstDateTime,
   type EvidenceView,
   type WitnessDetailResponse,
@@ -189,7 +190,7 @@ function WitnessContent({
         <hr className="lf-divider" />
         <p className="lf-body--secondary">
           {L.category} {PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][content.category]} ·{' '}
-          {L.endDate} {content.end_date} ·{' '}
+          {L.endDate} {content.end_date === null ? L.noEndDate : `${formatKstDate(content.end_date, locale)}${KST_MARK}`} ·{' '}
           {L.keeper} {KEEPER_LABEL_BY_LOCALE[locale][content.keeper]}
         </p>
         <p className="lf-caption">{L.parties(detail.creator.nickname, partner.nickname)}</p>

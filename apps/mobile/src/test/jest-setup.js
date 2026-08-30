@@ -30,3 +30,35 @@ jest.mock('react-native-reanimated', () => {
   Reanimated.useReducedMotion = () => false;
   return Reanimated;
 });
+
+// 화면 테스트에는 AdMob 네이티브 브리지가 없다. 광고 SDK 자체의 동작은
+// admob-loader 단위 테스트에서 주입 경계로 검증하고, 화면은 빈 호스트 컴포넌트를 쓴다.
+jest.mock('react-native-google-mobile-ads', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const Host = (props) => React.createElement(View, props, props.children);
+  return {
+    __esModule: true,
+    default: () => ({ initialize: jest.fn().mockResolvedValue(undefined) }),
+    AdEventType: { CLOSED: 'closed', ERROR: 'error' },
+    AdsConsent: {
+      gatherConsent: jest.fn().mockResolvedValue(undefined),
+      getConsentInfo: jest.fn().mockResolvedValue({ canRequestAds: true }),
+    },
+    BannerAd: Host,
+    BannerAdSize: { ANCHORED_ADAPTIVE_BANNER: 'adaptive' },
+    NativeAd: { createForAdRequest: jest.fn().mockResolvedValue(null) },
+    NativeAdView: Host,
+    NativeAsset: Host,
+    NativeAssetType: {
+      ADVERTISER: 'advertiser',
+      BODY: 'body',
+      CALL_TO_ACTION: 'call_to_action',
+      HEADLINE: 'headline',
+      ICON: 'icon',
+    },
+    RewardedAd: { createForAdRequest: jest.fn() },
+    RewardedAdEventType: { EARNED_REWARD: 'earned_reward', LOADED: 'loaded' },
+    TestIds: { ADAPTIVE_BANNER: 'test-banner', NATIVE: 'test-native', REWARDED: 'test-rewarded' },
+  };
+});
