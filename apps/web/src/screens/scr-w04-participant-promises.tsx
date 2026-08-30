@@ -1054,7 +1054,9 @@ function PromiseCard({
           {detail.title}
         </h2>
         <p className="lf-card__meta">
-          {L.endDateMeta(detail.end_date === null ? L.noEndDateLabel : `${formatKstDate(detail.end_date, locale)}${KST_MARK}`)}
+          {detail.end_date === null
+            ? L.noEndDateLabel
+            : L.endDateMeta(`${formatKstDate(detail.end_date, locale)}${KST_MARK}`)}
         </p>
 
         {detail.status === 'ACTIVE' && (
