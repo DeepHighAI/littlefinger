@@ -52,3 +52,6 @@ ios/
 # 배포판 전체를 저장소에 두면 모든 클론이 그 비용을 영구히 낸다.
 /fonts/
 .gstack/
+
+# EAS Submit 이 쓰는 Play 서비스 계정 키. eas.json 의 serviceAccountKeyPath 가 여기를 가리킨다.
+apps/mobile/.secrets/

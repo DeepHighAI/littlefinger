@@ -1,0 +1,38 @@
+# 커밋 전 게이트(CLAUDE.md §3)를 main 푸시와 PR 마다 러너에서 한 번 더 돈다.
+# 시크릿은 쓰지 않는다 — 원격 프로젝트에 닿는 검사(supabase/tests/remote/*.sql)는 여기서 돌지 않는다.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # .nvmrc 도 engines 도 없다. 개발 머신의 Node 22 와 맞춘다.
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      # 루트 `npm test` 는 Vitest 뒤에 모바일 Jest 까지 부른다. 두 러너를 따로 불러 Jest 를
+      # 두 번 돌리지 않고, --ci 로 스냅샷이 러너에서 새로 쓰이는 일을 막는다.
+      - run: npx vitest run
+
+      - run: npx jest --silent --ci
+        working-directory: apps/mobile
+
+      - run: npm run check:agents
