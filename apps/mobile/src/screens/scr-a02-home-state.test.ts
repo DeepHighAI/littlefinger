@@ -264,7 +264,10 @@ describe('SCR-A02 탭별 홈 상태', () => {
     expect(activeSucceededLate.counts).toEqual({ ACTIVE: 4, WAITING: 3, COMPLETED: 2, DONE: 0, BROKEN: 0, UNSETTLED: 0, DECLINED: 0 });
   });
 
-  test('DRAFT 삭제 성공은 WAITING cache와 count에서 정확히 한 건만 제거한다', () => {
+  test.each([
+    ['DRAFT', FIRST_ID, SECOND_ID],
+    ['PENDING', SECOND_ID, FIRST_ID],
+  ])('%s 삭제 성공은 WAITING cache와 count에서 정확히 한 건만 제거한다', (_status, deletedId, remainingId) => {
     const module = loadState()!;
     const initial = module.createInitialHomeState();
     const waitingLoaded = {
@@ -279,11 +282,11 @@ describe('SCR-A02 탭별 홈 상태', () => {
       },
     };
     const deleted = module.promiseHomeReducer(waitingLoaded, {
-      type: 'DRAFT_DELETED',
-      promiseId: FIRST_ID,
+      type: 'WAITING_PROMISE_DELETED',
+      promiseId: deletedId,
     });
 
-    expect(deleted.tabs.WAITING.items.map((item: any) => item.promise_id)).toEqual([SECOND_ID]);
+    expect(deleted.tabs.WAITING.items.map((item: any) => item.promise_id)).toEqual([remainingId]);
     expect(deleted.counts.WAITING).toBe(1);
   });
 });

@@ -100,9 +100,13 @@ export function PromiseListRow({
             <LfButton label={LABEL.answerFulfillment} onPress={() => onOpen(item)} block />
           </View>
         )}
-        {item.status === 'DRAFT' && onDelete !== undefined && (
+        {(item.status === 'DRAFT' || item.status === 'PENDING') && onDelete !== undefined && (
           <LfButton
-            accessibilityLabel={LABEL.deleteDraft(item.title)}
+            accessibilityLabel={
+              item.status === 'DRAFT'
+                ? LABEL.deleteDraft(item.title)
+                : LABEL.deletePending(item.title)
+            }
             label={LABEL.delete}
             variant="text"
             onPress={() => onDelete(item)}

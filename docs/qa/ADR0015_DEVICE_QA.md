@@ -1,6 +1,6 @@
 # ADR 0015 device QA — internal testing 0.2.0
 
-Snapshot: 2026-08-30 KST. Status: **NOT_RUN** (0 PASS · 0 FAIL · 20 NOT_RUN).
+Snapshot: 2026-08-30 KST. Status: **FAIL** (0 PASS · 1 FAIL · 19 NOT_RUN).
 
 Companion to `docs/setup/monetization-retention-release.md` §4. Same format as
 `docs/qa/MANUAL_E2E.md`: fill the Status and Capture columns in place, then copy the result block
@@ -24,6 +24,20 @@ rejects, so rows 2–8 cannot pass on them.
 | 10 | Worker secrets in hand | `PURCHASE_RECONCILE_SECRET` (row 12) and `RETENTION_WORKER_SECRET` (row 18), read from `npx supabase secrets` owner's notes — never from the repo |
 | 11 | Capture root | `%TEMP%\littlefinger-qa\adr0015-<yyyymmdd>\`, files `s<nn>-<step>.png` at 360×800 logical; SQL evidence as `s<nn>-<step>.txt` |
 | 12 | Staging promises | Every promise created during this run is test data. Rows 16–18 use the fast-forward SQL below and are **never** run against a database with real users |
+
+### Run record — 2026-08-30
+
+- Play Console showed internal track `ACTIVE`, version `10 (0.2.0)`, offered to internal testers.
+  Build id: `8f83b014-79b9-4357-bb33-413737f65206`.
+- Read-only backend recheck: `npx supabase functions list` returned 56/56 functions `ACTIVE`.
+- Capture root: `C:\Users\batis\AppData\Local\Temp\littlefinger-qa\adr0015-20260830\`.
+- Device blocker `ADR15-QA-B01`: ADB reported zero connected devices, so app, Play Billing,
+  TalkBack, network-condition, and push scenarios were not run.
+- Rewarded blocker `ADR15-QA-B02`: internal build code 10 embeds Google test rewarded unit ids.
+  They do not send the SSV callback accepted by this backend, so rows 2–8 cannot pass until the
+  real units are configured and the planned versionCode 11 production build is installed.
+- Only the independently reachable web half of row 20 was executed. No account identifiers,
+  purchase tokens, callback URLs, or worker secrets were recorded.
 
 Reading server state: Dashboard → SQL editor as `postgres` (bypasses RLS). Handy queries:
 
@@ -63,7 +77,29 @@ select event_code, dedupe_key, created_at from public.notifications
 | 17 | A | Expired access disappears: shift the anchor of staging promise S1 so A's expiry is in the past (see below) while B holds permanent access | A: S1 absent from every home tab, from history, and the deep link answers `약속을 찾을 수 없어요` (E_NOT_FOUND); no ad or purchase path offers to restore it. B still sees S1 | NOT_RUN | `s17-*.png` |
 | 18 | — | Purge idempotent: staging promise S2 where every participant's access has ended → `select public.lf_retention_maintenance(now());` queues the job → call the worker twice: `curl -X POST https://vepnrrmxvsytguocicfe.supabase.co/functions/v1/retention-maintenance -H "x-retention-worker-secret: $RETENTION_WORKER_SECRET" -H 'Content-Type: application/json' -d '{}'` | First call: `purged_count 1`, evidence objects gone from the private bucket, the `promises` row and children gone, one `purged_promise_receipts` row, `user_keep_rate_aggregates` updated and A07 keepRate **unchanged**. Second call: `purged_count 0`, HTTP 200, no error log | NOT_RUN | `s18-*.txt` |
 | 19 | A | TalkBack + 48 dp on the entitlement sheet, the locked witness row (row 3 state), and the A05 retention card | TalkBack reads each control's label and its locked/disabled state; every tappable target is ≥48 dp (Developer options → Show layout bounds); locked state is conveyed by text, never by colour alone | NOT_RUN | `s19-*.png` |
-| 20 | A/B | Legal pages show the new version: app → 프로필 → 이용약관 / 개인정보 처리방침; web `/legal/terms`, `/legal/privacy` | Version line reads `버전 2026-08-30.1 · 시행일 2026-08-30` (en: `Version 2026-08-30.1 · Effective 2026-08-30`); if the app prompts for re-consent it does so once | NOT_RUN | `s20-*.png` |
+| 20 | A/B | Legal pages show the new version: app → 프로필 → 이용약관 / 개인정보 처리방침; web `/legal/terms`, `/legal/privacy` | Version line reads `버전 2026-08-30.1 · 시행일 2026-08-30` (en: `Version 2026-08-30.1 · Effective 2026-08-30`); if the app prompts for re-consent it does so once | **FAIL** — `ADR15-QA-F01`: deployed web serves the prior versions; `ADR15-QA-F02`: the privacy version line is clipped at 360×800. App half NOT_RUN | `C:\Users\batis\AppData\Local\Temp\littlefinger-qa\adr0015-20260830\s20-web-terms-ko.png`<br>`C:\Users\batis\AppData\Local\Temp\littlefinger-qa\adr0015-20260830\s20-web-terms-en.png`<br>`C:\Users\batis\AppData\Local\Temp\littlefinger-qa\adr0015-20260830\s20-web-privacy-ko.png`<br>`C:\Users\batis\AppData\Local\Temp\littlefinger-qa\adr0015-20260830\s20-web-privacy-en.png` |
+
+## Findings
+
+### ADR15-QA-F01 — deployed web legal bundle is stale
+
+- Expected: both legal pages show version `2026-08-30.1`, effective `2026-08-30`, in Korean and
+  English.
+- Actual: `/legal/terms` shows `2026-08-22.3` / `2026-08-22`; `/legal/privacy` shows
+  `2026-08-25.1` / `2026-08-25` in both locales.
+- Scope: release blocker for row 20. Local `apps/web` source and the deployed database functions
+  already declare `2026-08-30.1`, so the public Firebase Hosting bundle does not match the current
+  release source.
+- Retest: deploy the current `apps/web` production bundle, then verify both locales on both URLs
+  and the app re-consent path.
+
+### ADR15-QA-F02 — privacy version line clips at 360×800
+
+- Expected: the full version and effective-date line is visible without horizontal clipping.
+- Actual: the left side of the privacy version line is outside the viewport in both Korean and
+  English 360×800 captures. The terms page does not show the same clipping.
+- Retest: after the hosting update, repeat the four 360×800 captures and confirm no horizontal
+  overflow before marking row 20 PASS.
 
 ## Staging fast-forward SQL (rows 16–18)
 

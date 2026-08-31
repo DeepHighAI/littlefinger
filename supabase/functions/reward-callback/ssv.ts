@@ -11,7 +11,15 @@ export interface VerifiedSsvCallback {
   transactionId: string;
   adUnitId: string;
   rewardedAt: string;
+  verifierProbe: boolean;
 }
+
+const ADMOB_VERIFIER_PROBE = {
+  adUnitId: '1234567890',
+  intentId: '00000000-0000-4000-8000-000000000000',
+  opaqueUserId: '0'.repeat(64),
+  transactionId: '123456789',
+} as const;
 
 /** 콜백의 `key_id`. 정수가 아니면 `null` — 그런 요청은 키 재조회의 근거가 되지 못한다. */
 export function ssvKeyIdOf(url: string): number | null {
@@ -96,11 +104,18 @@ export async function verifySsvCallback(
   const transactionId = parsed.searchParams.get('transaction_id');
   const adUnitId = parsed.searchParams.get('ad_unit');
   const timestamp = Number(parsed.searchParams.get('timestamp'));
+  // AdMob 콘솔의 URL 확인 도구는 실광고 단위 대신 이 고정 샘플을 Google 서명과 함께 보낸다.
+  // 네 필드가 모두 일치할 때만 allowlist 예외로 받아서 지급 없이 연결 상태만 확인한다.
+  const verifierProbe = adUnitId === ADMOB_VERIFIER_PROBE.adUnitId &&
+    intentId === ADMOB_VERIFIER_PROBE.intentId &&
+    opaqueUserId === ADMOB_VERIFIER_PROBE.opaqueUserId &&
+    transactionId === ADMOB_VERIFIER_PROBE.transactionId;
   if (
     signature === null || keyId === null || intentId === null ||
     !UUID_PATTERN.test(intentId) || opaqueUserId === null || opaqueUserId.length !== 64 ||
     transactionId === null || transactionId.length === 0 || adUnitId === null ||
-    !allowedAdUnits.has(adUnitId) || !Number.isSafeInteger(timestamp) || timestamp <= 0
+    (!allowedAdUnits.has(adUnitId) && !verifierProbe) ||
+    !Number.isSafeInteger(timestamp) || timestamp <= 0
   ) return null;
   const key = keys.find((candidate) => candidate.keyId === keyId);
   if (key === undefined) return null;
@@ -124,5 +139,6 @@ export async function verifySsvCallback(
     transactionId,
     adUnitId,
     rewardedAt: new Date(timestamp).toISOString(),
+    verifierProbe,
   };
 }

@@ -44,7 +44,7 @@ export function LfFab({ label, ...rest }: LfFabProps): React.JSX.Element {
         pressed && { backgroundColor: colors.actionFillPressed },
       ]}
     >
-      <LfPinky size="xs" tone="onPrimary" />
+      <LfPinky size="xs" />
       <Text style={styles.label}>{label}</Text>
     </Pressable>
   );

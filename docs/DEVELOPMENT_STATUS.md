@@ -1,6 +1,74 @@
 # Development Status
 
-Snapshot date: **2026-08-29 KST**.
+Snapshot date: **2026-08-31 KST**.
+
+## Pending promise deletion deployed (2026-08-31)
+
+Creators can now delete both DRAFT and PENDING promises from the waiting list. PENDING deletion is
+a server-owned, idempotent operation with a two-step confirmation in Korean and English: it locks
+the invitation before the promise, verifies creator ownership and PENDING status, then deletes the
+promise transactionally. Cascades remove the invitation and every participant-facing waiting-list
+row, so the send is canceled for both people; reports are retained with their promise/evidence
+links cleared. `CANCELED` remains reserved for the post-ACTIVE mutual-cancel transition.
+
+Migration `20260831052923_pending_promise_delete.sql` and the `promise-pending-delete` Edge
+Function are deployed to the linked Supabase project. The function is ACTIVE with JWT verification;
+the RPC is security-invoker, has an empty `search_path`, and is executable only by `service_role`.
+A live authenticated QA deletion returned HTTP 200. The deleted promise and all checked dependent
+rows (`invitations`, participants, versions, reminders, approvals, notifications, linked reports)
+were 0 afterward while the account's other four PENDING promises remained. A request without a JWT
+returned HTTP 401. The one expired QA PENDING record used for this destructive smoke test is not
+restored.
+
+Verification: Vitest **110 files / 2,136 tests PASS**; jest-expo **79 suites / 811 tests PASS**;
+five-project `npm run typecheck`, `npm run check:agents`, and `git diff --check` PASS. Android
+emulator visual QA passed for the Korean and English waiting-row delete action and confirmation
+dialog; the destructive action was canceled during visual QA and exercised only once afterward
+through the live authenticated endpoint.
+
+## Play store listing drafted (2026-08-31)
+
+`docs/setup/play-store-listing.md` grew from a flags-and-permissions checklist into the full
+store-presence document, written against the new `docs/google_play_store_listing_guide.md`:
+app name, short description, full description (all four in ko-KR **and** en-US), keyword plan,
+graphic-asset specs, an eight-shot screenshot storyboard, category and tags, and the developer
+contact block. PO decisions on the day: primary category **라이프스타일**, listing localized in
+**ko-KR + en-US**. App name ships as `리틀핑거 - 둘이 지키는 약속 기록` / `Littlefinger: Promises
+Kept`, with two A/B alternates recorded — the brand name is never used alone because of open issue
+N-1 (a same-name company and a similar Play app already exist).
+
+Two store graphics were produced into `docs/디자인/store/`: `store-icon-512.png` (512×512, alpha
+flattened to butter, every alpha pixel 255, 253 KB) from the ADR 0016 launcher artwork, and
+`feature-graphic-1024x500{,-en}.png` drafts in the 잉크 & 스티커 system (cream canvas, butter
+sticker card with an ink border and hard offset shadow, Pretendard). The feature graphics are
+**drafts awaiting PO approval**; screenshots are storyboard-only and get captured on a real device
+during ADR 0015 device QA.
+
+Verified: all eight paste-ready blocks are inside their Play limits by NFC code-point count
+(name 19/27, short 55/72, full 1,493/2,562, release notes 281/476) and contain **zero** §8-3
+wording-guard words and zero banned promo words. Store publication is still blocked by the external
+법무 review (`2026-08-30.2`), the screenshots, feature-graphic approval, the N-1 trademark check,
+and AdMob account approval.
+
+## Promise send production hotfix (2026-08-31)
+
+SCR-A03 [상대에게 보내기] returned the generic error on four consecutive `promise-create`
+requests at 13:44–13:45 KST. Edge invocation logs showed HTTP 500 and the matching Postgres log
+identified `permission denied for table slot_purchase_revocations`. Migration `20260827000001`
+had revoked direct access to the server-only revocation ledger but left `lf_slot_capacity` as a
+security-invoker function; both `slot-status` and every DRAFT → PENDING path therefore failed when
+the new capacity query reached that table.
+
+Migration `20260831051301_fix_slot_capacity_revocation_access.sql` is deployed to the linked
+Supabase project. It makes only `lf_slot_capacity(uuid)` a `SECURITY DEFINER` function with an empty
+`search_path`; `service_role` and `authenticated` still have no direct ledger SELECT privilege and
+the function remains executable only by `service_role`. Remote checks returned slot status
+`{capacity: 5, used: 0}` and a rollback-wrapped `lf_promise_create` send returned `PENDING`.
+Supabase Security Advisor reported no ERROR.
+
+Regression and full verification: targeted paid-slot suite **26/26 PASS**; Vitest **109 files /
+2,127 tests PASS**; jest-expo **78 suites / 806 tests PASS**; five-project `npm run typecheck`,
+`npm run check:agents`, and `git diff --check` PASS.
 
 ## Rewarded benefits + personal retention (2026-08-29, ADR 0015)
 
@@ -379,8 +447,38 @@ backfilled; `supabase/tests/remote/adr0015-smoke.sql` passed via the Management 
 real one (first worker run); `promise-entitlements` answers 401 without a JWT.
 
 Not done from this machine: a fresh DB backup (no `pg_dump`/Docker here; the weekly
-`supabase-backup.yml` artifact is the fallback) — recorded as a known gap. Rewarded grants stay
-unverifiable until real AdMob units replace the test ids (Edge secrets + EAS env + rebuild).
+`supabase-backup.yml` artifact is the fallback) — recorded as a known gap. The real AdMob units,
+SSV setup and code 11 rebuild are now complete below; rewarded device QA still waits on registering
+the QA phone as an AdMob test device.
+
+### Build 0.2.0 / versionCode 12 (2026-08-31, pending-delete candidate)
+
+EAS production build `3f1730fd-960a-4c03-853e-14713dba13d5` completed successfully and was
+downloaded to `dist/littlefinger-internal-v0.2.0-code12.aab` (83,496,558 B; SHA-256
+`3D412914C4C6937832804771095A12A24163D443DE8330DEFD2502D8A54CD5E9`). It contains the promise-send
+hotfix client state and the DRAFT/PENDING waiting-row deletion flow. Direct inspection of the
+4,694,748-byte Hermes bundle found the `promise-pending-delete` endpoint.
+
+`bundletool 1.18.1 validate` exited 0; manifest: package `com.littlefinger.app`, versionCode 12,
+versionName 0.2.0, minSdk 24, targetSdk 36, with arm64-v8a, armeabi-v7a, x86 and x86_64. `jarsigner
+-verify` reports `jar verified.`; its upload-certificate SHA-256
+`C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB`
+matches code 11. The AAB is downloaded and validated but has not been submitted to Play.
+
+### Build 0.2.0 / versionCode 11 (2026-08-30, real-AdMob candidate)
+
+EAS production build `a4cb96ce-6c70-4943-8b5c-1b059325c297` completed successfully and was
+downloaded to `dist/littlefinger-internal-v0.2.0-code11.aab` (83,261,325 B; SHA-256
+`D0A596305A5AC7279ECF0B60ECAD0B1BE4ED1444820AC61BB21C746EC74A6895`). `bundletool 1.18.1
+validate` exited 0; manifest: package `com.littlefinger.app`, versionCode 11, versionName 0.2.0,
+minSdk 24, targetSdk 36, four ABIs, production AdMob application id, Play Billing and AD_ID
+permission present. Extracted `assets/app.config` contains the production native, banner and three
+rewarded unit ids; `jarsigner -verify` reports `jar verified.`
+
+All three rewarded units have the verified SSV callback saved in AdMob, and the production EAS
+variables and Supabase Edge secrets use the matching real ids. The AdMob account is still awaiting
+approval, the app is not linked to its Play listing, and the connected SM-N981N is not yet a test
+device. This AAB has not been uploaded to Play; those are the remaining operator/device-QA steps.
 
 ### Build 0.2.0 / versionCode 10 (2026-08-30, internal-test candidate)
 
@@ -518,6 +616,22 @@ both carrying the real operator identity (주식회사 딥하이 / 심충섭 / 7
   and both locales are now verbatim-immutable.
 
 ## Manual and visual verification
+
+### ADR 0015 device QA partial run (2026-08-30)
+
+Status: **FAIL** (0 PASS · 1 FAIL · 19 NOT_RUN). The Play Console showed internal track version
+`10 (0.2.0)` ACTIVE and offered to testers; a read-only CLI recheck returned 56/56 Edge Functions
+ACTIVE. Row 20's public web half failed: `/legal/terms` still serves `2026-08-22.3` and
+`/legal/privacy` still serves `2026-08-25.1` in both locales instead of `2026-08-30.1`
+(`ADR15-QA-F01`). The privacy version line also clips on the left at 360×800 in both locales
+(`ADR15-QA-F02`). Evidence is under
+`C:\Users\batis\AppData\Local\Temp\littlefinger-qa\adr0015-20260830\`.
+
+The remaining rows were not run: ADB had zero connected devices, and versionCode 10 embeds Google
+test rewarded unit ids that cannot complete the backend SSV grant. Continue with the planned
+real-unit versionCode 11 production build, attach the required test phones, deploy the current web
+bundle, retest row 20, then execute rows 1–19. Detailed matrix:
+[`docs/qa/ADR0015_DEVICE_QA.md`](qa/ADR0015_DEVICE_QA.md).
 
 **Run 1 (2026-08-19) + Day 2 (2026-08-20) of the 12-scenario manual E2E executed** (emulator +
 local web, dev email test login): scenarios 1–6, 9, 11, 12 PASS; 7, 8, 10 PARTIAL; none NOT_RUN.

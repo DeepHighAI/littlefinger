@@ -117,6 +117,29 @@ ADMOB_TEST_DEVICE_IDS:                  ______________ , ______________
 PLAY_SUBMIT_SERVICE_ACCOUNT (row 7):    [ ] not needed / [ ] key handed over
 ```
 
+Current AdMob execution record (2026-08-30):
+
+```text
+ADMOB_ANDROID_APP_ID:                   ca-app-pub-9625042173735017~2273644771
+ADMOB_NATIVE_UNIT_ID:                   ca-app-pub-9625042173735017/1468714041
+ADMOB_BANNER_UNIT_ID:                   ca-app-pub-9625042173735017/1537920242
+ADMOB_REWARDED_WITNESS_UNIT_ID:         ca-app-pub-9625042173735017/8166907779
+ADMOB_REWARDED_DURATION_UNIT_ID:        ca-app-pub-9625042173735017/3843580039
+ADMOB_REWARDED_RETENTION_UNIT_ID:       ca-app-pub-9625042173735017/9969627380
+SSV_CALLBACK_SET_ON_ALL_THREE:          [x] URL verified and saved
+ADMOB_TEST_DEVICE_IDS:                  pending — register before the first ad request
+```
+
+The three rewarded ids are set in both Supabase Edge secrets and the EAS `production`
+environment. The AdMob URL verifier signs a fixed probe with ad unit `1234567890`, not the edited
+unit's real id. `reward-callback` accepts only that exact signed probe tuple and returns 200 without
+calling the grant RPC; real grants still require one of the three configured rewarded ids. This is
+locked by `supabase/tests/edge-monetization.test.ts`.
+
+The AdMob account still shows **account approval pending** and the app is not linked to its Play
+store listing. Those states can prevent live serving, but they do not replace row 6: every QA phone
+must be registered as a test device before it makes any request with these production ids.
+
 Unit ids must match `^ca-app-pub-\d{16}/\d{10}$` — `config/admob-config.js` refuses the
 production build otherwise, and `reward-callback` only accepts callbacks for the three rewarded
 ids it was given.
@@ -204,9 +227,10 @@ cd apps/mobile
 npx eas-cli@latest build -p android --profile production --non-interactive --wait
 ```
 
-`appVersionSource: remote` + `autoIncrement` mean EAS assigns `versionCode`; the last store build
-was 9, so expect **10** — read the actual `N` from the build output (`Android version code`) and
-use it in every file name below. `versionName` is `0.2.0` from `app.json`. A failure in the
+`appVersionSource: remote` + `autoIncrement` mean EAS assigns `versionCode`; the last completed
+store build was 10, so the 2026-08-30 real-unit rebuild is assigned **11** — always read the actual
+`N` from the build output (`Android version code`) and use it in every file name below.
+`versionName` is `0.2.0` from `app.json`. A failure in the
 "Read app config" phase is `config/admob-config.js` rejecting a missing or malformed unit id — fix
 §2-3, do not touch the resolver.
 
@@ -365,6 +389,34 @@ The scenario matrix, prerequisites, capture root and staging fast-forward SQL ar
 build with license testers and AdMob test devices: preview builds are forced to Google test ad
 units, which the SSV callback allowlist rejects, so a rewarded grant can never be observed on a
 preview build.
+
+### §4-1 Register an Android QA phone as an AdMob test device
+
+Do this before exercising any ad row with the production unit ids. Test-device registration is an
+AdMob account setting; it does not require another app build.
+
+1. Open AdMob → **Settings → Test devices → Add test device**, select Android, give the phone a
+   recognizable name, and save its advertising/test-device id.
+2. If the id is not already known, install the internal-track build, connect ADB, clear logcat, and
+   open one ad-bearing screen **once without tapping the ad**:
+
+   ```powershell
+   adb logcat -c
+   adb logcat | Select-String 'setTestDeviceIds|RequestConfiguration|test device'
+   ```
+
+   Copy the hexadecimal id from Mobile Ads SDK's `setTestDeviceIds(...)` instruction into the
+   AdMob test-device form. This discovery request can look live, so do not click it.
+3. Force-stop and reopen the app after saving. AdMob says propagation can take up to 15 minutes.
+   Do not continue QA until the creative carries the **Test Ad** label.
+4. Keep Google Play license testing separate: add the tester account in Play Console before the
+   purchase rows. AdMob test-device status does not make Play Billing a test purchase.
+5. For each rewarded row, confirm all three layers: the app reports completion, `reward-status`
+   changes only after SSV, and the server grant row exists. A client `EARNED_REWARD` event by itself
+   is never a pass.
+
+The currently connected SM-N981N is not registered yet. Record its id in the execution block in
+§2-2 after registration; do not commit the id anywhere else.
 
 ---
 

@@ -104,6 +104,10 @@ verify_jwt = true
 [functions.invite-revoke]
 verify_jwt = true
 
+# 확정 전 PENDING 약속 삭제는 작성자만 가능하고, 연결된 초대 경로를 함께 닫는다.
+[functions.promise-pending-delete]
+verify_jwt = true
+
 [functions.participant-promise-list]
 verify_jwt = true
 

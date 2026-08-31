@@ -115,6 +115,21 @@ describe('lf_slot_status', () => {
     expect(await slotStatus(user)).toEqual({ capacity: FREE_PROMISE_SLOTS, used: 0 });
   });
 
+  test('Edge Function의 service_role 경로에서도 현황 조회와 신규 발송이 된다', async () => {
+    const user = await createUser(db, '슬롯서비스경로');
+    const { rows: statusRows } = await db.asService(
+      `select public.lf_slot_status($1::uuid) as payload`,
+      [user],
+    );
+    expect(statusRows[0]?.['payload']).toEqual({ capacity: FREE_PROMISE_SLOTS, used: 0 });
+
+    const { rows: createRows } = await db.asService(CREATE_SQL, [
+      randomUUID(), user, '서비스 경로 약속', '권한 회귀를 검증한다', 'HABIT', kstToday(7),
+      'BOTH', null, null, false, fakeTokenHash(),
+    ]);
+    expect((createRows[0]?.['payload'] as Record<string, unknown>)['status']).toBe('PENDING');
+  });
+
   test('발송은 사용량을 올리고 DRAFT 저장은 올리지 않는다', async () => {
     const user = await createUser(db, '슬롯카운트');
     await sendNew(user);
@@ -419,6 +434,19 @@ describe('슬롯 권한 기준선', () => {
     await expect(
       db.asUser(buyer, `select * from public.slot_purchase_revocations`),
     ).rejects.toThrow(/permission denied/u);
+    await expect(
+      db.asService(`select * from public.slot_purchase_revocations`),
+    ).rejects.toThrow(/permission denied/u);
+  });
+
+  test('lf_slot_capacity만 취소 원장을 소유자 권한으로 집계한다', async () => {
+    const { rows } = await db.asAdmin(
+      `select p.prosecdef as security_definer,
+              p.proconfig as config
+         from pg_catalog.pg_proc p
+        where p.oid = 'public.lf_slot_capacity(uuid)'::regprocedure`,
+    );
+    expect(rows).toEqual([{ security_definer: true, config: ['search_path=""'] }]);
   });
 
   test('내부 대사 스케줄은 재적용해도 정확히 두 작업만 한 건씩 남긴다', async () => {

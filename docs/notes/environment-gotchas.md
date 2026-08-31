@@ -145,6 +145,16 @@ adb reverse tcp:8143 tcp:8143
 - Emulator driving: use `adb shell input swipe x y x y 80` as a tap (plain `input tap` often does not
   register on the Fabric surface). The emulator clipboard syncs to the host, so a share-sheet copy
   plus PowerShell `Get-Clipboard` extracts invite links.
+- Native Android builds fail in React Native's CMake steps under the machine's system JDK 25. Point
+  `JAVA_HOME` at Android Studio's bundled JBR 21 before invoking Gradle; that exact switch produced
+  a successful install on the API 36 emulator.
+- When Expo is launched from the monorepo root, its CLI can fail to resolve
+  `expo-router/_ctx-shared` even though the module exists under `apps/mobile/node_modules`. Include
+  both `apps/mobile/node_modules` and the root `node_modules` in `NODE_PATH`, or launch from
+  `apps/mobile`, before treating this as an application import failure.
+- `--localhost` can bind Metro to IPv6 `::1`, which the Android emulator cannot reach through its
+  host alias. Use the documented `adb reverse` setup, or CI-mode `--lan` for disposable-emulator
+  visual QA, and verify an actual bundle completion rather than only the listening banner.
 
 ---
 

@@ -23,6 +23,7 @@ export function createRewardCallbackHandler(deps: RewardCallbackDeps) {
         callback = await verifySsvCallback(request.url, keys, deps.allowedAdUnits);
       }
       if (callback === null) return jsonResponse({ granted: false }, 401);
+      if (callback.verifierProbe) return jsonResponse({ granted: false }, 200);
       const result = await deps.rpc('lf_reward_grant', {
         p_intent_id: callback.intentId,
         p_opaque_user_id: callback.opaqueUserId,

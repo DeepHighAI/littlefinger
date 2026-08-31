@@ -279,9 +279,7 @@ describe('LfFab', () => {
 });
 
 describe('LfPinky', () => {
-  test('브랜드 심볼은 잉크 토큰과 이미지 자산을 쓴다', async () => {
-    expect(colors).toHaveProperty('brandSymbol', '#221C13');
-
+  test('브랜드 심볼은 승인된 컬러 자산을 버터 배경 위에 왜곡 없이 표시한다', async () => {
     const view = await render(
       <LfPinky testID="pinky" size="lg" accessibilityLabel="새끼손가락 약속" />,
     );
@@ -289,22 +287,11 @@ describe('LfPinky', () => {
     const style = flatten(mark.props.style);
 
     expect(mark.type).toBe('Image');
-    expect(style.tintColor).toBe('#221C13');
+    expect(mark.props.resizeMode).toBe('contain');
+    expect(style.backgroundColor).toBe(colors.primaryContainer);
+    expect(style.tintColor).toBeUndefined();
     expect(style.width).toBeGreaterThan(style.height as number);
     expect(view.getByRole('image', { name: '새끼손가락 약속' })).toBeTruthy();
-  });
-
-  test('잉크 액션 면에서는 버터색으로 반전한다', async () => {
-    const view = await render(<LfPinky testID="pinky" tone="onPrimary" />);
-    const mark = view.getByTestId('pinky', { includeHiddenElements: true });
-    expect(flatten(mark.props.style).tintColor).toBe(colors.brandSymbolOnAction);
-    expect(flatten(mark.props.style).tintColor).toBe('#F6E7A3');
-  });
-
-  test('밝은 컨테이너에서는 잉크색을 유지한다', async () => {
-    const view = await render(<LfPinky testID="pinky" tone="onContainer" />);
-    const mark = view.getByTestId('pinky', { includeHiddenElements: true });
-    expect(flatten(mark.props.style).tintColor).toBe(colors.brandSymbol);
   });
 });
 

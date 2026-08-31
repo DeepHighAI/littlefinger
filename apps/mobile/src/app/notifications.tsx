@@ -125,7 +125,7 @@ function iconFor(item: NotificationInboxItem): React.JSX.Element {
   if (appearance.icon === 'pinky') {
     return (
       <View style={[styles.icon, styles.accentIcon]}>
-        <LfPinky size="xs" tone="onContainer" />
+        <LfPinky size="xs" />
       </View>
     );
   }

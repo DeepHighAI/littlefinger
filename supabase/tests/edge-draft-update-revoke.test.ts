@@ -7,6 +7,7 @@ import { ApiError } from '../functions/_shared/errors.ts';
 
 const DRAFT_HANDLER_PATH = '../functions/promise-draft-update/handler.ts';
 const REVOKE_HANDLER_PATH = '../functions/invite-revoke/handler.ts';
+const DELETE_HANDLER_PATH = '../functions/promise-pending-delete/handler.ts';
 const USER_ID = 'a3bb6a17-6b7e-4bbf-9f0e-2f4c1d1a9e01';
 const PROMISE_ID = '3f2504e0-4f89-11d3-9a0c-0305e82c3302';
 const KEY = '3f2504e0-4f89-11d3-9a0c-0305e82c3301';
@@ -31,6 +32,10 @@ interface DraftHandlerModule {
 
 interface RevokeHandlerModule {
   createInviteRevokeHandler: (deps: Deps) => (request: Request) => Promise<Response>;
+}
+
+interface DeleteHandlerModule {
+  createPromisePendingDeleteHandler: (deps: Deps) => (request: Request) => Promise<Response>;
 }
 
 interface Spy {
@@ -86,6 +91,10 @@ async function loadDraftHandler(): Promise<DraftHandlerModule | null> {
 
 async function loadRevokeHandler(): Promise<RevokeHandlerModule | null> {
   return import(/* @vite-ignore */ REVOKE_HANDLER_PATH).catch(() => null) as Promise<RevokeHandlerModule | null>;
+}
+
+async function loadDeleteHandler(): Promise<DeleteHandlerModule | null> {
+  return import(/* @vite-ignore */ DELETE_HANDLER_PATH).catch(() => null) as Promise<DeleteHandlerModule | null>;
 }
 
 describe('promise-draft-update Edge Function', () => {
@@ -273,6 +282,70 @@ describe('invite-revoke Edge Function', () => {
     });
 
     const response = await module!.createInviteRevokeHandler(s.deps)(
+      request({ promise_id: PROMISE_ID }),
+    );
+
+    expect(response.status).toBe(status);
+    expect((await jsonOf(response))['code']).toBe(code);
+  });
+});
+
+describe('promise-pending-delete Edge Function', () => {
+  let module: DeleteHandlerModule | null;
+
+  beforeEach(async () => {
+    module = await loadDeleteHandler();
+  });
+
+  test('JWT 작성자와 약속 ID를 트랜잭션 RPC로 넘긴다', async () => {
+    expect(module?.createPromisePendingDeleteHandler).toBeTypeOf('function');
+    const s = spy(async () => ({ promise_id: PROMISE_ID, deleted: true }));
+
+    const response = await module!.createPromisePendingDeleteHandler(s.deps)(
+      request({ promise_id: PROMISE_ID }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await jsonOf(response)).toEqual({ promise_id: PROMISE_ID, deleted: true });
+    expect(s.rpcCalls).toEqual([
+      {
+        fn: 'lf_promise_pending_delete',
+        args: {
+          p_idempotency_key: KEY,
+          p_user_id: USER_ID,
+          p_promise_id: PROMISE_ID,
+        },
+      },
+    ]);
+  });
+
+  test('잘못된 UUID와 인증·멱등 키 누락은 RPC 전에 거절한다', async () => {
+    expect(module?.createPromisePendingDeleteHandler).toBeTypeOf('function');
+    const s = spy();
+    const handler = module!.createPromisePendingDeleteHandler(s.deps);
+
+    const invalid = await handler(request({ promise_id: 'wrong' }));
+    const unauthenticated = await handler(request({ promise_id: PROMISE_ID }, {}));
+    const noKey = await handler(
+      request({ promise_id: PROMISE_ID }, { authorization: 'Bearer jwt' }),
+    );
+
+    expect(invalid.status).toBe(422);
+    expect(unauthenticated.status).toBe(401);
+    expect(noKey.status).toBe(422);
+    expect(s.rpcCalls).toEqual([]);
+  });
+
+  test.each([
+    ['E_NOT_FOUND', 404],
+    ['E_STATE_CONFLICT', 409],
+  ])('%s는 %i로 매핑한다', async (code, status) => {
+    expect(module?.createPromisePendingDeleteHandler).toBeTypeOf('function');
+    const s = spy(async () => {
+      throw new Error(code);
+    });
+
+    const response = await module!.createPromisePendingDeleteHandler(s.deps)(
       request({ promise_id: PROMISE_ID }),
     );
 

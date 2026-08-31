@@ -67,19 +67,27 @@ Rules:
 
 ## Brand mark
 
-The approved mark is **Type A — Pinky Loop** (PO-confirmed 2026-08-27): two equal hand silhouettes
-whose little fingers visibly hook in the centre. The mark is a single-colour alpha mask; screens
-must not redraw, stretch, split, or recolour its two hands independently.
+The approved in-product mark is **Type A — Pinky Loop** (PO-confirmed 2026-08-27, detail-corrected
+2026-08-31): two equal hand silhouettes whose little fingers visibly hook in the centre. Screens
+must not redraw, stretch, split, or recolour its two hands independently. The launcher is a
+separate PO-approved rendering of the same gesture (2026-08-31; ADR 0016).
 
-- **Launcher icon:** ink `#221C13` field with paper-white `#FFFDF4` hands. Android/iOS own the
-  platform mask, so exported launcher artwork has no baked corner radius or presentation shadow.
-- **In-product primary:** ink hands on a butter `#F6E7A3` container.
-- **In-product inverse:** butter hands on an ink container, including the central Create action.
+- **Launcher icon:** butter `#F6E7A3` field with paper-white `#FFFDF4` hands and ink `#221C13`
+  outlines. Flat forced perspective makes the linked little fingers nearest and progressively
+  recedes toward the wrists. Android/iOS own the platform mask, so exported launcher artwork has
+  no baked corner radius or presentation shadow.
+- **Mobile in-product:** butter `#F6E7A3` field, paper-white `#FFFDF4` hands, and a thin flat ink
+  `#221C13` outline. This same treatment is used on every container, including the central Create
+  action; per-container tint inversion is not allowed.
+- **Web/reference in-product:** the corrected shared mask retains the existing ink-on-butter and
+  butter-on-ink applications until a web-specific colour restyle is approved.
 - Lavender/apricot/danger are never brand-mark colours. They remain semantic UI colours around
   the mark, not inside it.
 - `apps/mobile/assets/images/brand-symbol.png`, `apps/web/src/assets/images/brand-symbol.png`, and
   `design-reference/assets/images/brand-symbol.png` are byte-identical copies of the approved
-  730×458 RGBA mask. Platform derivatives must preserve that silhouette.
+  730×458 RGBA mask. Its restored side contours stay inside the canvas, and platform derivatives
+  must preserve the antialiased silhouette. Mobile renders the approved colour derivative from
+  `apps/mobile/assets/images/brand-symbol-in-app.png` with `contain`, never tint.
 
 ## Typography
 
@@ -177,6 +185,13 @@ first, then mirrored and tested.
 - 2026-08-27: PO confirmed Type A — Pinky Loop as the production brand mark: launcher = ink/paper,
   in-product = ink/butter with its inverse. The previous green mark and abstract oval-gap proposal
   are superseded (ADR 0013).
+- 2026-08-31: PO selected the flat forced-perspective launcher artwork with butter field,
+  paper-white hands, and ink outlines. This supersedes only ADR 0013's launcher rendering; the
+  Type A in-product mask and splash treatment remain unchanged (ADR 0016).
+- 2026-08-31: PO approved the detailed in-product Pinky Loop: the clipped left/right contours were
+  restored without changing the hand gesture, the outline was supersampled for clean raster edges,
+  and mobile now fixes every mark to butter/white/ink instead of container-dependent tinting
+  (ADR 0017).
 - 2026-08-27: PO replaced the Gaegu/Roboto Mono typography split with Pretendard for every Korean
   and English text role. Pretendard 400/600/700/800 is the single cross-surface contract (ADR 0014).
 - 2026-08-30: PO approved the seven ADR 0015 surfaces as design-reference baselines (ADR 0015):

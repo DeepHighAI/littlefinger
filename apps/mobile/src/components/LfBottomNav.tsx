@@ -107,7 +107,7 @@ export function LfBottomNav({
             style={styles.create}
             onPress={onCreatePress}
           >
-            <LfPinky size="sm" tone="onPrimary" />
+            <LfPinky size="sm" />
           </Pressable>
           <LfText variant="caption">{LABEL.create}</LfText>
         </View>

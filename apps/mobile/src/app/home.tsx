@@ -26,6 +26,7 @@ import { LfText } from '../components/LfText';
 import { LfTrustStrip } from '../components/LfTrustStrip';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
+import { deletePendingPromise } from '../lib/invite-native.ts';
 import { useLabels } from '../lib/locale-native';
 import { loadTrustProfile } from '../lib/trust-profile-native.ts';
 import { createInitialHomeState, promiseHomeReducer } from '../screens/scr-a02-home-state.ts';
@@ -187,27 +188,48 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
       : { pathname: '/promise/[promise_id]', params: { promise_id: item.promise_id } });
   }, [router]);
 
-  const removeDraft = useCallback(async (item: PromiseHomeCard) => {
-    await deleteDraft(item.promise_id);
-    dispatch({ type: 'DRAFT_DELETED', promiseId: item.promise_id });
+  const removeWaitingPromise = useCallback(async (item: PromiseHomeCard) => {
+    if (item.status === 'DRAFT') {
+      await deleteDraft(item.promise_id);
+    } else if (item.status === 'PENDING') {
+      await deletePendingPromise(item.promise_id);
+    } else {
+      return;
+    }
+    dispatch({ type: 'WAITING_PROMISE_DELETED', promiseId: item.promise_id });
   }, []);
 
   const confirmDelete = useCallback((item: PromiseHomeCard) => {
-    Alert.alert(LABEL.deleteFirstTitle, LABEL.deleteFirstBody, [
-      { text: LABEL.cancel, style: 'cancel' },
-      {
-        text: LABEL.deleteContinue,
-        onPress: () => Alert.alert(LABEL.deleteFinalTitle, LABEL.deleteFinalBody, [
-          { text: LABEL.cancel, style: 'cancel' },
-          {
-            text: LABEL.delete,
-            style: 'destructive',
-            onPress: async () => await removeDraft(item),
-          },
-        ]),
-      },
-    ]);
-  }, [LABEL, removeDraft]);
+    const pending = item.status === 'PENDING';
+    Alert.alert(
+      pending ? LABEL.deletePendingFirstTitle : LABEL.deleteFirstTitle,
+      pending ? LABEL.deletePendingFirstBody : LABEL.deleteFirstBody,
+      [
+        { text: LABEL.cancel, style: 'cancel' },
+        {
+          text: LABEL.deleteContinue,
+          onPress: () => Alert.alert(
+            pending ? LABEL.deletePendingFinalTitle : LABEL.deleteFinalTitle,
+            pending ? LABEL.deletePendingFinalBody : LABEL.deleteFinalBody,
+            [
+              { text: LABEL.cancel, style: 'cancel' },
+              {
+                text: LABEL.delete,
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    await removeWaitingPromise(item);
+                  } catch {
+                    Alert.alert(LABEL.deleteErrorTitle, LABEL.deleteErrorBody);
+                  }
+                },
+              },
+            ],
+          ),
+        },
+      ],
+    );
+  }, [LABEL, removeWaitingPromise]);
 
   const isActiveTab = state.selectedTab === 'ACTIVE';
   // 히어로는 진행 탭 전용이다 — 대기 탭은 임박·응답 개념이 없다.

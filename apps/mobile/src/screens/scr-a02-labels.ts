@@ -39,9 +39,16 @@ const ko = {
   deleteContinue: '계속',
   deleteFinalTitle: '정말 삭제할까요?',
   deleteFinalBody: '약속 내용이 기기와 서버에서 모두 사라져요.',
+  deletePendingFirstTitle: '대기 중인 약속을 삭제할까요?',
+  deletePendingFirstBody: '상대방에게 보낸 초대도 함께 취소돼요.',
+  deletePendingFinalTitle: '정말 삭제할까요?',
+  deletePendingFinalBody: '삭제하면 상대방의 수락 대기 목록에서도 사라져요.',
+  deleteErrorTitle: '삭제하지 못했어요',
+  deleteErrorBody: '잠시 후 다시 시도해 주세요.',
   cancel: '취소',
   open: (title: string) => `${title} 열기`,
   deleteDraft: (title: string) => `${title} 초안 삭제`,
+  deletePending: (title: string) => `${title} 대기 중 약속 삭제`,
 };
 
 // 탭 카운트는 상태 라벨(In progress/Completed) 뒤에 숫자만 붙는 칩 표기라 단복수가 없다.
@@ -84,9 +91,16 @@ const en = {
   deleteContinue: 'Continue',
   deleteFinalTitle: 'Really delete it?',
   deleteFinalBody: 'The promise will be removed from this device and the server.',
+  deletePendingFirstTitle: 'Delete this waiting promise?',
+  deletePendingFirstBody: 'The invite sent to your partner will be canceled too.',
+  deletePendingFinalTitle: 'Really delete it?',
+  deletePendingFinalBody: "It will also disappear from your partner's waiting list.",
+  deleteErrorTitle: 'Could not delete the promise',
+  deleteErrorBody: 'Please try again shortly.',
   cancel: 'Cancel',
   open: (title: string) => `Open ${title}`,
   deleteDraft: (title: string) => `Delete draft ${title}`,
+  deletePending: (title: string) => `Delete waiting promise ${title}`,
 } satisfies typeof ko;
 
 export const SCR_A02_LABEL: Localized<typeof ko> = { ko, en };

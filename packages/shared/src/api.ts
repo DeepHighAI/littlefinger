@@ -188,6 +188,16 @@ export interface InviteRevokeResponse {
   invitation_status: 'REVOKED';
 }
 
+/** 작성자가 승인 전 약속과 연결된 초대 전체를 삭제한다. */
+export interface PromisePendingDeleteRequest {
+  promise_id: string;
+}
+
+export interface PromisePendingDeleteResponse {
+  promise_id: string;
+  deleted: true;
+}
+
 /** 요청 본문 — 초대 토큰 하나로 시작하는 다섯 함수의 공통 부분 */
 export interface InviteTokenRequest {
   /** URL-safe Base64 원문 토큰. 서버는 해시만 저장하므로 원문은 여기서만 존재한다(§4-3-1). */
@@ -1017,6 +1027,7 @@ export const ENDPOINT = {
   promiseDraftUpdate: 'promise-draft-update',
   promiseInvite: 'promise-invite',
   inviteRevoke: 'invite-revoke',
+  promisePendingDelete: 'promise-pending-delete',
   inviteResolve: 'invite-resolve',
   invitePreview: 'invite-preview',
   witnessInviteList: 'witness-invite-list',

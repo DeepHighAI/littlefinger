@@ -2,18 +2,12 @@ import { Image } from 'react-native';
 
 import { colors } from '../theme/tokens';
 
-/**
- * 새 브랜드 핑키 마크 — 서로 새끼손가락을 건 두 손의 단색 실루엣.
- * 승인된 원본 하나를 tint해서 배경별 대비만 바꾸므로 화면마다 형태가 달라지지 않는다.
- */
+/** 승인된 버터·화이트·잉크 조합을 그대로 쓰는 핑키 마크. */
 
 export type LfPinkySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-/** 잉크·버터 두 색만 반전해 브랜드 마크의 정체성을 고정한다. */
-export type LfPinkyTone = 'default' | 'onContainer' | 'onPrimary';
 
 export interface LfPinkyProps {
   size?: LfPinkySize;
-  tone?: LfPinkyTone;
   accessibilityLabel?: string;
   testID?: string;
 }
@@ -26,16 +20,10 @@ const SIZES: Record<LfPinkySize, { width: number; height: number }> = {
   xl: { width: 90, height: 64 },
 };
 
-const BRAND_SYMBOL = require('../../assets/images/brand-symbol.png') as number;
-
-function tint(tone: LfPinkyTone): string {
-  if (tone === 'onPrimary') return colors.brandSymbolOnAction;
-  return colors.brandSymbol;
-}
+const BRAND_SYMBOL = require('../../assets/images/brand-symbol-in-app.png') as number;
 
 export function LfPinky({
   size = 'md',
-  tone = 'default',
   accessibilityLabel,
   testID,
 }: LfPinkyProps): React.JSX.Element {
@@ -46,7 +34,7 @@ export function LfPinky({
     <Image
       source={BRAND_SYMBOL}
       resizeMode="contain"
-      style={{ ...dimensions, tintColor: tint(tone) }}
+      style={{ ...dimensions, backgroundColor: colors.primaryContainer }}
       accessibilityElementsHidden={decorative}
       importantForAccessibility={decorative ? 'no-hide-descendants' : 'yes'}
       accessibilityRole="image"

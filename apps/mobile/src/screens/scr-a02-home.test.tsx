@@ -1,10 +1,11 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 
 import HomeScreen from '../app/home';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
-import { listHomePromises } from '../lib/home-promises-native.ts';
+import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
+import { deletePendingPromise } from '../lib/invite-native.ts';
 import { loadTrustProfile } from '../lib/trust-profile-native.ts';
 import { colors } from '../theme/tokens.ts';
 
@@ -27,7 +28,11 @@ jest.mock('expo-router', () => ({
   },
 }));
 jest.mock('../lib/ads-config-native.ts', () => ({ readAdsEnabled: jest.fn() }));
-jest.mock('../lib/home-promises-native.ts', () => ({ listHomePromises: jest.fn() }));
+jest.mock('../lib/home-promises-native.ts', () => ({
+  deleteDraft: jest.fn(),
+  listHomePromises: jest.fn(),
+}));
+jest.mock('../lib/invite-native.ts', () => ({ deletePendingPromise: jest.fn() }));
 jest.mock('../lib/trust-profile-native.ts', () => ({ loadTrustProfile: jest.fn() }));
 jest.mock('../components/LfAdSlot', () => {
   const { View } = jest.requireActual('react-native') as typeof import('react-native');
@@ -88,6 +93,8 @@ describe('SCR-A02 Soft Promise 홈', () => {
     replace.mockReset();
     jest.mocked(useRouter).mockReturnValue({ push, replace } as never);
     jest.mocked(listHomePromises).mockReset().mockResolvedValue(response());
+    jest.mocked(deleteDraft).mockReset().mockResolvedValue(undefined);
+    jest.mocked(deletePendingPromise).mockReset().mockResolvedValue(undefined);
     jest.mocked(readAdsEnabled).mockReset().mockResolvedValue(false);
     jest.mocked(loadTrustProfile).mockReset().mockResolvedValue({ keep_rate: 87 } as never);
   });
@@ -95,6 +102,7 @@ describe('SCR-A02 Soft Promise 홈', () => {
   afterEach(async () => {
     await cleanup();
     mockFocusEffects.clear();
+    jest.restoreAllMocks();
   });
 
   test('첫 진입은 ACTIVE만 읽고 진행·대기 탭과 히스토리 버튼을 보여준다 (ADR 0011)', async () => {
@@ -111,10 +119,13 @@ describe('SCR-A02 Soft Promise 홈', () => {
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
   });
 
-  test('대기 탭은 초안·대기 목록을 읽고 히어로 없이 초안 삭제 진입점을 준다', async () => {
+  test('대기 탭은 초안·대기 목록을 읽고 두 상태 모두 삭제 진입점을 준다', async () => {
     jest.mocked(listHomePromises).mockImplementation(async (input: { tab: string }) =>
       input.tab === 'WAITING'
-        ? response({ items: [card({ id: SECOND_ID, title: '초안 약속', status: 'DRAFT', endDate: null })] })
+        ? response({ items: [
+            card({ id: SECOND_ID, title: '초안 약속', status: 'DRAFT', endDate: null }),
+            card({ id: ACTIVE_ID, title: '대기 약속', status: 'PENDING' }),
+          ] })
         : response({ pinned: [card({ id: ACTIVE_ID, title: '히어로' })] }),
     );
     const view = await render(<HomeScreen now={NOW} />);
@@ -128,6 +139,31 @@ describe('SCR-A02 Soft Promise 홈', () => {
     expect(view.getByText('대기 중 약속')).toBeTruthy();
     expect(view.getByText('초안 약속')).toBeTruthy();
     expect(view.getByRole('button', { name: '초안 약속 초안 삭제' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '대기 약속 대기 중 약속 삭제' })).toBeTruthy();
+  });
+
+  test('PENDING 삭제는 두 번 확인하고 서버 삭제 성공 뒤 대기 목록에서 제거한다', async () => {
+    jest.mocked(listHomePromises).mockImplementation(async (input: { tab: string }) =>
+      input.tab === 'WAITING'
+        ? response({ items: [card({ id: SECOND_ID, title: '대기 약속', status: 'PENDING' })] })
+        : response(),
+    );
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const view = await render(<HomeScreen now={NOW} />);
+    await settle();
+    await fireEvent.press(view.getByRole('tab', { name: '대기 2' }));
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '대기 약속 대기 중 약속 삭제' }));
+    expect(alert.mock.calls[0]?.[1]).toContain('초대도 함께 취소');
+    alert.mock.calls[0]?.[2]?.find((button) => button.text === '계속')?.onPress?.();
+    await act(async () => {
+      await alert.mock.calls[1]?.[2]?.find((button) => button.text === '삭제')?.onPress?.();
+    });
+
+    expect(deletePendingPromise).toHaveBeenCalledWith(SECOND_ID);
+    expect(deleteDraft).not.toHaveBeenCalled();
+    expect(view.queryByText('대기 약속')).toBeNull();
   });
 
   test('가장 가까운 약속은 히어로 한 곳에만 나오고 상세로 이동한다', async () => {

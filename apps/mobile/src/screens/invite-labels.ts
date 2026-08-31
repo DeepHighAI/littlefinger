@@ -32,12 +32,17 @@ const ko = {
   revokeFirstBody: '상대방은 이 링크를 사용할 수 없게 돼요.',
   revokeFinalTitle: '정말 링크를 무효화할까요?',
   revokeFinalBody: '약속은 승인 대기 상태로 유지돼요.',
+  deletePromise: '대기 중 약속 삭제',
+  deleteFirstTitle: '대기 중인 약속을 삭제할까요?',
+  deleteFirstBody: '상대방에게 보낸 초대도 함께 취소돼요.',
+  deleteFinalTitle: '정말 삭제할까요?',
+  deleteFinalBody: '삭제하면 상대방의 수락 대기 목록에서도 사라져요.',
   continue: '계속',
   cancel: '취소',
   maxResend: (max: number) => `초대는 약속당 ${max}번까지 보낼 수 있습니다.`,
   loading: '초대 링크를 불러오는 중이에요',
   loadError: '초대 링크를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-  actionError: '초대 링크를 처리하지 못했어요. 다시 시도해 주세요.',
+  actionError: '요청을 처리하지 못했어요. 다시 시도해 주세요.',
   witnessInvite: '증인도 초대하기',
 };
 
@@ -65,6 +70,11 @@ const en = {
   revokeFirstBody: 'Your partner will no longer be able to use this link.',
   revokeFinalTitle: 'Really revoke the link?',
   revokeFinalBody: 'The promise stays in Awaiting approval.',
+  deletePromise: 'Delete waiting promise',
+  deleteFirstTitle: 'Delete this waiting promise?',
+  deleteFirstBody: 'The invite sent to your partner will be canceled too.',
+  deleteFinalTitle: 'Really delete it?',
+  deleteFinalBody: "It will also disappear from your partner's waiting list.",
   continue: 'Continue',
   cancel: 'Cancel',
   maxResend: (max: number) =>
@@ -73,7 +83,7 @@ const en = {
       : `You can send up to ${max} invites per promise.`,
   loading: 'Loading the invite link',
   loadError: 'Could not load the invite link. Please try again shortly.',
-  actionError: 'Could not process the invite link. Please try again.',
+  actionError: 'Could not complete the request. Please try again.',
   witnessInvite: 'Invite witnesses too',
 } satisfies typeof ko;
 

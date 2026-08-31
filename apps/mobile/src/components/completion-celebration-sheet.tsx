@@ -137,7 +137,6 @@ export function CompletionCelebrationSheet({
               <LfStack gap={5} center>
                 <LfPinky
                   size="xl"
-                  tone="onContainer"
                   accessibilityLabel={LABEL.pinky}
                   testID="completion-celebration-pinky"
                 />

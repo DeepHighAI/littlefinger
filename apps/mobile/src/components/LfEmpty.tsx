@@ -36,7 +36,7 @@ export function LfEmpty({
     <View {...rest} style={styles.container}>
       <LfStack gap={5} center>
         <View style={styles.badge}>
-          <LfPinky size="xl" tone="onContainer" />
+          <LfPinky size="xl" />
         </View>
         <LfStack gap={2} center>
           <LfText variant="subtitle" align="center">

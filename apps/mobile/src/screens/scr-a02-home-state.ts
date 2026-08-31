@@ -59,7 +59,7 @@ export type PromiseHomeAction =
       requestId: number;
       generation: number;
     }
-  | { type: 'DRAFT_DELETED'; promiseId: string };
+  | { type: 'WAITING_PROMISE_DELETED'; promiseId: string };
 
 function initialTabState(): PromiseHomeTabState {
   return {
@@ -126,10 +126,12 @@ export function promiseHomeReducer(
   if (action.type === 'TAB_SELECTED') {
     return action.tab === state.selectedTab ? state : { ...state, selectedTab: action.tab };
   }
-  if (action.type === 'DRAFT_DELETED') {
+  if (action.type === 'WAITING_PROMISE_DELETED') {
     const waiting = state.tabs.WAITING;
     const exists = waiting.items?.some(
-      (item) => item.promise_id === action.promiseId && item.status === 'DRAFT',
+      (item) =>
+        item.promise_id === action.promiseId &&
+        (item.status === 'DRAFT' || item.status === 'PENDING'),
     ) === true;
     if (!exists) return state;
     return {

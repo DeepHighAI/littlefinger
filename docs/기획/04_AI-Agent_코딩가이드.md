@@ -2,7 +2,7 @@
 
 **문서 목적**: AI 코딩 에이전트가 리틀핑거를 구현하기 위한 **기술 스택·구조·이식 규칙**의 최종 근거
 **전제**: 오픈 이슈 **N-3 확정 — React Native + Expo** (PO 결정, 2026-07-25)
-**작성일**: 2026-07-25 | **최종 수정**: 2026-08-29 | **버전**: v1.2
+**작성일**: 2026-07-25 | **최종 수정**: 2026-08-31 | **버전**: v1.3
 
 ---
 
@@ -374,6 +374,7 @@ MVP 기본안: `@expo/vector-icons`의 `MaterialIcons`를 쓴다(Expo에 내장,
 | `invite-resolve` | 초대 토큰 검증 → 약속 요약 반환 | 토큰은 **해시로만 저장**. 원본 대조는 서버에서 |
 | `promise-approve` | 상호 승인 처리 → ACTIVE 전환 → `content_hash` 생성 | 해시 생성과 상태 전이는 클라이언트가 못 하게 한다 |
 | `promise-create` / `promise-draft-update` / `promise-invite` | T-01·T-02와 DRAFT 수정 — 슬롯 한도·기간 상한·`content_hash`는 서버만 안다 | 2026-07-27 이동(CLAUDE.md §5-6) |
+| `promise-pending-delete` | 작성자 PENDING 하드 삭제 → 모든 초대·상대 수락 대기 원자 제거 | 승인 경합 직렬화와 확정 기록 보호를 서버에서 강제(PO 2026-08-31) |
 | `invite-preview` | SCR-W02의 읽기 경로 — 승인 가드와 같은 순서, `stable` | ADR 0004 |
 | `promise-decline` / `promise-amend` / `promise-amend-request` / `promise-amend-respond` / `promise-amend-withdraw` | 상태 전이 (T-06~T-12, T-19~T-21 마무리 포함) | 전이 규칙 단일 지점 |
 | `slot-status` / `purchase-verify` / `purchase-reconcile` | 슬롯 현황, Play 구매 검증(슬롯·영구 보관 두 상품), 환불 회수 | ADR 0009·0015 |

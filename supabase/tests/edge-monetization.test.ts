@@ -121,6 +121,10 @@ describe('reward-callback', () => {
   const signature = createSign('SHA256').update(signedQuery).sign(privateKey).toString('base64url');
   const callbackUrl = (query: string, keyId: number): string =>
     `https://ref.supabase.co/functions/v1/reward-callback?${query}&signature=${signature}&key_id=${keyId}`;
+  const signedCallbackUrl = (query: string, keyId: number): string => {
+    const querySignature = createSign('SHA256').update(query).sign(privateKey).toString('base64url');
+    return `https://ref.supabase.co/functions/v1/reward-callback?${query}&signature=${querySignature}&key_id=${keyId}`;
+  };
 
   function keyCache(clock: () => number) {
     const fetchJson = vi.fn().mockResolvedValue({ keys: [{ keyId: 7, pem }] });
@@ -156,6 +160,32 @@ describe('reward-callback', () => {
       p_ad_unit_id: 'allowed-unit',
       p_rewarded_at: '2026-08-29T00:00:00.000Z',
     });
+  });
+
+  test('AdMob 콘솔의 서명된 고정 확인 요청은 지급 없이 200으로 응답한다', async () => {
+    const rpc = vi.fn();
+    const probeQuery = new URLSearchParams({
+      ad_network: '5450213213286189855',
+      ad_unit: '1234567890',
+      custom_data: '00000000-0000-4000-8000-000000000000',
+      reward_amount: '1',
+      reward_item: 'Reward',
+      timestamp: '1788099245844',
+      transaction_id: '123456789',
+      user_id: '0'.repeat(64),
+    }).toString();
+    const handler = createRewardCallbackHandler({
+      rpc,
+      verifierKeys: { keys: async () => [{ keyId: 7, pem }], refresh: async () => [] },
+      allowedAdUnits: new Set(),
+      log: { error: () => undefined },
+    });
+
+    const response = await handler(new Request(signedCallbackUrl(probeQuery, 7)));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ granted: false });
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   test('signature verification failure never reaches the grant RPC', async () => {

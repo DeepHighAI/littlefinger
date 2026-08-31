@@ -357,6 +357,13 @@ client-side INSERT/UPDATE policies on `promises` and `promise_versions` were the
 `promises delete own draft` stays (§4-2-2.5). DRAFT editing waits on its own RPC. **Neither function
 emits a notification** — §8-1: "초대 발송 자체는 시스템 알림이 아니다".
 
+**`promise-pending-delete` joined it on 2026-08-31 (PO decision).** It is creator-only and accepts
+only `PENDING`: one database transaction deletes the unconfirmed promise and every partner/witness
+invite, participant placeholder, reminder and acceptance-queue path. It does not transition to
+`CANCELED`, which is reserved for mutual termination after activation. Existing moderation reports
+outlive the promise with their promise reference cleared. Approval and deletion lock invitations
+before promises so a race commits exactly one outcome; the other caller gets the post-commit error.
+
 **`invite-preview` joined it too** (2026-07-27, ADR 0004) — SCR-W02 had no server read path at all.
 `invite-resolve` could not grow one: it is the pre-login endpoint and what it *refuses* to return is
 its design. RLS could not supply one either — at PENDING the partner has no `promise_participants`

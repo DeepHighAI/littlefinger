@@ -2,6 +2,7 @@ import {
   ENDPOINT,
   type InviteRevokeResponse,
   type PromiseInviteResponse,
+  type PromisePendingDeleteResponse,
 } from '@littlefinger/shared';
 import * as Clipboard from 'expo-clipboard';
 import { Share } from 'react-native';
@@ -50,6 +51,20 @@ export async function revokeInvite(promiseId: string): Promise<void> {
     { idempotent: true },
   );
   await repository().remove(await currentMobileUserId(), promiseId);
+}
+
+export async function deletePendingPromise(promiseId: string): Promise<void> {
+  const userId = await currentMobileUserId();
+  await callMobileFunctionNative<PromisePendingDeleteResponse>(
+    ENDPOINT.promisePendingDelete,
+    { promise_id: promiseId },
+    { idempotent: true },
+  );
+  try {
+    await repository().remove(userId, promiseId);
+  } catch {
+    // 서버 삭제는 이미 확정됐다. 로컬 토큰 정리 실패로 성공한 삭제를 오류처럼 보이지 않는다.
+  }
 }
 
 export async function shareInvite(invite: InviteWithToken): Promise<void> {

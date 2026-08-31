@@ -43,6 +43,7 @@ const VERIFY_JWT: Record<string, boolean> = {
   'promise-detail': true,
   'promise-draft-update': true,
   'invite-revoke': true,
+  'promise-pending-delete': true,
   'participant-promise-list': true,
   'promise-fulfillment-detail': true,
   'fulfillment-submit': true,

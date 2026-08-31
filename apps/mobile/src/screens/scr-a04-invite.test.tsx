@@ -6,6 +6,7 @@ import { MobileApiError } from '../lib/mobile-api.ts';
 import InviteScreen from '../app/invite';
 import {
   copyInviteLink,
+  deletePendingPromise,
   loadStoredInvite,
   reissueInvite,
   revokeInvite,
@@ -21,6 +22,7 @@ jest.mock(
   '../lib/invite-native.ts',
   () => ({
     copyInviteLink: jest.fn(),
+    deletePendingPromise: jest.fn(),
     loadStoredInvite: jest.fn(),
     reissueInvite: jest.fn(),
     revokeInvite: jest.fn(),
@@ -71,6 +73,8 @@ const invite: InviteWithToken = {
 };
 
 const push = jest.fn();
+const replace = jest.fn();
+const deletePendingPromiseMock = jest.mocked(deletePendingPromise);
 const loadStoredInviteMock = jest.mocked(loadStoredInvite);
 const reissueInviteMock = jest.mocked(reissueInvite);
 const revokeInviteMock = jest.mocked(revokeInvite);
@@ -89,7 +93,8 @@ describe('SCR-A04 초대 전송·대기', () => {
     jest.useFakeTimers();
     jest.setSystemTime(NOW);
     push.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ push } as never);
+    replace.mockReset();
+    jest.mocked(useRouter).mockReturnValue({ push, replace } as never);
     jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
     loadStoredInviteMock.mockReset();
     loadStoredInviteMock.mockResolvedValue(invite);
@@ -106,6 +111,8 @@ describe('SCR-A04 초대 전송·대기', () => {
     shareInviteMock.mockResolvedValue(undefined);
     copyInviteLinkMock.mockReset();
     copyInviteLinkMock.mockResolvedValue(undefined);
+    deletePendingPromiseMock.mockReset();
+    deletePendingPromiseMock.mockResolvedValue(undefined);
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   });
 
@@ -124,7 +131,7 @@ describe('SCR-A04 초대 전송·대기', () => {
     expect(view.getByText('약속: 주 3회 달리기')).toBeTruthy();
     expect(view.getByText('72:00:00')).toBeTruthy();
     expect(view.queryByText(/민준/u)).toBeNull();
-    expect(view.queryByText(/약속 취소/u)).toBeNull();
+    expect(view.getByRole('button', { name: '대기 중 약속 삭제' })).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
   });
 
@@ -214,6 +221,28 @@ describe('SCR-A04 초대 전송·대기', () => {
     expect(revokeInviteMock).toHaveBeenCalledWith('promise-1');
     expect(view.getByText('초대 링크를 무효화했어요')).toBeTruthy();
     expect(view.getByRole('button', { name: '초대 다시 보내기' })).toBeTruthy();
+  });
+
+  test('대기 중 약속 삭제는 두 번 확인한 뒤 초대와 약속을 지우고 홈으로 이동한다', async () => {
+    const alert = jest.spyOn(Alert, 'alert');
+    const view = await render(<InviteScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '대기 중 약속 삭제' }));
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(alert.mock.calls[0]?.[1]).toContain('초대도 함께 취소');
+    alert.mock.calls[0]?.[2]?.find((button) => button.text === '계속')?.onPress?.();
+    expect(alert).toHaveBeenCalledTimes(2);
+    expect(deletePendingPromiseMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await alert.mock.calls[1]?.[2]
+        ?.find((button) => button.text === '대기 중 약속 삭제')
+        ?.onPress?.();
+    });
+
+    expect(deletePendingPromiseMock).toHaveBeenCalledWith('promise-1');
+    expect(replace).toHaveBeenCalledWith('/home');
   });
 
   test('재발송 10회에 도달하면 추가 발급을 막고 명세 문구를 보여준다', async () => {

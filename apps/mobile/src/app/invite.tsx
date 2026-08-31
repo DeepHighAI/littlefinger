@@ -26,6 +26,7 @@ import {
 } from '../lib/invite-flow.ts';
 import {
   copyInviteLink,
+  deletePendingPromise,
   loadStoredInvite,
   reissueInvite,
   revokeInvite,
@@ -242,6 +243,39 @@ export default function InviteScreen(): React.JSX.Element {
     ]);
   }
 
+  async function deleteCurrent(): Promise<void> {
+    if (promiseId === null || busy) return;
+    setBusy(true);
+    setActionError(false);
+    try {
+      await deletePendingPromise(promiseId);
+      router.replace('/home');
+    } catch {
+      setActionError(true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function confirmDelete(): void {
+    Alert.alert(LABEL.deleteFirstTitle, LABEL.deleteFirstBody, [
+      { text: LABEL.cancel, style: 'cancel' },
+      {
+        text: LABEL.continue,
+        onPress: () => {
+          Alert.alert(LABEL.deleteFinalTitle, LABEL.deleteFinalBody, [
+            { text: LABEL.cancel, style: 'cancel' },
+            {
+              text: LABEL.deletePromise,
+              style: 'destructive',
+              onPress: async () => await deleteCurrent(),
+            },
+          ]);
+        },
+      },
+    ]);
+  }
+
   if (phase === 'loading') {
     return (
       <SafeAreaView style={styles.screen}>
@@ -285,7 +319,7 @@ export default function InviteScreen(): React.JSX.Element {
 
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.stamp}>
-          <LfPinky size="lg" tone="onContainer" />
+          <LfPinky size="lg" />
           <LfText variant="subtitle" align="center">
             {LABEL.headline}
           </LfText>
@@ -393,6 +427,16 @@ export default function InviteScreen(): React.JSX.Element {
             variant="tonal"
             block
             onPress={() => setWitnessSheetOpen(true)}
+          />
+        )}
+
+        {promiseId !== null && (
+          <LfButton
+            label={LABEL.deletePromise}
+            variant="text"
+            block
+            disabled={busy}
+            onPress={confirmDelete}
           />
         )}
       </ScrollView>
