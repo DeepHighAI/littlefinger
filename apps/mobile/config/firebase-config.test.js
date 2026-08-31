@@ -66,15 +66,15 @@ test('Expo 네이티브 빌드 이미지가 존재하고 EAS 업로드에서 제
 
 test('Android 배포 이미지는 승인된 브랜드 내보내기와 일치한다', () => {
   const approvedHashes = {
-    'assets/images/icon.png': 'b5790b9b18ba03ac9b90305646ff92f5f5448196033a81bc648dcc9dc0cfd599',
+    'assets/images/icon.png': '2a3303aa19e25f0179091c3451c0be8c0500b20c1736c380897de21d4866e69b',
     'assets/images/android-icon-foreground.png':
-      '6042d0ec5bc94988ef210778c8015121820fbab23a63354245ed1e7df6fe0e0e',
+      '172097fdfe55504dfa44edf82ecbe0a47fc0e81594677178e44d56e17347c0ed',
     'assets/images/android-icon-background.png':
-      '49d30905e465860132727e1ad6d4fc6a410c48f2447b0ddb27216cd56ffa7c5a',
+      'ba2424e36e59cd6e6ce0e032122d5ab1f905db64aedef102882ec317e0a06a5b',
     'assets/images/android-icon-monochrome.png':
-      '2d8467796fed65aff8dda08ab846d4e4425210a0da73d66418a4e7b9aca2a40c',
+      'ab479a68f4d61145c43b7c60bd597d45cbb6f724836caa17591fa94939ed1282',
     'assets/images/splash-icon.png':
-      'f64b475778220b3e8a917f4df2739a02801c1f1784b7efd0af4506294fad27b8',
+      '51cdd85d5cb84fd9ede1b66c94ea158b2956b49a8541b032cea823a67ffd3073',
   };
 
   for (const [relativePath, expectedHash] of Object.entries(approvedHashes)) {
@@ -106,7 +106,7 @@ test('보정된 UI 브랜드 마스크는 세 대상이 공유하는 730×458 RG
   );
 });
 
-test('앱 내부 브랜드 심볼은 승인된 버터·화이트·잉크 컬러 자산이다', () => {
+test('앱 내부 브랜드 심볼은 승인된 잉크 단색 투명 자산이다', () => {
   const png = readFileSync(inAppBrandSymbolPath);
 
   expect(png.subarray(1, 4).toString('ascii')).toBe('PNG');
@@ -114,7 +114,17 @@ test('앱 내부 브랜드 심볼은 승인된 버터·화이트·잉크 컬러 
   expect(png.readUInt32BE(20)).toBe(458);
   expect(png[25]).toBe(6);
   expect(createHash('sha256').update(png).digest('hex')).toBe(
-    '20d991465bfc7de961372efc242a8cf46d4e0c37c585c30337b56bceae0819e9',
+    'e897fc00f99be4e24cd1e873c6f42def3eebee75bdda2cfb649a61ceeead029b',
+  );
+});
+
+test('Play 스토어 아이콘은 승인된 512×512 불투명 RGB 내보내기다', () => {
+  const png = readFileSync(resolve(mobileRoot, '../../docs/디자인/store/store-icon-512.png'));
+  expect(png.readUInt32BE(16)).toBe(512);
+  expect(png.readUInt32BE(20)).toBe(512);
+  expect(png[25]).toBe(2);
+  expect(createHash('sha256').update(png).digest('hex')).toBe(
+    '14c800ad68f58f60ce49323c3758369768879ead37c2fa16f53582f975a3847e',
   );
 });
 

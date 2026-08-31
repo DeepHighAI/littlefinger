@@ -173,6 +173,18 @@ adb reverse tcp:8143 tcp:8143
 
 ## 9. Device artifacts
 
+For a local production AAB, set `EAS_BUILD_PROFILE=production` during **both** Expo prebuild and
+Gradle execution. `NODE_ENV=production` alone is insufficient: `config/admob-config.js` intentionally
+returns Google test IDs outside the production EAS profile. Pull the existing EAS production
+environment into the gitignored build snapshot, then verify both the native manifest app ID and
+the bundled `assets/app.config` ad-unit IDs. Keep downloaded upload credentials in that ignored
+snapshot; never print their passwords or put them in Gradle command arguments.
+
+Expo SDK 57 prebuild can regenerate the Android directory even on a repeated `--no-install`
+invocation. Generate only in a disposable copy, and apply local release signing **after the final
+prebuild**. Do not hand off the default generated release configuration: it signs with the debug
+key until explicitly wired to the existing EAS upload key. JBR 21 remains required on this PC.
+
 The Galaxy-compatible ARM64 debug APK used for manual QA:
 `C:\Users\batis\AppData\Local\Temp\littlefinger-firebase-debug-arm64-v8a.apk`
 (package `com.littlefinger.app`, minSdk 24, targetSdk 36, ABI `arm64-v8a`). x86_64 artifacts are

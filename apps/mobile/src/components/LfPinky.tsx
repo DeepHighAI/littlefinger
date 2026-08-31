@@ -2,12 +2,11 @@ import { Image } from 'react-native';
 
 import { colors } from '../theme/tokens';
 
-/** 승인된 버터·화이트·잉크 조합을 그대로 쓰는 핑키 마크. */
-
 export type LfPinkySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export interface LfPinkyProps {
   size?: LfPinkySize;
+  tone?: 'default' | 'onPrimary';
   accessibilityLabel?: string;
   testID?: string;
 }
@@ -24,6 +23,7 @@ const BRAND_SYMBOL = require('../../assets/images/brand-symbol-in-app.png') as n
 
 export function LfPinky({
   size = 'md',
+  tone = 'default',
   accessibilityLabel,
   testID,
 }: LfPinkyProps): React.JSX.Element {
@@ -34,7 +34,10 @@ export function LfPinky({
     <Image
       source={BRAND_SYMBOL}
       resizeMode="contain"
-      style={{ ...dimensions, backgroundColor: colors.primaryContainer }}
+      style={{
+        ...dimensions,
+        tintColor: tone === 'onPrimary' ? colors.brandSymbolOnAction : colors.brandSymbol,
+      }}
       accessibilityElementsHidden={decorative}
       importantForAccessibility={decorative ? 'no-hide-descendants' : 'yes'}
       accessibilityRole="image"

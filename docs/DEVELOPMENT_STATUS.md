@@ -464,6 +464,54 @@ Not done from this machine: a fresh DB backup (no `pg_dump`/Docker here; the wee
 SSV setup and code 11 rebuild are now complete below; rewarded device QA still waits on registering
 the QA phone as an AdMob test device.
 
+### Butter/ink icon replacement (2026-08-31, local code 15 AAB verified)
+
+ADR 0018 replaces the white outlined launcher and in-product artwork with the PO-selected solid
+Type A mark: butter/ink launcher, ink on light in-product surfaces, and butter on ink Create
+actions. Launcher, adaptive foreground/background/monochrome, splash, native brand derivative,
+and the 512px Play listing icon were regenerated. The corrected shared silhouette is unchanged.
+
+Verification: `npm test` reports **110 Vitest files / 2,136 tests passed** and **79 Jest suites /
+814 tests passed**. `npm run typecheck` and `git diff --check` exit 0; `npm run check:agents`
+confirms synchronization. The exporter validates both adaptive alpha layers against the 66dp
+safe circle. Exported launcher/default/inverse images were inspected locally. Browser screen QA
+was not completed (preview server offline; local-file browser navigation blocked), and no new
+physical-device install has been tested.
+
+The PO explicitly approved uploading the current source/assets to Expo EAS
+`philwoo/littlefinger` and building the AAB on 2026-08-31. The `production` invocation used frozen
+remote credentials, incremented the remote version counter from 14 to 15, uploaded the 54.7 MB
+source archive, and completed fingerprinting. EAS then rejected it because the account had used
+its monthly Free-plan Android builds; the CLI reported a reset in 11 hours on 2026-09-01.
+No cloud build job or AAB was created. A read-only EAS build list confirms code 13 is still the
+latest completed cloud package, and it does **not** contain ADR 0018. No paid plan or Play
+submission was made.
+
+The PO subsequently approved downloading the existing EAS upload key for a local release. The
+key and its credential JSON are now stored only in the gitignored `dist/local15` snapshot; its
+SHA-256 certificate matches code 13. The original ignored native project (old code 1 / debug
+signing) is untouched. A fresh 251-file mobile source/asset snapshot was prebuilt with the pulled
+EAS production environment, `EAS_BUILD_PROFILE=production`, and versionCode 15, then configured
+to sign with that existing upload key. Gradle `app:bundleRelease` completed with JBR 21 and all
+four ABIs: **`BUILD SUCCESSFUL in 21m 56s`** (1,021 actionable tasks). No replacement key was
+generated and the remote version counter was not reset.
+The typecheck, agent-document synchronization, and diff-whitespace checks were rerun successfully
+after approval.
+
+The new internal-test artifact is `dist/littlefinger-internal-v0.2.0-code15.aab`
+(83,247,950 B; SHA-256
+`26E44C98B7793140C0DC8F4EDBD14C9AA0B1CF0D809454CDFA864E0B22AD59F3`).
+`bundletool 1.18.1 validate` passes; the manifest confirms `com.littlefinger.app`, versionName
+0.2.0, versionCode 15, minSdk 24, targetSdk 36, and a non-debuggable release. `jarsigner -verify`
+reports **`jar verified.`**; the upload-certificate SHA-256 matches code 13. Native libraries
+cover arm64-v8a, armeabi-v7a, x86, and x86_64. The real AdMob app ID and native/banner/rewarded
+units are present, and the Hermes bundle contains the latest `promise-pending-delete` endpoint.
+The packaged in-app mark is pixel-identical to the approved export; the extracted launcher,
+adaptive foreground, and in-app mark were visually inspected. Validation evidence is in
+gitignored `dist/code15-inspection/`. This AAB has not been submitted to Play or installed on a
+physical device. The Play listing icon remains a separate upload at
+`docs/디자인/store/store-icon-512.png`.
+
 ### Build 0.2.0 / versionCode 13 (2026-08-31, pushed-source candidate)
 
 EAS production build `46c3b4ed-9191-4d2e-beca-7eaa41b1090d` was created from clean `main` commit

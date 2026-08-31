@@ -279,19 +279,25 @@ describe('LfFab', () => {
 });
 
 describe('LfPinky', () => {
-  test('브랜드 심볼은 승인된 컬러 자산을 버터 배경 위에 왜곡 없이 표시한다', async () => {
+  test.each(['default', 'onPrimary'] as const)('브랜드 심볼은 %s 배경에 맞춘 단색 손모양을 표시한다', async (tone) => {
     const view = await render(
-      <LfPinky testID="pinky" size="lg" accessibilityLabel="새끼손가락 약속" />,
+      <LfPinky testID="pinky" size="lg" tone={tone} accessibilityLabel="새끼손가락 약속" />,
     );
     const mark = view.getByTestId('pinky');
     const style = flatten(mark.props.style);
 
     expect(mark.type).toBe('Image');
     expect(mark.props.resizeMode).toBe('contain');
-    expect(style.backgroundColor).toBe(colors.primaryContainer);
-    expect(style.tintColor).toBeUndefined();
+    expect(style.backgroundColor).toBeUndefined();
+    expect(style.tintColor).toBe(tone === 'onPrimary' ? colors.brandSymbolOnAction : colors.brandSymbol);
     expect(style.width).toBeGreaterThan(style.height as number);
     expect(view.getByRole('image', { name: '새끼손가락 약속' })).toBeTruthy();
+  });
+
+  test('검정 FAB는 버터색 손을 명시한다', () => {
+    const fab = LfFab({ label: '약속 만들기' });
+    const mark = (fab.props.children as React.ReactElement[])[0];
+    expect(mark?.props).toEqual({ size: 'xs', tone: 'onPrimary' });
   });
 });
 
@@ -367,6 +373,8 @@ describe('Soft Promise 공통 컴포넌트', () => {
     const create = view.getByRole('button', { name: '작성' });
     expect(flatten(create.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
     expect(flatten(create.props.style).backgroundColor).toBe(colors.actionFill);
+    expect(flatten(view.getByTestId('lf-bottom-nav-create-mark', { includeHiddenElements: true }).props.style).tintColor)
+      .toBe(colors.brandSymbolOnAction);
     expect(styleOf(view, 'lf-bottom-nav').paddingBottom).toBe(24);
     await userEvent.press(create);
     expect(onCreate).toHaveBeenCalledTimes(1);

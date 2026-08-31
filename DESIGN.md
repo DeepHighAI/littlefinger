@@ -69,25 +69,24 @@ Rules:
 
 The approved in-product mark is **Type A — Pinky Loop** (PO-confirmed 2026-08-27, detail-corrected
 2026-08-31): two equal hand silhouettes whose little fingers visibly hook in the centre. Screens
-must not redraw, stretch, split, or recolour its two hands independently. The launcher is a
-separate PO-approved rendering of the same gesture (2026-08-31; ADR 0016).
+must not redraw, stretch, split, or recolour its two hands independently. Launcher and in-product
+artwork use this same silhouette (2026-08-31; ADR 0018).
 
-- **Launcher icon:** butter `#F6E7A3` field with paper-white `#FFFDF4` hands and ink `#221C13`
-  outlines. Flat forced perspective makes the linked little fingers nearest and progressively
-  recedes toward the wrists. Android/iOS own the platform mask, so exported launcher artwork has
-  no baked corner radius or presentation shadow.
-- **Mobile in-product:** butter `#F6E7A3` field, paper-white `#FFFDF4` hands, and a thin flat ink
-  `#221C13` outline. This same treatment is used on every container, including the central Create
-  action; per-container tint inversion is not allowed.
-- **Web/reference in-product:** the corrected shared mask retains the existing ink-on-butter and
-  butter-on-ink applications until a web-specific colour restyle is approved.
+- **Launcher icon:** butter `#F6E7A3` field with solid ink `#221C13` hands. No white fill,
+  outlines, or forced-perspective variant. Android/iOS own the platform mask, so exported artwork
+  has no baked corner radius, cream presentation margin, or shadow.
+- **In-product, all surfaces:** solid ink hands on light surfaces and butter badges; butter hands
+  on ink actions, including the central Create button. No opaque rectangular patch behind the mark.
+- **Splash:** butter circle with ink hands. Android themed/notification icons use the same alpha
+  silhouette with a white fill, leaving the operating system to apply its monochrome colour.
 - Lavender/apricot/danger are never brand-mark colours. They remain semantic UI colours around
   the mark, not inside it.
 - `apps/mobile/assets/images/brand-symbol.png`, `apps/web/src/assets/images/brand-symbol.png`, and
   `design-reference/assets/images/brand-symbol.png` are byte-identical copies of the approved
   730×458 RGBA mask. Its restored side contours stay inside the canvas, and platform derivatives
-  must preserve the antialiased silhouette. Mobile renders the approved colour derivative from
-  `apps/mobile/assets/images/brand-symbol-in-app.png` with `contain`, never tint.
+  must preserve the antialiased silhouette. Mobile renders the ink derivative from
+  `apps/mobile/assets/images/brand-symbol-in-app.png` with `contain` and semantic ink/butter tint.
+  `node tools/export-brand-icons.js` regenerates platform exports from that shared mask and tokens.
 
 ## Typography
 
@@ -169,6 +168,10 @@ Screens and components never contain design literals. A missing value is added t
 first, then mirrored and tested.
 
 ## Decision log
+
+- 2026-08-31: PO selected the butter-field / solid-ink Type A launcher and ink/butter in-product
+  pair. The shared silhouette remains unchanged; the white outlined treatments of ADR 0016/0017
+  are superseded (ADR 0018).
 
 - 2026-08-23: PO approved Soft Promise → Quiet Record for Home, Create, Promise Detail, Profile,
   the all-promises route, and matching semantic colour roles on the acceptance web.
