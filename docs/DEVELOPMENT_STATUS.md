@@ -2,6 +2,19 @@
 
 Snapshot date: **2026-08-31 KST**.
 
+## Open-testing feedback survey drafted (2026-08-31)
+
+`docs/setup/open-testing-survey.md` is the paste-ready Google Forms body for Play **open testing**
+feedback: the form settings to toggle by hand, the title / intro / confirmation blocks, and 16
+questions covering the five PO-named improvement areas — UI/UX design, the send → approve system,
+wanted features, real-world usefulness, and bug reports. PO decisions on the day: Korean only (no
+en-US twin), fully anonymous (email collection off, no file-upload question — it would force a
+Google sign-in), 16 questions / ~2 minutes, and **one optional free-text box** (Q15, bug repro)
+because testers will not write. Verified by grep: 16 questions = 4 linear scales + 6 radios + 5
+checkboxes + 1 short answer, two optional (Q6, Q15), 7 sections, and **zero** §8-3 wording-guard
+words or banned terms inside the paste-ready blocks. Creating the form, wiring its link into the
+Play open-testing feedback URL, and distributing it are PO console work.
+
 ## Pending promise deletion deployed (2026-08-31)
 
 Creators can now delete both DRAFT and PENDING promises from the waiting list. PENDING deletion is
@@ -450,6 +463,20 @@ Not done from this machine: a fresh DB backup (no `pg_dump`/Docker here; the wee
 `supabase-backup.yml` artifact is the fallback) — recorded as a known gap. The real AdMob units,
 SSV setup and code 11 rebuild are now complete below; rewarded device QA still waits on registering
 the QA phone as an AdMob test device.
+
+### Build 0.2.0 / versionCode 13 (2026-08-31, pushed-source candidate)
+
+EAS production build `46c3b4ed-9191-4d2e-beca-7eaa41b1090d` was created from clean `main` commit
+`75c2277bac98cc45320ca428c1f3d4f5068ab2ea` after that exact SHA was pushed to `origin/main`.
+It supersedes code 12 and is downloaded to `dist/littlefinger-internal-v0.2.0-code13.aab`
+(83,496,540 B; SHA-256
+`A8CCA668CC7BC6B248E7569E553FD01789CFE2EFCCE486E5A5DF7832C63EC76A`).
+
+`bundletool 1.18.1 validate` exited 0; manifest: package `com.littlefinger.app`, versionCode 13,
+versionName 0.2.0, minSdk 24, targetSdk 36, with arm64-v8a, armeabi-v7a, x86 and x86_64. `jarsigner
+-verify` reports `jar verified.` and the upload-certificate SHA-256 matches code 11/12. Direct
+inspection of the 4,694,748-byte Hermes bundle found the `promise-pending-delete` endpoint. This
+AAB has not been submitted to Play.
 
 ### Build 0.2.0 / versionCode 12 (2026-08-31, pending-delete candidate)
 
