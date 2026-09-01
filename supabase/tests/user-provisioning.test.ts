@@ -289,6 +289,28 @@ describe('lf_user_provision 이 대진값을 실값으로 보정한다', () => {
     expect(row?.profile_image_url).toBe('https://example.test/a.jpg');
   });
 
+  test('카카오 CDN 의 HTTP 프로필 이미지는 HTTPS 로 승격한다', async () => {
+    const id = await createAuthUser();
+    await linkKakao(id, '2734567890');
+
+    await provision(id, 'APP', '민준', 'http://k.kakaocdn.net/a.jpg');
+
+    expect((await userRow(id))?.profile_image_url).toBe('https://k.kakaocdn.net/a.jpg');
+  });
+
+  test('그 밖의 비HTTPS 프로필 이미지는 DB 경계에서도 거절한다', async () => {
+    const id = await createAuthUser();
+    await linkKakao(id, '2834567890');
+
+    expect(await messageOf(() => provision(
+      id,
+      'APP',
+      '민준',
+      'http://example.test/a.jpg',
+    ))).toContain('E_VALIDATION');
+    expect((await userRow(id))?.profile_image_url).toBeNull();
+  });
+
   test('닉네임이 없으면 대진값을 유지하고 죽지 않는다', async () => {
     const id = await createAuthUser();
     await linkKakao(id, '3234567890');

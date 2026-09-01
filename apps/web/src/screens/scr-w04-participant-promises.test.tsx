@@ -21,6 +21,7 @@ const PROMISE_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const PROMISE_C = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const PROMISE_D = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 const SUPABASE_URL = 'https://test-project.supabase.co';
+const TEST_NOW = new Date('2026-08-20T00:00:00Z');
 
 const { getSession, signInWithOAuth } = vi.hoisted(() => ({
   getSession: vi.fn(),
@@ -341,6 +342,9 @@ function renderAt(): ReturnType<typeof render> {
 }
 
 beforeEach(() => {
+  // 종료일 검증이 실행일의 달력 날짜에 따라 부패하지 않게 Date 만 고정한다.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(TEST_NOW);
   vi.stubEnv('VITE_SUPABASE_URL', SUPABASE_URL);
   vi.stubGlobal('fetch', fetchMock);
   fetchMock.mockReset();
@@ -374,6 +378,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   sessionStorage.clear();
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();

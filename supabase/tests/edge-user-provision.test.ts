@@ -178,6 +178,27 @@ describe('user-provision — 로그인 뒤 보정 호출', () => {
     expect((await jsonOf(response)).field).toBe('profile_image_url');
   });
 
+  test('카카오 CDN 의 HTTP 프로필 이미지는 HTTPS 로 승격한다', async () => {
+    const response = await createUserProvisionHandler(s.deps)(
+      request({ body: { profile_image_url: 'http://k.kakaocdn.net/p.jpg' } }),
+    );
+
+    expect(response.status).toBe(204);
+    expect(s.rpcCalls[0]?.args['p_profile_image_url']).toBe(
+      'https://k.kakaocdn.net/p.jpg',
+    );
+  });
+
+  test('그 밖의 비HTTPS 프로필 이미지는 저장하지 않는다', async () => {
+    const response = await createUserProvisionHandler(s.deps)(
+      request({ body: { profile_image_url: 'http://example.com/p.jpg' } }),
+    );
+
+    expect(response.status).toBe(422);
+    expect((await jsonOf(response)).field).toBe('profile_image_url');
+    expect(s.rpcCalls).toEqual([]);
+  });
+
   test('RPC 가 raise 한 E_AUTH_REQUIRED 는 401 로 매핑된다', async () => {
     const failing = spy({
       rpc: async () => {

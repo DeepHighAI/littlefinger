@@ -13,6 +13,30 @@ import { ApiError } from '../_shared/errors.ts';
 import { corsPreflight, failureResponse, noContentResponse } from '../_shared/http.ts';
 import { jsonBody, optionalString, surfaceOf } from '../_shared/request.ts';
 
+function profileImageUrlOf(value: string | null): string | null {
+  if (value === null) return null;
+
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return '';
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    throw new ApiError('E_VALIDATION', { field: 'profile_image_url' });
+  }
+
+  // 카카오는 HTTPS 로 제공 가능한 이미지도 간혹 HTTP URL 로 내려준다.
+  if (url.protocol === 'http:' && url.hostname === 'k.kakaocdn.net') {
+    url.protocol = 'https:';
+    return url.toString();
+  }
+  if (url.protocol !== 'https:') {
+    throw new ApiError('E_VALIDATION', { field: 'profile_image_url' });
+  }
+  return trimmed;
+}
+
 export function createUserProvisionHandler(deps: Deps) {
   return async function handle(request: Request): Promise<Response> {
     if (request.method === 'OPTIONS') return corsPreflight();
@@ -28,7 +52,9 @@ export function createUserProvisionHandler(deps: Deps) {
       // 길이 판정을 하지 않는다 — 사용자 입력이 아니라 카카오 프로필 값이고(§5 밖),
       // 빈 문자열을 NULL 로 되돌리는 일은 RPC 의 nullif 가 한다.
       const nickname = optionalString(body, 'nickname', 'nickname');
-      const profileImageUrl = optionalString(body, 'profile_image_url', 'profile_image_url');
+      const profileImageUrl = profileImageUrlOf(
+        optionalString(body, 'profile_image_url', 'profile_image_url'),
+      );
 
       // provider_user_id 는 넘기지 않는다 — RPC 가 auth.identities.provider_id 에서 직접 읽는다.
       // 클라이언트 신고를 받으면 남의 회원번호(EC-A05 의 계정 동일성 키)를 주장할 수 있다.
