@@ -44,7 +44,7 @@ export async function loadSlotPrice(): Promise<string | null> {
     await ensureConnection();
     const products = await fetchProducts({ skus: [SLOT_PRODUCT_ID], type: 'in-app' });
     const product = (products ?? []).find((entry) => entry.id === SLOT_PRODUCT_ID);
-    return product?.displayPrice ?? null;
+    return product?.displayPrice.trim() || null;
   } catch {
     return null;
   }
@@ -54,7 +54,8 @@ export async function loadPermanentAccessPrice(): Promise<string | null> {
   try {
     await ensureConnection();
     const products = await fetchProducts({ skus: [PERMANENT_ACCESS_PRODUCT_ID], type: 'in-app' });
-    return (products ?? []).find((entry) => entry.id === PERMANENT_ACCESS_PRODUCT_ID)?.displayPrice ?? null;
+    const product = (products ?? []).find((entry) => entry.id === PERMANENT_ACCESS_PRODUCT_ID);
+    return product?.displayPrice.trim() || null;
   } catch {
     return null;
   }

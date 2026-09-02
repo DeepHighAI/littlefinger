@@ -47,6 +47,7 @@ import {
   verifySlotPurchaseNative,
 } from './slots-native.ts';
 import {
+  loadPermanentAccessPrice,
   loadSlotPrice,
   purchaseSlot,
   reconcilePermanentAccessPurchase,
@@ -208,5 +209,35 @@ describe('loadSlotPrice', () => {
     mockFetchProducts.mockRejectedValue(new Error('store down'));
 
     await expect(loadSlotPrice()).resolves.toBeNull();
+  });
+
+  test('스토어가 빈 가격을 반환하면 null — 비어 있는 구매 문구를 만들지 않는다', async () => {
+    mockFetchProducts.mockResolvedValue([
+      { id: 'promise_slot_plus1', displayPrice: '   ' },
+    ]);
+
+    await expect(loadSlotPrice()).resolves.toBeNull();
+  });
+});
+
+describe('loadPermanentAccessPrice', () => {
+  test('스토어 현지화 가격을 돌려준다', async () => {
+    mockFetchProducts.mockResolvedValue([
+      { id: 'promise_permanent_access', displayPrice: '₩2,000' },
+    ]);
+
+    await expect(loadPermanentAccessPrice()).resolves.toBe('₩2,000');
+    expect(mockFetchProducts).toHaveBeenCalledWith({
+      skus: ['promise_permanent_access'],
+      type: 'in-app',
+    });
+  });
+
+  test('스토어가 빈 가격을 반환하면 null — 화면이 기본값 표기로 대체한다', async () => {
+    mockFetchProducts.mockResolvedValue([
+      { id: 'promise_permanent_access', displayPrice: '' },
+    ]);
+
+    await expect(loadPermanentAccessPrice()).resolves.toBeNull();
   });
 });
