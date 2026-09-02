@@ -42,6 +42,55 @@ confirmed all 31 users and 29 promises are disposable test data, but destructive
 still require their dedicated setup and worker secrets. Detailed evidence and row status:
 [`docs/qa/ADR0015_DEVICE_QA.md`](qa/ADR0015_DEVICE_QA.md).
 
+## Second device-QA pass on code 19 (2026-09-02)
+
+A second pass ran against the store-installed `0.2.0 (19)` on the same SM-N981N, signed in as
+김정연 — the **partner** on the promise under test, which is what makes the partner-side rows
+reachable at all. The matrix moved from 1 PASS · 2 FAIL · 17 NOT_RUN to
+**3 PASS · 5 PARTIAL · 2 FAIL · 10 NOT_RUN**; the overall result stays **FAIL** because the
+permanent-access product still does not open Play Billing and ad-backed rows cannot finish while
+AdMob returns no fill.
+
+What newly passes. Row 8: the partner's duration sheet shows `종료일 범위는 작성자만 늘릴 수
+있어요.` and renders **no rewarded-ad button** — only the scrim, close, and purchase CTA. Row 19:
+every clickable on A05 detail, the retention sheet, the witness sheet and the amend editor carries
+a Korean accessibility label, all targets are ≥48 dp, and locked state is text plus a disabled
+button rather than colour. Rows 3, 4, 5 and 7 pass their reachable halves: the locked witness copy
+with a disabled invite button, the end-date refusal with the ceiling `2026-10-02 (금)` (= today +
+`END_DATE_FREE_DAYS` 30), the retention expiry display, and — most usefully — the
+**no-free-fallback rule under a genuine ad outage**: both rewarded actions answer `지금은 광고를
+볼 수 없어 잠겨 있어요.` and grant nothing. Row 11's product is still unavailable to code 19,
+but the same
+recovery machinery was exercised with the slot product: a license-test purchase, `force-stop`
+while Play was still on its post-purchase screen, then reopening the sheet recovered it — 6 → 7,
+**+1 exactly, no second payment**.
+
+The PO then completed the two console settings. A cold-start retest confirms that the former UMP
+publisher-misconfiguration error is gone: UMP writes `IABTCF_gdprApplies=0`, Mobile Ads initializes,
+and an ad request is made. The request still ends with `Ad failed to load : 3` (no fill), so no
+reward is granted and the locked copy remains. The permanent-access CTA still returns the app's
+purchase-verification error without opening Play Billing, and the purchase ledger contains no
+`promise_permanent_access` row. Live flags after every test are `ads_enabled=false` and
+`rewarded_ads_enabled=true`.
+
+Two new defects, both outside the ADR 0015 surface but present on the release build.
+`ADR15-QA-F07`: MOD-02 still says `카카오톡으로 증인 초대하기` while its handler is the OS share
+sheet — the exact label lie C-4 retired for SCR-A04 on 2026-08-23, and now the only 카카오톡 string
+left in the app. `ADR15-QA-F08`: with English selected the home hero and list rows print a Korean
+weekday (`End date 2026-09-22 (화)`), because two of `formatKstDate`'s eleven call sites
+(`apps/mobile/src/app/home.tsx:304`, `apps/mobile/src/components/PromiseListRow.tsx:88`) omit the
+`locale` argument that the other nine pass. Both are fixed in `fdc2b8b`: MOD-02 now says
+`초대 링크 공유하기` / `Share invite link`, and both home call sites pass the current locale.
+The code 20 development build was exercised end to end with a newly created and mutually approved
+promise; screenshots confirm `(Thu)` on the hero and list and the corrected witness-sheet CTA with
+no clipping or layout regression.
+
+Post-fix repo gates: `vitest run` 110 files / 2142 tests passed, `jest-expo` 79 suites / 821
+tests passed, the five-project `typecheck` and `check:agents` both exited 0. Rows 14–18 remain
+unrun — they need purpose-built retention fixtures and the worker secrets, and were not improvised
+against unrelated rows. Detail and evidence paths:
+[`docs/qa/ADR0015_DEVICE_QA.md`](qa/ADR0015_DEVICE_QA.md).
+
 ## Open-testing feedback survey drafted (2026-08-31)
 
 `docs/setup/open-testing-survey.md` is the paste-ready Google Forms body for Play **open testing**

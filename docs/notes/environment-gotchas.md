@@ -271,3 +271,35 @@ is therefore pinned by a *definition-order* assertion in
 call precedes the `for update`. It proves the source, not the runtime; a real two-connection test
 needs a linked project (`supabase/tests/remote/`). Do not "fix" the assertion by rewriting it as a
 concurrency test on PGlite — it will pass vacuously.
+
+## uiautomator under-reports the bottom of the screen (2026-09-02)
+
+On the SM-N981N the app window is `[0,0][1080,2266]` while the display is 1080×2400, and
+`uiautomator dump` **clips every node's bounds to that window**. Anything near the bottom therefore
+measures short: a 48 dp button reads as 39 dp, a 54 dp CTA as 45 dp. During the ADR 0015 second QA
+pass three controls looked like 48 dp accessibility violations and none of them were — the tell is
+**asymmetric padding** in the reported bounds (37 px above the label, 13 px below, where a centred
+control must be symmetric).
+
+Do not conclude anything about touch-target size from a dump alone, and do not "confirm" it by
+scrolling — the content was already at maximum scroll, and two swipe-ups produced a byte-identical
+dump.
+
+Measure with the raw framebuffer instead. `adb exec-out screencap` (no `-p`) returns a 16-byte
+header followed by RGBA8888, so a pixel column through the control gives its true extent:
+`상대방 차단` runs y=2155…2290 = 135 px = 48 dp exactly. Confirm with a hit test — `input tap` at
+y=2280, below the reported clip line, opened the button's confirm dialog, proving the whole 48 dp
+is hittable even though it overlaps the gesture-bar inset.
+
+Two adb path traps come with this. `adb shell uiautomator dump /sdcard/x.xml` gets its argument
+rewritten by MSYS to `/Files/Git/sdcard/x.xml`; set `MSYS_NO_PATHCONV=1`. But that same variable
+then stops `/c/...` from being translated for **node**, so pull to and read from Windows-style
+paths (`C:\...`) in any command that sets it.
+
+## Expo Android debug builds require Android Studio JBR 21 (2026-09-02)
+
+The machine-wide Java 25 runtime reaches `react-native-worklets:configureCMakeDebug[x86_64]` and
+then fails the native debug build. Set a task-scoped `JAVA_HOME` to
+`C:\Program Files\Android\Android Studio\jbr` before `npx expo run:android`; that JBR reports Java
+21 and the same build completes (`BUILD SUCCESSFUL`). Do not change the user's global Java setup
+for this workaround.
