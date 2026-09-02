@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Alert, StyleSheet } from 'react-native';
 
@@ -6,6 +7,7 @@ import HomeScreen from '../app/home';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import { deletePendingPromise } from '../lib/invite-native.ts';
+import { LocaleProvider } from '../lib/locale-native.tsx';
 import { loadTrustProfile } from '../lib/trust-profile-native.ts';
 import { colors } from '../theme/tokens.ts';
 
@@ -225,6 +227,24 @@ describe('SCR-A02 Soft Promise 홈', () => {
     expect(push).toHaveBeenCalledWith({
       pathname: '/promise/[promise_id]', params: { promise_id: SECOND_ID },
     });
+  });
+
+  test('영어 로케일은 히어로와 목록 종료일의 요일도 영어로 표시한다', async () => {
+    jest.spyOn(AsyncStorage, 'getItem').mockResolvedValue('en');
+    jest.mocked(listHomePromises).mockResolvedValue(response({
+      pinned: [card({ id: ACTIVE_ID, title: 'Hero', endDate: '2026-08-17' })],
+      items: [card({ id: SECOND_ID, title: 'Walk together', endDate: '2026-08-30' })],
+    }));
+    const view = await render(
+      <LocaleProvider>
+        <HomeScreen now={NOW} />
+      </LocaleProvider>,
+    );
+    await settle();
+
+    expect(view.getByText('End date 2026-08-17 (Mon)')).toBeTruthy();
+    expect(view.getByText('End date 2026-08-30 (Sun)')).toBeTruthy();
+    expect(view.queryByText(/\([월화수목금토일]\)/u)).toBeNull();
   });
 
   test('히스토리·지킴율·하단 목적지는 각각 올바른 경로를 연다', async () => {

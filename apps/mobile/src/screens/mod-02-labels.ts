@@ -37,7 +37,7 @@ const ko = {
   unlockUnavailable: '지금은 광고를 볼 수 없어 잠겨 있어요.',
   unlockError: '증인 자리를 추가하지 못했어요.',
   hint: '증인은 내용을 확인만 해요 — 판정 권한은 없어요',
-  invite: '카카오톡으로 증인 초대하기',
+  invite: '초대 링크 공유하기',
   reshare: '초대 링크 다시 공유',
   shareError: '증인 초대 링크를 공유하지 못했어요.',
 };
@@ -76,7 +76,7 @@ const en = {
   unlockUnavailable: 'Ads are not available right now, so this stays locked.',
   unlockError: 'Could not add a witness spot.',
   hint: 'Witnesses only confirm the details — they have no authority to judge',
-  invite: 'Invite witnesses via KakaoTalk',
+  invite: 'Share invite link',
   reshare: 'Share invite link again',
   shareError: 'Could not share the witness invite link.',
 } satisfies typeof ko;

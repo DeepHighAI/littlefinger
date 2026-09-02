@@ -27,7 +27,7 @@ import { LfTrustStrip } from '../components/LfTrustStrip';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import { deletePendingPromise } from '../lib/invite-native.ts';
-import { useLabels } from '../lib/locale-native';
+import { useLabels, useLocale } from '../lib/locale-native';
 import { loadTrustProfile } from '../lib/trust-profile-native.ts';
 import { createInitialHomeState, promiseHomeReducer } from '../screens/scr-a02-home-state.ts';
 import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
@@ -94,6 +94,7 @@ export interface HomeScreenProps {
 
 export default function HomeScreen({ now = new Date() }: HomeScreenProps): React.JSX.Element {
   const LABEL = useLabels(SCR_A02_LABEL);
+  const { locale } = useLocale();
   const router = useRouter();
   const [state, dispatch] = useReducer(promiseHomeReducer, undefined, createInitialHomeState);
   const [adsEnabled, setAdsEnabled] = useState(false);
@@ -301,7 +302,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
               : { dday: formatDday(ddayFrom(hero.end_date, now)) })}
             meta={hero.end_date === null
               ? LABEL.noEndDate
-              : LABEL.endDate(formatKstDate(hero.end_date))}
+              : LABEL.endDate(formatKstDate(hero.end_date, locale))}
             actionLabel={hero.needs_response ? LABEL.answerFulfillment : LABEL.viewPromise}
             onAction={() => openPromise(hero)}
           />

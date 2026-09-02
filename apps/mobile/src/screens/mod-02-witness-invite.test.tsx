@@ -258,7 +258,7 @@ describe('MOD-02 witness invitation sheet', () => {
     await settle();
     expect(view.getByText('지금 사용할 수 있는 증인 자리를 모두 사용했어요.')).toBeTruthy();
     expect(
-      view.getByRole('button', { name: '카카오톡으로 증인 초대하기' }).props.accessibilityState,
+      view.getByRole('button', { name: '초대 링크 공유하기' }).props.accessibilityState,
     ).toMatchObject({ disabled: true });
   });
 
@@ -271,7 +271,7 @@ describe('MOD-02 witness invitation sheet', () => {
     expect(view.queryByText('지금 사용할 수 있는 증인 자리를 모두 사용했어요.')).toBeNull();
     expect(view.getByRole('button', { name: '광고 보고 증인 1명 추가' })).toBeTruthy();
     expect(
-      view.getByRole('button', { name: '카카오톡으로 증인 초대하기' }).props.accessibilityState,
+      view.getByRole('button', { name: '초대 링크 공유하기' }).props.accessibilityState,
     ).toMatchObject({ disabled: true });
   });
 
@@ -293,10 +293,10 @@ describe('MOD-02 witness invitation sheet', () => {
     shareMock.mockRejectedValueOnce(new Error('share')).mockResolvedValueOnce(undefined);
     const view = await render(<WitnessInviteSheet visible promiseId={PROMISE_ID} onClose={close} />);
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '카카오톡으로 증인 초대하기' }));
+    await fireEvent.press(view.getByRole('button', { name: '초대 링크 공유하기' }));
     await settle();
     expect(view.getByText('증인 초대 링크를 공유하지 못했어요.')).toBeTruthy();
-    await fireEvent.press(view.getByRole('button', { name: '카카오톡으로 증인 초대하기' }));
+    await fireEvent.press(view.getByRole('button', { name: '초대 링크 공유하기' }));
     await settle();
     expect(shareMock).toHaveBeenCalledTimes(2);
     expect(issueMock).toHaveBeenCalledTimes(1);
@@ -317,7 +317,7 @@ describe('MOD-02 witness invitation sheet', () => {
 
     await fireEvent.press(view.getByRole('button', { name: '초대 링크 다시 공유' }));
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '카카오톡으로 증인 초대하기' }));
+    await fireEvent.press(view.getByRole('button', { name: '초대 링크 공유하기' }));
     await settle();
 
     expect(issueMock).toHaveBeenNthCalledWith(1, PROMISE_ID, INVITED_ID);

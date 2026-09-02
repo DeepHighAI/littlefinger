@@ -7,7 +7,7 @@ import {
 } from '@littlefinger/shared';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { useLabels } from '../lib/locale-native';
+import { useLabels, useLocale } from '../lib/locale-native';
 import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
 import { colors, gutter, radius, space } from '../theme/tokens';
 import { LfButton } from './LfButton';
@@ -74,6 +74,7 @@ export function PromiseListRow({
 }: PromiseListRowProps): React.JSX.Element {
   const LABEL = useLabels(SCR_A02_LABEL);
   const STATUS_LABEL = useLabels(PROMISE_STATUS_LABEL_BY_LOCALE);
+  const { locale } = useLocale();
   const partnerName = item.partner?.nickname ?? LABEL.partnerFallback;
   const needsResponse = item.status === 'CHECKING' && item.needs_response;
   const content = (
@@ -85,7 +86,9 @@ export function PromiseListRow({
           {item.end_date !== null && (
             <>
               <LfText variant="listMeta">·</LfText>
-              <LfText variant="listMeta">{LABEL.endDate(formatKstDate(item.end_date))}</LfText>
+              <LfText variant="listMeta">
+                {LABEL.endDate(formatKstDate(item.end_date, locale))}
+              </LfText>
             </>
           )}
           <LfText variant="listMeta">·</LfText>
