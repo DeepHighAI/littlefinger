@@ -11,7 +11,18 @@ import {
 } from '@littlefinger/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, BackHandler, Pressable, ScrollView, StyleSheet, Text, ToastAndroid, View } from 'react-native';
+import {
+  Alert,
+  BackHandler,
+  Keyboard,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  View,
+  type FocusEvent,
+} from 'react-native';
 import Animated, { FadeInLeft, FadeInRight, useReducedMotion } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -156,6 +167,20 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const [amendComment, setAmendComment] = useState<string | null>(null);
   const [slotSheetOpen, setSlotSheetOpen] = useState(false);
   const [durationSheetOpen, setDurationSheetOpen] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const focusedConditionInput = useRef<number | null>(null);
+
+  const revealFocusedConditionInput = useCallback((): void => {
+    const target = focusedConditionInput.current;
+    if (target === null) return;
+    scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(target, space[6], true);
+  }, []);
+
+  const focusConditionInput = useCallback((event: FocusEvent): void => {
+    focusedConditionInput.current = event.nativeEvent.target;
+    // 키보드가 이미 열린 채 보상↔벌칙을 옮길 때도 즉시 새 입력란을 보여준다.
+    revealFocusedConditionInput();
+  }, [revealFocusedConditionInput]);
 
   const autosave = useMemo(
     () => new DraftAutosave(async (nextDraft) => await saveEditorLocalDraft(autosavePromiseId.current, nextDraft)),
@@ -188,6 +213,12 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       void autosave.flush();
     };
   }, [autosave, promiseId]);
+
+  useEffect(() => {
+    // 기기마다 키보드가 화면을 차지하는 시점이 달라 실제 높이가 정해진 뒤 한 번 더 맞춘다.
+    const shown = Keyboard.addListener('keyboardDidShow', revealFocusedConditionInput);
+    return () => shown.remove();
+  }, [revealFocusedConditionInput]);
 
   const validation = validatePromiseDraft(draft, new Date(), locale);
   const steps = [LABEL.stepContent, LABEL.stepConditions, LABEL.stepReview] as const;
@@ -445,15 +476,6 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             openEndDatePicker(draft.end_date, (value) => updateDraft('end_date', value));
           }}
         />
-        <LfButton
-          label={LABEL.endDateNoEnd}
-          variant="text"
-          block
-          onPress={() => {
-            touch('end_date');
-            updateDraft('end_date', null);
-          }}
-        />
         <LfText variant="caption">{LABEL.durationNotice(END_DATE_FREE_DAYS)}</LfText>
       </LfField>
       <LfField label={LABEL.keeper} required error={errorFor('keeper')}>
@@ -483,6 +505,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           accessibilityLabel={LABEL.reward}
           value={draft.reward}
           maxLength={100}
+          onFocus={focusConditionInput}
           onBlur={() => touch('reward')}
           onChangeText={(value) => updateDraft('reward', value)}
         />
@@ -502,6 +525,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           accessibilityLabel={LABEL.penalty}
           value={draft.penalty}
           maxLength={100}
+          onFocus={focusConditionInput}
           onBlur={() => touch('penalty')}
           onChangeText={(value) => updateDraft('penalty', value)}
         />
@@ -595,6 +619,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         <LfText secondary>{stepDescription}</LfText>
       </View>
       <ScrollView
+        ref={scrollRef}
         style={styles.scroll}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.body}

@@ -92,21 +92,41 @@ describe('SCR-W03 승인 완료', () => {
     expect(screen.getByTestId('fingerprint').textContent).toBe('A3F9-77C2-01');
   });
 
-  it('이메일 입력·버전 이력은 만들지 않고 Android 앱 설치 배너를 보여준다', () => {
+  it('Android 진행상황 CTA는 설치 앱의 약속 상세를 열고 미설치 시 Play 스토어로 보낸다', () => {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
+      'Mozilla/5.0 (Linux; Android 14) Chrome/120',
+    );
     const { container } = renderWith(RESULT);
     expect(container.querySelector('input')).toBeNull();
     expect(screen.queryByText('버전 이력 보기')).toBeNull();
-    expect(container.querySelector('.lf-app-hint')).not.toBeNull();
-    const link = screen.getByRole('link', { name: 'Android 앱 설치하기' });
-    expect(link.getAttribute('href')).toContain('play.google.com/store/apps/details?id=com.littlefinger.app');
+    expect(container.querySelector('.lf-app-hint')).toBeNull();
+    const link = screen.getByRole('link', { name: '앱에서 진행상황 보기' });
+    const store = encodeURIComponent(
+      'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=littlefinger_web&utm_medium=approval_complete',
+    );
+    expect(link.getAttribute('href')).toBe(
+      `intent://promise/${RESULT.promise_id}` +
+        '#Intent;scheme=littlefinger;package=com.littlefinger.app;' +
+        `S.browser_fallback_url=${store};end`,
+    );
   });
 
   it('EC-I03 iOS에서는 앱 설치 배너를 숨기고 웹 재접근만 제공한다', () => {
     vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)');
     const { container } = renderWith(RESULT);
     expect(container.querySelector('.lf-app-hint')).toBeNull();
-    expect(screen.queryByRole('link', { name: 'Android 앱 설치하기' })).toBeNull();
+    expect(screen.queryByRole('link', { name: '앱에서 진행상황 보기' })).toBeNull();
     expect(screen.getByRole('link', { name: '참여 중인 약속 보기' })).toBeTruthy();
+  });
+
+  it('Android에서 승인 응답을 새로고침해도 앱 홈으로 가는 설치 폴백 CTA는 남는다', () => {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
+      'Mozilla/5.0 (Linux; Android 14) Chrome/120',
+    );
+    renderWith(undefined);
+    const link = screen.getByRole('link', { name: '앱에서 진행상황 보기' });
+    expect(link.getAttribute('href')).toContain('intent://home#Intent;scheme=littlefinger');
+    expect(link.getAttribute('href')).toContain('S.browser_fallback_url=');
   });
 
   it('state 가 없어도 계정 기반 재접근 출구는 남는다', () => {

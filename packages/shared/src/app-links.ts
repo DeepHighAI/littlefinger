@@ -8,6 +8,8 @@
 
 export const ANDROID_PACKAGE_NAME = 'com.littlefinger.app';
 
+export const APP_SCHEME = 'littlefinger';
+
 export const PLAY_STORE_BASE_URL =
   `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`;
 
@@ -48,6 +50,26 @@ export function buildParticipantPromisesWebUrl(baseUrl: string): string | null {
   } catch {
     return null;
   }
+}
+
+/** 앱의 확정 약속 상세 경로. */
+export function promisePathOf(promiseId: string): string {
+  return `/promise/${encodeURIComponent(promiseId)}`;
+}
+
+/**
+ * 승인 완료 웹에서 앱의 진행 상황으로 이동하는 Android 인텐트 URI.
+ * 설치본은 해당 약속 상세를 열고, 미설치 기기는 Play 스토어로 보낸다.
+ */
+export function buildPromiseProgressAppIntentUri(
+  promiseId: string | null,
+  storeFallbackUrl: string,
+): string {
+  const path = promiseId === null ? '/home' : promisePathOf(promiseId);
+  return (
+    `intent://${path.slice(1)}#Intent;scheme=${APP_SCHEME};package=${ANDROID_PACKAGE_NAME};` +
+    `S.browser_fallback_url=${encodeURIComponent(storeFallbackUrl)};end`
+  );
 }
 
 /**

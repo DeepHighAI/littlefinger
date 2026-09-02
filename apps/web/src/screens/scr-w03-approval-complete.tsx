@@ -1,4 +1,5 @@
 import {
+  buildPromiseProgressAppIntentUri,
   buildPlayStoreUrl,
   formatKstDateTime,
   KST_MARK,
@@ -32,33 +33,27 @@ const ANDROID_STORE_URL = buildPlayStoreUrl({
   source: 'littlefinger_web',
   medium: 'approval_complete',
 });
-const IOS_USER_AGENT = /iPhone|iPad|iPod/iu;
+const ANDROID_USER_AGENT = /Android/iu;
 
-function AndroidAppHint(): React.JSX.Element | null {
+function RevisitCard({ promiseId }: { promiseId: string | null }): React.JSX.Element {
   const L = useLabels(SCR_W03_LABEL);
-  if (IOS_USER_AGENT.test(window.navigator.userAgent)) return null;
-  return (
-    <a
-      aria-label={L.androidStoreCta}
-      className="lf-card lf-card--web lf-app-hint"
-      href={ANDROID_STORE_URL}
-      rel="noreferrer"
-    >
-      <LfPinky size="sm" />
-      <span className="lf-app-hint__text">{L.androidStoreCopy}</span>
-      <LfIcon name="east" />
-    </a>
-  );
-}
-
-function RevisitCard(): React.JSX.Element {
-  const L = useLabels(SCR_W03_LABEL);
+  const android = ANDROID_USER_AGENT.test(window.navigator.userAgent);
   return (
     <div className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-center">
       <p className="lf-body--secondary">{L.revisitCopy}</p>
-      <Link className="lf-btn lf-btn--tonal lf-btn--block" to={promisesPath()}>
-        {L.revisitCta}
-      </Link>
+      {android ? (
+        <a
+          className="lf-btn lf-btn--tonal lf-btn--block"
+          data-testid="progress-in-app"
+          href={buildPromiseProgressAppIntentUri(promiseId, ANDROID_STORE_URL)}
+        >
+          {L.revisitAppCta}
+        </a>
+      ) : (
+        <Link className="lf-btn lf-btn--tonal lf-btn--block" to={promisesPath()}>
+          {L.revisitWebCta}
+        </Link>
+      )}
     </div>
   );
 }
@@ -81,7 +76,8 @@ function parseApprovalLog(value: unknown): PromiseApprovalLog | null {
  */
 export function parseApproveResponse(state: unknown): PromiseApproveResponse | null {
   if (typeof state !== 'object' || state === null) return null;
-  const { activated_at, fingerprint, approvals } = state as Record<string, unknown>;
+  const { activated_at, fingerprint, approvals, promise_id } = state as Record<string, unknown>;
+  if (typeof promise_id !== 'string' || promise_id.length === 0) return null;
   if (typeof activated_at !== 'string' || Number.isNaN(Date.parse(activated_at))) return null;
   if (typeof fingerprint !== 'string' || fingerprint.length === 0) return null;
   if (!Array.isArray(approvals)) return null;
@@ -105,7 +101,7 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
     return (
       <div className="lf-screen" data-testid="no-result">
         <div className="lf-screen__body lf-screen__body--web lf-screen__body--centered">
-          <RevisitCard />
+          <RevisitCard promiseId={null} />
         </div>
       </div>
     );
@@ -150,8 +146,7 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
         </div>
 
         <LfDisclaimer />
-        <RevisitCard />
-        <AndroidAppHint />
+        <RevisitCard promiseId={result.promise_id} />
 
         {/* 여기서 **일부러 빼는 것**:
             · 리마인드 이메일 카드(§4-4-4 2항) — PO 결정으로 MVP 미수집·미발송.

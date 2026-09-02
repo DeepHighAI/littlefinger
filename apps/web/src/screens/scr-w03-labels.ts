@@ -18,9 +18,8 @@ const ko = {
     `${nickname}(${role}) 승인 ${actedAt}`,
   fingerprintLabel: '기록 지문',
   revisitCopy: '이 약속은 로그인하면 언제든 다시 볼 수 있어요',
-  revisitCta: '참여 중인 약속 보기',
-  androidStoreCta: 'Android 앱 설치하기',
-  androidStoreCopy: '앱에서는 푸시로 약속을 챙겨드려요',
+  revisitAppCta: '앱에서 진행상황 보기',
+  revisitWebCta: '참여 중인 약속 보기',
   pinkyAlt: '새끼손가락 걸기',
 };
 
@@ -31,9 +30,8 @@ const en = {
     `${nickname} (${role}) approved ${actedAt}`,
   fingerprintLabel: 'Record fingerprint',
   revisitCopy: 'Sign in anytime to see this promise again',
-  revisitCta: 'View my promises',
-  androidStoreCta: 'Get the Android app',
-  androidStoreCopy: 'The app sends push reminders for your promises',
+  revisitAppCta: 'View progress in the app',
+  revisitWebCta: 'View my promises',
   pinkyAlt: 'Pinky promise',
 } satisfies typeof ko;
 

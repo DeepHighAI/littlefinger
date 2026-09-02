@@ -1,13 +1,16 @@
 import { describe, expect, test } from 'vitest';
 
 import {
+  APP_SCHEME,
   ANDROID_PACKAGE_NAME,
   PLAY_STORE_BASE_URL,
   buildInviteAppIntentUri,
   buildInviteWebUrl,
   buildParticipantPromisesWebUrl,
   buildPlayStoreUrl,
+  buildPromiseProgressAppIntentUri,
   invitePathOf,
+  promisePathOf,
 } from './app-links.ts';
 
 const BASE = 'https://littlefinger-app.web.app';
@@ -69,5 +72,23 @@ describe('앱 인텐트 URI — 카톡 인앱 브라우저 탈출 + 미설치 �
     expect(buildInviteAppIntentUri('http://localhost:5173', 'tok-1', 'https://s')).toBeNull();
     expect(buildInviteAppIntentUri(BASE, '', 'https://s')).toBeNull();
     expect(buildInviteAppIntentUri('not a url', 'tok-1', 'https://s')).toBeNull();
+  });
+
+  test('승인 완료 CTA는 설치 앱의 약속 상세를 열고 Play 스토어로 폴백한다', () => {
+    const store = buildPlayStoreUrl({
+      source: 'littlefinger_web',
+      medium: 'approval_complete',
+    });
+
+    expect(APP_SCHEME).toBe('littlefinger');
+    expect(promisePathOf('promise id')).toBe('/promise/promise%20id');
+    expect(buildPromiseProgressAppIntentUri('promise id', store)).toBe(
+      'intent://promise/promise%20id#Intent;scheme=littlefinger;package=com.littlefinger.app;' +
+        `S.browser_fallback_url=${encodeURIComponent(store)};end`,
+    );
+    expect(buildPromiseProgressAppIntentUri(null, store)).toBe(
+      'intent://home#Intent;scheme=littlefinger;package=com.littlefinger.app;' +
+        `S.browser_fallback_url=${encodeURIComponent(store)};end`,
+    );
   });
 });

@@ -27,11 +27,12 @@ describe('EC-I01 Android App Links', () => {
   });
 
   test('app.json 의 패키지명은 공유 상수와 같다 — 흩어지면 App Links 가 끊긴다', () => {
-    const { ANDROID_PACKAGE_NAME } = require('../../../packages/shared/src/app-links.ts');
+    const { ANDROID_PACKAGE_NAME, APP_SCHEME } = require('../../../packages/shared/src/app-links.ts');
     const appJson = JSON.parse(
       fs.readFileSync(path.resolve(__dirname, '../app.json'), 'utf8'),
     );
     expect(appJson.expo.android.package).toBe(ANDROID_PACKAGE_NAME);
+    expect(appJson.expo.scheme).toBe(APP_SCHEME);
   });
 
   test('배포 자산은 앱 패키지를 EAS development·Play 서명 둘 다에 연결한다', () => {

@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, BackHandler } from 'react-native';
+import { Alert, BackHandler, ScrollView } from 'react-native';
 
 import PromiseEditorScreen from '../app/promise/edit';
 import { MobileApiError } from '../lib/mobile-api.ts';
@@ -135,9 +135,25 @@ describe('SCR-A03 3단계 약속 작성', () => {
     await fillStepOne(view);
     expect(view.getByRole('progressbar').props.accessibilityValue).toMatchObject({ now: 2, text: '조건' });
     expect(view.getByRole('button', { name: '종료일 선택' })).toBeTruthy();
+    expect(view.queryByRole('button', { name: '종료일 없이 계속' })).toBeNull();
     expect(view.getByRole('button', { name: '작성자' })).toBeTruthy();
     expect(view.getByLabelText('보상')).toBeTruthy();
     expect(view.queryByLabelText('제목')).toBeNull();
+  });
+
+  test('보상·벌칙 직접 입력을 포커스하면 키보드 위로 해당 입력란을 스크롤한다', async () => {
+    const reveal = jest
+      .spyOn(ScrollView.prototype, 'scrollResponderScrollNativeHandleToKeyboard')
+      .mockImplementation(() => undefined);
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+    await fillStepOne(view);
+
+    await fireEvent(view.getByLabelText('벌칙'), 'focus', {
+      nativeEvent: { target: 73 },
+    });
+
+    expect(reveal).toHaveBeenCalledWith(73, expect.any(Number), true);
   });
 
   test('조건 프리셋과 종료일을 유지하고 확인 단계에서 수정·증인·확정 안내를 보여준다', async () => {
