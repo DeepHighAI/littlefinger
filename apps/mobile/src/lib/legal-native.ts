@@ -10,7 +10,7 @@ export async function openLegalDocument(
   kind: LegalDocumentKind,
   deps: LegalNativeDeps = {
     baseUrl: process.env.EXPO_PUBLIC_WEB_BASE_URL ?? '',
-    openUrl: Linking.openURL,
+    openUrl: (url) => Linking.openURL(url),
   },
 ): Promise<void> {
   await deps.openUrl(buildLegalDocumentUrl(deps.baseUrl, kind));

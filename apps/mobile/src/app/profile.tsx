@@ -130,11 +130,21 @@ export default function ProfileScreen(): React.JSX.Element {
   const nextUpdateId = useRef(0);
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawFailed, setWithdrawFailed] = useState(false);
+  const [legalDocumentFailed, setLegalDocumentFailed] = useState(false);
   // 슬롯 현황은 보조 정보다 — 조회 실패가 프로필 화면을 막지 않도록 profile 상태와 분리한다.
   const [slot, setSlot] = useState<SlotStatusResponse | null>(null);
   const [slotSheetOpen, setSlotSheetOpen] = useState(false);
   // F-12 확대(PO 2026-08-24): 프로필 하단 1구좌. 끄면 렌더 자체를 하지 않는다.
   const [adsEnabled, setAdsEnabled] = useState(false);
+
+  async function handleLegalDocument(kind: 'TERMS' | 'PRIVACY'): Promise<void> {
+    setLegalDocumentFailed(false);
+    try {
+      await openLegalDocument(kind);
+    } catch {
+      setLegalDocumentFailed(true);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -337,16 +347,17 @@ export default function ProfileScreen(): React.JSX.Element {
       <LfText variant="sectionTitle">{LABEL.legalTitle}</LfText>
       <LfCard>
         <LfStack gap={2}>
-          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.termsAccessibility} style={styles.legalButton} onPress={() => void openLegalDocument('TERMS')}>
+          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.termsAccessibility} style={styles.legalButton} onPress={() => void handleLegalDocument('TERMS')}>
             <LfIcon name="description" color="record" />
             <View style={styles.legalLabel}><LfText>{LABEL.terms}</LfText></View>
             <LfIcon name="chevron-right" color="textMuted" />
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.privacyAccessibility} style={styles.legalButton} onPress={() => void openLegalDocument('PRIVACY')}>
+          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.privacyAccessibility} style={styles.legalButton} onPress={() => void handleLegalDocument('PRIVACY')}>
             <LfIcon name="privacy-tip" color="record" />
             <View style={styles.legalLabel}><LfText>{LABEL.privacy}</LfText></View>
             <LfIcon name="chevron-right" color="textMuted" />
           </Pressable>
+          {legalDocumentFailed && <LfText variant="error">{LABEL.legalDocumentError}</LfText>}
         </LfStack>
       </LfCard>
       <LfDisclaimer />

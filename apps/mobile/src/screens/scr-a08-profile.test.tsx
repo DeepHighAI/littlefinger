@@ -306,6 +306,18 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.queryByTestId('profile-ad-space')).toBeNull();
   });
 
+  test('약관 문서를 열지 못하면 프로필 안에서 재시도를 안내한다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    openLegalMock.mockRejectedValue(new Error('cannot open'));
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '이용약관 열기' }));
+    await settle();
+
+    expect(view.getByText('문서를 열 수 없어요. 잠시 후 다시 시도해 주세요.')).toBeTruthy();
+  });
+
   test('로그아웃 확인 뒤 현재 기기를 해제하고 실패하면 세션을 유지한 채 안내한다', async () => {
     loadMock.mockResolvedValue(PROFILE);
     logoutMock.mockRejectedValueOnce(new Error('cannot sign out'));
