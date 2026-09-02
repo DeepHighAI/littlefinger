@@ -8,6 +8,25 @@ into `docs/DEVELOPMENT_STATUS.md`. Every row runs on the **production-profile** 
 from the internal testing track — preview builds use Google test ad units, which the SSV callback
 rejects, so rows 2–8 cannot pass on them.
 
+### Code 16 final-QA preparation — 2026-09-02
+
+- Candidate: `0.2.0 (16)`, EAS build `7cf0d69d-dae3-4b90-b818-05ac99e2953e`, Git
+  `c71ec58`, AAB SHA-256
+  `C25131C2DA4D7C61F996950197CB7C1D3B343D482E872E4B128E380FD2E6AB40`.
+- Package verification: bundletool, manifest, non-debuggable release, upload certificate, four
+  ABIs, production AdMob config, and latest Hermes bundle checks passed.
+- Web gate: current Firebase bundle deployed; legal version/overflow and Android progress CTA
+  browser checks passed. Evidence:
+  `%TEMP%\littlefinger-qa-{terms,privacy,w03-android}-code16*.png`.
+- Backend gate: 57/57 functions ACTIVE; latest 100 Edge log entries contain zero 5xx; flags,
+  legal versions, and the retention cron match the prerequisites below.
+- `NOT_RUN`: every device row. The connected phone remained ADB `unauthorized`; Play submission
+  is blocked by the missing local service-account key and the current Chrome account lacking Play
+  Console developer access.
+- Safety stop: the live project contains 31 users and 29 promises, while only eight promises are
+  title-labeled QA data. Rows 16–18 must not run until the PO confirms all records are disposable
+  test data or supplies an isolated environment. No database write or flag change occurred.
+
 ## Prerequisites
 
 | # | Item | Value |

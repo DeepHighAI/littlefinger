@@ -1,6 +1,34 @@
 # Development Status
 
-Snapshot date: **2026-08-31 KST**.
+Snapshot date: **2026-09-02 KST**.
+
+## Open-testing final QA candidate (2026-09-02)
+
+Git `main` and `origin/main` are clean at `c71ec58` after the promise-condition keyboard,
+temporary no-end CTA, and approval-complete app-progress fixes. The commit passed Vitest **110
+files / 2,142 tests**, jest-expo **79 suites / 815 tests**, the five-project typecheck,
+`check:agents`, and `git diff --check` before it was pushed.
+
+EAS production build `7cf0d69d-dae3-4b90-b818-05ac99e2953e` produced versionCode **16** from that
+exact SHA. The downloaded candidate is `dist/littlefinger-internal-v0.2.0-code16.aab` (83,253,836
+bytes; SHA-256 `C25131C2DA4D7C61F996950197CB7C1D3B343D482E872E4B128E380FD2E6AB40`). `bundletool validate`,
+`jarsigner`, package/version/SDK/non-debuggable manifest checks, the existing upload certificate,
+all four ABIs, production AdMob units, and the packaged Hermes endpoint/hidden-CTA checks pass.
+
+The current web bundle is deployed to both Firebase Hosting targets. Production-browser checks at
+360×800 confirm terms/privacy version `2026-08-30.1`, zero horizontal overflow, no Vite overlay,
+and the Android approval-complete CTA `앱에서 진행상황 보기` with the app-home intent and Play
+fallback. Supabase read-only gates report **57/57 Edge Functions ACTIVE**, zero 5xx in the latest
+100 Edge log entries, `ads_enabled=false`, `rewarded_ads_enabled=true`,
+`min_app_version="0.2.0"`, one active `17 * * * *` retention cron, and matching legal versions.
+
+Device execution is waiting on two operator gates: the connected phone has not approved the host's
+ADB key, and the active Chrome Google account redirects Play Console to developer signup. The
+repository also has no Play service-account key, so code 16 has not been submitted to a Play test
+track. No server mutation was made: the live project currently has 31 users and 29 promises but
+only eight title-labeled QA promises, so retention fast-forward/purge stays blocked until the PO
+confirms every record is test-only or supplies an isolated environment. Detailed continuation:
+[`docs/qa/ADR0015_DEVICE_QA.md`](qa/ADR0015_DEVICE_QA.md).
 
 ## Open-testing feedback survey drafted (2026-08-31)
 
