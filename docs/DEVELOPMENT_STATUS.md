@@ -4,30 +4,42 @@ Snapshot date: **2026-09-02 KST**.
 
 ## Open-testing final QA candidate (2026-09-02)
 
-Git `main` and `origin/main` are clean at `c71ec58` after the promise-condition keyboard,
-temporary no-end CTA, and approval-complete app-progress fixes. The commit passed Vitest **110
-files / 2,142 tests**, jest-expo **79 suites / 815 tests**, the five-project typecheck,
-`check:agents`, and `git diff --check` before it was pushed.
+Play internal testing installed `0.2.0 (18)` from EAS build
+`5e543b9d-0680-4617-ba6e-abddbd0c0368` (Git `ab84bda`, AAB SHA-256
+`FF25362322E032F17C326C1EB02A8228C195050069350BFE999ABC3E2A8F9B7D`) through
+`com.android.vending` on the connected Samsung Android 13 device. Home loading, cold start,
+notification navigation, legal links, the hidden no-end CTA, and reward/penalty keyboard avoidance
+pass; the cold-start log contains no fatal or React error. A Play license-test purchase of
+`promise_slot_plus1` completed without a charge and increased server capacity from 5 to 6.
 
-EAS production build `7cf0d69d-dae3-4b90-b818-05ac99e2953e` produced versionCode **16** from that
-exact SHA. The downloaded candidate is `dist/littlefinger-internal-v0.2.0-code16.aab` (83,253,836
-bytes; SHA-256 `C25131C2DA4D7C61F996950197CB7C1D3B343D482E872E4B128E380FD2E6AB40`). `bundletool validate`,
-`jarsigner`, package/version/SDK/non-debuggable manifest checks, the existing upload certificate,
-all four ABIs, production AdMob units, and the packaged Hermes endpoint/hidden-CTA checks pass.
+The run found and fixed two release defects in `c0a17fb`:
 
-The current web bundle is deployed to both Firebase Hosting targets. Production-browser checks at
-360×800 confirm terms/privacy version `2026-08-30.1`, zero horizontal overflow, no Vite overlay,
-and the Android approval-complete CTA `앱에서 진행상황 보기` with the app-home intent and Play
-fallback. Supabase read-only gates report **57/57 Edge Functions ACTIVE**, zero 5xx in the latest
-100 Edge log entries, `ads_enabled=false`, `rewarded_ads_enabled=true`,
-`min_app_version="0.2.0"`, one active `17 * * * *` retention cron, and matching legal versions.
+- The store-installed APK uses signing certificate `B3:BD:C8:EB:67:FF:B7:25:43:04:3B:E6:AB:4E:48:A9:E1:69:42:65:F0:BB:A4:98:9E:35:CB:1C:AA:D0:A7:14`, which was absent from
+  `assetlinks.json`. The statement and pinning test now retain all three known certificates;
+  Firebase Hosting is deployed, Google DAL and Android report `verified`, and Samsung Internet's
+  app-open action launches the invalid-invite screen in the app.
+- Play returned an empty permanent-access price because `promise_permanent_access` does not exist.
+  The native price loaders now trim blank values and use the approved fallback instead of rendering
+  `에 영구 보관`. Full tests, the five-project typecheck, `check:agents`, and `git diff --check`
+  passed before the commit was pushed. Production code 19 build
+  `afa4ebab-a08a-4528-98ba-3ca73a30af25` finished from that exact SHA. The validated AAB is
+  `83,253,612` bytes with SHA-256
+  `548BC45448FC185D8B3C8EBF8BC5119C8F223B4B84A676FAC97B813981D60FCD`; bundletool confirms
+  versionCode 19, targetSdk 36, minSdk 24, four ABIs, and no debug manifest flag, while JAR
+  signature verification exits 0. Play internal release 13 (`19 (0.2.0)`) is published, and the
+  Play Store updated the connected device to code 19 through `com.android.vending`. Cold start,
+  retained-session home loading, and the permanent-access sheet's `₩2,000에 영구 보관` fallback
+  pass on that store-installed build; Android App Links remain `verified` after the update.
 
-Device execution is waiting on two operator gates: the connected phone has not approved the host's
-ADB key, and the active Chrome Google account redirects Play Console to developer signup. The
-repository also has no Play service-account key, so code 16 has not been submitted to a Play test
-track. No server mutation was made: the live project currently has 31 users and 29 promises but
-only eight title-labeled QA promises, so retention fast-forward/purge stays blocked until the PO
-confirms every record is test-only or supplies an isolated environment. Detailed continuation:
+Two external release blockers remain. AdMob UMP has no applicable message/form and returns a
+publisher-misconfiguration error before SDK initialization, blocking every exposure and rewarded
+ad row; `ads_enabled=false` was restored and `rewarded_ads_enabled=true` remains. Play Console's
+one-time-product catalog contains only the slot product. Creating the required consumable
+`promise_permanent_access` at ₩2,000 passes field/price validation, but its product detail/save APIs
+remain loading and the item is not created; the signed-in account is confirmed as the developer
+account owner, not a restricted user. Permanent-purchase rows therefore remain blocked. The PO
+confirmed all 31 users and 29 promises are disposable test data, but destructive retention rows
+still require their dedicated setup and worker secrets. Detailed evidence and row status:
 [`docs/qa/ADR0015_DEVICE_QA.md`](qa/ADR0015_DEVICE_QA.md).
 
 ## Open-testing feedback survey drafted (2026-08-31)
