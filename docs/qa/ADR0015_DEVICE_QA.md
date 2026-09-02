@@ -1,6 +1,6 @@
 # ADR 0015 device QA — internal testing 0.2.0
 
-Snapshot: 2026-09-02 KST. Status: **FAIL** (3 PASS · 5 PARTIAL · 2 FAIL · 10 NOT_RUN).
+Snapshot: 2026-09-02 KST. Status: **FAIL** (3 PASS · 6 PARTIAL · 1 FAIL · 10 NOT_RUN).
 
 Companion to `docs/setup/monetization-retention-release.md` §4. Same format as
 `docs/qa/MANUAL_E2E.md`: fill the Status and Capture columns in place, then copy the result block
@@ -80,6 +80,24 @@ rejects, so rows 2–8 cannot pass on them.
   With `ads_enabled=false` the home hierarchy contains **zero** ad view classes — no placeholder,
   no reserved gap. The locale switch and switch-back both took effect without a restart.
 
+### Code 20 Play follow-up — 2026-09-02, store-installed build
+
+- `0.2.0 (20)` is installed from Play (`installerPackageName=com.android.vending`,
+  `lastUpdateTime=2026-09-02 20:14:06`) on the same SM-N981N.
+- The two code fixes are confirmed in the release artifact, not only the development build. English
+  home dates render `(Thu)` and `(Tue)` in the hero and list; MOD-02 renders
+  `초대 링크 공유하기` / `Share invite link` with no clipping.
+- The permanent product is now available. Play Billing shows `약속 영구 보관`, ₩2,000,
+  `테스트 카드, 항상 승인`, and `테스트 주문이므로 청구되지 않습니다.` Completing the order
+  changes the sheet to `영구 보관 중`, which survives force-stop and cold start.
+- Server verification: exactly one `promise_permanent_access` ledger row; `granted_slots=0`; the
+  same order and purchase token each occur once; no revocation; the partner buyer's effective
+  access is true and the creator's is false. This closes the catalog/product blocker while leaving
+  the creator-side UI half of row 10 to a second signed-in app account.
+- UMP still completes and reaches Mobile Ads, but the rewarded request remains unavailable and the
+  app shows the locked copy. No reward was granted. Final flags are `ads_enabled=false` and
+  `rewarded_ads_enabled=true`.
+
 **Measurement note — uiautomator under-reports the bottom of the screen.** The app window is
 `[0,0][1080,2266]` while the display is 1080×2400, so `uiautomator dump` clips the bounds of
 anything near the bottom and a 48 dp control reads as 39 dp. Three separate controls looked like
@@ -92,7 +110,7 @@ line) opened its confirm dialog.
 
 | # | Item | Value |
 |---:|---|---|
-| 1 | Build | `0.2.0 (19)`, build `afa4ebab-a08a-4528-98ba-3ca73a30af25`, installed from internal release 13 through Play |
+| 1 | Build | `0.2.0 (20)`, build `ee80e524-c82a-49f7-9632-90a39c7729a1`, installed through Play |
 | 2 | Backend | Migrations `20260829103504` + `20260830000001` applied; all 57 functions `ACTIVE`; `adr0015-smoke.sql` passed |
 | 3 | Account A — creator | license tester `____________` (Google sign-in in app; the same Google account is signed into Play Store on the phone) |
 | 4 | Account B — partner | license tester `____________` (second phone, or the acceptance web `https://littlefinger-app.web.app` on desktop) |
@@ -147,8 +165,8 @@ select event_code, dedupe_key, created_at from public.notifications
 | 7 | A | Ad unavailable → benefit stays locked, no free path. (a) `update public.app_configs set value='false'::jsonb where key='rewarded_ads_enabled';` then reopen the entitlement sheet; (b) airplane mode before tapping the ad button (no fill); (c) on a test device with UMP debug geography = EEA, decline consent; (d) throttle to ~50 kbps so the load times out | Each case shows `지금은 광고를 볼 수 없어 잠겨 있어요.` and no benefit changes; SQL shows no new GRANTED row (a PENDING row may exist and expires after 15 min). Restore the flag to `true` after (a) | **PARTIAL** — the rule itself PASSES under real no fill on **both** rewarded actions: tapping the button shows exactly `지금은 광고를 볼 수 없어 잠겨 있어요.`, the benefit does not change (retention stays 2026-10-23, witness stays 0/1 with the invite button disabled), and no free path appears. Forced sub-cases (a) flag off, (b) airplane, (c) EEA decline, (d) throttle were not run individually; the natural no-fill path covered the principal lock invariant, while the four forced variants still need their own captures | `s80-qa2-reward-ad-unavailable.png`<br>`s82-qa2-witness-ad-unavailable.png` |
 | 8 | B | Partner cannot use DURATION: B opens the entitlement sheet on A's promise | Sheet shows `종료일 범위는 작성자만 늘릴 수 있어요.` and no ad button. Optional API check: `reward-intent-create` with `action: DURATION_30D` as B → `422 E_REWARD_NOT_ELIGIBLE` | **PASS** — the partner's DURATION sheet shows `종료일 범위는 작성자만 늘릴 수 있어요.` and holds exactly three controls: the scrim, `닫기`, and the purchase CTA. **No rewarded-ad button is rendered.** The optional API check was not run | `s85-qa2-enddate-range-refusal.png`<br>`window-qa2-duration-sheet-partner.xml` |
 | 9 | A | Creator permanent purchase (₩2,000, test card) on promise P1 | Sheet shows `영구 보관이 적용됐어요.`, then `이 기록은 내 계정에 영구 보관돼요` **and** `종료일 없이 제안할 수 있어요`; the editor offers `종료일 없음`; an AMEND request with no end date is accepted and B sees `종료일 없음` on the web. SQL: one `slot_purchases` row `product_id = promise_permanent_access` for (P1, A) | NOT_RUN | `s09-*.png` |
-| 10 | B | Partner permanent purchase on a different promise P2 (A has not bought) | B sees `영구 보관 중` on P2; A's sheet on P2 still shows the ceiling and no `종료일 없음`; A's editor still refuses a no-end proposal (`E_END_DATE_RANGE`) | **FAIL** — `ADR15-QA-F04`: after the PO created the product, code 19 still shows the fallback price and no Play purchase sheet; the ledger has zero permanent-access purchases | `s70-play-code18-retention-card.png`<br>`s73-play-code18-permanent-purchase-attempt.png` |
-| 11 | A | Restore on reopen: start a purchase on P3, kill the app right after Play's payment sheet reports success and before `영구 보관이 적용됐어요.` | Reopen the sheet → the unconsumed purchase is recovered and applied without paying again; exactly one `slot_purchases` row for (P3, A); Play shows one order | **PARTIAL** — the row as written stays blocked by `ADR15-QA-F04`, but the same recovery machinery was exercised with `promise_slot_plus1`: a license-test purchase was completed, the app was `force-stop`ped while Play was still showing its post-purchase screen, and on relaunch the profile still read `사용 중 2 / 6`. Opening the slot sheet recovered the unconsumed purchase and it read `사용 중 2 / 7` — **+1 exactly, no second payment, no error in logcat**. Observation: the profile card keeps the stale figure until the sheet is opened, because the recovery runs on sheet open | `s93-qa2-play-billing.png`<br>`s94-qa2-killed-mid-purchase.png`<br>`s96-qa2-slot-after-recovery.png`<br>`s97-qa2-slot-sheet-recovery.png` |
+| 10 | B | Partner permanent purchase on a different promise P2 (A has not bought) | B sees `영구 보관 중` on P2; A's sheet on P2 still shows the ceiling and no `종료일 없음`; A's editor still refuses a no-end proposal (`E_END_DATE_RANGE`) | **PARTIAL** — partner half PASS on Play-installed code 20: the no-charge license-test purchase sheet opens at ₩2,000, the app changes to `영구 보관 중`, and the state survives force-stop/cold start. SQL: one ledger row, one order, one token, no revocation, buyer effective=true, creator effective=false. Creator-side sheet/editor UI still needs the second signed-in app account | `s114-code20-play-permanent-attempt.png`<br>`s115-code20-play-permanent-complete.png`<br>`window-code20-play-reopen-detail-ko.xml` |
+| 11 | A | Restore on reopen: start a purchase on P3, kill the app right after Play's payment sheet reports success and before `영구 보관이 적용됐어요.` | Reopen the sheet → the unconsumed purchase is recovered and applied without paying again; exactly one `slot_purchases` row for (P3, A); Play shows one order | **PARTIAL** — the permanent product is now available, but its exact kill-between-Play-and-server scenario was not run. The same recovery machinery passed with `promise_slot_plus1`: a license-test purchase was completed, the app was `force-stop`ped while Play was still showing its post-purchase screen, and on relaunch the profile still read `사용 중 2 / 6`. Opening the slot sheet recovered the unconsumed purchase and it read `사용 중 2 / 7` — **+1 exactly, no second payment, no error in logcat**. The normally completed permanent purchase also survives force-stop/cold start with one ledger row | `s93-qa2-play-billing.png`<br>`s94-qa2-killed-mid-purchase.png`<br>`s96-qa2-slot-after-recovery.png`<br>`s97-qa2-slot-sheet-recovery.png`<br>`s115-code20-play-permanent-complete.png` |
 | 12 | A | Refund → reconcile revokes: Play Console → 주문 관리 → refund row 9's order **with 권한 취소** → wait for `lf-purchase-reconcile` (03:17 UTC = 12:17 KST) or trigger it: `curl -X POST https://vepnrrmxvsytguocicfe.supabase.co/functions/v1/purchase-reconcile -H "x-purchase-reconcile-secret: $PURCHASE_RECONCILE_SECRET" -H 'Content-Type: application/json' -d '{}'` (Google's voided-purchases feed can lag; retry the next day if empty) | A loses `영구 보관 중` on P1 and the finite expiry is recalculated; the already-approved no-end amendment on P1 is **not** rewritten (`종료일 없음` stays); B's access unchanged | NOT_RUN | `s12-*.png` |
 | 13 | A | A02 banner: `update public.app_configs set value='true'::jsonb where key='ads_enabled';` with ≥6 rows in the ACTIVE tab; then with exactly 5; then `false`; then `true` in airplane mode | ≥6: one banner after the 5th visual card (hero counts), none elsewhere; 5: none; `false`: none and no gap; airplane (no fill): no reserved space. Restore `false` | **FAIL** — the former UMP publisher-misconfiguration is resolved, but the live request returns `Ad failed to load : 3` (no fill), so the required rendered-ad placement cannot be verified. `ads_enabled=false` restored | logcat; flag restored to `false` |
 | 14 | A/B | FINISH request → approve: on a no-end ACTIVE promise (row 9) A taps `이 약속 마무리 요청` → confirm | B receives one push (NT-15 copy `…님이 약속 변경을 요청했어요`) and one inbox row; B opens the web `/promises` → approves → status CHECKING on both surfaces; SQL: `retention_anchor_at` set, actions `FINISH_REQUEST` + `FINISH_APPROVE` in the audit list | NOT_RUN | `s14-*.png` |
@@ -203,21 +221,20 @@ select event_code, dedupe_key, created_at from public.notifications
   device-QA blocker until a test ad fills and the rewarded/exposure rows can be completed; it is no
   longer evidence of a UMP configuration defect.
 
-### ADR15-QA-F04 — permanent-access Play product is not available to code 19
+### ADR15-QA-F04 — permanent-access Play product is unavailable — RESOLVED IN CODE 20
 
 - Expected: `promise_permanent_access` is Active at ₩2,000; the sheet shows its localized price and
   opens the license-test purchase sheet.
 - Original result: the catalog contained only `promise_slot_plus1`. The app received an empty
   price, rendered `에 영구 보관`, and failed before Play Billing appeared.
 - After console configuration: the PO confirms `promise_permanent_access` is configured at ₩2,000,
-  but the Play-installed code 19 still renders the approved fallback price, does not open the Play
-  purchase sheet, and reports `구매를 확인하지 못했어요. 결제되지 않았다면 다시 시도해 주세요.`
-  The server ledger still contains zero rows for this product. Treat this as propagation or product
-  availability until Play Billing returns its catalog details; repeat after the console change has
-  propagated.
+  but the immediate code 19 retest still rendered the approved fallback price and did not open the
+  purchase sheet. This was console propagation, not a second client defect.
 - Code resolution: `c0a17fb` trims store prices and treats empty/whitespace as unavailable, restoring
-  the approved ₩2,000 fallback instead of an empty label. No further client change is indicated by
-  the current evidence; repeat rows 9–12 once Play returns the configured product.
+  the approved ₩2,000 fallback instead of an empty label.
+- Play resolution: the code 20 installed build receives the product, opens the ₩2,000 no-charge
+  license-test purchase sheet, verifies the purchase server-side, consumes it, and restores
+  `영구 보관 중` after a cold start. The ledger and participant-isolation checks above pass.
 
 ### ADR15-QA-F05 — store signing certificate missing from App Links — RESOLVED
 
@@ -235,7 +252,7 @@ select event_code, dedupe_key, created_at from public.notifications
   19 sheet renders `₩2,000에 영구 보관`. Evidence:
   `s77-play-code19-permanent-price-fallback.png`.
 
-### ADR15-QA-F07 — MOD-02 still says KakaoTalk while the handler is the OS share sheet
+### ADR15-QA-F07 — MOD-02 said KakaoTalk while the handler is the OS share sheet — RESOLVED IN CODE 20
 
 - Expected: the witness invite button describes what it does. C-4 was closed on 2026-08-23 by
   retiring exactly this label on SCR-A04 — the handler there was already the OS share sheet and
@@ -247,11 +264,12 @@ select event_code, dedupe_key, created_at from public.notifications
   the app, so MOD-02 was simply missed by the C-4 sweep.
 - Scope: not a release blocker; a copy correction of the same kind already approved for SCR-A04.
   Fixed in `fdc2b8b` with the already-approved SCR-A04 wording `초대 링크 공유하기` /
-  `Share invite link`. Unit coverage passes, and the code 20 development build renders the new
-  label without clipping. Evidence: `s81-qa2-witness-sheet.png` (before),
-  `s110-code20-dev-witness-share-label.png` (after).
+  `Share invite link`. Unit coverage passes, and both the development build and Play-installed code
+  20 render the new label without clipping. Evidence: `s81-qa2-witness-sheet.png` (before),
+  `s110-code20-dev-witness-share-label.png`, `s113-code20-play-witness-share-en.png`, and
+  `s116-code20-play-witness-share-ko.png` (after).
 
-### ADR15-QA-F08 — English locale prints a Korean weekday on the home list
+### ADR15-QA-F08 — English locale printed a Korean weekday on the home list — RESOLVED IN CODE 20
 
 - Expected: with English selected, `종료일`/`End date` renders an English weekday —
   `WEEKDAY_LABEL.en` already exists in `packages/shared/src/datetime.ts:96`.
@@ -262,10 +280,11 @@ select event_code, dedupe_key, created_at from public.notifications
   entitlement sheet, A05 detail state, and all four web screens) pass `locale` correctly.
 - Scope: SCR-A02 only, both hero and rows; ADR 0006 requires user-facing strings in both locales.
   Fixed in `fdc2b8b` by passing the current locale at both call sites, with a regression test for
-  the hero and list. The code 20 development build renders `End date 2026-09-03 (Thu)` on the hero
-  and `End date 2026-08-20 (Thu)` in the row. Evidence:
+  the hero and list. The Play-installed code 20 renders `End date 2026-09-03 (Thu)` on the hero and
+  `End date 2026-09-22 (Tue)` in the row. Evidence:
   `s90-qa2-home-en-weekday-defect.png`, `s91-qa2-list-en-weekday-defect.png` (before),
-  `s108-code20-dev-home-en-weekday.png`, `s109-code20-dev-home-en-hero-weekday.png` (after).
+  `s108-code20-dev-home-en-weekday.png`, `s109-code20-dev-home-en-hero-weekday.png`, and
+  `s112-code20-play-home-en.png` (after).
 
 ## Staging fast-forward SQL (rows 16–18)
 

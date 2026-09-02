@@ -47,9 +47,9 @@ still require their dedicated setup and worker secrets. Detailed evidence and ro
 A second pass ran against the store-installed `0.2.0 (19)` on the same SM-N981N, signed in as
 김정연 — the **partner** on the promise under test, which is what makes the partner-side rows
 reachable at all. The matrix moved from 1 PASS · 2 FAIL · 17 NOT_RUN to
-**3 PASS · 5 PARTIAL · 2 FAIL · 10 NOT_RUN**; the overall result stays **FAIL** because the
-permanent-access product still does not open Play Billing and ad-backed rows cannot finish while
-AdMob returns no fill.
+**3 PASS · 6 PARTIAL · 1 FAIL · 10 NOT_RUN** after the code 20 follow-up. The overall result stays
+**FAIL** because ad-backed rows cannot finish while AdMob remains unavailable and ten destructive
+or multi-account rows have not yet run.
 
 What newly passes. Row 8: the partner's duration sheet shows `종료일 범위는 작성자만 늘릴 수
 있어요.` and renders **no rewarded-ad button** — only the scrim, close, and purchase CTA. Row 19:
@@ -68,9 +68,14 @@ while Play was still on its post-purchase screen, then reopening the sheet recov
 The PO then completed the two console settings. A cold-start retest confirms that the former UMP
 publisher-misconfiguration error is gone: UMP writes `IABTCF_gdprApplies=0`, Mobile Ads initializes,
 and an ad request is made. The request still ends with `Ad failed to load : 3` (no fill), so no
-reward is granted and the locked copy remains. The permanent-access CTA still returns the app's
-purchase-verification error without opening Play Billing, and the purchase ledger contains no
-`promise_permanent_access` row. Live flags after every test are `ads_enabled=false` and
+reward is granted and the locked copy remains.
+
+The Play-installed `0.2.0 (20)` follow-up closes the permanent-product blocker. Play Billing shows
+`약속 영구 보관`, the localized ₩2,000 price, `테스트 카드, 항상 승인`, and the explicit
+no-charge test-order notice. Completing the order changes the partner's sheet to `영구 보관 중`;
+it survives a force-stop and cold start. The server ledger contains exactly one
+`promise_permanent_access` row, the order and token each occur once, the buyer's effective access
+is true, and the creator's remains false. Live flags after every test are `ads_enabled=false` and
 `rewarded_ads_enabled=true`.
 
 Two new defects, both outside the ADR 0015 surface but present on the release build.
@@ -83,7 +88,8 @@ weekday (`End date 2026-09-22 (화)`), because two of `formatKstDate`'s eleven c
 `초대 링크 공유하기` / `Share invite link`, and both home call sites pass the current locale.
 The code 20 development build was exercised end to end with a newly created and mutually approved
 promise; screenshots confirm `(Thu)` on the hero and list and the corrected witness-sheet CTA with
-no clipping or layout regression.
+no clipping or layout regression. The Play-installed code 20 repeats both checks: `(Thu)`/`(Tue)`
+render in English, and MOD-02 renders `초대 링크 공유하기` / `Share invite link` without clipping.
 
 Post-fix repo gates: `vitest run` 110 files / 2142 tests passed, `jest-expo` 79 suites / 821
 tests passed, the five-project `typecheck` and `check:agents` both exited 0. Rows 14–18 remain
