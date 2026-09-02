@@ -21,7 +21,8 @@ import {
   Text,
   ToastAndroid,
   View,
-  type FocusEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native';
 import Animated, { FadeInLeft, FadeInRight, useReducedMotion } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -143,6 +144,16 @@ function ReviewValue({ label, value }: { label: string; value: string }): React.
   );
 }
 
+export function conditionInputScrollY(
+  currentScrollY: number,
+  inputY: number,
+  inputHeight: number,
+  keyboardScreenY: number,
+): number | null {
+  const overlap = inputY + inputHeight + space[6] - keyboardScreenY;
+  return overlap > 0 ? currentScrollY + overlap : null;
+}
+
 export default function PromiseEditorScreen(): React.JSX.Element {
   const LABEL = useLabels(PROMISE_EDIT_LABEL);
   const { locale } = useLocale();
@@ -167,19 +178,36 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const [amendComment, setAmendComment] = useState<string | null>(null);
   const [slotSheetOpen, setSlotSheetOpen] = useState(false);
   const [durationSheetOpen, setDurationSheetOpen] = useState(false);
+  const [keyboardScrollInset, setKeyboardScrollInset] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
-  const focusedConditionInput = useRef<number | null>(null);
+  const rewardInputAnchorRef = useRef<View>(null);
+  const penaltyInputAnchorRef = useRef<View>(null);
+  const scrollOffsetY = useRef(0);
+  const focusedConditionInput = useRef<'reward' | 'penalty' | null>(null);
+  const conditionRevealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const revealFocusedConditionInput = useCallback((): void => {
-    const target = focusedConditionInput.current;
-    if (target === null) return;
-    scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(target, space[6], true);
+  const revealFocusedConditionInput = useCallback((keyboardScreenY?: number): void => {
+    const focusedInput = focusedConditionInput.current;
+    const keyboardY = keyboardScreenY ?? Keyboard.metrics()?.screenY;
+    if (focusedInput === null || keyboardY === undefined) return;
+
+    const anchor = focusedInput === 'reward' ? rewardInputAnchorRef.current : penaltyInputAnchorRef.current;
+    anchor?.measureInWindow((_x, y, _width, height) => {
+      const nextY = conditionInputScrollY(scrollOffsetY.current, y, height, keyboardY);
+      if (nextY === null) return;
+      // 연속 포커스는 첫 애니메이션의 onScroll보다 먼저 올 수 있어 요청 위치도 즉시 보관한다.
+      scrollOffsetY.current = nextY;
+      scrollRef.current?.scrollTo({ y: nextY, animated: true });
+    });
   }, []);
 
-  const focusConditionInput = useCallback((event: FocusEvent): void => {
-    focusedConditionInput.current = event.nativeEvent.target;
+  const focusConditionInput = useCallback((input: 'reward' | 'penalty'): void => {
+    focusedConditionInput.current = input;
     // 키보드가 이미 열린 채 보상↔벌칙을 옮길 때도 즉시 새 입력란을 보여준다.
     revealFocusedConditionInput();
+    if (conditionRevealTimer.current !== null) clearTimeout(conditionRevealTimer.current);
+    // 일부 Android 키보드는 빠른 재표시에서 didShow를 생략하므로 애니메이션 뒤 좌표를 다시 확인한다.
+    conditionRevealTimer.current = setTimeout(revealFocusedConditionInput, duration.long);
   }, [revealFocusedConditionInput]);
 
   const autosave = useMemo(
@@ -216,8 +244,19 @@ export default function PromiseEditorScreen(): React.JSX.Element {
 
   useEffect(() => {
     // 기기마다 키보드가 화면을 차지하는 시점이 달라 실제 높이가 정해진 뒤 한 번 더 맞춘다.
-    const shown = Keyboard.addListener('keyboardDidShow', revealFocusedConditionInput);
-    return () => shown.remove();
+    const shown = Keyboard.addListener('keyboardDidShow', (event) => {
+      // 마지막 입력란도 키보드 위까지 올라갈 수 있도록 실제 키보드 높이만큼 스크롤 여유를 만든다.
+      setKeyboardScrollInset(event.endCoordinates.height);
+      revealFocusedConditionInput(event.endCoordinates.screenY);
+    });
+    const hidden = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardScrollInset(0);
+    });
+    return () => {
+      shown.remove();
+      hidden.remove();
+      if (conditionRevealTimer.current !== null) clearTimeout(conditionRevealTimer.current);
+    };
   }, [revealFocusedConditionInput]);
 
   const validation = validatePromiseDraft(draft, new Date(), locale);
@@ -501,14 +540,16 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             />
           ))}
         </View>
-        <LfInput
-          accessibilityLabel={LABEL.reward}
-          value={draft.reward}
-          maxLength={100}
-          onFocus={focusConditionInput}
-          onBlur={() => touch('reward')}
-          onChangeText={(value) => updateDraft('reward', value)}
-        />
+        <View ref={rewardInputAnchorRef} collapsable={false} testID="reward-input-anchor">
+          <LfInput
+            accessibilityLabel={LABEL.reward}
+            value={draft.reward}
+            maxLength={100}
+            onFocus={() => focusConditionInput('reward')}
+            onBlur={() => touch('reward')}
+            onChangeText={(value) => updateDraft('reward', value)}
+          />
+        </View>
       </LfField>
       <LfField label={LABEL.penalty} optional error={errorFor('penalty')}>
         <View style={styles.choices}>
@@ -521,14 +562,16 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             />
           ))}
         </View>
-        <LfInput
-          accessibilityLabel={LABEL.penalty}
-          value={draft.penalty}
-          maxLength={100}
-          onFocus={focusConditionInput}
-          onBlur={() => touch('penalty')}
-          onChangeText={(value) => updateDraft('penalty', value)}
-        />
+        <View ref={penaltyInputAnchorRef} collapsable={false} testID="penalty-input-anchor">
+          <LfInput
+            accessibilityLabel={LABEL.penalty}
+            value={draft.penalty}
+            maxLength={100}
+            onFocus={() => focusConditionInput('penalty')}
+            onBlur={() => touch('penalty')}
+            onChangeText={(value) => updateDraft('penalty', value)}
+          />
+        </View>
       </LfField>
     </LfStack></LfCard>
   );
@@ -622,7 +665,14 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         ref={scrollRef}
         style={styles.scroll}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.body}
+        onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+          scrollOffsetY.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
+        contentContainerStyle={[
+          styles.body,
+          keyboardScrollInset > 0 && { paddingBottom: space[9] + keyboardScrollInset },
+        ]}
       >
         {amendComment !== null && (
           <LfCard variant="container" testID="amend-comment-banner">

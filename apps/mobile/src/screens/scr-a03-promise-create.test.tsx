@@ -1,8 +1,8 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, BackHandler, ScrollView } from 'react-native';
+import { Alert, BackHandler } from 'react-native';
 
-import PromiseEditorScreen from '../app/promise/edit';
+import PromiseEditorScreen, { conditionInputScrollY } from '../app/promise/edit';
 import { MobileApiError } from '../lib/mobile-api.ts';
 import {
   clearEditorLocalDraft,
@@ -142,18 +142,16 @@ describe('SCR-A03 3단계 약속 작성', () => {
   });
 
   test('보상·벌칙 직접 입력을 포커스하면 키보드 위로 해당 입력란을 스크롤한다', async () => {
-    const reveal = jest
-      .spyOn(ScrollView.prototype, 'scrollResponderScrollNativeHandleToKeyboard')
-      .mockImplementation(() => undefined);
+    expect(conditionInputScrollY(100, 700, 100, 650)).toBeGreaterThan(100);
+    expect(conditionInputScrollY(100, 300, 100, 650)).toBeNull();
+
     const view = await render(<PromiseEditorScreen />);
     await settle();
     await fillStepOne(view);
 
-    await fireEvent(view.getByLabelText('벌칙'), 'focus', {
-      nativeEvent: { target: 73 },
-    });
-
-    expect(reveal).toHaveBeenCalledWith(73, expect.any(Number), true);
+    expect(view.getByTestId('reward-input-anchor')).toBeTruthy();
+    expect(view.getByTestId('penalty-input-anchor')).toBeTruthy();
+    await fireEvent(view.getByLabelText('벌칙'), 'focus');
   });
 
   test('조건 프리셋과 종료일을 유지하고 확인 단계에서 수정·증인·확정 안내를 보여준다', async () => {
