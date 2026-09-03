@@ -293,7 +293,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
             onPress={() => router.back()}
             style={styles.back}
           >
-            <LfIcon name="arrow-back" />
+            <LfIcon name="arrow_back" />
           </Pressable>
         }
         action={action}

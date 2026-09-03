@@ -51,7 +51,7 @@ export function LfPicker({
       <View style={styles.value}>
         <LfText secondary={value === undefined}>{value ?? placeholder}</LfText>
       </View>
-      <LfIcon name="expand-more" color="textMuted" />
+      <LfIcon name="expand_more" color="textMuted" />
     </Pressable>
   );
 }

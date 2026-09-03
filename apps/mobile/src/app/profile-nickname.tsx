@@ -60,7 +60,7 @@ export default function ProfileNicknameScreen(): React.JSX.Element {
         title={LABEL.title}
         leading={(
           <Pressable accessibilityRole="button" accessibilityLabel={LABEL.back} style={styles.iconButton} onPress={() => router.back()}>
-            <LfIcon name="arrow-back" />
+            <LfIcon name="arrow_back" />
           </Pressable>
         )}
       />

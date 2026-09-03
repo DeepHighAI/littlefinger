@@ -349,7 +349,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
             style={styles.iconButton}
             onPress={() => router.push('/notifications')}
           >
-            <LfIcon name="notifications-none" size={size.appbarIcon} />
+            <LfIcon name="notifications" size={size.appbarIcon} />
           </Pressable>
         )}
       />

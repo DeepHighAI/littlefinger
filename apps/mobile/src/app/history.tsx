@@ -181,7 +181,7 @@ export default function HistoryScreen({ now = new Date() }: HistoryScreenProps):
             style={styles.iconButton}
             onPress={() => router.back()}
           >
-            <LfIcon name="arrow-back" />
+            <LfIcon name="arrow_back" />
           </Pressable>
         )}
       />

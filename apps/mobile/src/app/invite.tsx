@@ -311,7 +311,7 @@ export default function InviteScreen(): React.JSX.Element {
             onPress={() => router.push('/home')}
             style={styles.back}
           >
-            <LfIcon name="arrow-back" />
+            <LfIcon name="arrow_back" />
           </Pressable>
         }
         action={<LfChip label={LABEL.waiting} tone="neutral" />}
@@ -391,7 +391,7 @@ export default function InviteScreen(): React.JSX.Element {
         {needsIssue && (
           <LfCard variant="container">
             <LfStack gap={5} center>
-              <LfIcon name="link-off" color="primary" />
+              <LfIcon name="link_off" color="primary" />
               <LfText variant="subtitle" align="center">
                 {phase === 'missing'
                   ? LABEL.missing

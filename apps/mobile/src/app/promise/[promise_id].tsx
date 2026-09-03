@@ -243,7 +243,7 @@ function BackButton({ onPress }: { onPress(): void }): React.JSX.Element {
       onPress={onPress}
       style={styles.back}
     >
-      <LfIcon name="arrow-back" />
+      <LfIcon name="arrow_back" />
     </Pressable>
   );
 }

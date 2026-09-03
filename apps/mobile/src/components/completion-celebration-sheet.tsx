@@ -150,7 +150,7 @@ export function CompletionCelebrationSheet({
                   </LfText>
                 </LfStack>
                 <View style={styles.rate}>
-                  <LfIcon name="trending-up" color="primary" />
+                  <LfIcon name="trending_up" color="primary" />
                   <LfText>
                     {completionKeepRateLabel(
                       celebration.keep_rate_before,

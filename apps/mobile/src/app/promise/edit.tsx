@@ -646,7 +646,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             onPress={previousStep}
             style={styles.close}
           >
-            <LfIcon name={step === 1 ? 'close' : 'arrow-back'} />
+            <LfIcon name={step === 1 ? 'close' : 'arrow_back'} />
           </Pressable>
         )}
         action={<LfChip label={LABEL.stepCount(step)} tone="neutral" />}

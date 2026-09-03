@@ -76,7 +76,7 @@ interface ReminderRowProps {
 function ReminderRow({ label, value, disabled, onChange }: ReminderRowProps): React.JSX.Element {
   return (
     <LfRow gap={4}>
-      <LfIcon name="notifications-none" color="record" />
+      <LfIcon name="notifications" color="record" />
       <View style={styles.settingText}><LfText>{label}</LfText></View>
       <LfSwitch
         accessibilityLabel={label}
@@ -350,12 +350,12 @@ export default function ProfileScreen(): React.JSX.Element {
           <Pressable accessibilityRole="button" accessibilityLabel={LABEL.termsAccessibility} style={styles.legalButton} onPress={() => void handleLegalDocument('TERMS')}>
             <LfIcon name="description" color="record" />
             <View style={styles.legalLabel}><LfText>{LABEL.terms}</LfText></View>
-            <LfIcon name="chevron-right" color="textMuted" />
+            <LfIcon name="arrow_forward" color="textMuted" />
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel={LABEL.privacyAccessibility} style={styles.legalButton} onPress={() => void handleLegalDocument('PRIVACY')}>
-            <LfIcon name="privacy-tip" color="record" />
+            <LfIcon name="privacy_tip" color="record" />
             <View style={styles.legalLabel}><LfText>{LABEL.privacy}</LfText></View>
-            <LfIcon name="chevron-right" color="textMuted" />
+            <LfIcon name="arrow_forward" color="textMuted" />
           </Pressable>
           {legalDocumentFailed && <LfText variant="error">{LABEL.legalDocumentError}</LfText>}
         </LfStack>
@@ -370,7 +370,7 @@ export default function ProfileScreen(): React.JSX.Element {
         >
           <LfIcon name="block" color="record" />
           <View style={styles.legalLabel}><LfText>{LABEL.blockedUsers}</LfText></View>
-          <LfIcon name="chevron-right" color="textMuted" />
+          <LfIcon name="arrow_forward" color="textMuted" />
         </Pressable>
       </LfCard>
       <LfButton label={LABEL.logout} variant="danger" disabled={state.loggingOut} onPress={confirmLogout} />

@@ -103,7 +103,7 @@ export default function OnboardingScreen(): React.JSX.Element {
         <View style={styles.steps}>
           {steps.map((step, index) => (
             <View key={step.label} style={styles.steps}>
-              {index > 0 && <LfIcon name="east" size={type.body} color="text" />}
+              {index > 0 && <LfIcon name="arrow_forward" size={type.body} color="text" />}
               <View style={styles.step}>
                 <View
                   style={[

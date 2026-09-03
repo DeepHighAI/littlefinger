@@ -193,7 +193,7 @@ function BackButton({ onPress }: { onPress(): void }): React.JSX.Element {
       onPress={onPress}
       style={styles.back}
     >
-      <LfIcon name="arrow-back" />
+      <LfIcon name="arrow_back" />
     </Pressable>
   );
 }
@@ -236,7 +236,7 @@ function AnswerChoice({
       style={[styles.answer, selected && styles.answerSelected]}
     >
       <LfIcon
-        name={answer === 'KEPT' ? 'check-circle' : 'cancel'}
+        name={answer === 'KEPT' ? 'check_circle' : 'cancel'}
         color={selected ? 'primary' : 'textMuted'}
       />
       <View style={styles.answerText}>
@@ -246,7 +246,7 @@ function AnswerChoice({
         </LfText>
       </View>
       <LfIcon
-        name={selected ? 'radio-button-checked' : 'radio-button-unchecked'}
+        name={selected ? 'radio_button_checked' : 'radio_button_unchecked'}
         color={selected ? 'primary' : 'outlineIcon'}
       />
     </Pressable>
@@ -1030,7 +1030,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
                     style={[styles.evidenceTile, styles.evidenceAdd]}
                     onPress={() => void addEvidence()}
                   >
-                    <LfIcon name="photo-camera" color="textMuted" />
+                    <LfIcon name="photo_camera" color="textMuted" />
                     <LfText variant="caption">
                       {LABEL.evidenceAdd}
                     </LfText>

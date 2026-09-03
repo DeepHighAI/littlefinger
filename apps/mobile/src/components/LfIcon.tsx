@@ -1,18 +1,26 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { createIconSet } from '@expo/vector-icons';
 
+import { ICON_FONT_FAMILY } from '../theme/fonts';
+import { ICON_CODEPOINT } from '../theme/icon-codepoints';
 import { colors, type as typeScale } from '../theme/tokens';
 
 /**
- * 아이콘 — 04 §5-4.
+ * 아이콘 — 04 §5-4 · 2026-09-03 확정안의 Material Symbols **Rounded**.
  *
- * 원본은 Material Symbols **Rounded** 지만 Expo 에 들어 있지 않다. MVP 는 내장 MaterialIcons 로
- * 간다 — 모서리 곡률이 미세하게 다르고 기능 차이는 없다(오픈 이슈 C-2).
+ * Expo 에는 Rounded 가 없어서 `tools/subset-icon-font.js` 가 구운 정적 서브셋 TTF 를 직접
+ * 등록한다. 이름 집합은 생성된 코드포인트 표로 닫혀 있다 — 표에 없는 이름은 컴파일이 막고,
+ * 표에 있는 이름은 폰트에 반드시 글리프가 있다(생성기 테스트가 잠근다). C-2 는 이것으로 닫혔다.
  *
- * **화면에서 MaterialIcons 를 직접 import 하지 않는다.** 전부 이 컴포넌트를 거쳐야
- * 나중에 진짜 Rounded 폰트로 바꿀 때 고칠 자리가 여기 하나로 남는다.
+ * **화면에서 아이콘 폰트를 직접 import 하지 않는다.** 전부 이 컴포넌트를 거친다.
  */
 
-export type LfIconName = React.ComponentProps<typeof MaterialIcons>['name'];
+const MaterialSymbols = createIconSet(
+  ICON_CODEPOINT,
+  ICON_FONT_FAMILY,
+  require('../../assets/fonts/MaterialSymbolsRounded-subset.ttf') as number,
+);
+
+export type LfIconName = keyof typeof ICON_CODEPOINT;
 export type LfIconColor = keyof typeof colors;
 
 export interface LfIconProps {
@@ -34,7 +42,7 @@ export function LfIcon({
   const decorative = accessibilityLabel === undefined;
 
   return (
-    <MaterialIcons
+    <MaterialSymbols
       name={name}
       size={size}
       color={colors[color]}

@@ -42,7 +42,7 @@ export function LfTrustStrip({ rate, onPress }: LfTrustStripProps): React.JSX.El
         <LfText variant="listStatus">{LABEL.trustRate}</LfText>
         <LfText variant="caption">{summary}</LfText>
       </View>
-      <LfIcon name="chevron-right" color="textMuted" />
+      <LfIcon name="arrow_forward" color="textMuted" />
     </Pressable>
   );
 }

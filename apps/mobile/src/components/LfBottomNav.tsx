@@ -63,7 +63,7 @@ function Destination({
   onPress,
 }: {
   active: boolean;
-  icon: 'home' | 'person-outline';
+  icon: 'home' | 'person';
   label: string;
   onPress: () => void;
 }): React.JSX.Element {
@@ -113,7 +113,7 @@ export function LfBottomNav({
         </View>
         <Destination
           active={active === 'profile'}
-          icon="person-outline"
+          icon="person"
           label={LABEL.profile}
           onPress={onProfilePress}
         />
