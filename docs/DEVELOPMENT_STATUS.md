@@ -69,6 +69,24 @@ and one day for `/fonts/**` (`firebase.json`, pinned by `seo.test.ts`). Remainin
 verification after a few hours, or request manual review with the justification in
 `open-testing-po-guide.md` §4.
 
+**Open testing is live (2026-09-03 17:01 KST).** 제출 활동 shows submission 1 (15:30 — open
+testing, store listing, app content, store settings) and submission 2 (15:45 — open testing,
+code 21) both **출시됨**. The public listing
+`https://play.google.com/store/apps/details?id=com.littlefinger.app` renders the corrected name
+`리틀핑거 - 둘이 지키는 약속 기록`, 8 screenshots, "광고 포함 · 인앱 구매", 12세 이상, and an 설치
+button; the Play **web** search for "리틀핑거" returns it as the first result the same evening,
+while the phone's Play Store search did not show it yet — Google's help says a first test release
+"can take several hours to become available", and mobile search indexing lags the web. The
+release row reads `제한된 테스터에게 제공됨` although the tester setting is 무제한; no official
+definition was found, the opt-in page (`/apps/testing/com.littlefinger.app`) works, and nothing
+is blocked. Three listing findings for the PO: the 의견 URL points at the Google Forms **edit**
+link (`/forms/d/…/edit`) instead of the respondent link; the Data safety card shows **위치** as
+collected although the app collects no location (EXIF is stripped — `play-data-safety.md` says
+declare nothing for location); the developer contact block prints `복현서현타운` and
+`053-665-2667` while `legal-content.ts` (the source of truth) says `복현서한타운` and
+`02-3443-1028`. Unsent console changes now pending are only the closed-testing "Alpha" country
+settings, which are unused.
+
 ### After open testing — verification and development backlog
 
 Priority order; each item names what it needs.

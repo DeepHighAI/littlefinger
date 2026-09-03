@@ -35,6 +35,13 @@ All in `open-testing-po-guide.md` §1–§10, hand-back block §12. Blockers: �
 게시 개요), GCP consent screen → In production. Decisions still open: proceed without legal
 `2026-08-30.2` (§8-1), N-1 record (§8-2).
 
+## Open testing went live at 17:01 KST
+
+Both submissions are 출시됨, the listing is public, and the web store search finds it. Follow-ups
+in `open-testing-po-guide.md` §11 (feedback URL is the Forms edit link, Data safety wrongly lists
+location, seller contact block differs from `legal-content.ts`) and §4 (brand re-verification
+after the sync delay).
+
 ## Exact next step
 
 1. Done — the code 21 AAB is validated and recorded; it sits in `dist/` on the PO's machine with
