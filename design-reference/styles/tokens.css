@@ -1,6 +1,8 @@
 /* =============================================================
-   Little Finger — Design Tokens ("잉크 & 스티커" Setlog restyle)
-   2026-08-27 PO 컨펌 시안 1a 기준.
+   Little Finger — Design Tokens ("파스텔 × 잉크 & 스티커")
+   2026-09-03 PO 컨펌 확정안(리틀핑거 파스텔 스티커) 기준. 잉크 & 스티커(ADR 0012)의
+   토큰 계약 위에 파스텔 4색(옐로=브랜드/선택 · 민트=진행·완료 · 핑크=마감·벌칙 ·
+   스카이=기록·보상)과 E-1 마스코트·C-1 손 애니메이션 치수를 얹었다.
    apps/mobile/src/theme/tokens.ts · apps/web/src/styles/tokens.css 와 항상 같은 계약을 쓴다
    (tokens.test.ts가 값과 누락을 검증한다).
    ============================================================= */
@@ -20,45 +22,45 @@
 
 :root {
   /* ---------------------------------------------------------
-     COLOR — 잉크 #221C13 · 크림 #F3ECDC · 버터/라벤더/살구 스티커
-     녹색·청색 역할을 잉크 모노 + 스티커 컬러로 재매핑.
-     의미 규칙 유지: 상태는 항상 텍스트 병기, 빨강은 오류·불이행 전용.
+     COLOR — 잉크 #221C13 · 크림 #F3ECDC · 파스텔 스티커 4색
+     파스텔 위 글자는 언제나 잉크다(색 글자 폐지). 상태는 항상 텍스트 병기,
+     빨강은 오류 전용 — 불이행은 핑크(벌칙) 스티커다 (PO 2026-09-03, D7).
      --------------------------------------------------------- */
   --lf-color-primary:              #221C13; /* 잉크 · 브랜드·강조·선택 */
   --lf-color-primary-hover:        #16120C;
   --lf-color-primary-pressed:      #0B0906;
   --lf-color-on-primary:           #FFFDF4;
-  --lf-color-primary-container:    #F6E7A3; /* 버터 스티커 */
+  --lf-color-primary-container:    #FFE59A; /* 옐로 스티커 — 브랜드·선택·읽지 않음 */
   --lf-color-on-primary-container: #221C13;
   --lf-color-primary-soft:         #FBF6E4;
-  --lf-color-primary-pale:         #CDBCEC; /* 라벤더 — 핑키 보조 획 */
+  --lf-color-primary-pale:         #A9D3FF; /* 스카이 — 보조 획·진행바 */
   --lf-color-primary-ink:          #221C13;
   --lf-color-action-fill:          #221C13; /* 검정 필 CTA */
   --lf-color-action-fill-pressed:  #000000;
   --lf-color-on-action:            #FFFDF4;
-  --lf-color-brand-symbol-on-action: #F6E7A3;
+  --lf-color-brand-symbol-on-action: #FFE59A; /* CTA 안 옐로 원 */
   --lf-color-brand-symbol:         #221C13;
 
-  /* 확정 기록·정보 — 라벤더 계열 */
-  --lf-color-record:           #6B58A8;
+  /* 확정 기록·정보·변경 협의 — 스카이 스티커, 글자는 잉크 */
+  --lf-color-record:           #221C13;
   --lf-color-on-record:        #FFFDF4;
-  --lf-color-record-container: #E7DFF6;
+  --lf-color-record-container: #A9D3FF;
 
-  /* 마감·응답 필요 — 살구 계열 */
-  --lf-color-attention:           #B05F2C;
-  --lf-color-attention-container: #F8DDBE;
+  /* 마감·응답 필요·이행 확인 — 핑크 스티커, 글자는 잉크 */
+  --lf-color-attention:           #221C13;
+  --lf-color-attention-container: #FFB5C1;
 
   /* 표면 */
   --lf-color-background:      #F3ECDC;
   --lf-color-surface:         #FFFDF4;
-  --lf-color-surface-chrome:  #FFFDF4;
+  --lf-color-surface-chrome:  #F3ECDC; /* 앱바는 투명 — 크림이 그대로 비친다 */
   --lf-color-surface-muted:   #EAE1CB;
 
   /* 외곽선 — 굵은 잉크 테두리는 컴포넌트 레이어에서 var(--lf-color-text)로 긋는다 */
   --lf-color-outline:        #E0D5BA;
   --lf-color-outline-strong: #B8AB92;
   --lf-color-outline-icon:   #8A7E66;
-  --lf-color-focus-ring:     #6B58A8;
+  --lf-color-focus-ring:     #2F6FB3; /* 스카이의 잉크 톤 — 확정안에 없는 파생값, 파스텔 4면 위 3:1 이상 */
 
   /* 텍스트 — 따뜻한 잉크 위계 */
   --lf-color-text:           #221C13;
@@ -66,21 +68,21 @@
   --lf-color-text-muted:     #706652;
   --lf-color-text-faint:     #716653;
 
-  /* 보상 / 벌칙 — 보상=라벤더, 벌칙=살구 */
-  --lf-color-reward-container:     #E7DFF6;
-  --lf-color-on-reward-container:  #3E3372;
-  --lf-color-reward-label:         #6B58A8;
-  --lf-color-penalty-container:    #F8DDBE;
-  --lf-color-on-penalty-container: #6B3B14;
-  --lf-color-penalty-label:        #A85B1E;
+  /* 보상 / 벌칙 — 보상=스카이, 벌칙=핑크, 글자는 잉크 */
+  --lf-color-reward-container:     #A9D3FF;
+  --lf-color-on-reward-container:  #221C13;
+  --lf-color-reward-label:         #221C13;
+  --lf-color-penalty-container:    #FFB5C1;
+  --lf-color-on-penalty-container: #221C13;
+  --lf-color-penalty-label:        #221C13;
 
-  /* 오류 · 불이행 강조 — 실제 위험에만 사용 (변경 없음) */
+  /* 오류 — 실제 위험에만 사용 (변경 없음) */
   --lf-color-error:           #C4433B;
   --lf-color-error-container: #F8DFDB;
 
-  /* 성공 · 완료 — 잉크 + 버터 스티커 (모노 팔레트 원칙, 상태는 텍스트가 구분) */
+  /* 성공 · 진행 · 완료 — 민트 스티커, 글자는 잉크 */
   --lf-color-success:           #221C13;
-  --lf-color-success-container: #F6E7A3;
+  --lf-color-success-container: #B7E1D1;
 
   /* 카카오 로그인 (공식 버튼 가이드 색 — 변경 금지) */
   --lf-color-kakao:    #FEE500;
@@ -102,23 +104,35 @@
   --lf-font-brand: 'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
   --lf-font-mono:  'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
 
-  --lf-type-display-size: 30px;
-  --lf-type-list-dday-size: 16px;
-  --lf-type-hero-dday-size: 46px;
-  --lf-type-title-size:   22px;
-  --lf-type-heading-size: 20px;
-  --lf-type-subtitle-size:18px;
-  --lf-type-body-lg-size: 17px;
-  --lf-type-body-size:    15px;
-  --lf-type-label-size:   14px;
-  --lf-type-caption-size: 12.5px;
-  --lf-type-micro-size:   11.5px;
+  --lf-type-wordmark-size:    38px; /* A01 워드마크 */
+  --lf-type-display-size:     34px; /* A00 헤드라인 */
+  --lf-type-headline-size:    26px; /* A02 인사 */
+  --lf-type-title-size:       24px; /* 화면 h2 · A06 질문 · MOD-03 */
+  --lf-type-sheet-title-size: 22px; /* 시트 제목 · 카운트다운 */
+  --lf-type-heading-size:     20px;
+  --lf-type-card-title-size:  19px; /* 임박 카드 */
+  --lf-type-subtitle-size:    18px;
+  --lf-type-stamp-size:       17px; /* 스탬프 헤드라인 · 선택 카드 */
+  --lf-type-body-lg-size:     17px;
+  --lf-type-list-dday-size:   16px;
+  --lf-type-hero-dday-size:   46px;
+  --lf-type-body-size:        15px;
+  --lf-type-label-size:       14px;
+  --lf-type-chip-size:        13px; /* 칩 */
+  --lf-type-caption-size:     12.5px;
+  --lf-type-meta-size:        12px; /* 메타 · 시각 */
+  --lf-type-micro-size:       11.5px;
+  --lf-type-eyebrow-size:     11px; /* 섹션 라벨 `TITLE · 제목` */
 
-  --lf-line-title:   30px;
-  --lf-line-hero-dday: 50px;
-  --lf-line-body:    22px;
-  --lf-line-caption: 18px;
-  --lf-line-micro:   16px;
+  --lf-line-wordmark:   44px;
+  --lf-line-display:    42px;
+  --lf-line-headline:   34px;
+  --lf-line-title:      32px;
+  --lf-line-card-title: 26px;
+  --lf-line-hero-dday:  50px;
+  --lf-line-body:       22px;
+  --lf-line-caption:    18px;
+  --lf-line-micro:      16px;
 
   /* Pretendard 정적/가변 웨이트와 1:1로 대응 */
   --lf-weight-regular: 400;
@@ -126,16 +140,22 @@
   --lf-weight-bold:    700;
   --lf-weight-heavy:   800;
 
+  /* 자간 — 큰 제목은 좁게, 섹션 라벨은 넓게, 워드마크는 살짝 넓게 */
+  --lf-letter-spacing-tight:    -0.02em;
+  --lf-letter-spacing-wide:     0.12em;
+  --lf-letter-spacing-wider:    0.16em;
+  --lf-letter-spacing-wordmark: 0.04em;
+
   /* ---------------------------------------------------------
-     SHAPE — 셋로그식 오버라운드 + 필
+     SHAPE — 스티커 카드 22 · 리스트 카드 20 · 입력 12 · 시트 28 · 필
      --------------------------------------------------------- */
   --lf-radius-xs:    8px;
-  --lf-radius-sm:   12px;
-  --lf-radius-md:   14px;
-  --lf-radius-lg:   16px;
-  --lf-radius-xl:   16px;
-  --lf-radius-2xl:  24px;
-  --lf-radius-hero: 28px;
+  --lf-radius-sm:   12px; /* 입력 */
+  --lf-radius-md:   16px; /* 썸네일 · 점선 타일 */
+  --lf-radius-lg:   20px; /* 리스트 카드 · 보상/벌칙 스티커 */
+  --lf-radius-xl:   22px; /* 스티커 카드 */
+  --lf-radius-2xl:  24px; /* 아이콘 타일 */
+  --lf-radius-hero: 28px; /* 시트 상단 */
   --lf-radius-hero-tail: 12px;
   --lf-radius-record: 18px;
   --lf-radius-pill: 9999px;
@@ -143,7 +163,18 @@
   /* ---------------------------------------------------------
      BORDER — 굵은 잉크 테두리 굵기. 색은 var(--lf-color-text) 로 긋는다 (ADR 0012)
      --------------------------------------------------------- */
-  --lf-border-sheet: 2.5px; /* 바텀시트 상단·측면 잉크 테두리 (.lf-sheet) */
+  --lf-border-chip:    2px;   /* 칩 · 입력 · 아이콘 버튼 · 아바타 */
+  --lf-border-card:    2.2px; /* 스티커 카드 */
+  --lf-border-outline: 2.4px; /* 아웃라인 버튼 */
+  --lf-border-sheet:   2.5px; /* 바텀시트 · 카카오 버튼 · 블롭 스트로크 */
+  --lf-border-dashed:  2px;   /* 점선 구분선 · 사진 추가 타일 */
+  --lf-border-pending: 3px;   /* 승인 대기 아바타 점선 */
+
+  /* 기울기 — 스티커가 손으로 붙인 듯 살짝 돌아가 있다 */
+  --lf-tilt-sticker: -0.8deg; /* 스탬프 · 선택됨 · 슬롯 제안 · 신뢰 카드 */
+  --lf-tilt-hero:    -1.2deg; /* 임박 카드 · 필 배지 */
+  --lf-tilt-blob:    -2deg;   /* 히어로 블롭 */
+  --lf-tilt-empty:   3deg;    /* 히스토리 빈 블롭 */
 
   /* ---------------------------------------------------------
      SPACING (변경 없음)
@@ -165,17 +196,59 @@
      SIZE — 접근성: 터치 타깃 최소 48dp (변경 없음)
      --------------------------------------------------------- */
   --lf-touch-min:     48px;
-  --lf-icon-button:   44px;
-  --lf-appbar-height: 56px;
+  --lf-icon-button:   44px; /* 원형 아이콘 버튼 · 아바타 버튼 */
+  --lf-appbar-height: 52px;
   --lf-browserbar-height: 44px;
-  --lf-cta-height:    54px;
-  --lf-action-height: 48px;
-  --lf-fab-height:    54px;
-  --lf-tab-height:    38px;
+  --lf-cta-height:    52px; /* 필 CTA */
+  --lf-icon-circle:   40px; /* 필 CTA 안 옐로 원 */
+  --lf-kakao-height:  54px; /* 카카오 버튼 (공식 가이드) */
+  --lf-action-height: 50px; /* 아웃라인 · 하단 쌍 버튼 */
+  --lf-fab-height:    52px; /* 플로팅 필 */
+  --lf-tab-height:    32px; /* 필터 칩 */
+  --lf-chip-select-height: 36px;
+  --lf-chip-meta-height:   30px;
+  --lf-chip-status-height: 28px;
+  --lf-input-height:  48px;
+  --lf-card-padding:  18px;
   --lf-bottom-nav-content-height: 64px;
   --lf-center-fab: 54px;
   --lf-nav-icon: 26px;
-  --lf-appbar-icon: 26px;
+  --lf-appbar-icon: 20px; /* 44 원 안 글리프 */
+
+  --lf-switch-width:  52px;
+  --lf-switch-height: 32px;
+  --lf-switch-knob:   20px;
+  --lf-trust-ring:        88px;
+  --lf-trust-ring-stroke: 10px;
+  --lf-dday-circle: 56px;
+  --lf-avatar-sm: 34px;
+  --lf-avatar-lg: 48px;
+  --lf-avatar-xl: 52px;
+  --lf-thumb:     76px;
+  --lf-thumb-lg:  84px;
+  --lf-status-dot: 10px;
+  --lf-progress-height: 8px;
+  --lf-sheet-handle-width:  40px;
+  --lf-sheet-handle-height: 5px;
+  --lf-fade-height:    140px; /* 홈 하단 페이드 */
+  --lf-fade-height-sm: 110px;
+
+  /* E-1 마스코트 · C-1 손 (px = dp, 손 폭은 size × 804/763) */
+  --lf-mascot-sm: 30px; /* 앱바 */
+  --lf-mascot-md: 34px; /* 필 CTA 원 안 */
+  --lf-mascot-lg: 56px; /* 헤더 타일 */
+  --lf-pinky-sm:   28px; /* 스탬프 필 안 */
+  --lf-pinky-md:   40px;
+  --lf-pinky-lg:   72px;
+  --lf-pinky-eyes: 44px; /* 블롭 눈(검은 손) */
+  --lf-eyes-row:    26px; /* 알림 아이콘 원 안 */
+  --lf-eyes-header: 44px; /* A03 헤더 블롭 */
+  --lf-eyes-card:   56px; /* 임박 카드 블롭 */
+  --lf-eyes-blob:   74px; /* 히스토리 빈 블롭 */
+  --lf-hero-blob-height:  290px; /* A00 */
+  --lf-login-blob-height: 200px; /* A01 */
+  --lf-stamp-pill-width:  100px;
+  --lf-stamp-pill-height: 60px;
 
   --lf-viewport-width:  360px;
   --lf-viewport-height: 800px;
@@ -183,19 +256,21 @@
   --lf-navbar-height:    24px;
 
   /* ---------------------------------------------------------
-     ELEVATION — 스티커식 오프셋 섀도 (헤어라인 대신 잉크 테두리)
+     ELEVATION — 스티커식 오프셋 섀도 (변경 없음)
      --------------------------------------------------------- */
   --lf-elevation-card: 3px 4px 0 rgba(34, 28, 19, 0.14);
   --lf-elevation-fab:  3px 4px 0 rgba(34, 28, 19, 0.22);
   --lf-elevation-sheet: 0 -6px 24px rgba(34, 28, 19, 0.12);
 
   /* ---------------------------------------------------------
-     MOTION (변경 없음)
+     MOTION — C-1 손 루프는 확정안 캔버스의 키프레임 그대로
      --------------------------------------------------------- */
   --lf-easing-standard:              cubic-bezier(0, 0, 0, 1);
   --lf-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --lf-easing-pinky:                 cubic-bezier(0.32, 0.72, 0, 1);
   --lf-duration-short:  120ms;
   --lf-duration-medium: 240ms;
   --lf-duration-long:   400ms;
   --lf-duration-hook:  3400ms;
+  --lf-duration-pinky: 2600ms;
 }

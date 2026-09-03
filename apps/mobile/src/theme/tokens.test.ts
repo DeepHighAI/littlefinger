@@ -9,11 +9,13 @@ import {
   elevation,
   fontFamily,
   gutter,
+  letterSpacing,
   line,
   NOT_PORTED_TOKENS,
   radius,
   size,
   space,
+  tilt,
   type,
   weight,
 } from './tokens';
@@ -106,8 +108,9 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 hover·pressed 상태와 승인된 화면 토큰을 정의한다', () => {
-    expect(cssTokens.size).toBe(117);
+  test('canonical tokens.css 는 파스텔 스티커 확정안의 토큰 183개를 정의한다', () => {
+    // 2026-09-03: 117 + 타이포 12 + 자간 4 + 테두리 5 + 기울기 4 + 치수 39 + 모션 2.
+    expect(cssTokens.size).toBe(183);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -118,7 +121,9 @@ describe('토큰이 하나도 누락되지 않았다', () => {
       { prefix: 'type-', keys: Object.keys(type), toKey: (r) => camel(r.replace('-size', '')) },
       { prefix: 'line-', keys: Object.keys(line), toKey: camel },
       { prefix: 'weight-', keys: Object.keys(weight), toKey: camel },
+      { prefix: 'letter-spacing-', keys: Object.keys(letterSpacing), toKey: camel },
       { prefix: 'radius-', keys: Object.keys(radius), toKey: camel },
+      { prefix: 'tilt-', keys: Object.keys(tilt), toKey: camel },
       { prefix: 'border-', keys: Object.keys(border), toKey: camel },
       { prefix: 'space-', keys: Object.keys(space), toKey: (r) => r },
       { prefix: 'gutter-', keys: Object.keys(gutter), toKey: camel },
@@ -178,8 +183,11 @@ describe('잉크&스티커 웹 토큰도 같은 계약을 쓴다', () => {
     expect(webCssTokens.get('color-primary')).toBe('#221C13');
     expect(webCssTokens.get('color-primary-hover')).toBe('#16120C');
     expect(webCssTokens.get('color-primary-pressed')).toBe('#0B0906');
-    expect(webCssTokens.get('color-record')).toBe('#6B58A8');
-    expect(webCssTokens.get('color-attention')).toBe('#B05F2C');
+    // 파스텔 위 글자는 잉크 — 색 글자는 폐지됐다 (PO 2026-09-03, D7).
+    expect(webCssTokens.get('color-record')).toBe('#221C13');
+    expect(webCssTokens.get('color-attention')).toBe('#221C13');
+    expect(webCssTokens.get('color-primary-container')).toBe('#FFE59A');
+    expect(webCssTokens.get('color-success-container')).toBe('#B7E1D1');
   });
 
   test('안내·응답·안읽음 상태가 역할 기반 색을 쓴다', () => {
@@ -343,6 +351,21 @@ describe('치수는 px 를 뗀 숫자다 — CSS px 값이 곧 RN dp 다', () =>
     },
   );
 
+  test.each([...cssTokens.entries()].filter(([n]) => n.startsWith('letter-spacing-')))(
+    '--lf-%s = %s (em 은 LfText 가 fontSize 로 환산한다)',
+    (name, expected) => {
+      const key = camel(name.replace('letter-spacing-', '')) as keyof typeof letterSpacing;
+      expect(letterSpacing[key]).toBe(Number(expected.replace('em', '')));
+    },
+  );
+
+  test.each([...cssTokens.entries()].filter(([n]) => n.startsWith('tilt-')))(
+    '--lf-%s = %s (RN rotate 는 deg 문자열 그대로)',
+    (name, expected) => {
+      expect(tilt[camel(name.replace('tilt-', '')) as keyof typeof tilt]).toBe(expected);
+    },
+  );
+
   test.each([...cssTokens.entries()].filter(([n]) => n.startsWith('duration-')))(
     '--lf-%s = %s',
     (name, expected) => {
@@ -392,6 +415,7 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
     // 여기서 만들면 tokens.ts 가 react-native-reanimated 를 import 하게 된다.
     expect(easing.standard).toEqual([0, 0, 0, 1]);
     expect(easing.emphasizedDecelerate).toEqual([0.05, 0.7, 0.1, 1]);
+    expect(easing.pinky).toEqual([0.32, 0.72, 0, 1]);
   });
 
   test.each([...cssTokens.entries()].filter(([n]) => n.startsWith('easing-')))(
@@ -412,7 +436,13 @@ describe('접근성 하한', () => {
     ['희미문/크림 바탕', colors.textFaint, colors.background],
     ['희미문/종이 표면', colors.textFaint, colors.surface],
     ['증빙문/뮤트 표면', colors.text, colors.surfaceMuted],
-    ['지킴율 설명/버터 카드', colors.primaryInk, colors.primaryContainer],
+    ['지킴율 설명/옐로 카드', colors.primaryInk, colors.primaryContainer],
+    // 파스텔 4면 위 글자는 언제나 잉크 — 스티커 톤이 늘어도 이 쌍은 그대로 통과해야 한다.
+    ['잉크/옐로 스티커', colors.text, colors.primaryContainer],
+    ['잉크/민트 스티커', colors.text, colors.successContainer],
+    ['잉크/핑크 스티커', colors.text, colors.attentionContainer],
+    ['잉크/스카이 스티커', colors.text, colors.recordContainer],
+    ['보조문/옐로 스티커 (읽지 않음 알림 부제)', colors.textSecondary, colors.primaryContainer],
   ] as const)('%s 텍스트 대비는 WCAG AA 4.5:1 이상이다', (_, foreground, background) => {
     expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
   });
@@ -420,6 +450,10 @@ describe('접근성 하한', () => {
   test.each([
     ['크림 바탕', colors.background],
     ['종이 표면', colors.surface],
+    ['옐로 스티커', colors.primaryContainer],
+    ['민트 스티커', colors.successContainer],
+    ['핑크 스티커', colors.attentionContainer],
+    ['스카이 스티커', colors.recordContainer],
   ] as const)('포커스 링/%s 대비는 WCAG 비텍스트 기준 3:1 이상이다', (_, background) => {
     expect(contrastRatio(colors.focusRing, background)).toBeGreaterThanOrEqual(3);
     expect(colors.focusRing).not.toBe(colors.text);
@@ -440,11 +474,16 @@ describe('접근성 하한', () => {
     expect(contrastRatio(colors.onAction, background)).toBeGreaterThanOrEqual(4.5);
   });
 
-  test('정보·주의·위험 역할이 서로 다른 토큰을 쓴다', () => {
-    expect(new Set([colors.record, colors.attention, colors.error]).size).toBe(3);
-    expect(colors.recordContainer).toBe('#E7DFF6');
-    expect(colors.attentionContainer).toBe('#F8DDBE');
+  test('정보·주의·위험 역할이 서로 다른 스티커 면을 쓴다', () => {
+    // 글자는 셋 다 잉크로 합쳐졌으므로(D7) 역할 구분은 컨테이너가 진다.
+    expect(
+      new Set([colors.recordContainer, colors.attentionContainer, colors.errorContainer]).size,
+    ).toBe(3);
+    expect(colors.recordContainer).toBe('#A9D3FF');
+    expect(colors.attentionContainer).toBe('#FFB5C1');
     expect(colors.errorContainer).toBe('#F8DFDB');
+    // 진행·완료(민트)는 브랜드(옐로)와도 구분된다 — 상태 도트가 색+텍스트로 읽히는 전제.
+    expect(colors.successContainer).not.toBe(colors.primaryContainer);
   });
 
   test('터치 타깃 최소치는 48 이고 줄이지 않는다', () => {
@@ -466,5 +505,10 @@ describe('접근성 하한', () => {
     expect(size.centerFab).toBe(unitless(cssTokens.get('center-fab') ?? ''));
     expect(size.navIcon).toBe(unitless(cssTokens.get('nav-icon') ?? ''));
     expect(size.appbarIcon).toBe(unitless(cssTokens.get('appbar-icon') ?? ''));
+    expect(size.inputHeight).toBe(unitless(cssTokens.get('input-height') ?? ''));
+    expect(size.iconCircle).toBe(unitless(cssTokens.get('icon-circle') ?? ''));
+    expect(size.kakaoHeight).toBe(unitless(cssTokens.get('kakao-height') ?? ''));
+    expect(size.trustRing).toBe(unitless(cssTokens.get('trust-ring') ?? ''));
+    expect(size.switchWidth).toBe(unitless(cssTokens.get('switch-width') ?? ''));
   });
 });
