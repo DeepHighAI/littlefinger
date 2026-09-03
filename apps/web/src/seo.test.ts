@@ -29,6 +29,21 @@ describe('Google Search Console 소유권 파일', () => {
   });
 });
 
+describe('두 개의 HTML 셸 — 홈은 index.html, 나머지 경로는 app.html', () => {
+  test('app.html 은 index.html 과 바이트 단위로 같다 — 홈 본문은 빌드 플러그인이 index 에만 넣는다', () => {
+    // 하나만 고치면(메타·프리로드) 다른 셸이 조용히 뒤처진다.
+    expect(readFileSync(resolve(WEB_ROOT, 'app.html'), 'utf8')).toBe(INDEX_HTML);
+  });
+
+  test('Firebase 는 딥 경로를 app.html 로 재작성한다 — index.html 이면 초대 화면에 홈 문구가 깜빡인다', () => {
+    const firebase = JSON.parse(readFileSync(resolve(REPO_ROOT, 'firebase.json'), 'utf8')) as {
+      hosting: { target: string; rewrites?: { source: string; destination: string }[] }[];
+    };
+    const web = firebase.hosting.find((site) => site.target === 'web');
+    expect(web?.rewrites).toEqual([{ source: '**', destination: '/app.html' }]);
+  });
+});
+
 describe('폰트 CLS 하드닝', () => {
   test('브랜드 폰트는 public 에 있고 preload 와 @font-face 가 같은 경로를 가리킨다', () => {
     // preload 는 URL 이 글자 하나만 달라도 폰트를 **두 번** 내려받는다. 경로를 한 곳에서

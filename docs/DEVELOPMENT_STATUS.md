@@ -46,10 +46,18 @@ no app-purpose description on the homepage, and the branding app name `Liitlefin
 the site. The web root `/` used to fall through to SCR-W06 (E_NOT_FOUND), so a public **home page**
 now lives at `/` (`apps/web/src/screens/home.tsx`, copy from the approved listing §1-3/§1-4,
 ko/en catalog registered, no login control) and is deployed to Firebase Hosting (root 200,
-`assetlinks.json`, `app-ads.txt`, legal and account-deletion routes unchanged). Remaining for the
-PO: Search Console HTML-tag ownership of `littlefinger-app.web.app` (the tag goes into
-`apps/web/index.html` once the value is handed over), the branding name fix, then re-verify and
-publish branding — `open-testing-po-guide.md` §4.
+`assetlinks.json`, `app-ads.txt`, legal and account-deletion routes unchanged). The first
+re-verification after that deploy still reported "no purpose description" and "login page first":
+Google's automated check reads the HTML without executing JavaScript, and the SPA shell's body was
+empty. The home is therefore **prerendered at build time** — `apps/web/src/screens/home-static.ts`
+renders the same ko labels to static HTML, a Vite plugin injects it into `index.html` only, and
+deep routes are served by a byte-identical `app.html` shell (`firebase.json` rewrite `**` →
+`/app.html`), so invite screens never flash the home copy. Verified live: `/` returns
+`<h1>리틀핑거</h1>` and the purpose text in the raw HTML, `/i/*` returns the empty shell. Search
+Console ownership of `littlefinger-app.web.app` is **verified** (HTML file
+`googleb324b92c6f5d9c19.html`, served from `apps/web/public/`, pinned by `seo.test.ts`), and the
+branding app name was corrected to `리틀핑거` by the PO. Remaining: re-run branding verification
+and publish it — `open-testing-po-guide.md` §4.
 
 ### After open testing — verification and development backlog
 
