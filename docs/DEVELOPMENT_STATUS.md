@@ -1,6 +1,61 @@
 # Development Status
 
-Snapshot date: **2026-09-02 KST**.
+Snapshot date: **2026-09-03 KST**.
+
+## Open testing release (2026-09-03)
+
+The Play Console was read end to end on 2026-09-03 before the submission (developer account
+주식회사딥하이 — an **organization** account, so the personal-account rule "closed testing, 12
+testers, 14 consecutive days" does not apply). Findings that shaped the release:
+
+- App state `앱 초안 · unreviewed` — this submission is the first Google review. Internal testing
+  serves `20 (0.2.0)` (published 2026-09-02 20:09 KST). **Code 20 was built from `fdc2b8b`** (EAS
+  `ee80e524-c82a-49f7-9632-90a39c7729a1`); the three commits after it are docs-only.
+- Open testing track: 177 countries, testers and a draft release exist, **no bundle attached**.
+- 게시 개요's "검토를 위해 앱 전송" is locked because the **광고 ID declaration** is the one app-content
+  item not yet submitted; the other nine (data safety, content rating, target audience 13+, ads,
+  app access, privacy policy, health, financial, government) were completed on 2026-09-03 and sit
+  as unsent changes.
+- Listing: icon, feature graphic, **8/8 phone screenshots** (gallery renders with the storyboard
+  overlay band), ko-KR + en-US. The app name was ko `리틀핑거` / en `Liitlefinger-promise` (typo);
+  category 커뮤니케이션 with tags 데이트·소셜·엔터테인먼트·장난·커뮤니케이션; app access was
+  declared as "no special access needed" although login is mandatory.
+- The code 19 AAB manifest (bundletool dump) carried `CAMERA`, `RECORD_AUDIO` and
+  `SYSTEM_ALERT_WINDOW`; host, AdMob application id, SDK range and ABIs were correct.
+
+PO decisions (2026-09-03): rebuild as **code 21** with the permission cleanup; keep the console
+category and tags and update the docs; change the listing names to the documented values; execute
+the email-test-login server removal **before** open testing (public track).
+
+Code 21 source is `711e181`: `android.blockedPermissions` removes the three permissions (locked by
+`apps/mobile/config/android-permissions.test.js`; a local prebuild shows `tools:node="remove"`
+for all three), and the root layout's startup `Promise.all` falls open on rejection instead of
+leaving the splash screen (`root-layout.test.tsx`). Gates at `711e181`: Vitest **110 files /
+2,142 tests**, jest-expo **80 suites / 824 tests**, five-project `typecheck`, `git diff --check` —
+PASS. Runbooks: `docs/setup/open-testing-release.md` (engineer) and
+`docs/setup/open-testing-po-guide.md` (PO console steps with a hand-back block). Build record:
+see "Build 0.2.0 / versionCode 21" under Remote deployment state.
+
+### After open testing — verification and development backlog
+
+Priority order; each item names what it needs.
+
+1. Two real Kakao accounts through approval, witness, amend, fulfillment, safety and withdrawal on
+   the store build (spec §13 item 1 has no device evidence; the email test login is gone).
+2. Release-build retests of F7 (evidence upload) and F4 (cold-start push deep link); real push
+   delivery and quiet hours on a physical device.
+3. Once the AdMob account is approved and fills: rewarded rows 2, 6, 7 (SSV grant) and banner row
+   13 (`ads_enabled` on for the row only), plus the unfinished halves of rows 3–5.
+4. Second-account rows: creator-side permanent access UI (rows 9–10), FINISH flow (rows 14–15).
+5. AppState-active retry for startup gates parked while the screen was off (follow-up to the
+   code 21 `.catch`).
+6. Before production: refund → reconcile revocation (row 12), retention expiry/purge/NT-22·23
+   (rows 16–18, staging SQL + worker secrets), ADR 0015 non-functional passes, remote concurrency
+   EC rows (5), J-10/J-11 double-run idempotence, TalkBack speech, font scale 1.5, dashed border and
+   sticker shadow on device, Security Advisor WARN backlog (55), web CLS 0.1666,
+   `deeplink-dev-qa.md` A–D, legal `2026-08-30.2` re-versioning, Q-5 onboarding pages 2–3.
+7. Operations: close the survey two weeks after go-live, `ads_enabled` traffic gate (100 daily
+   confirmations), AdMob app ↔ listing link after approval.
 
 ## Open-testing final QA candidate (2026-09-02)
 
@@ -31,7 +86,9 @@ The run found and fixed two release defects in `c0a17fb`:
   retained-session home loading, and the permanent-access sheet's `₩2,000에 영구 보관` fallback
   pass on that store-installed build; Android App Links remain `verified` after the update.
 
-Two external release blockers remain. AdMob UMP has no applicable message/form and returns a
+Two external release blockers remained at this point — both were closed later the same day (the
+UMP form in the second pass, the permanent product in the code 20 follow-up below). As written
+then: AdMob UMP has no applicable message/form and returns a
 publisher-misconfiguration error before SDK initialization, blocking every exposure and rewarded
 ad row; `ads_enabled=false` was restored and `rewarded_ads_enabled=true` remains. Play Console's
 one-time-product catalog contains only the slot product. Creating the required consumable
@@ -45,7 +102,7 @@ still require their dedicated setup and worker secrets. Detailed evidence and ro
 ## Second device-QA pass on code 19 (2026-09-02)
 
 A second pass ran against the store-installed `0.2.0 (19)` on the same SM-N981N, signed in as
-김정연 — the **partner** on the promise under test, which is what makes the partner-side rows
+the partner test account (B) — the **partner** on the promise under test, which is what makes the partner-side rows
 reachable at all. The matrix moved from 1 PASS · 2 FAIL · 17 NOT_RUN to
 **3 PASS · 6 PARTIAL · 1 FAIL · 10 NOT_RUN** after the code 20 follow-up. The overall result stays
 **FAIL** because ad-backed rows cannot finish while AdMob remains unavailable and ten destructive
@@ -252,7 +309,8 @@ Still open (not code): legal documents (privacy v6, paid-service terms, Data Saf
 design-reference baselines for the seven new UI surfaces, operator release, device QA — see
 `docs/handoff/2026-08-30-monetization-retention-fix-batch.md`.
 
-Not deployed: the migration, five new Edge Functions (`promise-entitlements`, `reward-intent-create`, `reward-status`, `reward-callback`, `retention-maintenance`) plus seven changed ones (`fulfillment-submit`, `promise-amend-request`, `promise-amend-respond`, `promise-create`, `promise-draft-update`, `promise-invite`, `purchase-verify`), Supabase/Vault secrets, AdMob units + SSV
+(Superseded on 2026-08-30 by "ADR 0015 deployed to the linked project" under Remote deployment
+state — kept as the record of the pre-deploy boundary.) Not deployed at the time: the migration, five new Edge Functions (`promise-entitlements`, `reward-intent-create`, `reward-status`, `reward-callback`, `retention-maintenance`) plus seven changed ones (`fulfillment-submit`, `promise-amend-request`, `promise-amend-respond`, `promise-create`, `promise-draft-update`, `promise-invite`, `purchase-verify`), Supabase/Vault secrets, AdMob units + SSV
 callback, Play product, and a new native build all remain operator release work. Local verification
 results (2026-08-30, after the fix batch and the leftover closure): `npm run typecheck` **5 projects PASS**; Vitest **109 files / 2,124 tests PASS**;
 jest-expo **78 suites / 807 tests PASS**; web production build **131 modules PASS**;
@@ -789,6 +847,8 @@ both carrying the real operator identity (주식회사 딥하이 / 심충섭 / 7
 
 ### ADR 0015 device QA partial run (2026-08-30)
 
+Superseded by the 2026-09-02 passes at the top of this file (3 PASS · 6 PARTIAL · 1 FAIL ·
+10 NOT_RUN on codes 18–20). As recorded then —
 Status: **FAIL** (0 PASS · 1 FAIL · 19 NOT_RUN). The Play Console showed internal track version
 `10 (0.2.0)` ACTIVE and offered to testers; a read-only CLI recheck returned 56/56 Edge Functions
 ACTIVE. Row 20's public web half failed: `/legal/terms` still serves `2026-08-22.3` and

@@ -579,8 +579,10 @@ M1 login → promise creation → invite → acceptance web → confirmation (`p
 `content_hash` + fingerprint + disclaimer) → fulfillment check.
 M2 reminders, push, quiet hours, notification inbox, home list, the 9 SCR-A05 variants.
 M3 witnesses, keepRate profile, amend/cancel, MOD-03.
-M4 ad slot, accessibility pass, `02` §13 acceptance checklist, Google Play closed testing
-(12 testers × 14 consecutive days — start recruiting alongside development, not after).
+M4 ad slot, accessibility pass, `02` §13 acceptance checklist, Google Play **open testing**
+(the developer account is an organization account — verified in the console 2026-09-03 — so the
+personal-account rule of 12 closed testers × 14 consecutive days does not apply; runbooks
+`docs/setup/open-testing-release.md` + `open-testing-po-guide.md`).
 
 Full detail: `04` §10.
 
@@ -597,7 +599,8 @@ Full detail: `04` §10.
 | ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18 (ADR 0005), domain re-cut 2026-08-25: use `https://littlefinger-app.web.app` — no personal name in the public origin (ADR 0010). The old `…-philwoo` site 301-redirects.** |
 | ~~C-4~~ | ~~Pretty KakaoTalk share card for invites?~~ | **Closed 2026-08-23: SCR-A04 ships the OS share sheet (카톡·SMS·SNS 전부) + an explicit link-copy button (expo-clipboard).** The old "카카오톡으로 초대 보내기" label was retired — the handler was already the OS sheet, only the label lied |
 | N-1 | '리틀핑거' trademark / store name | Confirm before launch |
-| ~~N-4~~ | ~~Google SSO for production login~~ | **Implemented 2026-08-20**, GCP client + Dashboard provider **verified live + allowlist fixed 2026-08-23**. Remaining: PO checks the consent screen publishing status (Testing → In production), then a real-account sign-in on device |
+| ~~N-4~~ | ~~Google SSO for production login~~ | **Implemented 2026-08-20**, GCP client + Dashboard provider **verified live + allowlist fixed 2026-08-23**. Remaining: PO switches the consent screen to **In production** before open testing (`open-testing-po-guide.md` §4 — while it is Testing only listed test users can sign in), then a real-account sign-in on device |
+| N-5 | Play open testing submission | **Started 2026-09-03**: code 21 (permission cleanup), listing names corrected, 광고 ID declaration + consent screen + email-login removal are PO console steps in `open-testing-po-guide.md`; category stays 커뮤니케이션 (PO 2026-09-03) |
 | N-2 | iOS launch timing | Decided in v2 |
 | Q-5 | Onboarding pages 2 and 3 | Only page 1 is implemented |
 | Q-6 | COMPLETED share card design | Out of scope |

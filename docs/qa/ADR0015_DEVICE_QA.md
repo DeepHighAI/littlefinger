@@ -49,7 +49,7 @@ rejects, so rows 2–8 cannot pass on them.
 
 - Same connected SM-N981N (Android 13), `0.2.0 (19)` installed through `com.android.vending`,
   `installerPackageName=com.android.vending`, `lastUpdateTime=2026-09-02 15:52:55`. Signed-in
-  account is **김정연**, who is the **partner** on the ACTIVE promise used for rows 3–8 — the app
+  account is the **partner test account (B)** on the ACTIVE promise used for rows 3–8 — the app
   reports `witness.partner_capacity = 0`, which is what renders the locked copy.
 - Flags read live before the pass: `ads_enabled=false`, `rewarded_ads_enabled=true` — the values
   the first pass said it restored.
@@ -83,7 +83,11 @@ rejects, so rows 2–8 cannot pass on them.
 ### Code 20 Play follow-up — 2026-09-02, store-installed build
 
 - `0.2.0 (20)` is installed from Play (`installerPackageName=com.android.vending`,
-  `lastUpdateTime=2026-09-02 20:14:06`) on the same SM-N981N.
+  `lastUpdateTime=2026-09-02 20:14:06`) on the same SM-N981N. Code 20 was built from Git
+  `fdc2b8b` (EAS build `ee80e524-c82a-49f7-9632-90a39c7729a1`); the commits after it are docs-only,
+  so code 20 is the last build of the pre-open-testing source. Its manifest carries the same
+  `CAMERA` / `RECORD_AUDIO` / `SYSTEM_ALERT_WINDOW` permissions found in the code 19 dump — removed
+  in code 21 (`docs/setup/open-testing-release.md` §1).
 - The two code fixes are confirmed in the release artifact, not only the development build. English
   home dates render `(Thu)` and `(Tue)` in the hero and list; MOD-02 renders
   `초대 링크 공유하기` / `Share invite link` with no clipping.

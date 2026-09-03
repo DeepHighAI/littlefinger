@@ -127,7 +127,7 @@ ADMOB_REWARDED_WITNESS_UNIT_ID:         ca-app-pub-9625042173735017/8166907779
 ADMOB_REWARDED_DURATION_UNIT_ID:        ca-app-pub-9625042173735017/3843580039
 ADMOB_REWARDED_RETENTION_UNIT_ID:       ca-app-pub-9625042173735017/9969627380
 SSV_CALLBACK_SET_ON_ALL_THREE:          [x] URL verified and saved
-ADMOB_TEST_DEVICE_IDS:                  pending — register before the first ad request
+ADMOB_TEST_DEVICE_IDS:                  registered 2026-09-02 (SM-N981N; id in ADR0015_DEVICE_QA.md prerequisite 7)
 ```
 
 The three rewarded ids are set in both Supabase Edge secrets and the EAS `production`
@@ -415,8 +415,9 @@ AdMob account setting; it does not require another app build.
    changes only after SSV, and the server grant row exists. A client `EARNED_REWARD` event by itself
    is never a pass.
 
-The currently connected SM-N981N is not registered yet. Record its id in the execution block in
-§2-2 after registration; do not commit the id anywhere else.
+The SM-N981N was registered on 2026-09-02 (`docs/qa/ADR0015_DEVICE_QA.md` prerequisite 7). Any
+further QA phone follows the same steps. The open-testing follow-up runbook is
+`docs/setup/open-testing-release.md`.
 
 ---
 

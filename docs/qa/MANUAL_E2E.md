@@ -1,9 +1,11 @@
 # Manual end-to-end runbook
 
-Snapshot: 2026-08-20 KST. Current status: **RUN 1 + DAY 2 EXECUTED (emulator + local web, dev
-email test login)** — 9 PASS · 3 PARTIAL · 0 NOT_RUN, 7 findings (F1·F2 fixed and deployed;
-F3·F5·F6 fixed in code, F3·F6 deploy pending; F7 new). App Links verified with an EAS-signed
-build. Details below and in `docs/qa/E2E_RUN_2026-08-19.md`.
+Snapshot: 2026-08-20 KST (header corrected 2026-09-03). Current status: **RUN 1 + DAY 2 EXECUTED
+(emulator + local web, dev email test login)** — 9 PASS · 3 PARTIAL · 0 NOT_RUN, 7 findings
+(F1·F2·F3·F5·F6 fixed and deployed by 2026-08-20; F4 and F7 still need a release-build retest).
+App Links verified with an EAS-signed build. Details below and in `docs/qa/E2E_RUN_2026-08-19.md`.
+The email test login used here is removed server-side before open testing (PO, 2026-09-03), so a
+rerun needs two real Kakao/Google accounts.
 
 The Supabase project, Edge Functions, cron jobs, RLS/RPC checks, and public acceptance web are
 ready. Run 1 used the dev-only email test login (accounts A=`test@test.com`, B=`test1@test.com`,
@@ -21,8 +23,8 @@ OAuth, App Links, and real-device push were not exercised by this run.
 4. **PASS** — `ads_enabled=false` remains the default and Google test identifiers are configured.
 5. **PASS (host)** — `https://littlefinger-app.web.app` serves `/i/*` and the matching
    Digital Asset Links JSON; Google recognizes the association statement.
-6. **PENDING (operator)** — confirm the Firebase origin in the Dashboard-owned Supabase Auth
-   redirect allowlist.
+6. **PASS (2026-08-23)** — the Dashboard-owned Supabase Auth redirect allowlist carries the
+   Firebase origin (`docs/DEVELOPMENT_STATUS.md`, "Web hosting and App Links").
 7. **PARTIAL (device/accounts)** — the ARM64 Firebase-host debug APK is compatible with Galaxy
    physical devices and its package, SDK range, native ABI, and signature verify. Its local debug
    signature intentionally differs from the EAS certificate published in Digital Asset Links.

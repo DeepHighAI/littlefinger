@@ -128,10 +128,15 @@ littlefinger/                      # npm workspaces
 
 ## 남은 출시 게이트
 
-- 두 카카오 계정으로 Android development build ↔ 수락 웹 수동 E2E (실 OAuth 검증 포함)
-- Play App Signing 지문을 `assetlinks.json`에 추가하고(런북) 스토어 설치본에서 App Links 재확인
-- 실제 AdMob 설정(EAS env), Play 비공개 테스트(계정 유형별 요건 확인), 상표·스토어명 확인
-- 물리 기기 전체 TalkBack·운영 푸시 도달 확인
+- Play **공개 테스트** 제출(2026-09-03 착수): 절차는 `docs/setup/open-testing-release.md`(엔지니어)와
+  `docs/setup/open-testing-po-guide.md`(PO 콘솔). 개발자 계정이 조직 계정이라 개인 계정용
+  "비공개 테스트 12명·14일" 요건은 해당 없음(콘솔에서 확인).
+- 두 카카오 실계정으로 스토어 설치본 ↔ 수락 웹 수동 E2E (실 OAuth 검증 포함) — 아직 미실행
+- 물리 기기 전체 TalkBack 음성·운영 푸시 도달 확인
+- AdMob 계정 승인 뒤 보상형 광고 실지급 QA(행 2·6·7·13), 상표(N-1)·법무 `2026-08-30.2` 반영
+
+완료: Play App Signing 지문 3종이 `assetlinks.json`에 있고 스토어 설치본에서 App Links `verified`
+(2026-09-02); 실제 AdMob 단위 ID는 EAS production 환경과 Edge secrets에 설정됨(2026-08-30).
 
 J-07 자동 집계·운영자 경보는 PO 결정으로 현재 범위에서 제외했다. ACTIVE 전환 시
 `daily_metrics.activated_count` 실시간 기록과 `ads_enabled=false` 기본값은 유지한다.

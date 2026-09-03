@@ -1,11 +1,11 @@
 # Edge-case traceability
 
-Snapshot: 2026-08-18 KST.
+Snapshot: 2026-09-03 KST (counts updated for ADR 0015; originally 2026-08-18).
 
 The executable source of truth is
 [`supabase/tests/ec-traceability.test.ts`](../../supabase/tests/ec-traceability.test.ts). It maps
 every unique ID in `02_세부기능명세서.md` §10 to a behavior test whose name contains the same ID.
-The trace contains exactly 57 cases, from EC-A01 through EC-I04, and fails if the specification and
+The trace contains exactly 66 cases, from EC-A01 through EC-L03, and fails if the specification and
 test catalog diverge.
 
 | Group | IDs | Count | Primary evidence |
@@ -19,6 +19,9 @@ test catalog diverge.
 | Notification | EC-G01--EC-G05 | 5 | Manual Kakao fallback, token eviction, no-email scope, dedupe and required events |
 | Data and account | EC-H01--EC-H06 | 6 | Withdrawal preservation, hiding, token cap, limits and integrity incidents |
 | Platform | EC-I01--EC-I04 | 4 | In-app invite review via App Links (resolve/preview/approve/decline/amend, ADR 0007), Kakao in-app intent CTA fallback, iOS web path and version gate |
+| Rewarded benefits (ADR 0015) | EC-J01--EC-J04 | 4 | Witness capacity by role, duration ceiling and +30-day grants, SSV-only grant, locked when the ad cannot be shown |
+| No-end promises and finish (ADR 0015) | EC-K01--EC-K02 | 2 | Permanent-purchase gate for a null end date, FINISH request → approve/decline/withdraw symmetry |
+| Retention and purge (ADR 0015) | EC-L01--EC-L03 | 3 | Per-participant expiry, D-7/D-1 warnings once, idempotent purge with keepRate aggregates preserved |
 
 ## Concurrency evidence
 

@@ -15,7 +15,12 @@ Date: 2026-08-31. `docs/google_play_store_listing_guide.md`(ASO/CVR 가이드)�
 2. **Play 메타데이터 정책 (가이드 §3-1)** — 앱 이름·아이콘·피처 그래픽에 1위/최고/No.1/Best/
    무료/특가 같은 홍보 수식어 금지, 쉼표·해시태그 키워드 나열 금지, 출처 불명 추천사 금지.
 
-PO 확정: **기본 카테고리 라이프스타일**, **등록정보 언어 ko-KR + en-US 두 벌**(2026-08-31).
+PO 확정: **등록정보 언어 ko-KR + en-US 두 벌**(2026-08-31). 기본 카테고리는 2026-08-31에
+라이프스타일로 정했으나 콘솔 입력은 **커뮤니케이션**으로 됐고, PO가 2026-09-03에 콘솔 값 유지를
+결정했다(§3).
+
+콘솔 실제 상태와 남은 PO 콘솔 작업은 `open-testing-po-guide.md`가 단계별로 안내한다
+(2026-09-03 콘솔 대조 기준).
 
 ---
 
@@ -196,10 +201,11 @@ Pinky swear, it's a promise!
 
 | 애셋 | 규격 | 파일 | 상태 |
 |---|---|---|---|
-| 앱 아이콘 | 512×512, 32-bit PNG, 투명도 없음, 1MB 이하 | `docs/디자인/store/store-icon-512.png` (253 KB, alpha 전 픽셀 255) | ✅ 제작 완료 |
-| 피처 그래픽 (ko) | 1024×500, 24-bit PNG | `docs/디자인/store/feature-graphic-1024x500.png` (83 KB) | ⚠️ **초안 — PO 승인 필요** |
-| 피처 그래픽 (en) | 1024×500, 24-bit PNG | `docs/디자인/store/feature-graphic-1024x500-en.png` (91 KB) | ⚠️ **초안 — PO 승인 필요** |
-| 스크린샷 | 1080×2400 이상, 4~8장 | — | ⛔ 미제작 (§2-2) |
+| 앱 아이콘 | 512×512, 32-bit PNG, 투명도 없음, 1MB 이하 | `docs/디자인/store/store-icon-512.png` (21 KB, alpha 전 픽셀 255) | ✅ 콘솔 등록 완료 (2026-09-03 확인) |
+| 피처 그래픽 (ko) | 1024×500, 24-bit PNG | `docs/디자인/store/feature-graphic-1024x500.png` (83 KB) | ✅ 콘솔 등록 완료 — PO가 업로드로 승인 (2026-09-03) |
+| 피처 그래픽 (en) | 1024×500, 24-bit PNG | `docs/디자인/store/feature-graphic-1024x500-en.png` (91 KB) | ✅ 콘솔 등록 완료 (2026-09-03) |
+| 스크린샷 | 휴대전화 9:16, 8장 | 원본 파일은 PO 보관(저장소에 없음) | ✅ 콘솔 8/8 등록 (2026-09-03) — 갤러리 렌더 + 상단 버터 밴드 오버레이 스토리보드 |
+| 태블릿 스크린샷 (7·10인치) | 선택 | — | ⬜ 미등록 — 등록정보는 "검토를 위해 전송 준비 완료" 상태라 필수 아님 |
 | 홍보 동영상 | YouTube URL | — | ⛔ 미제작, 이번 범위 밖 |
 
 아이콘은 ADR 0016의 런처 아트워크(`apps/mobile/assets/images/icon.png`, 1024² 버터 필드 +
@@ -213,7 +219,11 @@ Pinky swear, it's a promise!
 
 ### 2-2. 스크린샷 스토리보드 (8장)
 
-**최종본은 내부 테스트 빌드를 올린 실기기 캡처(1080×2400)로 만든다.** 기기 QA
+**2026-09-03 등록본**은 `design-reference/screens/` 갤러리 렌더에 상단 버터 밴드 오버레이를 얹어
+PO가 만든 8장이다(실기기 캡처가 아님). 아래 규칙은 **다음 갱신** 때 적용한다:
+소스는 내부 테스트 빌드를 올린 실기기에서 1080×2400으로 캡처하고, 최종 등록 파일은
+1080×1920(9:16) 24-bit PNG로 내보낸다. Play는 장변이 단변의 2배를 넘는 이미지를 받지
+않으므로 1080×2400 원본을 그대로 올리면 안 된다. 기기 QA
 (`docs/qa/ADR0015_DEVICE_QA.md`) 때 같이 찍는다. 아래는 촬영 지시서이고, 소스 화면은 모두
 `design-reference/screens/`에 실재한다(`npm run preview`로 확인 가능).
 
@@ -229,8 +239,9 @@ Pinky swear, it's a promise!
 | 8 | `mod-03-completion-celebrate.html` | 지켰다면, 같이 축하해요 / Kept it? Celebrate together | 감정 마무리 |
 
 오버레이 규칙: 상단 1줄, Pretendard ExtraBold, 잉크 `#221C13`, 버터 `#F6E7A3` 밴드 위.
-1~3번에 가장 강한 가치를 배치한다(가이드 §2.2). 캡처에 실명·실제 전화번호·테스트 계정 이메일이
-보이면 안 된다.
+카피 영역은 전체 높이의 20% 이내이고, 앱 화면을 찌그러뜨리지 않는다. 1~3번에 가장 강한
+가치를 배치한다(가이드 §2.2). 캡처에 실명·실제 전화번호·테스트 계정 이메일이 보이면 안 된다.
+상태 표시줄의 통신사명·알림 아이콘 등 불필요한 요소는 최종본에서 제외한다.
 
 ---
 
@@ -239,12 +250,12 @@ Pinky swear, it's a promise!
 | 항목 | 값 |
 |---|---|
 | 앱/게임 | 앱 |
-| 기본 카테고리 | **라이프스타일** (PO 확정 2026-08-31) |
-| 태그 (최대 5개) | 콘솔 공식 목록에서 아래 우선순위로 실재하는 5개를 고른다 |
+| 기본 카테고리 | **커뮤니케이션** (콘솔 실제값 · PO 유지 결정 2026-09-03; 2026-08-31 안은 라이프스타일) |
+| 태그 (5개) | **데이트 · 소셜 · 엔터테인먼트 · 장난 · 커뮤니케이션** (콘솔 선택값, PO 유지 결정 2026-09-03) |
 
-태그 우선순위: ① 관계 ② 미리 알림·알림 ③ 할 일·계획 ④ 일상 기록 ⑤ 습관·자기 관리 ⑥ 커플.
-**Play Console이 제공하는 목록이 정본이며 임의 태그는 입력할 수 없다** — 위 이름과 정확히
-일치하는 항목이 없으면 가장 가까운 것을 고르고 실제 선택값을 이 표에 다시 적는다.
+당초 태그 우선순위 안은 ① 관계 ② 미리 알림·알림 ③ 할 일·계획 ④ 일상 기록 ⑤ 습관·자기 관리
+⑥ 커플이었다. **Play Console이 제공하는 목록이 정본이며 임의 태그는 입력할 수 없다** — 위
+표의 5개가 실제 선택값이고, 바꾸면 이 표를 다시 적는다.
 
 생산성 카테고리는 검토했으나 "혼자 쓰는 할 일 앱"으로 오인될 위험이 커서 탈락했다.
 
@@ -306,6 +317,8 @@ Prices shown are the ₩2,000 display fallback; the store-localized price is aut
 | 앱 콘텐츠 → 콘텐츠 등급 (IARC) | Answer **yes** to digital purchases and **yes** to ads; no user-generated public content (promise text is shared only with invited participants) | Badge and rating consistency |
 | 앱 콘텐츠 → 타겟층 및 콘텐츠 | **만 14세 이상**: tick 13–15, 16–17, 18+ (never 12 and under) | Terms require 만 14세 이상. Ticking 13–15 requires AdMob "최대 광고 콘텐츠 등급" ≤ T — PO to confirm in AdMob → 앱 → 차단 제어 |
 | 앱 콘텐츠 → 데이터 보안 | Re-submit from `docs/setup/play-data-safety.md` | See §8 |
+| 앱 콘텐츠 → **광고 ID** | **예 · 광고 또는 마케팅** | `react-native-google-mobile-ads` adds `com.google.android.gms.permission.AD_ID`; without this declaration a targetSdk 33+ release cannot be submitted — it was the one item locking 게시 개요 on 2026-09-03 |
+| 앱 콘텐츠 → 로그인 세부정보 | **일부 기능 제한** + Google/카카오 로그인 안내 (`open-testing-po-guide.md` §3) | Login is mandatory; the 2026-09-03 console value "no special access needed" risks an access rejection |
 | 스토어 설정 → 스토어 등록정보 → 개발자 웹사이트 | `https://littlefinger-app.web.app` | AdMob crawls it for `app-ads.txt` |
 | 개인정보처리방침 URL | `https://littlefinger-app.web.app/legal/privacy` | Must be the 2026-08-30.1 page |
 | 계정 삭제 URL (데이터 보안) | `https://littlefinger-app.web.app/account-deletion` | Unchanged |
@@ -327,8 +340,8 @@ known from the dump.
 | `android.permission.ACCESS_NETWORK_STATE` | expected | ads SDK / Expo |
 | `android.permission.VIBRATE`, `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK`, `com.google.android.c2dm.permission.RECEIVE` | expected | `expo-notifications` + FCM |
 | `android.permission.READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE` (maxSdk 32) | expected | `expo-image-picker` (evidence photos) |
-| `android.permission.CAMERA`, `RECORD_AUDIO` | **finding if present** — the picker is gallery-only; if the dump shows them, the `expo-image-picker` plugin options must be tightened before the next build, and they must be declared in Data safety meanwhile | `expo-image-picker` default merge |
-| `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `READ_PHONE_STATE`, `SYSTEM_ALERT_WINDOW`, `READ_CONTACTS`, `QUERY_ALL_PACKAGES` | **must be absent** | none justified; any of them is a release blocker |
+| `android.permission.CAMERA`, `RECORD_AUDIO` | **finding if present** — the picker is gallery-only. Found in the code 19 dump (2026-09-03); removed from code 21 on by `android.blockedPermissions` in `app.json`, locked by `apps/mobile/config/android-permissions.test.js` | `expo-image-picker` default merge |
+| `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `READ_PHONE_STATE`, `SYSTEM_ALERT_WINDOW`, `READ_CONTACTS`, `QUERY_ALL_PACKAGES` | **must be absent** — `SYSTEM_ALERT_WINDOW` came from the Expo template and was present through code 20; blocked from code 21 | none justified; any of them is a release blocker |
 
 Also confirm from the same dump: `package="com.littlefinger.app"`, `versionCode="<N>"`,
 `versionName="0.2.0"`, `minSdkVersion 24`, `targetSdkVersion 36`, and that the
@@ -373,8 +386,9 @@ other than a text record.
 | 자세한 설명이 불릿 구조로 읽기 쉬움 | ✅ | 5개 섹션, 기능 7불릿, ko 1,493자 / en 2,562자 |
 | 금지 홍보 문구 배제 | ✅ | 1위·최고·No.1·Best·무료·특가 0건 (§1-5) |
 | 아이콘 512×512 / 피처 그래픽 1024×500 규격 | ✅ | `magick identify` 확인, 아이콘 alpha 전 픽셀 255 |
-| 첫 3장 스크린샷에 최강 가치 | ⛔ | 스토리보드만 확정(§2-2). 실기기 캡처는 기기 QA 때 |
-| 카테고리 1개 + 태그 5개 | ⚠️ | 카테고리 라이프스타일 확정, 태그는 콘솔 목록에서 선택 후 §3에 기록 |
+| 첫 3장 스크린샷에 최강 가치 | ✅ | 콘솔 8/8 등록(2026-09-03), §2-2 스토리보드 순서 |
+| 카테고리 1개 + 태그 5개 | ✅ | 커뮤니케이션 + 5태그, 콘솔 선택값을 §3에 기록 (PO 2026-09-03) |
+| 앱 이름 콘솔 값 = §1-1 등록값 | ⚠️ | 2026-09-03 콘솔은 ko `리틀핑거` / en `Liitlefinger-promise`(오타) — PO가 §1-1 값으로 교체 (`open-testing-po-guide.md` §2) |
 | 개발자 연락처·웹사이트·방침 URL | ✅ | §4 |
 
 자수는 **NFC 정규화 후 코드포인트** 기준으로 셌다(`02` §2-3의 계수 규칙과 동일). 문구를 고치면
@@ -383,9 +397,11 @@ other than a text record.
 ## 11. 공개 전 남은 차단 요인
 
 1. **외부 법무 검토** — 약관·방침 `2026-08-30.2`가 스토어 공개 전 필수
-   (`docs/DEVELOPMENT_STATUS.md`). 내부 테스트 트랙은 영향 없음.
-2. **스크린샷 8장** — 실기기 캡처 미완(§2-2).
-3. **피처 그래픽 승인** — §2-1의 두 초안에 대한 PO 확인.
-4. **상표(N-1)** — '리틀핑거' 동명 회사·유사 앱 확인.
-5. **AdMob 계정 승인 대기** — 앱과 Play 등록정보 연결 전까지 실광고 미노출
+   (`docs/DEVELOPMENT_STATUS.md`). 공개 테스트는 공개 트랙이므로 `.2` 없이 진행할지는 PO 판단
+   (`open-testing-po-guide.md` §8-1).
+2. **광고 ID 선언 + 앱 이름 교체 + 로그인 세부정보** — PO 콘솔 작업(`open-testing-po-guide.md` §1–§3).
+3. **상표(N-1)** — '리틀핑거' 동명 회사·유사 앱 확인. 수식어 이름으로 완화.
+4. **AdMob 계정 승인 대기** — 앱과 Play 등록정보 연결 전까지 실광고 미노출
    (`monetization-retention-release.md`).
+
+해결: 스크린샷 8장·피처 그래픽은 2026-09-03 콘솔 등록으로 종결(§2-1).
