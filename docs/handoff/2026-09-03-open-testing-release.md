@@ -24,8 +24,10 @@ Done this session:
 
 At `711e181`: Vitest 110 files / 2,142 tests · jest-expo 80 suites / 824 tests · five-project
 `typecheck` · `git diff --check` — PASS. Local `expo prebuild` shows `tools:node="remove"` for the
-three permissions. EAS production build for code 21: see `DEVELOPMENT_STATUS.md` "Build 0.2.0 /
-versionCode 21" (written when the build finished).
+three permissions. EAS production build `4ab9e13d-7c8e-48ab-9b67-c7d2f2ae4889` (versionCode 21,
+from `711e181`) FINISHED and was validated: `dist/littlefinger-open-v0.2.0-code21.aab`,
+83,253,576 B, SHA-256 `60ACD27C…EFE38D`, the three permissions absent, host/AdMob id/ABIs/signature
+correct — full record in `DEVELOPMENT_STATUS.md` "Build 0.2.0 / versionCode 21".
 
 ## Blocked / PO items
 
@@ -35,8 +37,8 @@ All in `open-testing-po-guide.md` §1–§10, hand-back block §12. Blockers: �
 
 ## Exact next step
 
-1. When the EAS build finishes: validate per `open-testing-release.md` §3, record the build in
-   `DEVELOPMENT_STATUS.md`, hand `dist/littlefinger-open-v0.2.0-code21.aab` + SHA-256 to the PO.
+1. Done — the code 21 AAB is validated and recorded; it sits in `dist/` on the PO's machine with
+   its SHA-256 in `DEVELOPMENT_STATUS.md`.
 2. PO works through `open-testing-po-guide.md` §1–§9 and returns the §12 block.
 3. Engineer runs `open-testing-release.md` §4-1 (password grant must be 4xx) after guide §5, then
    the PO submits (§10). Record the submission time in `DEVELOPMENT_STATUS.md`.

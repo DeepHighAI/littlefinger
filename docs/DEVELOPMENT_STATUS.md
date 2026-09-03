@@ -617,6 +617,32 @@ Not done from this machine: a fresh DB backup (no `pg_dump`/Docker here; the wee
 SSV setup and code 11 rebuild are now complete below; rewarded device QA still waits on registering
 the QA phone as an AdMob test device.
 
+### Build 0.2.0 / versionCode 21 (2026-09-03, open testing candidate)
+
+EAS production build `4ab9e13d-7c8e-48ab-9b67-c7d2f2ae4889` from `main` commit
+`711e181f01212fb74697a54d7deff5d7039b634e` (pushed before the build; remote versionCode 20 → 21;
+all nine `EXPO_PUBLIC_*` production variables loaded). Downloaded to
+`dist/littlefinger-open-v0.2.0-code21.aab` — **83,253,576** bytes, SHA-256
+`60ACD27C53FE8528A372AFC379A72CAC220C477E556E3AC6F66987D90EEFE38D`.
+
+Validation (`docs/setup/open-testing-release.md` §3): `bundletool 1.18.1 validate` exit 0;
+manifest `com.littlefinger.app`, versionCode 21, versionName 0.2.0, minSdk 24, targetSdk 36;
+arm64-v8a, armeabi-v7a, x86, x86_64; App Links host `littlefinger-app.web.app`; AdMob
+`APPLICATION_ID = ca-app-pub-9625042173735017~2273644771`; `jarsigner` → `jar verified.`; upload
+certificate SHA-256 `C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB`,
+identical to code 19 (and the first `assetlinks.json` fingerprint).
+
+Permission set (listing §7 record). **Absent, as intended:** `CAMERA`, `RECORD_AUDIO`,
+`SYSTEM_ALERT_WINDOW`, and every §7 "must be absent" entry. **Present:** `INTERNET`,
+`ACCESS_NETWORK_STATE`, `POST_NOTIFICATIONS`, `VIBRATE`, `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`,
+`FOREGROUND_SERVICE`, `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE` (maxSdk 32),
+`USE_BIOMETRIC` / `USE_FINGERPRINT` (expo-secure-store), `READ_APP_BADGE` plus the launcher badge
+vendor permissions (expo-notifications), `ACCESS_ADSERVICES_{AD_ID,ATTRIBUTION,TOPICS}` and
+`com.google.android.gms.permission.AD_ID` (Mobile Ads), `com.android.vending.BILLING` (expo-iap),
+`com.google.android.c2dm.permission.RECEIVE` (FCM), `BIND_GET_INSTALL_REFERRER_SERVICE`, and the
+app's own `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. Not yet uploaded to Play — the PO attaches
+it to the open-testing draft per `open-testing-po-guide.md` §9.
+
 ### Butter/ink icon replacement (2026-08-31, local code 15 AAB verified)
 
 ADR 0018 replaces the white outlined launcher and in-product artwork with the PO-selected solid
