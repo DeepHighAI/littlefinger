@@ -16,31 +16,34 @@
     <div class="lf-screen">
 
       <header class="lf-appbar">
-        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+        <button class="lf-icon-button" type="button" aria-label="뒤로">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
         <h1 class="lf-appbar__title">약속 상세</h1>
         <button class="lf-icon-button" type="button" aria-label="더보기">
-          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+          <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
         </button>
       </header>
 
       <div class="lf-screen__body">
 
-        <div class="lf-row lf-gap-3">
-          <span class="lf-chip lf-chip--amend">변경 협의 중</span>
-          <span class="lf-caption">v1 → v2 제안</span>
+        <div class="lf-detail__head">
+          <div class="lf-detail__head-main">
+            <div class="lf-detail__status-row">
+              <span class="lf-chip lf-chip--sm lf-chip--sky">변경 협의 중</span>
+              <span class="lf-detail__date">v1 → v2 제안</span>
+            </div>
+            <h2 class="lf-title lf-detail__title">매주 화·목 아침<br>러닝 같이 하기</h2>
+          </div>
         </div>
 
-        <h2 class="lf-title">매주 화·목 아침 러닝 같이 하기</h2>
-
-        <p class="lf-note lf-note--emphasis">
+        <p class="lf-note lf-note--emphasis lf-card--sky">
           <span class="material-symbols-rounded" aria-hidden="true">sync_alt</span>
           <span>지우님(나)이 변경을 요청했어요 — 민준님이 승인해야 적용돼요</span>
         </p>
 
-        <div class="lf-card lf-stack lf-gap-4">
-          <p class="lf-section-title">변경 전 → 후 비교</p>
+        <div class="lf-card lf-card--flat lf-stack lf-gap-4">
+          <p class="lf-eyebrow">CHANGE · 변경 제안</p>
 
           <ul class="lf-compare">
             <li class="lf-compare__item lf-compare__item--before">
@@ -60,7 +63,7 @@
             </li>
           </ul>
 
-          <hr class="lf-divider">
+          <hr class="lf-divider lf-divider--dashed">
 
           <div class="lf-row lf-gap-3">
             <span class="lf-avatar lf-avatar--muted">민</span>
@@ -71,7 +74,7 @@
           <div class="lf-compare__item lf-row lf-gap-3">
             <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">history</span>
             <span class="lf-body--secondary lf-grow">원본(v1)은 버전 이력에 그대로 남아요</span>
-            <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">chevron_right</span>
+            <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">arrow_forward</span>
           </div>
 
           <p class="lf-caption lf-text-center">합의 전까지는 기존 약속(v1)이 유효해요</p>
@@ -80,7 +83,13 @@
       </div>
 
       <div class="lf-screen__actions">
-        <button class="lf-btn lf-btn--outlined lf-btn--block" type="button">요청 철회</button>
+        <div class="lf-detail__actions">
+          <button class="lf-btn lf-btn--outlined" type="button">거절</button>
+          <button class="lf-btn lf-btn--filled" type="button">
+            <span>변경 승인</span>
+            <span class="lf-btn__trailing"><span class="material-symbols-rounded" aria-hidden="true">check</span></span>
+          </button>
+        </div>
       </div>
 
     </div>

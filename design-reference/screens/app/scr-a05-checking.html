@@ -16,30 +16,42 @@
     <div class="lf-screen">
 
       <header class="lf-appbar">
-        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+        <button class="lf-icon-button" type="button" aria-label="뒤로">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
         <h1 class="lf-appbar__title">약속 상세</h1>
         <button class="lf-icon-button" type="button" aria-label="더보기">
-          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+          <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
         </button>
       </header>
 
       <div class="lf-screen__body">
 
-        <div class="lf-row lf-gap-3">
-          <span class="lf-chip lf-chip--urgent">이행 확인 중</span>
-          <span class="lf-caption">종료일 지남 · 응답 기한 8/18</span>
+        <div class="lf-detail__head">
+          <div class="lf-detail__head-main">
+            <div class="lf-detail__status-row">
+              <span class="lf-chip lf-chip--sm lf-chip--pink">이행 확인 중</span>
+              <span class="lf-detail__date">응답 기한 8/18</span>
+            </div>
+            <h2 class="lf-title lf-detail__title">매주 화·목 아침<br>러닝 같이 하기</h2>
+          </div>
         </div>
-
-        <h2 class="lf-title">매주 화·목 아침 러닝 같이 하기</h2>
 
         <div class="lf-stamp lf-stamp--compact">
-          <p class="lf-stamp__headline">약속, 지켜졌나요?</p>
-          <p class="lf-stamp__time">두 사람 모두 답하면 결과가 기록돼요</p>
+          <svg class="lf-blob--corner lf-blob--corner-left" viewBox="0 0 90 70" aria-hidden="true">
+            <path class="lf-blob__soft-mint" d="M40 6c22-10 50 6 46 30S60 68 36 66 4 50 8 32 22 14 40 6Z"/>
+          </svg>
+          <p class="lf-stamp__headline">두 사람이 손가락 걸었어요!</p>
+          <p class="lf-stamp__time">2026-07-12 21:04 확정</p>
         </div>
 
-        <div class="lf-card">
+        <div class="lf-card lf-card--pink lf-card--flat">
+          <p class="lf-eyebrow">RESPONSE · 응답 기한</p>
+          <p class="lf-countdown">D-6 · 23:18:42</p>
+          <p class="lf-body lf-body--sm">내 응답 완료 · 상대 응답을 기다리고 있어요</p>
+        </div>
+
+        <div class="lf-card lf-card--flat">
           <ul class="lf-list">
             <li class="lf-list-item">
               <span class="lf-avatar lf-avatar--a">지</span>
@@ -80,7 +92,7 @@
           </div>
         </div>
 
-        <p class="lf-note">기한 내 무응답이면 "미확정 종결"로 기록돼요 · 리마인드를 계속 보내드릴게요</p>
+        <p class="lf-note lf-note--plain">기한 내 무응답이면 "미확정 종결"로 기록돼요 · 리마인드를 계속 보내드릴게요</p>
 
       </div>
 

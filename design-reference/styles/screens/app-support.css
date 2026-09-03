@@ -6,6 +6,23 @@
 
 .lf-push-right { margin-left: auto; }
 
+/* 지원 화면 — 확정안의 빈 블롭과 목록 행 문법을 그대로 확장한다. */
+.lf-support-state {
+  align-items: center;
+  justify-content: center;
+}
+
+.lf-support-list { padding: 0 var(--lf-card-padding); }
+
+.lf-support-list__row {
+  min-height: calc(var(--lf-touch-min) + var(--lf-space-7));
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+}
+
+.lf-support-list .lf-divider { margin: 0; }
+
 /* 앱바/시트의 텍스트 액션 ("모두 읽음", "공유하기") — 밑줄 잉크 */
 .lf-text-action {
   min-height: var(--lf-touch-min);

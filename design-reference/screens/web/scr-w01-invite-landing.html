@@ -26,7 +26,7 @@
           <span class="lf-browserbar__host">promise.littlefinger.app</span>
         </div>
         <button class="lf-icon-button" type="button" aria-label="더보기">
-          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+          <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
         </button>
       </div>
 
@@ -39,17 +39,21 @@
           <span>안에 확인해 주세요</span>
         </p>
 
-        <div class="lf-pinky-badge">
-          <svg class="lf-pinky lf-pinky--xl" viewBox="0 0 120 120" role="img" aria-label="새끼손가락 걸기">
-            <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
-            <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+        <div class="lf-blob lf-blob--login lf-blob--tilt" aria-hidden="true">
+          <svg class="lf-blob__svg" viewBox="0 0 220 200">
+            <path class="lf-blob__paper" d="M110 12c70-10 106 40 100 90s-50 92-104 88S6 150 10 100 50 20 110 12Z"/>
+            <path class="lf-blob__yellow" d="M150 120c34-14 66 8 62 40s-30 44-62 38-40-26-34-48 14-24 34-30Z"/>
           </svg>
+          <span class="lf-pinky-loop lf-pinky-loop--eyes lf-blob__eyes">
+            <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
+            <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
+          </span>
         </div>
 
         <h1 class="lf-headline">민준님,<br>지우님이 새끼손가락을 내밀었어요!</h1>
 
-        <div class="lf-card lf-card--web lf-text-left">
-          <p class="lf-section-title">약속 미리보기</p>
+        <div class="lf-card lf-card--web lf-card--flat lf-text-left">
+          <p class="lf-eyebrow">PROMISE · 약속 미리보기</p>
           <p class="lf-preview__title">매주 화·목 아침 러닝 같이 하기</p>
           <p class="lf-preview__hint">자세한 내용은 로그인 후 볼 수 있어요</p>
         </div>
@@ -66,6 +70,10 @@
             <path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7L5.6 21c-.1.4.3.7.6.5l4.1-2.7c.5.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="currentColor"/>
           </svg>
           <span>카카오 로그인하고 내용 보기</span>
+        </button>
+        <button class="lf-btn lf-btn--google lf-btn--cta lf-btn--block" type="button">
+          <span aria-hidden="true">G</span>
+          <span>Google로 로그인하고 내용 보기</span>
         </button>
         <p class="lf-caption lf-text-center">앱 설치 없이 3분이면 끝나요</p>
       </div>

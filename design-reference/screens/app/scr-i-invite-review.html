@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>앱 안 초대 검토 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-detail.css">
+<link rel="stylesheet" href="../../styles/screens/app-support.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<!-- EC-I01: 로그인 뒤 앱 안에서 초대 내용을 검토한다. 법적 고지는 불변 문구다. -->
+<body class="lf-page" data-screen-id="SCR-I" data-screen-name="앱 안 초대 검토">
+<div class="lf-device"><div class="lf-device__viewport"><div class="lf-screen">
+  <header class="lf-appbar">
+    <button class="lf-icon-button" type="button" aria-label="뒤로"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span></button>
+    <h1 class="lf-appbar__title">초대받은 약속</h1>
+    <img class="lf-mascot lf-mascot--lg" src="../../assets/images/mascot-face-e1.png" alt="">
+  </header>
+  <div class="lf-screen__body">
+    <div class="lf-detail__head">
+      <div class="lf-detail__head-main">
+        <p class="lf-eyebrow">PROMISE · 약속 검토</p>
+        <h2 class="lf-title lf-detail__title">매주 화·목 아침<br>러닝 같이 하기</h2>
+      </div>
+      <span class="lf-dday-circle">D-17</span>
+    </div>
+    <div class="lf-card lf-stack lf-gap-4">
+      <p class="lf-eyebrow">CONTENT · 내용</p>
+      <p class="lf-body lf-body--sm">8월 11일까지 매주 화·목 아침 7시, 반포한강공원에서 함께 러닝한다. 우천 시 다음 날로 순연.</p>
+      <div class="lf-row lf-gap-2"><span class="lf-chip lf-chip--cream">습관</span><span class="lf-chip lf-chip--cream">둘 다</span></div>
+    </div>
+    <div class="lf-outcomes">
+      <div class="lf-outcome lf-outcome--reward"><p class="lf-outcome__label">REWARD · 보상</p><p class="lf-outcome__value">성공하면 오마카세 사주기</p></div>
+      <div class="lf-outcome lf-outcome--penalty"><p class="lf-outcome__label">PENALTY · 벌칙</p><p class="lf-outcome__value">한 달 커피 셔틀</p></div>
+    </div>
+    <p class="lf-disclaimer">리틀핑거의 약속 기록은 공증이나 전자계약 서비스가 아니며, 법적 효력을 보증하지 않습니다. 다만 양측의 승인 이력과 시각 정보는 분쟁 시 참고 자료로 활용될 수 있습니다.</p>
+  </div>
+  <div class="lf-screen__actions lf-detail__actions">
+    <button class="lf-btn lf-btn--outlined" type="button">거절</button>
+    <button class="lf-btn lf-btn--filled" type="button"><span>승인하기</span><span class="lf-btn__trailing"><span class="material-symbols-rounded" aria-hidden="true">check</span></span></button>
+  </div>
+</div></div></div>
+<script src="../frame.js"></script>
+</body>
+</html>

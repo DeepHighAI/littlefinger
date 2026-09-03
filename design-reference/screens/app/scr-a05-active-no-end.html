@@ -21,7 +21,7 @@
     <div class="lf-screen">
 
       <header class="lf-appbar">
-        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+        <button class="lf-icon-button" type="button" aria-label="뒤로">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
         <h1 class="lf-appbar__title">약속 상세</h1>
@@ -29,79 +29,76 @@
           <span class="material-symbols-rounded" aria-hidden="true">share</span>
         </button>
         <button class="lf-icon-button" type="button" aria-label="더보기">
-          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+          <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
         </button>
       </header>
 
       <div class="lf-screen__body">
 
-        <!-- D-Day 배지 자리가 비는 대신 "종료일 없음"을 텍스트로 — 출시본은 D-Day 슬롯에 같은 문구를 놓는다 -->
-        <div class="lf-row lf-gap-3">
-          <span class="lf-chip lf-chip--status">진행 중</span>
-          <span class="lf-caption">종료일 없음</span>
+        <div class="lf-detail__head">
+          <div class="lf-detail__head-main">
+            <div class="lf-detail__status-row">
+              <span class="lf-chip lf-chip--sm lf-chip--mint">진행 중</span>
+              <span class="lf-detail__date">종료일 없음</span>
+            </div>
+            <h2 class="lf-title lf-detail__title">매주 일요일 부모님께<br>안부 전화하기</h2>
+          </div>
+          <span class="lf-dday-circle lf-dday-circle--sky" aria-label="종료일 없음">∞</span>
         </div>
-
-        <h2 class="lf-title">매주 일요일 부모님께 안부 전화하기</h2>
 
         <!-- 확정 스탬프 — 양측 승인 로그 + 기록 지문 (Q-4) -->
-        <div class="lf-stamp lf-stamp--compact">
-          <svg class="lf-pinky lf-pinky--md lf-pinky--on-container" viewBox="0 0 120 120" aria-hidden="true">
-            <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
-            <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+        <div class="lf-stamp">
+          <svg class="lf-blob--corner lf-blob--corner-left" viewBox="0 0 90 70" aria-hidden="true">
+            <path class="lf-blob__sky" d="M40 6c22-10 50 6 46 30S60 68 36 66 4 50 8 32 22 14 40 6Z"/>
           </svg>
+          <span class="lf-stamp__pill" aria-hidden="true">
+            <span class="lf-pinky-loop lf-pinky-loop--sm">
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-color.png" alt=""></span>
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-color.png" alt=""></span>
+              <span class="lf-pinky-loop__spark"></span>
+            </span>
+          </span>
           <p class="lf-stamp__headline">두 사람이 손가락 걸었어요!</p>
           <p class="lf-stamp__time">2026-07-05 20:31 확정</p>
-          <ul class="lf-stamp__approvals">
-            <li class="lf-approval">
-              <span class="material-symbols-rounded" aria-hidden="true">check</span>지우 20:12
-            </li>
-            <li class="lf-approval">
-              <span class="material-symbols-rounded" aria-hidden="true">check</span>민준 20:31
-            </li>
-          </ul>
-          <p class="lf-fingerprint">
-            <span class="material-symbols-rounded" aria-hidden="true">fingerprint</span>
-            <span>기록 지문</span>
-            <span class="lf-fingerprint__code">7B21-E04D-09</span>
-          </p>
+          <div class="lf-stamp__approvals">
+            <span class="lf-approval"><span class="lf-approval__dot" aria-hidden="true"></span>지우 20:12</span>
+            <span class="lf-approval"><span class="lf-approval__dot" aria-hidden="true"></span>민준 20:31</span>
+          </div>
+          <p class="lf-fingerprint">RECORD · <span class="lf-fingerprint__code">7B21-E04D-09</span></p>
         </div>
 
-        <div class="lf-stack lf-gap-3">
-          <div>
-            <p class="lf-section-title">내용</p>
-            <p class="lf-body">매주 일요일 저녁에 각자 부모님께 안부 전화를 한다. 못 한 주는 다음 날 안에 한다.</p>
+        <div class="lf-card lf-stack lf-gap-4">
+          <p class="lf-eyebrow">CONTENT · 내용</p>
+          <p class="lf-body lf-body--sm">매주 일요일 저녁에 각자 부모님께 안부 전화를 한다. 못 한 주는 다음 날 안에 한다.</p>
+          <div class="lf-row lf-gap-2 lf-wrap">
+            <span class="lf-chip lf-chip--cream">습관</span>
+            <span class="lf-chip lf-chip--cream">둘 다</span>
           </div>
-          <ul class="lf-row lf-gap-2 lf-wrap">
-            <li class="lf-chip">카테고리 · 습관</li>
-            <li class="lf-chip">지킬 사람 · 둘 다</li>
-            <li class="lf-chip">종료일 없음</li>
-          </ul>
         </div>
 
         <ul class="lf-outcomes">
           <li class="lf-outcome lf-outcome--reward">
-            <p class="lf-outcome__label">보상</p>
+            <p class="lf-outcome__label">REWARD · 보상</p>
             <p class="lf-outcome__value">기록된 보상이 없어요</p>
           </li>
           <li class="lf-outcome lf-outcome--penalty">
-            <p class="lf-outcome__label">벌칙</p>
+            <p class="lf-outcome__label">PENALTY · 벌칙</p>
             <p class="lf-outcome__value">기록된 벌칙이 없어요</p>
           </li>
         </ul>
 
-        <!-- 내 기록 보관 — 종료일이 없어 기준 시각이 아직 없다. 연장 버튼도 없다(renewable=false) -->
-        <div class="lf-retention-row">
-          <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
-          <div class="lf-retention-row__body">
-            <p class="lf-retention-row__label">내 기록 보관</p>
-            <p class="lf-retention-row__value">마무리 합의 뒤 보관이 시작돼요</p>
+        <div class="lf-card lf-card--sky lf-card--flat lf-info-row">
+          <span class="material-symbols-rounded" aria-hidden="true">all_inclusive</span>
+          <div class="lf-grow">
+            <p class="lf-info-row__label">종료일 없음</p>
+            <p class="lf-info-row__value">서로 합의할 때까지 이어지는 약속이에요</p>
           </div>
+          <button class="lf-btn lf-btn--text" type="button">마무리 요청</button>
         </div>
 
         <button class="lf-row-link" type="button">
-          <span class="material-symbols-rounded" aria-hidden="true">history</span>
           <span class="lf-row-link__label">버전 이력 · v1</span>
-          <span class="material-symbols-rounded lf-chevron" aria-hidden="true">chevron_right</span>
+          <span class="material-symbols-rounded lf-chevron" aria-hidden="true">arrow_forward</span>
         </button>
 
         <!-- 디스클레이머 — 문구 변경 금지 (요청서 §8, §10 확정 문구) -->
@@ -111,12 +108,12 @@
 
       <!-- 마무리 요청은 당사자에게만 — 증인 시점에서는 이 버튼이 없다. 누르면 확인 대화상자:
            "이 약속의 마무리를 요청할까요?" / "상대방이 승인한 시각부터 이행 확인과 기록 보관 기간이 시작돼요." / [마무리 요청] -->
-      <div class="lf-screen__actions">
-        <div class="lf-screen__actions-row">
-          <button class="lf-btn lf-btn--outlined lf-btn--grow" type="button">변경·파기 요청</button>
-          <button class="lf-btn lf-btn--tonal lf-btn--grow" type="button">증인 초대</button>
-        </div>
-        <button class="lf-btn lf-btn--outlined lf-btn--block" type="button">이 약속 마무리 요청</button>
+      <div class="lf-screen__actions lf-detail__actions">
+        <button class="lf-btn lf-btn--outlined" type="button">변경·파기 요청</button>
+        <button class="lf-btn lf-btn--filled" type="button">
+          <span>증인 초대</span>
+          <span class="lf-btn__trailing"><span class="material-symbols-rounded" aria-hidden="true">person_add</span></span>
+        </button>
       </div>
 
     </div>

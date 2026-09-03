@@ -28,6 +28,8 @@
 
 .lf-detail__title { margin-top: var(--lf-space-5); }
 
+.lf-dday-circle--sky { background: var(--lf-color-record-container); }
+
 /* 상태 칩 별칭 — D7: 변경 협의=스카이 · 완료=민트 */
 .lf-chip--amend  { background: var(--lf-color-record-container); }
 .lf-chip--reward { background: var(--lf-color-success-container); }

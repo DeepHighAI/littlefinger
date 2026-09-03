@@ -23,15 +23,15 @@
       <!-- 배경 — 약속 상세(SCR-A05) 화면이 흐릿하게 비치는 자리표시자. 실제 콘텐츠가 아니므로 스크린리더에서 숨김 -->
       <div class="lf-backdrop" aria-hidden="true">
         <header class="lf-appbar">
-          <button class="lf-icon-button lf-icon-button--strong" type="button" tabindex="-1" aria-label="뒤로가기">
+          <button class="lf-icon-button" type="button" tabindex="-1" aria-label="뒤로가기">
             <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
           </button>
           <span class="lf-appbar__title">약속 상세</span>
         </header>
         <div class="lf-backdrop__body">
           <div class="lf-row lf-gap-3">
-            <span class="lf-chip lf-chip--status">진행 중</span>
-            <span class="lf-dday lf-dday--lg lf-push-right">D-17</span>
+            <span class="lf-chip lf-chip--sm lf-chip--mint">진행 중</span>
+            <span class="lf-dday-circle lf-push-right">D-17</span>
           </div>
           <p class="lf-title">매주 화·목 아침 러닝 같이 하기</p>
         </div>
@@ -41,7 +41,7 @@
 
       <div class="lf-sheet" role="dialog" aria-modal="true" aria-labelledby="mod01-noend-title">
         <div class="lf-sheet__handle" aria-hidden="true"></div>
-        <div class="lf-row lf-gap-3">
+        <div class="lf-sheet__title-row">
           <h1 class="lf-sheet__title lf-grow" id="mod01-noend-title">변경·파기 요청</h1>
           <button class="lf-icon-button" type="button" aria-label="변경·파기 요청 닫기">
             <span class="material-symbols-rounded" aria-hidden="true">close</span>
@@ -58,7 +58,7 @@
 
         <!-- 제목·내용·카테고리 필드는 mod-01-amend-request.html 과 같다 — 여기서는 종료일 필드만 펼쳐 보인다 -->
         <div class="lf-field">
-          <span class="lf-field__label" id="mod01-end-date-label">종료일</span>
+          <span class="lf-field__label" id="mod01-end-date-label">END DATE · 종료일</span>
           <button class="lf-picker" type="button" aria-labelledby="mod01-end-date-label" aria-haspopup="dialog">
             <span class="material-symbols-rounded" aria-hidden="true">event</span>
             <span class="lf-picker__value">종료일 없음</span>
@@ -66,17 +66,20 @@
           </button>
           <!-- 작성자의 영구 보관 구매가 유효할 때만 렌더되는 선택지 -->
           <div class="lf-choices" role="group" aria-label="종료일 없음 선택">
-            <button class="lf-choice" type="button" aria-pressed="true">종료일 없음</button>
+            <button class="lf-choice lf-chip--sky" type="button" aria-pressed="true">종료일 없음</button>
           </div>
           <p class="lf-field__hint">무료 기간을 넘기면 광고로 30일씩 늘리거나 영구 보관을 구매할 수 있어요.</p>
         </div>
 
         <div class="lf-field">
-          <label class="lf-field__label" for="amend-noend-reason">변경 이유</label>
+          <label class="lf-field__label" for="amend-noend-reason">REASON · 변경 이유</label>
           <textarea id="amend-noend-reason" class="lf-input lf-textarea" placeholder="변경이나 파기를 요청하는 이유를 남겨주세요.">습관으로 굳었으니 기한 없이 계속 이어가자!</textarea>
         </div>
 
-        <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">요청 보내기</button>
+        <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">
+          <span>요청 보내기</span>
+          <span class="lf-btn__trailing"><span class="material-symbols-rounded" aria-hidden="true">send</span></span>
+        </button>
       </div>
 
     </div>

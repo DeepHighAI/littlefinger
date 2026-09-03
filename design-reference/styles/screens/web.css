@@ -71,6 +71,30 @@
 }
 
 /* -------------------------------------------------------------
+   LOCALE SWITCH — 우상단 고정 언어 전환 (App 셸이 모든 화면에 얹는다)
+   .lf-screen 이 absolute 전면이라 fixed 오버레이만 모든 화면 위에 남는다
+   ------------------------------------------------------------- */
+.lf-locale-switch {
+  position: fixed;
+  top: var(--lf-space-3);
+  right: var(--lf-space-3);
+  z-index: 10;
+  min-height: var(--lf-touch-min);
+  min-width: var(--lf-touch-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--lf-space-4);
+  border-radius: var(--lf-radius-pill);
+  border: 1px solid var(--lf-color-outline);
+  background: var(--lf-color-surface);
+  color: var(--lf-color-text-secondary);
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
+  box-shadow: var(--lf-elevation-card);
+}
+
+/* -------------------------------------------------------------
    APP HINT — 앱 설치 유도 카드 (핑키 아이콘 + 굵은 2줄 문구, SCR-W03)
    ------------------------------------------------------------- */
 .lf-app-hint {
@@ -88,7 +112,7 @@
 }
 
 /* -------------------------------------------------------------
-   INFO BANNER — 옅은 로즈 배경의 안내 박스 (예: SCR-W05 증인 권한 안내)
+   INFO BANNER — 스카이 안내 박스 (예: SCR-W05 증인 권한 안내)
    ------------------------------------------------------------- */
 .lf-info-banner {
   display: flex;
@@ -193,3 +217,212 @@
 .lf-mt-1 { margin-top: var(--lf-space-1); }
 .lf-mt-3 { margin-top: var(--lf-space-3); }
 .lf-mt-4 { margin-top: var(--lf-space-4); }
+
+/* -------------------------------------------------------------
+   SCR-W04 — 서버 상태 기반 참여 약속 목록
+   ------------------------------------------------------------- */
+.lf-fulfillment-question {
+  font-weight: var(--lf-weight-bold);
+}
+
+.lf-claim__comment {
+  margin-top: var(--lf-space-2);
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  color: var(--lf-color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.lf-history {
+  padding-top: var(--lf-space-4);
+}
+
+.lf-field__hint--error {
+  color: var(--lf-color-error);
+}
+
+.lf-evidence-grid,
+.lf-claim__evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lf-space-3);
+}
+
+.lf-evidence-tile {
+  position: relative;
+  flex: none;
+}
+
+.lf-evidence-tile--full {
+  width: 100%;
+}
+
+.lf-proof--tile {
+  position: relative;
+  aspect-ratio: auto;
+  overflow: hidden;
+  padding: var(--lf-space-1);
+  text-align: center;
+}
+
+.lf-proof--tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lf-proof__status {
+  position: absolute;
+  right: var(--lf-space-1);
+  bottom: var(--lf-space-1);
+  left: var(--lf-space-1);
+  border-radius: var(--lf-radius-xs);
+  background: var(--lf-color-surface-chrome);
+  font-size: var(--lf-type-micro-size);
+}
+
+.lf-evidence-remove {
+  position: absolute;
+  top: calc(var(--lf-space-9) * -1);
+  right: calc(var(--lf-space-9) * -1);
+  width: var(--lf-touch-min);
+  height: var(--lf-touch-min);
+  background: transparent;
+  display: grid;
+  place-items: center;
+}
+
+.lf-evidence-remove .material-symbols-rounded {
+  width: var(--lf-space-9);
+  height: var(--lf-space-9);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-text-secondary);
+  color: var(--lf-color-on-primary);
+  display: grid;
+  place-items: center;
+  font-size: var(--lf-type-label-size);
+}
+
+.lf-claim__evidence {
+  margin-top: var(--lf-space-3);
+}
+
+.lf-f11-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+.lf-f11-overlay .lf-scrim {
+  width: 100%;
+  border: 0;
+}
+
+.lf-f11-sheet {
+  left: 50%;
+  width: min(100%, var(--lf-viewport-width));
+  transform: translateX(-50%);
+}
+
+.lf-witness-leave-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+.lf-witness-leave-overlay .lf-scrim {
+  width: 100%;
+  border: 0;
+}
+
+.lf-witness-leave-sheet {
+  left: 50%;
+  width: min(100%, var(--lf-viewport-width));
+  transform: translateX(-50%);
+}
+
+.lf-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: var(--lf-space-1);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-surface-muted);
+}
+
+.lf-segmented button {
+  min-height: var(--lf-touch-min);
+  border-radius: var(--lf-radius-pill);
+  background: transparent;
+  color: var(--lf-color-text-secondary);
+  font-weight: var(--lf-weight-bold);
+}
+
+.lf-segmented button[aria-pressed='true'] {
+  background: var(--lf-color-surface);
+  color: var(--lf-color-primary);
+}
+
+/* -------------------------------------------------------------
+   공개 법적 문서 초안 — 로그인·초대와 독립된 스크롤 문서
+   ------------------------------------------------------------- */
+.lf-legal {
+  min-height: 100vh;
+  padding: var(--lf-space-9) var(--lf-gutter-web);
+  background: var(--lf-color-background);
+}
+
+.lf-legal__document {
+  width: 100%;
+  max-width: calc(var(--lf-viewport-width) * 2);
+  margin: 0 auto;
+  padding: var(--lf-space-9);
+  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-lg);
+  background: var(--lf-color-surface);
+  box-shadow: var(--lf-elevation-card);
+  color: var(--lf-color-text);
+}
+
+.lf-legal__document h1 {
+  margin: 0 0 var(--lf-space-5);
+  font-size: var(--lf-type-title-size);
+  line-height: var(--lf-line-title);
+}
+
+.lf-legal__document h2 {
+  margin: var(--lf-space-9) 0 var(--lf-space-3);
+  font-size: var(--lf-type-heading-size);
+  line-height: var(--lf-line-title);
+}
+
+.lf-legal__document p {
+  margin: 0 0 var(--lf-space-5);
+  font-size: var(--lf-type-body-size);
+  line-height: var(--lf-line-body);
+}
+
+.lf-legal__version {
+  color: var(--lf-color-text-secondary);
+}
+
+.lf-login-legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lf-space-5);
+}
+
+.lf-login-legal a {
+  min-height: var(--lf-touch-min);
+  display: inline-flex;
+  align-items: center;
+  color: var(--lf-color-text-muted);
+  font-size: var(--lf-type-caption-size);
+  text-decoration: underline;
+}
+
+.lf-login-legal a:focus-visible {
+  border-radius: var(--lf-radius-xs);
+  outline: 2px solid var(--lf-color-primary);
+  outline-offset: var(--lf-space-1);
+}

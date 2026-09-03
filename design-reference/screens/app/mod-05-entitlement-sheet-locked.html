@@ -23,14 +23,14 @@
       <!-- 배경 — 약속 상세(SCR-A05 COMPLETED) 화면이 비치는 자리표시자 -->
       <div class="lf-backdrop" aria-hidden="true">
         <header class="lf-appbar">
-          <button class="lf-icon-button lf-icon-button--strong" type="button" tabindex="-1" aria-label="뒤로가기">
+          <button class="lf-icon-button" type="button" tabindex="-1" aria-label="뒤로가기">
             <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
           </button>
           <span class="lf-appbar__title">약속 상세</span>
         </header>
         <div class="lf-backdrop__body">
           <div class="lf-row lf-gap-3">
-            <span class="lf-chip lf-chip--status">완료</span>
+            <span class="lf-chip lf-chip--sm lf-chip--mint">완료</span>
             <span class="lf-caption">2026-08-12 종결</span>
           </div>
           <p class="lf-title">매주 화·목 아침 러닝 같이 하기</p>
@@ -44,7 +44,7 @@
       <div class="lf-sheet" role="dialog" aria-modal="true" aria-labelledby="mod05-locked-title">
         <div class="lf-sheet__handle" aria-hidden="true"></div>
 
-        <div class="lf-row">
+        <div class="lf-sheet__title-row">
           <h1 class="lf-sheet__title lf-grow" id="mod05-locked-title">내 기록 보관하기</h1>
           <button class="lf-icon-button" type="button" aria-label="닫기">
             <span class="material-symbols-rounded" aria-hidden="true">close</span>
@@ -61,13 +61,19 @@
         </p>
 
         <!-- 광고 버튼이 있던 자리 — 잠김은 텍스트로만 말하고 빈 버튼을 남기지 않는다 -->
-        <p class="lf-caption">지금은 광고를 볼 수 없어 잠겨 있어요.</p>
+        <div class="lf-card lf-card--muted lf-card--flat lf-info-row">
+          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+          <p class="lf-caption">지금은 광고를 볼 수 없어 잠겨 있어요.</p>
+        </div>
 
         <div class="lf-slot-sheet__offer">
-          <p class="lf-subtitle">영구 보관</p>
+          <p class="lf-slot-sheet__offer-title">영구 보관</p>
           <p class="lf-caption">이 약속을 내 계정에 영구 보관해요. 작성자가 구매하면 종료일 없는 약속도 제안할 수 있어요.</p>
           <!-- 가격은 Google Play 현지화 가격이 정본 — ₩2,000 은 표시 폴백 -->
-          <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">₩2,000에 영구 보관</button>
+          <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">
+            <span>₩2,000에 영구 보관</span>
+            <span class="lf-btn__trailing lf-btn__trailing--plain"><span class="material-symbols-rounded" aria-hidden="true">inventory_2</span></span>
+          </button>
         </div>
       </div>
 

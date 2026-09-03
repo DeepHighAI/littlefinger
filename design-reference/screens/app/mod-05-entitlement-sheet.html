@@ -38,7 +38,7 @@
       <div class="lf-sheet" role="dialog" aria-modal="true" aria-labelledby="mod05-title">
         <div class="lf-sheet__handle" aria-hidden="true"></div>
 
-        <div class="lf-row">
+        <div class="lf-sheet__title-row">
           <h1 class="lf-sheet__title lf-grow" id="mod05-title">약속 기간 늘리기</h1>
           <button class="lf-icon-button" type="button" aria-label="닫기">
             <span class="material-symbols-rounded" aria-hidden="true">close</span>
@@ -62,10 +62,13 @@
         <button type="button" class="lf-btn lf-btn--outlined lf-btn--block">광고 보고 30일 늘리기</button>
 
         <div class="lf-slot-sheet__offer">
-          <p class="lf-subtitle">영구 보관</p>
+          <p class="lf-slot-sheet__offer-title">영구 보관</p>
           <p class="lf-caption">이 약속을 내 계정에 영구 보관해요. 작성자가 구매하면 종료일 없는 약속도 제안할 수 있어요.</p>
           <!-- 가격은 Google Play 현지화 가격이 정본 — 스토어 값을 못 받았을 때만 ₩2,000 폴백을 보여 준다 -->
-          <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">₩2,000에 영구 보관</button>
+          <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">
+            <span>₩2,000에 영구 보관</span>
+            <span class="lf-btn__trailing lf-btn__trailing--plain"><span class="material-symbols-rounded" aria-hidden="true">inventory_2</span></span>
+          </button>
         </div>
       </div>
 

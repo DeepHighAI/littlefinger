@@ -16,23 +16,26 @@
     <div class="lf-screen">
 
       <header class="lf-appbar">
-        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+        <button class="lf-icon-button" type="button" aria-label="뒤로">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
         <h1 class="lf-appbar__title">약속 상세</h1>
         <button class="lf-icon-button" type="button" aria-label="더보기">
-          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+          <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
         </button>
       </header>
 
       <div class="lf-screen__body">
 
-        <div class="lf-row lf-gap-3">
-          <span class="lf-chip lf-chip--neutral">미확정 종결</span>
-          <span class="lf-caption">2026-08-08 종결</span>
+        <div class="lf-detail__head">
+          <div class="lf-detail__head-main">
+            <div class="lf-detail__status-row">
+              <span class="lf-chip lf-chip--sm lf-chip--muted">미확정 종결</span>
+              <span class="lf-detail__date">2026-08-08 종결</span>
+            </div>
+            <h2 class="lf-title lf-detail__title">주 3회 홈트<br>인증하기</h2>
+          </div>
         </div>
-
-        <h2 class="lf-title">주 3회 홈트 인증하기</h2>
 
         <div class="lf-stamp lf-stamp--compact lf-stamp--neutral">
           <span class="material-symbols-rounded lf-stamp__icon" aria-hidden="true">hourglass_bottom</span>
@@ -63,7 +66,7 @@
         </div>
 
         <!-- 약속 지킴율에서 제외, 별도 건수로 표기 (§6) -->
-        <p class="lf-note">약속 지킴율에는 반영되지 않아요 · 프로필에 "무응답 종결"로 별도 표기돼요</p>
+        <p class="lf-note lf-note--plain">약속 지킴율에는 반영되지 않아요 · 프로필에 "무응답 종결"로 별도 표기돼요</p>
 
       </div>
 
