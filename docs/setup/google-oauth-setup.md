@@ -20,8 +20,13 @@ No billing account is needed for OAuth.
   these three require no Google verification review.
 - Publishing status: keep **Testing** during development (only listed test users can sign in,
   100-user cap, and refresh tokens expire after 7 days — add the Google test accounts under
-  "Test users"). Switch to **In production** before release; with non-sensitive scopes this is
-  a self-serve toggle, not a review.
+  "Test users"). Switch to **In production** before release; with non-sensitive scopes the
+  switch itself is self-serve (done 2026-09-03, project `littlefinger-506104`), but the console
+  then asks for **brand verification** so the consent screen shows the app name and logo instead
+  of the Supabase domain. Its automated check requires: the homepage domain verified in Search
+  Console by the project owner, a public homepage that explains the app without a login screen,
+  and the branding app name equal to the homepage's name (`리틀핑거`). Steps and hand-back items:
+  `open-testing-po-guide.md` §4.
 
 ## 3. OAuth client (APIs & Services → Credentials → Create credentials → OAuth client ID)
 

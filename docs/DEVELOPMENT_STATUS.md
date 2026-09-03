@@ -36,6 +36,21 @@ PASS. Runbooks: `docs/setup/open-testing-release.md` (engineer) and
 `docs/setup/open-testing-po-guide.md` (PO console steps with a hand-back block). Build record:
 see "Build 0.2.0 / versionCode 21" under Remote deployment state.
 
+**Google OAuth consent screen (2026-09-03, GCP project `littlefinger-506104`).** The PO's
+"앱 게시" took effect: publishing status is **프로덕션 단계**, and with only the three non-sensitive
+scopes the Verification Center's data-access card says no verification is needed — any Google
+account can sign in. What the console still flags is **brand verification** (app name + logo on the
+consent screen; until it passes the screen shows the Supabase domain). Its automated check listed
+four issues: homepage domain not verified in Search Console, a login page shown before a homepage,
+no app-purpose description on the homepage, and the branding app name `Liitlefinger` not matching
+the site. The web root `/` used to fall through to SCR-W06 (E_NOT_FOUND), so a public **home page**
+now lives at `/` (`apps/web/src/screens/home.tsx`, copy from the approved listing §1-3/§1-4,
+ko/en catalog registered, no login control) and is deployed to Firebase Hosting (root 200,
+`assetlinks.json`, `app-ads.txt`, legal and account-deletion routes unchanged). Remaining for the
+PO: Search Console HTML-tag ownership of `littlefinger-app.web.app` (the tag goes into
+`apps/web/index.html` once the value is handed over), the branding name fix, then re-verify and
+publish branding — `open-testing-po-guide.md` §4.
+
 ### After open testing — verification and development backlog
 
 Priority order; each item names what it needs.

@@ -8,6 +8,11 @@ import { legalDocumentPath, type LegalDocumentKind } from '@littlefinger/shared'
  * 경로가 달라지면 이미 카카오톡에 뿌려진 링크를 찾을 방법도 되살릴 방법도 없다.
  */
 export const ROUTE = {
+  /**
+   * 공개 홈. Google OAuth 브랜드 인증이 "로그인 없이 앱의 목적을 설명하는 홈페이지"를
+   * 요구한다(2026-09-03) — 전에는 `/` 가 SCR-W06(E_NOT_FOUND) 로 떨어졌다.
+   */
+  home: '/',
   /** 공개 이용약관 초안. 인증과 초대 토큰이 필요 없다. */
   terms: legalDocumentPath('TERMS'),
   /** 공개 개인정보 처리방침 초안. 인증과 초대 토큰이 필요 없다. */
