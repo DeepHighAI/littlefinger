@@ -2,6 +2,21 @@
 
 Snapshot date: **2026-09-03 KST**.
 
+## Pastel sticker restyle (in progress, 2026-09-03)
+
+The PO-approved Claude Design source is
+`design-reference/redesign-2026-09-03/ui-ux/project/리틀핑거 파스텔 스티커.dc.html`.
+P0–P4 are complete: the E-1 masters and Material Symbols Rounded subset are present, the
+183-token palette and reference component grammar have landed, and the gallery now contains 41
+pastel-reference screens. The 15 source artboards and 26 extrapolated app/web states load with no
+broken assets or horizontal overflow. `components.css` and `screens/web.css` are byte-equal between
+the reference and web targets.
+
+The React Native components/screens and production acceptance-web markup have **not** been ported
+yet (P5–P7). Do not deploy the web while its production markup still trails the shared CSS grammar.
+Launcher/splash/notification derivatives and the 0.3.0 release bump remain held for P8; no release
+build is authorized by the reference work alone.
+
 ## Open testing release (2026-09-03)
 
 The Play Console was read end to end on 2026-09-03 before the submission (developer account
