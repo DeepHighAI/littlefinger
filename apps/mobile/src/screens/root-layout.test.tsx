@@ -183,6 +183,18 @@ describe('루트 인증 게이트', () => {
     expect(mockReplace).not.toHaveBeenCalledWith('/onboarding');
   });
 
+  test('시작 읽기가 거부돼도 스플래시에 갇히지 않고 로그인으로 간다', async () => {
+    mockRootNavigationReady = true;
+    mockReadOnboardingCompletionNative.mockRejectedValue(new Error('storage unavailable'));
+    await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
+
+    expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
+    expect(mockReplace).not.toHaveBeenCalledWith('/onboarding');
+    expect(mockReplace).not.toHaveBeenCalledWith('/update-required');
+  });
+
   test('EC-I04 강제 업데이트는 온보딩보다 우선한다', async () => {
     mockRootNavigationReady = true;
     mockReadOnboardingCompletionNative.mockResolvedValue(false);

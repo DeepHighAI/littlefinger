@@ -220,9 +220,10 @@ Debug recipe that worked: `svc power stayon usb` + wake, ask the PO to unlock on
 commit. `dumpsys window | grep mDreamingLockscreen` tells you whether a capture is contaminated by
 the lockscreen. Undo the stay-awake with `svc power stayon false`.
 
-Hardening still worth adding (not yet done): the `_layout.tsx` startup `Promise.all` has no
-`.catch` (any rejection = infinite splash) and no AppState-active retry for gates that parked
-while the screen was off.
+Hardening: the `_layout.tsx` startup `Promise.all` gained a `.catch` on 2026-09-03 (code 21 —
+a rejection now falls open to the login screen instead of an infinite splash; locked by
+`root-layout.test.tsx`). Still not done: an AppState-active retry for gates that parked while the
+screen was off.
 
 ## Shared error codes are baked into every deployed Edge Function (2026-08-26)
 

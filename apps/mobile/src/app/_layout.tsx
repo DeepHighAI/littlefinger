@@ -82,6 +82,13 @@ export default function RootLayout(): React.JSX.Element {
       setOnboardingComplete(completed);
       setUpdateRequired(required);
       setStartupReady(true);
+    }).catch(() => {
+      // 두 읽기 모두 자체적으로 fail-open 이지만, 여기서 거부되면 스플래시가 영원히 남는다.
+      // 공개 사용자에게 무한 로딩보다는 로그인 화면이 낫다(저장소 장애 = 온보딩 완료 취급).
+      if (!active) return;
+      setOnboardingComplete(true);
+      setUpdateRequired(false);
+      setStartupReady(true);
     });
     return () => { active = false; };
   }, []);
