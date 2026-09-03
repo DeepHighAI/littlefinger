@@ -56,8 +56,18 @@ deep routes are served by a byte-identical `app.html` shell (`firebase.json` rew
 `<h1>리틀핑거</h1>` and the purpose text in the raw HTML, `/i/*` returns the empty shell. Search
 Console ownership of `littlefinger-app.web.app` is **verified** (HTML file
 `googleb324b92c6f5d9c19.html`, served from `apps/web/public/`, pinned by `seo.test.ts`), and the
-branding app name was corrected to `리틀핑거` by the PO. Remaining: re-run branding verification
-and publish it — `open-testing-po-guide.md` §4.
+branding app name was corrected to `리틀핑거` by the PO. The third attempt still listed "homepage
+not registered to you" and "login page before homepage" although IAM shows task@deephigh.ai as
+project **Owner** and Search Console's live URL test renders the home correctly (all resources
+loaded, no console errors, no login screen) — consistent with the Search Console → brand-check
+sync lag reported on Google's developer forums. The Play CTA was moved below the description
+sections to leave nothing that reads as a gate, and Firebase Hosting's default
+`Cache-Control: max-age=3600` on HTML (which let a CDN edge serve the previous home for up to an
+hour after a deploy — observed with `X-Cache: MISS` vs. stale content) was replaced by
+`max-age=0, must-revalidate` for the shells, one-year immutable caching for hashed `/assets/**`,
+and one day for `/fonts/**` (`firebase.json`, pinned by `seo.test.ts`). Remaining: re-run branding
+verification after a few hours, or request manual review with the justification in
+`open-testing-po-guide.md` §4.
 
 ### After open testing — verification and development backlog
 

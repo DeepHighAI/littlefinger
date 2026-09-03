@@ -20,14 +20,6 @@ export function Home(): React.JSX.Element {
           <strong>{labels.tagline}</strong> · {labels.motto}
         </p>
         {labels.purpose.map((text) => <p key={text}>{text}</p>)}
-        <p>
-          <a
-            className="lf-btn lf-btn--filled"
-            href={buildPlayStoreUrl({ source: 'web', medium: 'home' })}
-          >
-            {labels.playLink}
-          </a>
-        </p>
         <section>
           <h2>{labels.howTitle}</h2>
           <ul>
@@ -40,6 +32,15 @@ export function Home(): React.JSX.Element {
             {labels.principles.map((text) => <li key={text}>{text}</li>)}
           </ul>
         </section>
+        {/* 설치 CTA 는 설명 뒤에 둔다 — 첫 화면이 버튼 하나뿐이면 브랜드 검사가 "로그인 게이트"로 읽을 수 있다. */}
+        <p>
+          <a
+            className="lf-btn lf-btn--filled"
+            href={buildPlayStoreUrl({ source: 'web', medium: 'home' })}
+          >
+            {labels.playLink}
+          </a>
+        </p>
         <section>
           <h2>{labels.linksTitle}</h2>
           <p>

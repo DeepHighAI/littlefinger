@@ -42,6 +42,23 @@ describe('두 개의 HTML 셸 — 홈은 index.html, 나머지 경로는 app.htm
     const web = firebase.hosting.find((site) => site.target === 'web');
     expect(web?.rewrites).toEqual([{ source: '**', destination: '/app.html' }]);
   });
+
+  test('HTML 셸은 매번 재검증하고 해시 자산만 길게 캐시한다', () => {
+    // Firebase 기본값(max-age=3600)이면 배포 뒤 최대 1시간 동안 CDN 과 크롤러가 옛 index.html 을
+    // 읽는다 — 2026-09-03 브랜드 검사가 그 사이 묵은 홈을 보고 실패했다. Vite 자산은 해시가
+    // 이름에 있어 영구 캐시가 안전하다.
+    const firebase = JSON.parse(readFileSync(resolve(REPO_ROOT, 'firebase.json'), 'utf8')) as {
+      hosting: { target: string; headers?: { source: string; headers: { key: string; value: string }[] }[] }[];
+    };
+    const rules = firebase.hosting.find((site) => site.target === 'web')?.headers ?? [];
+    const cacheOf = (source: string): string | undefined =>
+      rules.find((rule) => rule.source === source)?.headers.find((h) => h.key === 'Cache-Control')?.value;
+    expect(cacheOf('**')).toBe('public, max-age=0, must-revalidate');
+    expect(cacheOf('/assets/**')).toBe('public, max-age=31536000, immutable');
+    expect(rules.findIndex((rule) => rule.source === '**')).toBeLessThan(
+      rules.findIndex((rule) => rule.source === '/assets/**'),
+    );
+  });
 });
 
 describe('폰트 CLS 하드닝', () => {
