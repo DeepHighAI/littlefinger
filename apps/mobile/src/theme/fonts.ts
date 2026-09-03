@@ -20,6 +20,12 @@ export const TEXT_FONT_FILES = {
 export type TextFontWeight = keyof typeof TEXT_FONT_FILES;
 
 /**
+ * 아이콘 폰트 패밀리 — Material Symbols Rounded 정적 서브셋(`tools/subset-icon-font.js`).
+ * 텍스트 폰트와 같은 `FONT_ASSETS` 로 스플래시 뒤에서 미리 올린다. LfIcon 만 이 이름을 안다.
+ */
+export const ICON_FONT_FAMILY = 'MaterialSymbolsRounded';
+
+/**
  * 폰트 파일이 번들에 들어왔는지.
  * `fonts.test.ts` 가 이 플래그와 실제 폰트 모듈 존재를 함께 검사하므로,
  * 파일 없이 true 로 켜두면 테스트가 막는다.

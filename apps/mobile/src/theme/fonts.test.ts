@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { FONT_ASSETS } from './fontAssets';
-import { TEXT_FONT_FILES, TEXT_FONTS_LOADED, textFontFamily } from './fonts';
+import { ICON_FONT_FAMILY, TEXT_FONT_FILES, TEXT_FONTS_LOADED, textFontFamily } from './fonts';
 
 /**
  * 근거: 04 §5-4 (정적 파일 원칙) + ADR 0014 (Pretendard 단일화).
@@ -45,9 +45,15 @@ describe('textFontFamily', () => {
 });
 
 describe('FONT_ASSETS — expo-font 에 넘길 로드 맵', () => {
-  test('TEXT_FONT_FILES 의 모든 패밀리를 빠짐없이 담는다', () => {
+  test('TEXT_FONT_FILES 의 모든 패밀리와 아이콘 폰트를 빠짐없이 담는다', () => {
     // 이름만 늘리고 로드 맵에 안 넣으면 그 굵기만 조용히 시스템 폰트로 떨어진다.
-    expect(Object.keys(FONT_ASSETS).sort()).toEqual(Object.values(TEXT_FONT_FILES).sort());
+    expect(Object.keys(FONT_ASSETS).sort()).toEqual(
+      [...Object.values(TEXT_FONT_FILES), ICON_FONT_FAMILY].sort(),
+    );
+  });
+
+  test('아이콘 서브셋 TTF 가 실제로 있다', () => {
+    expect(existsSync(join(FONT_DIR, 'MaterialSymbolsRounded-subset.ttf'))).toBe(true);
   });
 
   test('모든 항목이 실제 에셋을 가리킨다', () => {

@@ -1,7 +1,8 @@
-// Material Symbols Rounded 서브셋 + 이름→코드포인트 표 생성기.
+// Material Symbols Rounded 서브셋 + 이름→코드포인트 표 생성기 (웹 woff2 · 앱 TTF · 표 두 벌).
 //
 // npm 패키지 원본은 **5.35 MB**(가변 폰트, 아이콘 약 3,000개)다. 수락 웹의 3초 예산에 그대로
-// 올릴 수 없고, Google CDN 으로 되돌리면 04 §5-3 의 self-host 요구를 어긴다.
+// 올릴 수 없고, Google CDN 으로 되돌리면 04 §5-3 의 self-host 요구를 어긴다. 앱은 Expo 에
+// Rounded 가 없어서 같은 서브셋을 TTF 로 구워 직접 등록한다(C-2 종결, 2026-09-03 확정안).
 //
 // **리가처 이름으로는 서브셋이 되지 않는다.** 아이콘 이름이 전부 a-z 와 _ 로만 이뤄져 있어서,
 // 그 글자들을 남기면 harfbuzz 의 liga 클로저가 "그 글자들로 만들 수 있는 모든 리가처" —
@@ -16,7 +17,11 @@
 // 그대로 보인다. 링크가 끊겼다고 알려 주는 화면에서 그건 최악이다. 코드포인트는 두부(tofu)로
 // 보이고, 낱말로 오해될 여지가 없다.
 //
-// 산출물 둘 다 커밋한다. 아이콘이 늘 때만 다시 돌린다:
+// 앱 TTF 는 **정적 인스턴스**로 굽는다. RN 안드로이드는 가변 축 선택이 불안정해서(04 §5-4,
+// Pretendard 를 정적 파일로 나눈 이유와 같다) 확정안 캔버스의 font-variation-settings
+// 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24 를 그대로 핀한다.
+//
+// 산출물 넷 다 커밋한다. 아이콘이 늘 때만 다시 돌린다:
 //   node tools/subset-icon-font.js
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -24,21 +29,32 @@ import { fileURLToPath } from 'node:url';
 import * as fontkit from 'fontkit';
 import subsetFont from 'subset-font';
 
-// design-reference/screens/**/*.html 의 .material-symbols-rounded 리가처 전량(앱 화면 포함).
-// 웹이 나중에 어느 화면을 더 가져올지 지금 좁힐 이유가 없다.
-const ICONS = [
-  'add', 'ads_click', 'alarm', 'arrow_back', 'check', 'close', 'description', 'draw', 'east',
-  'edit', 'event', 'expand_more', 'fingerprint', 'forum', 'history', 'image', 'info', 'link_off',
-  'mail', 'more_vert', 'notification_important', 'notifications', 'person', 'person_add',
-  'photo_camera', 'refresh', 'schedule', 'sell', 'send', 'settings', 'share', 'sync_alt',
-  'trending_up', 'visibility',
+// 확정안(파스텔 스티커) 아트보드 + 수락 웹 + 앱 호출처의 합집합. 앱의 LfIconName 은 이 표로
+// 닫혀 있으므로, 새 아이콘은 여기 추가하고 다시 돌린 뒤에야 쓸 수 있다.
+export const ICONS = [
+  'add', 'ads_click', 'alarm', 'arrow_back', 'arrow_forward', 'block', 'bookmark', 'cancel',
+  'check', 'check_circle', 'close', 'description', 'draw', 'east', 'edit', 'event',
+  'expand_more', 'fingerprint', 'forum', 'history', 'home', 'hourglass_empty', 'image', 'info',
+  'inventory_2', 'link_off', 'mail', 'more_horiz', 'more_vert', 'notification_important',
+  'notifications', 'person', 'person_add', 'photo_camera', 'privacy_tip',
+  'radio_button_checked', 'radio_button_unchecked', 'redeem', 'refresh', 'schedule', 'sell',
+  'send', 'settings', 'share', 'sync_alt', 'trending_up', 'visibility',
 ];
+
+// 확정안 캔버스의 font-variation-settings 와 같다. 넷을 모두 핀하면 fvar 가 사라진 정적 폰트가 된다.
+export const STATIC_INSTANCE = { wght: 400, FILL: 0, GRAD: 0, opsz: 24 };
 
 const url = (p) => fileURLToPath(new URL(p, import.meta.url));
 
-const SOURCE = url('../node_modules/material-symbols/material-symbols-rounded.woff2');
-const FONT_OUT = url('../apps/web/src/assets/fonts/material-symbols-rounded-subset.woff2');
-const MAP_OUT = url('../apps/web/src/components/icon-codepoints.ts');
+export const SOURCE = url('../node_modules/material-symbols/material-symbols-rounded.woff2');
+export const WEB_FONT_OUT = url('../apps/web/src/assets/fonts/material-symbols-rounded-subset.woff2');
+export const MOBILE_FONT_OUT = url('../apps/mobile/assets/fonts/MaterialSymbolsRounded-subset.ttf');
+// 표는 두 앱에 같은 내용으로 복사한다. packages/shared 에 두면 폰트 없는 패키지가 아이콘 이름을
+// 알게 되고, 생성 파일을 손으로 고칠 유혹만 늘어난다. 바이트 동일은 테스트가 지킨다.
+export const MAP_OUTS = [
+  url('../apps/web/src/components/icon-codepoints.ts'),
+  url('../apps/mobile/src/theme/icon-codepoints.ts'),
+];
 
 const font = fontkit.openSync(SOURCE);
 
@@ -65,26 +81,30 @@ for (const name of ICONS) {
 }
 
 const original = await readFile(SOURCE);
-const subset = await subsetFont(original, [...codePoints.values()].map((c) => String.fromCodePoint(c)).join(''), {
-  targetFormat: 'woff2',
+const text = [...codePoints.values()].map((c) => String.fromCodePoint(c)).join('');
+const webSubset = await subsetFont(original, text, { targetFormat: 'woff2' });
+const mobileSubset = await subsetFont(original, text, {
+  targetFormat: 'sfnt',
+  variationAxes: STATIC_INSTANCE,
 });
-await writeFile(FONT_OUT, subset);
+await writeFile(WEB_FONT_OUT, webSubset);
+await writeFile(MOBILE_FONT_OUT, mobileSubset);
 
 const entries = [...codePoints.entries()]
   .map(([name, cp]) => `  '${name}': 0x${cp.toString(16)},`)
   .join('\n');
 
-await writeFile(
-  MAP_OUT,
-  `// 생성 파일 — 손으로 고치지 않는다. \`node tools/subset-icon-font.js\` 가 만든다.
+const map = `// 생성 파일 — 손으로 고치지 않는다. \`node tools/subset-icon-font.js\` 가 만든다.
 // 이름 → Material Symbols Rounded 의 코드포인트. 서브셋 폰트에 이 ${codePoints.size}개만 들어 있다.
 export const ICON_CODEPOINT = {
 ${entries}
 } as const;
 
 export type IconName = keyof typeof ICON_CODEPOINT;
-`,
-);
+`;
+for (const out of MAP_OUTS) await writeFile(out, map);
 
 const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KB`;
-console.log(`아이콘 ${codePoints.size}개: ${kb(original.length)} → ${kb(subset.length)}`);
+console.log(
+  `아이콘 ${codePoints.size}개: ${kb(original.length)} → 웹 woff2 ${kb(webSubset.length)} · 앱 TTF ${kb(mobileSubset.length)}`,
+);
