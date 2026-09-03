@@ -1,67 +1,31 @@
 /* =============================================================
-   Little Finger — Components ("Pinky")
+   Little Finger — Components ("파스텔 × 잉크 & 스티커", 2026-09-03 PO 컨펌)
    화면은 이 클래스들만 조합해서 만든다. 인라인 스타일 금지.
+   문법: 크림 종이 위 잉크 테두리(2 / 2.2 / 2.4 / 2.5) + 오프셋 스티커 섀도, 파스텔 4색 스티커
+   (옐로=브랜드/선택 · 민트=진행·완료 · 핑크=마감·벌칙 · 스카이=기록·보상), 글자는 언제나 잉크,
+   필(pill) CTA 오른쪽에 옐로 원, E-1 마스코트(손가락 눈)와 C-1 손 루프.
    ============================================================= */
 
 /* -------------------------------------------------------------
-   PINKY MARK — 타입 A 새끼손가락 약속 브랜드 심볼
-   승인 PNG의 알파를 마스크로 써서 모든 인라인 SVG가 동일 실루엣을 그린다.
+   MASCOT — E-1 (두 새끼손가락이 눈이 되는 얼굴) · 정적 눈 · C-1 손 루프
+   PNG 마스터는 assets/images/{mascot-face-e1,eyes-e1,hand-color,hand-solid}.png
    ------------------------------------------------------------- */
-.lf-pinky {
-  --lf-pinky-size: 46px;
-  width: calc(var(--lf-pinky-size) * 1.4);
-  height: var(--lf-pinky-size);
-  background-color: var(--lf-color-brand-symbol);
-  -webkit-mask: url('../assets/images/brand-symbol.png') center / contain no-repeat;
-  mask: url('../assets/images/brand-symbol.png') center / contain no-repeat;
+.lf-mascot {
+  width: var(--lf-mascot-sm);
+  height: var(--lf-mascot-sm);
   flex: none;
+  object-fit: contain;
 }
 
-.lf-pinky path {
-  display: none;
-}
+.lf-mascot--sm { width: var(--lf-mascot-sm); height: var(--lf-mascot-sm); }
+.lf-mascot--md { width: var(--lf-mascot-md); height: var(--lf-mascot-md); }
+.lf-mascot--lg { width: var(--lf-mascot-lg); height: var(--lf-mascot-lg); }
 
-/* 잉크 배경의 역상 마크는 승인된 버터색을 쓴다. */
-.lf-pinky--on-primary { background-color: var(--lf-color-brand-symbol-on-action); }
-
-/* 완성된 손 모양을 훼손하지 않고 전체 마크를 짧게 반응시킨다. */
-.lf-pinky--hooked { animation: lf-pinky-hook var(--lf-duration-hook) ease-in-out infinite; }
-
-@keyframes lf-pop-in {
-  from { transform: scale(0.6); opacity: 0; }
-  to   { transform: scale(1);   opacity: 1; }
-}
-
-/* 로고 탭 시 손가락을 거는 반응 (SCR-A01) */
-@keyframes lf-pinky-hook {
-  0%   { transform: scale(1)    rotate(0deg); }
-  30%  { transform: scale(1.09) rotate(-6deg); }
-  55%  { transform: scale(1.04) rotate(5deg); }
-  78%  { transform: scale(1.06) rotate(-2deg); }
-  100% { transform: scale(1)    rotate(0deg); }
-}
-
-.lf-pinky--tapped { animation: lf-pinky-hook var(--lf-duration-long) var(--lf-easing-standard); }
-
-@media (prefers-reduced-motion: reduce) {
-  .lf-pinky--hooked,
-  .lf-pinky--tapped {
-    animation: none;
-  }
-}
-
-/* 브랜드 마크 크기 프리셋 */
-.lf-pinky--xs  { --lf-pinky-size: 20px; }
-.lf-pinky--sm  { --lf-pinky-size: 26px; }
-.lf-pinky--md  { --lf-pinky-size: 46px; }
-.lf-pinky--lg  { --lf-pinky-size: 56px; }
-.lf-pinky--xl  { --lf-pinky-size: 64px; }
-
-/* 원형 배경에 담긴 마크 (랜딩 히어로) */
-.lf-pinky-badge {
-  width: 104px;
-  height: 104px;
-  border-radius: 36px;
+/* 마스코트 타일 — 옐로 둥근 사각형 안 얼굴 (헤더 견본 · 초대 검토) */
+.lf-mascot-tile {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--lf-radius-2xl);
   background: var(--lf-color-primary-container);
   display: flex;
   align-items: center;
@@ -69,39 +33,190 @@
   flex: none;
 }
 
+/* 정적 눈 — 눈 PNG 는 200×80 (5:2). 폭만 정하면 높이가 따라온다. */
+.lf-eyes {
+  display: block;
+  width: var(--lf-eyes-row);
+  height: auto;
+  flex: none;
+}
+
+.lf-eyes--row    { width: var(--lf-eyes-row); }
+.lf-eyes--header { width: var(--lf-eyes-header); }
+.lf-eyes--card   { width: var(--lf-eyes-card); }
+.lf-eyes--blob   { width: var(--lf-eyes-blob); }
+
+/* C-1 손 루프 — 왼손은 컨테이너를 미러하고, 애니메이션은 안쪽 이미지에만 건다.
+   손 PNG 는 804×763 이라 폭 = 크기 × 804/763. 두 손 사이 간격은 컬러 손 .12, 눈(검은 손) .5. */
+.lf-pinky-loop {
+  --lf-loop-size: var(--lf-pinky-md);
+  --lf-loop-gap: 0.12;
+  --lf-loop-hand: calc(var(--lf-loop-size) * 804 / 763);
+  position: relative;
+  display: block;
+  width: calc(var(--lf-loop-hand) * 2 + var(--lf-loop-size) * var(--lf-loop-gap));
+  height: var(--lf-loop-size);
+  flex: none;
+}
+
+.lf-pinky-loop--sm   { --lf-loop-size: var(--lf-pinky-sm); }
+.lf-pinky-loop--md   { --lf-loop-size: var(--lf-pinky-md); }
+.lf-pinky-loop--lg   { --lf-loop-size: var(--lf-pinky-lg); }
+.lf-pinky-loop--eyes { --lf-loop-size: var(--lf-pinky-eyes); --lf-loop-gap: 0.5; }
+
+.lf-pinky-loop__hand {
+  position: absolute;
+  top: 0;
+  width: var(--lf-loop-hand);
+  height: var(--lf-loop-size);
+  display: block;
+}
+
+.lf-pinky-loop__hand--left  { left: 0; transform: scaleX(-1); }
+.lf-pinky-loop__hand--right { right: 0; }
+
+.lf-pinky-loop__img {
+  width: var(--lf-loop-hand);
+  height: var(--lf-loop-size);
+  display: block;
+  transform-origin: 50% 90%;
+  animation: lf-pinky-l var(--lf-duration-pinky) var(--lf-easing-pinky) infinite;
+}
+
+/* 손가락이 닿는 순간 옐로 스파크 */
+.lf-pinky-loop__spark {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  width: calc(var(--lf-loop-size) * 0.22);
+  height: calc(var(--lf-loop-size) * 0.22);
+  margin-left: calc(var(--lf-loop-size) * -0.11);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary-container);
+  animation: lf-pinky-spark var(--lf-duration-pinky) ease-out infinite;
+}
+
+@keyframes lf-pinky-l {
+  0%, 15%  { transform: translate(4px, 0) rotate(8deg); }
+  45%, 60% { transform: translate(-3px, -2px) rotate(-6deg); }
+  75%      { transform: translate(-2px, -1px) rotate(-3deg); }
+  100%     { transform: translate(4px, 0) rotate(8deg); }
+}
+
+@keyframes lf-pinky-spark {
+  0%, 40% { opacity: 0; transform: scale(0.4); }
+  52%     { opacity: 1; transform: scale(1.1); }
+  70%     { opacity: 0; transform: scale(1.3); }
+  100%    { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-pinky-loop__img { animation: none; }
+  .lf-pinky-loop__spark { display: none; }
+}
+
+/* 블롭 — 흰 블롭 + 파스텔 보조 블롭 (SVG 는 마크업), 눈은 절대 위치 오버레이 */
+.lf-blob {
+  position: relative;
+  flex: none;
+}
+
+.lf-blob--tilt       { transform: rotate(var(--lf-tilt-blob)); }
+.lf-blob--tilt-empty { transform: rotate(var(--lf-tilt-empty)); }
+
+.lf-blob__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.lf-blob__paper  { fill: var(--lf-color-surface); stroke: var(--lf-color-text); stroke-width: 2.5; stroke-linejoin: round; }
+.lf-blob__yellow { fill: var(--lf-color-primary-container); stroke: var(--lf-color-text); stroke-width: 2.5; stroke-linejoin: round; }
+.lf-blob__mint   { fill: var(--lf-color-success-container); stroke: var(--lf-color-text); stroke-width: 2.5; stroke-linejoin: round; }
+.lf-blob__pink   { fill: var(--lf-color-attention-container); }
+.lf-blob__sky    { fill: var(--lf-color-record-container); }
+.lf-blob__soft-yellow { fill: var(--lf-color-primary-container); }
+.lf-blob__soft-mint   { fill: var(--lf-color-success-container); }
+
+.lf-blob__eyes {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 변형별 치수·눈 자리 (확정안 아트보드 좌표 그대로) */
+.lf-blob--hero    { height: var(--lf-hero-blob-height); margin: var(--lf-space-3) var(--lf-space-8) 0; }
+.lf-blob--hero .lf-blob__eyes    { left: 90px; top: 96px; width: 110px; height: 52px; }
+.lf-blob--login   { width: 220px; height: var(--lf-login-blob-height); }
+.lf-blob--login .lf-blob__eyes   { left: 55px; top: 70px; width: 110px; height: 52px; }
+.lf-blob--empty   { width: 200px; height: 170px; }
+.lf-blob--empty .lf-blob__eyes   { left: 45px; top: 58px; width: 110px; height: 52px; }
+.lf-blob--celebrate { width: 170px; height: 120px; margin-top: var(--lf-space-1); }
+.lf-blob--celebrate .lf-blob__eyes { left: 30px; top: 34px; width: 110px; height: 52px; }
+.lf-blob--history { width: 120px; height: 100px; }
+.lf-blob--history .lf-blob__eyes { left: 23px; top: 32px; width: 74px; height: 32px; }
+
+/* 스탬프 모서리 블롭 (테두리 없음, 카드가 잘라낸다) */
+.lf-blob--corner {
+  position: absolute;
+  top: -10px;
+  width: 90px;
+  height: 70px;
+  pointer-events: none;
+}
+
+.lf-blob--corner-left  { left: -14px; }
+.lf-blob--corner-right { right: -14px; }
+
+/* 헤더 옆 소형 블롭 (A03 · 임박 카드) — 눈은 SVG <image> 로 안에 들어간다 */
+.lf-blob--inline { width: 80px; height: 64px; }
+.lf-blob--card {
+  position: absolute;
+  top: -46px;
+  left: 153px;
+  width: 130px;
+  height: 108px;
+  pointer-events: none;
+}
+
 /* -------------------------------------------------------------
-   APP BAR — 앱 상단 바
+   APP BAR — 52 · 투명(크림) · 원형 아이콘 버튼 44 · 아바타 버튼 44
    ------------------------------------------------------------- */
 .lf-appbar {
   flex: none;
   height: var(--lf-appbar-height);
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 0 var(--lf-space-3);
-  background: var(--lf-color-background);
+  gap: var(--lf-space-3);
+  padding: 0 var(--lf-gutter-app);
+  background: var(--lf-color-surface-chrome);
 }
 
 .lf-appbar__title {
   flex: 1;
   min-width: 0;
-  font-size: var(--lf-type-heading-size);
-  font-weight: var(--lf-weight-heavy);
+  text-align: center;
+  font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 홈 전용 — 브랜드 마크 + 서비스명 (Q-3) */
+/* 앱바 양끝 균형용 빈 자리 (아이콘 버튼 폭) */
+.lf-appbar__spacer { width: var(--lf-icon-button); flex: none; }
+
+/* 홈 전용 — 마스코트 + 서비스명 왼쪽 정렬 */
 .lf-appbar--brand {
-  height: 60px;
-  gap: var(--lf-space-3);
-  padding: 0 var(--lf-space-4) 0 var(--lf-gutter-app);
+  padding: 0 var(--lf-gutter-app) 0 var(--lf-space-8);
 }
 
 .lf-appbar--brand .lf-appbar__title {
-  font-size: var(--lf-type-title-size);
+  text-align: left;
 }
 
 .lf-icon-button {
@@ -112,17 +227,30 @@
   justify-content: center;
   position: relative;
   border-radius: var(--lf-radius-pill);
-  color: var(--lf-color-text-secondary);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  color: var(--lf-color-text);
   flex: none;
 }
 
 .lf-icon-button--strong { color: var(--lf-color-text); }
+/* 텍스트형 액션 (모두 읽음) — 테두리 없이 밑줄 */
+.lf-icon-button--text {
+  width: auto;
+  height: 36px;
+  padding: 0 var(--lf-space-5);
+  border: none;
+  background: transparent;
+  font-size: var(--lf-type-chip-size);
+  font-weight: var(--lf-weight-bold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
-.lf-icon-button .material-symbols-rounded { font-size: 22px; }
-.lf-icon-button--strong .material-symbols-rounded { font-size: 24px; }
+.lf-icon-button .material-symbols-rounded { font-size: var(--lf-appbar-icon); }
+.lf-icon-button--strong .material-symbols-rounded { font-size: var(--lf-appbar-icon); }
 
-/* 아이콘 버튼(44dp)과 탭(38dp)은 디자인 시안의 시각 크기를 그대로 두되,
-   실제 터치 타깃은 48dp를 보장한다 (요청서 §8 접근성). */
+/* 아이콘 버튼(44dp)과 칩(32dp)은 시각 크기를 그대로 두되 터치 타깃은 48dp 를 보장한다 (요청서 §8) */
 .lf-icon-button::after,
 .lf-tab::after {
   content: '';
@@ -136,15 +264,32 @@
   height: 100%;
 }
 
-/* 읽지 않은 알림 점 */
+/* 읽지 않은 알림 점 — 핑크 + 잉크 링 */
 .lf-icon-button__dot {
   position: absolute;
   top: 9px;
-  right: 9px;
+  right: 10px;
   width: 8px;
   height: 8px;
   border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-primary);
+  background: var(--lf-color-attention-container);
+  border: 1.5px solid var(--lf-color-text);
+}
+
+/* 아바타 버튼 — 잉크 원 안 옐로 첫 글자 (앱바 → 마이) */
+.lf-avatar-button {
+  width: var(--lf-icon-button);
+  height: var(--lf-icon-button);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-text);
+  color: var(--lf-color-primary-container);
+  box-shadow: var(--lf-elevation-fab);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  flex: none;
 }
 
 /* -------------------------------------------------------------
@@ -157,7 +302,7 @@
   align-items: center;
   padding: 0 var(--lf-space-1);
   border-bottom: 1px solid var(--lf-color-outline);
-  background: var(--lf-color-surface-chrome);
+  background: var(--lf-color-surface);
 }
 
 .lf-browserbar__identity {
@@ -182,22 +327,26 @@
 .lf-browserbar .lf-icon-button {
   width: 40px;
   height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--lf-color-text-secondary);
 }
 
 /* -------------------------------------------------------------
-   BUTTON
+   BUTTON — 필. 주 CTA 는 잉크 필 + 오른쪽 옐로 원(아이콘/마스코트)
    ------------------------------------------------------------- */
 .lf-btn {
   height: var(--lf-action-height);
   min-height: var(--lf-touch-min);
-  padding: 0 var(--lf-space-8);
+  padding: 0 var(--lf-space-9);
   border-radius: var(--lf-radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--lf-space-3);
-  font-size: var(--lf-type-body-size);
+  font-size: var(--lf-type-label-size);
   font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
   text-align: center;
   transition: filter var(--lf-duration-short) var(--lf-easing-standard);
 }
@@ -208,44 +357,82 @@
 
 .lf-btn:disabled,
 .lf-btn[aria-disabled='true'] {
-  opacity: 0.38;
+  opacity: 0.3;
   pointer-events: none;
 }
 
-/* 주 CTA — 화면당 1개 (요청서 §8). 검정 필 + 오프셋 스티커 섀도 */
+/* 주 CTA — 화면당 1개 (요청서 §8). 잉크 필 + CTA 섀도 */
 .lf-btn--filled {
   background: var(--lf-color-action-fill);
   color: var(--lf-color-on-action);
-  font-weight: var(--lf-weight-heavy);
+  font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-bold);
   box-shadow: var(--lf-elevation-fab);
 }
 
+/* 오른쪽 옐로 원 — 있으면 오른쪽 여백이 6 으로 줄고 라벨이 왼쪽으로 붙는다 */
+.lf-btn__trailing {
+  width: var(--lf-icon-circle);
+  height: var(--lf-icon-circle);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-brand-symbol-on-action);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  color: var(--lf-color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.lf-btn__trailing .material-symbols-rounded { font-size: 18px; }
+.lf-btn__trailing--plain { border: none; }
+
+.lf-btn:has(> .lf-btn__trailing) {
+  padding: 6px 6px 6px 22px;
+  gap: var(--lf-space-6);
+  justify-content: space-between;
+}
+
+.lf-btn:has(> .lf-btn__trailing):not(.lf-btn--block) { align-self: flex-end; }
+
+/* 옐로 컴팩트 (슬롯 '추가') */
 .lf-btn--tonal {
+  height: var(--lf-chip-select-height);
+  min-height: var(--lf-chip-select-height);
+  padding: 0 var(--lf-space-6);
   background: var(--lf-color-primary-container);
   color: var(--lf-color-on-primary-container);
-  font-weight: var(--lf-weight-heavy);
-  border: 2.4px solid var(--lf-color-text);
+  font-size: var(--lf-type-chip-size);
+  font-weight: var(--lf-weight-bold);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
 }
 
 .lf-btn--outlined {
-  border: 2.4px solid var(--lf-color-text);
+  border: var(--lf-border-outline) solid var(--lf-color-text);
   color: var(--lf-color-text);
-  background: var(--lf-color-surface);
+  background: transparent;
 }
 
+/* 흰 배경 아웃라인 (홈 '지켜졌나요? 답하기') */
+.lf-btn--outlined-paper { background: var(--lf-color-surface); }
+
 .lf-btn--text {
-  color: var(--lf-color-text-muted);
-  font-weight: var(--lf-weight-medium);
+  height: auto;
+  padding: 0;
+  color: var(--lf-color-text);
+  font-weight: var(--lf-weight-bold);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
 .lf-btn--kakao {
+  height: var(--lf-kakao-height);
   background: var(--lf-color-kakao);
   color: var(--lf-color-on-kakao);
   font-weight: var(--lf-weight-bold);
   font-size: var(--lf-type-body-lg-size);
-  border: 2.5px solid var(--lf-color-text);
+  border: var(--lf-border-sheet) solid var(--lf-color-text);
+  box-shadow: var(--lf-elevation-card);
 }
 
 /* Google 로그인 — 가이드가 흰 배경 + 1px 고정 테두리를 요구한다 */
@@ -257,16 +444,16 @@
   font-size: var(--lf-type-body-lg-size);
 }
 
-/* 파괴적 액션 (파기 요청 등) */
+/* 파괴적 액션 (파기 요청 등) — 빨강은 여기와 오류에만 */
 .lf-btn--danger {
-  border: 2.2px solid var(--lf-color-error);
+  border: var(--lf-border-card) solid var(--lf-color-error);
   color: var(--lf-color-error);
   background: var(--lf-color-surface);
 }
 
 /* 크기 변형 */
-.lf-btn--cta     { height: var(--lf-cta-height); font-size: var(--lf-type-body-lg-size); }
-.lf-btn--compact { height: 44px; font-size: var(--lf-type-label-size); padding: 0 var(--lf-space-7); }
+.lf-btn--cta     { height: var(--lf-cta-height); font-size: var(--lf-type-body-size); }
+.lf-btn--compact { height: 44px; font-size: var(--lf-type-chip-size); padding: 0 var(--lf-space-7); }
 .lf-btn--block   { width: 100%; }
 .lf-btn--grow    { flex: 1; }
 
@@ -277,56 +464,97 @@
   display: flex;
   align-items: center;
   font-size: var(--lf-type-label-size);
-  font-weight: var(--lf-weight-medium);
-  color: var(--lf-color-text-muted);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-/* FAB — 하단 중앙 '약속 만들기' (잉크&스티커 시안 1a에서 우하단 → 중앙) */
+/* 플로팅 필 — 하단 중앙 '약속 만들기' (옐로 원 안 마스코트) */
 .lf-fab {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: var(--lf-gutter-app);
+  bottom: var(--lf-space-8);
   height: var(--lf-fab-height);
-  padding: 0 22px;
+  padding: 6px 6px 6px 22px;
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-action-fill);
   color: var(--lf-color-on-action);
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 15px;
-  font-weight: var(--lf-weight-heavy);
+  gap: var(--lf-space-6);
+  font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-bold);
   box-shadow: var(--lf-elevation-fab);
+  white-space: nowrap;
 }
 
+/* 플로팅 CTA 뒤 크림 페이드 */
+.lf-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--lf-fade-height);
+  background: linear-gradient(to bottom, transparent, var(--lf-color-background) 60%);
+  pointer-events: none;
+}
+
+.lf-fade--sm { height: var(--lf-fade-height-sm); }
+
 /* -------------------------------------------------------------
-   CHIP / TAB
+   CHIP / TAB — 필 · 2px 잉크. 톤은 배경으로만, 글자는 잉크
    ------------------------------------------------------------- */
 .lf-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--lf-space-1);
-  padding: var(--lf-space-1) 12px;
+  gap: var(--lf-space-2);
+  height: var(--lf-chip-meta-height);
+  padding: 0 var(--lf-space-5);
   border-radius: var(--lf-radius-pill);
-  font-size: 13px;
+  font-size: var(--lf-type-meta-size);
   font-weight: var(--lf-weight-bold);
-  border: 2px solid var(--lf-color-text);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   background: var(--lf-color-surface);
   color: var(--lf-color-text);
   white-space: nowrap;
 }
 
-/* 상태 라벨 — 색상만으로 구분하지 않도록 항상 텍스트를 동반한다 (§8)
-   잉크&스티커: 톤은 스티커 배경으로만 구분, 테두리는 잉크 공통 (broken 만 빨강) */
-.lf-chip--status    { background: var(--lf-color-primary-container); color: var(--lf-color-text); }
-.lf-chip--info      { background: var(--lf-color-record-container); color: var(--lf-color-record); }
-.lf-chip--urgent    { background: var(--lf-color-attention-container); color: var(--lf-color-attention); font-weight: var(--lf-weight-heavy); }
-.lf-chip--broken    { background: var(--lf-color-error-container); color: var(--lf-color-error); border-color: var(--lf-color-error); }
-.lf-chip--done      { background: var(--lf-color-primary-container); color: var(--lf-color-text); }
-.lf-chip--neutral   { background: var(--lf-color-primary-container); color: var(--lf-color-text); }
+/* 크기 */
+.lf-chip--sm     { height: var(--lf-chip-status-height); }
+.lf-chip--filter { height: var(--lf-tab-height); padding: 0 var(--lf-space-6); font-size: var(--lf-type-chip-size); }
+.lf-chip--select { height: var(--lf-chip-select-height); padding: 0 var(--lf-space-6); font-size: var(--lf-type-chip-size); }
+
+/* 톤 */
+.lf-chip--yellow { background: var(--lf-color-primary-container); }
+.lf-chip--mint   { background: var(--lf-color-success-container); }
+.lf-chip--pink   { background: var(--lf-color-attention-container); }
+.lf-chip--sky    { background: var(--lf-color-record-container); }
+.lf-chip--muted  { background: var(--lf-color-surface-muted); }
+.lf-chip--paper  { background: var(--lf-color-surface); }
+.lf-chip--cream  { background: var(--lf-color-background); }
+
+/* 상태 라벨 별칭 — 상태는 항상 텍스트를 동반한다 (§8). D7 매핑:
+   status(브랜드)=옐로 · done(진행·완료)=민트 · urgent(응답 필요)·broken(불이행)=핑크 · info(기록·변경)=스카이 · neutral=종이 */
+.lf-chip--status  { background: var(--lf-color-primary-container); }
+.lf-chip--done    { background: var(--lf-color-success-container); }
+.lf-chip--urgent  { background: var(--lf-color-attention-container); }
+.lf-chip--broken  { background: var(--lf-color-attention-container); }
+.lf-chip--info    { background: var(--lf-color-record-container); }
+.lf-chip--neutral { background: var(--lf-color-surface); }
+
+/* 비선택 칩 — 보조색 600 */
+.lf-chip--quiet { font-weight: var(--lf-weight-medium); color: var(--lf-color-text-secondary); }
+
+/* 참여자 칩 안 민트 도트 */
+.lf-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-success-container);
+  flex: none;
+}
 
 /* 알림 (카운트다운 · 안내) — 잉크 밑줄 스타일 */
 .lf-notice {
@@ -347,64 +575,87 @@
 .lf-notice .material-symbols-rounded { font-size: 14px; }
 .lf-notice__timer { font-family: var(--lf-font-mono); }
 
-/* 탭 — 진행 중 / 대기 / 완료 (O-D4 기본안)
-   당근식 컨트롤 칩: 선택은 잉크 필, 비선택은 흰 바탕 + 헤어라인 (ADR 0008).
-   브랜드 그린은 CTA·D-Day·배너에만 남겨 절제한다. */
+/* 카운트다운 숫자 (초대 링크 유효 시간) */
+.lf-countdown {
+  font-size: var(--lf-type-sheet-title-size);
+  font-weight: var(--lf-weight-heavy);
+  letter-spacing: 0.02em;
+  color: var(--lf-color-text);
+}
+
+/* 필터 칩 탭 — 선택 옐로 700, 비선택 종이 600 보조색 */
 .lf-tabs {
   flex: none;
   display: flex;
-  gap: var(--lf-space-3);
-  padding: 0 var(--lf-gutter-app);
+  gap: var(--lf-space-2);
+  padding: 0 var(--lf-space-8);
 }
 
 .lf-tab {
   position: relative;
   height: var(--lf-tab-height);
   min-height: var(--lf-tab-height);
-  padding: 0 var(--lf-space-7);
+  padding: 0 var(--lf-space-6);
   border-radius: var(--lf-radius-pill);
   display: flex;
   align-items: center;
-  font-size: var(--lf-type-label-size);
+  font-size: var(--lf-type-chip-size);
   font-weight: var(--lf-weight-medium);
   background: var(--lf-color-surface);
-  border: 2.2px solid var(--lf-color-text);
-  color: var(--lf-color-text);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  color: var(--lf-color-text-secondary);
   white-space: nowrap;
 }
 
 .lf-tab[aria-selected='true'] {
-  background: var(--lf-color-text);
-  border-color: var(--lf-color-text);
-  color: var(--lf-color-background);
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-text);
   font-weight: var(--lf-weight-bold);
 }
 
 /* -------------------------------------------------------------
-   CARD
+   CARD — 스티커 카드 (종이 · 2.2 잉크 · r22 · 오프셋 섀도)
    ------------------------------------------------------------- */
 .lf-card {
+  position: relative;
   background: var(--lf-color-surface);
-  border: 2.2px solid var(--lf-color-text);
+  border: var(--lf-border-card) solid var(--lf-color-text);
   border-radius: var(--lf-radius-xl);
-  padding: var(--lf-space-6) var(--lf-space-7);
+  padding: var(--lf-card-padding);
   box-shadow: var(--lf-elevation-card);
+  color: var(--lf-color-text);
 }
 
-/* 수락 웹 카드는 조금 더 각지고 여백이 넓다 */
-.lf-card--web { border-radius: var(--lf-radius-lg); padding: var(--lf-space-7); }
-
-/* 액션이 필요한 카드 — 정보 구조는 블루, CTA는 액션 그린으로 분리한다. */
-.lf-card--emphasis { border: 2px solid var(--lf-color-record); }
-
-/* 톤 카드 — 임박 약속 · 확정 스탬프 배경 */
-.lf-card--container {
-  background: var(--lf-color-primary-container);
-  border: none;
-  color: var(--lf-color-on-primary-container);
+/* 리스트 행 카드 — r20, 가로 배치 */
+.lf-card--list {
+  border-radius: var(--lf-radius-lg);
+  padding: var(--lf-space-7) var(--lf-card-padding);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
 }
 
-.lf-card--flat { border: none; background: transparent; padding: 0; }
+/* 톤 — 파스텔 스티커. 글자는 잉크 그대로 */
+.lf-card--yellow { background: var(--lf-color-primary-container); }
+.lf-card--mint   { background: var(--lf-color-success-container); }
+.lf-card--pink   { background: var(--lf-color-attention-container); }
+.lf-card--sky    { background: var(--lf-color-record-container); }
+.lf-card--muted  { background: var(--lf-color-surface-muted); }
+
+/* 별칭 (구 화면) — container=옐로, emphasis=잉크 테두리 그대로, web=동일 */
+.lf-card--container { background: var(--lf-color-primary-container); }
+.lf-card--emphasis  { }
+.lf-card--web       { }
+
+/* 그림자 없는 카드 (읽은 알림 · 설정 묶음 · 보관 행) */
+.lf-card--flat { box-shadow: none; }
+
+/* 기울기 */
+.lf-card--tilt      { transform: rotate(var(--lf-tilt-sticker)); }
+.lf-card--tilt-hero { transform: rotate(var(--lf-tilt-hero)); }
+
+/* 넘치는 장식(모서리 블롭)을 잘라낸다 */
+.lf-card--clip { overflow: hidden; }
 
 .lf-card__header {
   display: flex;
@@ -415,19 +666,21 @@
 .lf-card__spacer { flex: 1; }
 
 .lf-card__title {
-  margin-top: var(--lf-space-3);
-  font-size: 15px;
+  font-size: var(--lf-type-body-size);
+  line-height: 20px;
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
 
 .lf-card__meta {
-  margin-top: var(--lf-space-2);
-  font-size: var(--lf-type-label-size);
-  line-height: var(--lf-line-body);
-  font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-text-secondary);
+  margin-top: var(--lf-space-1);
+  font-size: var(--lf-type-meta-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-regular);
+  color: var(--lf-color-text-muted);
 }
+
+.lf-card__meta strong { font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }
 
 /* 약속 미리보기 (로그인 전 노출되는 최소 정보) */
 .lf-preview__title {
@@ -443,7 +696,20 @@
   color: var(--lf-color-text-muted);
 }
 
-/* D-Day 숫자 */
+/* 섹션 라벨 — `TITLE · 제목` */
+.lf-eyebrow {
+  font-size: var(--lf-type-eyebrow-size);
+  font-weight: var(--lf-weight-bold);
+  letter-spacing: var(--lf-letter-spacing-wide);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-eyebrow--ink { color: var(--lf-color-text); }
+.lf-eyebrow--wider { letter-spacing: var(--lf-letter-spacing-wider); }
+.lf-eyebrow__required { color: var(--lf-color-text); letter-spacing: 0; }
+.lf-eyebrow__optional { color: var(--lf-color-text-muted); letter-spacing: 0; }
+
+/* D-Day — 텍스트형(구 화면) · 원형 배지(확정안) */
 .lf-dday {
   font-size: var(--lf-type-body-size);
   font-weight: var(--lf-weight-heavy);
@@ -451,81 +717,181 @@
   white-space: nowrap;
 }
 
-.lf-dday--lg { font-size: 18px; }
+.lf-dday--lg { font-size: var(--lf-type-subtitle-size); }
 .lf-dday--xl { font-size: var(--lf-type-display-size); }
 .lf-card--container .lf-dday { color: var(--lf-color-success); }
 
+.lf-dday-circle {
+  width: var(--lf-dday-circle);
+  height: var(--lf-dday-circle);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary-container);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text);
+  flex: none;
+}
+
+.lf-dday-circle--sky { background: var(--lf-color-record-container); }
+
+/* 상태 도트 — 10 + 2 잉크 링. 색만으로 구분하지 않도록 옆 텍스트가 상태를 말한다 */
+.lf-status-dot {
+  width: var(--lf-status-dot);
+  height: var(--lf-status-dot);
+  border-radius: var(--lf-radius-pill);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  background: var(--lf-color-surface);
+  flex: none;
+}
+
+.lf-status-dot--mint  { background: var(--lf-color-success-container); }
+.lf-status-dot--pink  { background: var(--lf-color-attention-container); }
+.lf-status-dot--sky   { background: var(--lf-color-record-container); }
+.lf-status-dot--muted { background: var(--lf-color-surface-muted); }
+.lf-status-dot--paper { background: var(--lf-color-surface); }
+
+/* 옐로 하이라이트 스팬 (빈 상태 안내) */
+.lf-highlight {
+  background: var(--lf-color-primary-container);
+  padding: 0 6px;
+  border-radius: 6px;
+  color: var(--lf-color-text);
+}
+
 /* -------------------------------------------------------------
    확정 스탬프 — "제대로 기록됐다"는 신뢰감 (요청서 §8)
+   -0.8° 종이 카드, 모서리 파스텔 블롭, 종이 필 안 C-1 손 루프
    ------------------------------------------------------------- */
 .lf-stamp {
+  position: relative;
   background: var(--lf-color-surface);
-  border: 2.5px solid var(--lf-color-text);
-  border-radius: var(--lf-radius-record);
-  transform: rotate(-0.8deg);
+  border: var(--lf-border-card) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-xl);
+  transform: rotate(var(--lf-tilt-sticker));
   box-shadow: var(--lf-elevation-card);
-  padding: var(--lf-space-8);
+  padding: var(--lf-space-8) var(--lf-card-padding);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--lf-space-3);
   text-align: center;
+  overflow: hidden;
   animation: lf-pop-in var(--lf-duration-long) var(--lf-easing-emphasized-decelerate);
+}
+
+@keyframes lf-pop-in {
+  from { transform: rotate(var(--lf-tilt-sticker)) scale(0.92); opacity: 0; }
+  to   { transform: rotate(var(--lf-tilt-sticker)) scale(1);    opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lf-stamp { animation: none; }
 }
 
-.lf-stamp--compact { padding: 18px; gap: 7px; }
+.lf-stamp--completed { background: var(--lf-color-success-container); }
+.lf-stamp--pending   { gap: var(--lf-space-4); overflow: visible; }
+.lf-stamp--compact   { padding: var(--lf-space-7) var(--lf-card-padding); gap: 7px; }
+.lf-stamp > * { position: relative; }
+
+/* 종이 필 안 손 루프 */
+.lf-stamp__pill {
+  width: var(--lf-stamp-pill-width);
+  height: var(--lf-stamp-pill-height);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-background);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lf-stamp--completed .lf-stamp__pill { background: var(--lf-color-surface); }
 
 .lf-stamp__headline {
-  font-size: 20px;
+  margin-top: var(--lf-space-2);
+  font-size: var(--lf-type-stamp-size);
   font-weight: var(--lf-weight-heavy);
-  color: var(--lf-color-on-primary-container);
+  color: var(--lf-color-text);
 }
 
-.lf-stamp--compact .lf-stamp__headline { font-size: 15.5px; }
+.lf-stamp--compact .lf-stamp__headline { font-size: var(--lf-type-body-size); }
 
 .lf-stamp__time {
-  font-size: var(--lf-type-caption-size);
-  color: var(--lf-color-primary-ink);
+  font-size: var(--lf-type-meta-size);
+  color: var(--lf-color-text-muted);
 }
+
+.lf-stamp--completed .lf-stamp__time { font-size: var(--lf-type-caption-size); color: var(--lf-color-text); }
+
+.lf-stamp__body {
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  color: var(--lf-color-text-secondary);
+}
+
+/* 승인 대기 — 아바타 · 검은 손 · 점선 · 흐린 손 · 점선 아바타 */
+.lf-stamp__pair {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-4);
+}
+
+.lf-stamp__hand { width: 30px; height: 28px; }
+.lf-stamp__hand--mirror { transform: scaleX(-1); }
+.lf-stamp__hand--faint  { opacity: 0.25; }
+.lf-stamp__gap { width: 20px; border-top: 2px dashed var(--lf-color-outline-strong); }
 
 /* 양측 승인 로그 */
 .lf-stamp__approvals {
   display: flex;
-  gap: var(--lf-space-3);
+  gap: var(--lf-space-2);
   flex-wrap: wrap;
   justify-content: center;
+  margin-top: var(--lf-space-1);
 }
 
 .lf-approval {
   display: flex;
   align-items: center;
-  gap: var(--lf-space-1);
-  background: var(--lf-color-surface);
-  border: 2px solid var(--lf-color-text);
+  gap: var(--lf-space-2);
+  height: var(--lf-chip-meta-height);
+  background: transparent;
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   border-radius: var(--lf-radius-pill);
-  padding: var(--lf-space-1) var(--lf-space-4);
-  font-size: var(--lf-type-micro-size);
+  padding: 0 var(--lf-space-5);
+  font-size: var(--lf-type-meta-size);
   font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-on-primary-container);
+  color: var(--lf-color-text);
   white-space: nowrap;
 }
 
 .lf-approval .material-symbols-rounded {
   font-size: 13px;
-  color: var(--lf-color-primary);
+  color: var(--lf-color-text);
 }
 
-/* 기록 지문 (Q-4) — 모든 확정 영역에 노출 */
+.lf-approval__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-success-container);
+  flex: none;
+}
+
+/* 기록 지문 (Q-4) — `RECORD · A3F9-77C2-01` */
 .lf-fingerprint {
   display: flex;
   align-items: center;
   gap: var(--lf-space-2);
-  font-size: var(--lf-type-micro-size);
-  color: var(--lf-color-text-secondary);
+  margin-top: var(--lf-space-2);
+  font-size: var(--lf-type-eyebrow-size);
+  font-weight: var(--lf-weight-bold);
+  letter-spacing: 0.1em;
+  color: var(--lf-color-text-muted);
   white-space: nowrap;
 }
 
@@ -535,21 +901,39 @@
 /* -------------------------------------------------------------
    TEXT / SECTION
    ------------------------------------------------------------- */
+.lf-wordmark {
+  font-size: var(--lf-type-wordmark-size);
+  line-height: var(--lf-line-wordmark);
+  font-weight: var(--lf-weight-heavy);
+  letter-spacing: var(--lf-letter-spacing-wordmark);
+  color: var(--lf-color-text);
+}
+
+.lf-display {
+  font-size: var(--lf-type-display-size);
+  line-height: var(--lf-line-display);
+  font-weight: var(--lf-weight-heavy);
+  letter-spacing: var(--lf-letter-spacing-tight);
+  color: var(--lf-color-text);
+}
+
+.lf-headline {
+  font-size: var(--lf-type-headline-size);
+  line-height: var(--lf-line-headline);
+  font-weight: var(--lf-weight-heavy);
+  letter-spacing: var(--lf-letter-spacing-tight);
+  color: var(--lf-color-text);
+}
+
 .lf-title {
   font-size: var(--lf-type-title-size);
   line-height: var(--lf-line-title);
   font-weight: var(--lf-weight-heavy);
+  letter-spacing: var(--lf-letter-spacing-tight);
   color: var(--lf-color-text);
 }
 
 .lf-title--web { font-size: var(--lf-type-heading-size); line-height: 26px; }
-
-.lf-headline {
-  font-size: 22px;
-  line-height: 30px;
-  font-weight: var(--lf-weight-heavy);
-  color: var(--lf-color-text);
-}
 
 .lf-subtitle {
   font-size: var(--lf-type-subtitle-size);
@@ -557,9 +941,11 @@
   color: var(--lf-color-text);
 }
 
+/* 섹션 제목 = eyebrow (구 화면 별칭) */
 .lf-section-title {
-  font-size: var(--lf-type-caption-size);
+  font-size: var(--lf-type-eyebrow-size);
   font-weight: var(--lf-weight-bold);
+  letter-spacing: var(--lf-letter-spacing-wide);
   color: var(--lf-color-text-muted);
   margin-bottom: var(--lf-space-2);
 }
@@ -570,28 +956,36 @@
   color: var(--lf-color-text);
 }
 
+.lf-body--sm { font-size: var(--lf-type-label-size); }
+
 .lf-body--secondary {
   color: var(--lf-color-text-secondary);
   font-size: var(--lf-type-label-size);
   line-height: var(--lf-line-body);
-  font-weight: var(--lf-weight-bold);
+  font-weight: var(--lf-weight-regular);
 }
 
 .lf-caption {
   font-size: var(--lf-type-label-size);
   line-height: var(--lf-line-body);
-  font-weight: var(--lf-weight-bold);
+  font-weight: var(--lf-weight-regular);
   color: var(--lf-color-text-secondary);
 }
 
+.lf-meta-line {
+  font-size: var(--lf-type-meta-size);
+  line-height: var(--lf-line-caption);
+  color: var(--lf-color-text-muted);
+}
+
 .lf-divider {
-  height: 1px;
-  background: var(--lf-color-outline);
+  height: 0;
   border: none;
+  border-top: var(--lf-border-dashed) dashed var(--lf-color-outline);
   margin: 0;
 }
 
-/* 디스클레이머·보조 안내 — 문구는 유지하되 작은 손글씨에서도 가독성을 우선한다. */
+/* 디스클레이머 — 문구는 불변, 가독성 계층은 ADR 0012 보정(12.5/18 700 보조색) 유지 */
 .lf-disclaimer {
   font-size: var(--lf-type-caption-size);
   line-height: var(--lf-line-caption);
@@ -616,7 +1010,7 @@
 
 .lf-meta__row .material-symbols-rounded {
   font-size: 16px;
-  color: var(--lf-color-primary);
+  color: var(--lf-color-text);
 }
 
 .lf-meta__label {
@@ -633,63 +1027,66 @@
 }
 
 /* -------------------------------------------------------------
-   REWARD / PENALTY — 보상 / 벌칙
+   REWARD / PENALTY — 보상=스카이 / 벌칙=핑크 스티커, 글자는 잉크
    ------------------------------------------------------------- */
 .lf-outcomes {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--lf-space-3);
+  gap: var(--lf-space-4);
 }
 
 .lf-outcome {
-  border: 2.2px solid var(--lf-color-text);
+  border: var(--lf-border-card) solid var(--lf-color-text);
   border-radius: var(--lf-radius-lg);
-  padding: 11px var(--lf-space-5);
+  padding: var(--lf-space-6) var(--lf-space-7);
+  box-shadow: var(--lf-elevation-card);
+  color: var(--lf-color-text);
 }
 
 .lf-outcome__label {
-  font-size: var(--lf-type-micro-size);
-  font-weight: var(--lf-weight-heavy);
+  font-size: var(--lf-type-eyebrow-size);
+  font-weight: var(--lf-weight-bold);
+  letter-spacing: var(--lf-letter-spacing-wide);
 }
 
 .lf-outcome__value {
-  margin-top: 3px;
+  margin-top: var(--lf-space-2);
   font-size: var(--lf-type-label-size);
+  line-height: 20px;
   font-weight: var(--lf-weight-bold);
 }
 
-.lf-outcome--reward { background: var(--lf-color-reward-container); }
-.lf-outcome--reward .lf-outcome__label { color: var(--lf-color-reward-label); }
-.lf-outcome--reward .lf-outcome__value { color: var(--lf-color-on-reward-container); }
-
+.lf-outcome--reward  { background: var(--lf-color-reward-container); }
 .lf-outcome--penalty { background: var(--lf-color-penalty-container); }
-.lf-outcome--penalty .lf-outcome__label { color: var(--lf-color-penalty-label); }
-.lf-outcome--penalty .lf-outcome__value { color: var(--lf-color-on-penalty-container); }
 
-/* BROKEN 상태에서 기록된 벌칙을 강조 */
-.lf-outcome--enforced {
-  background: var(--lf-color-error-container);
-  border-color: var(--lf-color-error);
-  grid-column: 1 / -1;
+/* BROKEN — 벌칙 스티커는 그대로 벌칙 톤·크기. 강조 배지를 두지 않는다 (§8-3, 판정 문서처럼 보이지 않게) */
+.lf-outcome--enforced { background: var(--lf-color-penalty-container); }
+
+/* 완료 화면 보상 행 — 아이콘 + 라벨 + 값 가로 배치 */
+.lf-outcome--row {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+  border-radius: var(--lf-radius-xl);
 }
 
-.lf-outcome--enforced .lf-outcome__label { color: var(--lf-color-error); }
-.lf-outcome--enforced .lf-outcome__value { color: var(--lf-color-error); }
+.lf-outcome--row .lf-outcome__value { margin-top: var(--lf-space-1); }
 
 /* -------------------------------------------------------------
-   FORM
+   FORM — eyebrow 라벨 · 2px 잉크 · r12 · 48
    ------------------------------------------------------------- */
 .lf-field {
   display: flex;
   flex-direction: column;
-  gap: var(--lf-space-2);
+  gap: var(--lf-space-3);
 }
 
 .lf-field__label {
-  font-size: var(--lf-type-label-size);
-  line-height: var(--lf-line-body);
+  font-size: var(--lf-type-eyebrow-size);
+  line-height: var(--lf-line-micro);
   font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-text-secondary);
+  letter-spacing: var(--lf-letter-spacing-wide);
+  color: var(--lf-color-text-muted);
 }
 
 .lf-field__hint {
@@ -700,17 +1097,21 @@
 }
 
 .lf-input {
+  height: var(--lf-input-height);
   min-height: var(--lf-touch-min);
-  padding: var(--lf-space-5) var(--lf-space-6);
-  border: 2px solid var(--lf-color-text);
-  border-radius: var(--lf-radius-md);
+  padding: 0 var(--lf-space-6);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-sm);
   background: var(--lf-color-surface);
   font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text);
   width: 100%;
+  display: flex;
+  align-items: center;
 }
 
-.lf-input::placeholder { color: var(--lf-color-text-muted); }
+.lf-input::placeholder { color: var(--lf-color-text-muted); font-weight: var(--lf-weight-regular); }
 
 .lf-input:focus-visible {
   outline: 2px solid var(--lf-color-focus-ring);
@@ -718,31 +1119,39 @@
 }
 
 .lf-textarea {
-  min-height: 84px;
+  height: auto;
+  min-height: 80px;
+  padding: var(--lf-space-5) var(--lf-space-6);
   resize: none;
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-regular);
   line-height: var(--lf-line-body);
+  display: block;
 }
 
-/* 값을 고르는 행(날짜 피커 진입점 등) */
+/* 값을 고르는 행(날짜 피커 진입점 등) — 왼쪽 아이콘 18, 오른쪽 expand_more 20 */
 .lf-picker {
+  height: var(--lf-input-height);
   min-height: var(--lf-touch-min);
-  padding: var(--lf-space-5) var(--lf-space-6);
-  border: 2px solid var(--lf-color-text);
-  border-radius: var(--lf-radius-md);
+  padding: 0 var(--lf-space-6);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-sm);
   background: var(--lf-color-surface);
   display: flex;
   align-items: center;
   gap: var(--lf-space-3);
   font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text);
   width: 100%;
 }
 
-.lf-picker__value { flex: 1; text-align: left; font-weight: var(--lf-weight-bold); }
+.lf-picker__value { flex: 1; text-align: left; }
 .lf-picker--placeholder .lf-picker__value { font-weight: var(--lf-weight-regular); color: var(--lf-color-text-muted); }
-.lf-picker .material-symbols-rounded { font-size: 20px; color: var(--lf-color-primary); }
+.lf-picker .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text); }
+.lf-picker .material-symbols-rounded.lf-picker__chevron { font-size: 20px; }
 
-/* 선택 그룹 — 카테고리 / 지킬 사람 / 보상·벌칙 프리셋 */
+/* 선택 그룹 — 카테고리 / 지킬 사람. 선택=옐로 700, 비선택=크림 600 보조색 */
 .lf-choices {
   display: flex;
   flex-wrap: wrap;
@@ -750,49 +1159,93 @@
 }
 
 .lf-choice {
-  min-height: var(--lf-touch-min);
-  padding: var(--lf-space-4) var(--lf-space-6);
+  height: var(--lf-chip-select-height);
+  min-height: var(--lf-chip-select-height);
+  padding: 0 var(--lf-space-6);
   border-radius: var(--lf-radius-pill);
-  border: 2.2px solid var(--lf-color-text);
-  background: var(--lf-color-surface);
-  font-size: var(--lf-type-label-size);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  background: var(--lf-color-background);
+  font-size: var(--lf-type-chip-size);
   font-weight: var(--lf-weight-medium);
-  color: var(--lf-color-text);
+  color: var(--lf-color-text-secondary);
   display: flex;
   align-items: center;
   gap: var(--lf-space-2);
+  position: relative;
 }
 
-/* 선택 = 잉크 반전 (배경 잉크 · 글자 크림) */
+/* 36 시각 크기, 48 터치 타깃 */
+.lf-choice::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: var(--lf-touch-min);
+  min-height: var(--lf-touch-min);
+  width: 100%;
+  height: 100%;
+}
+
 .lf-choice[aria-pressed='true'],
 .lf-choice[aria-selected='true'] {
-  background: var(--lf-color-text);
-  border-color: var(--lf-color-text);
-  color: var(--lf-color-background);
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-text);
   font-weight: var(--lf-weight-bold);
 }
 
+/* 큰 선택 카드 (이행 확인 지켰어요/안 지켜졌어요) — 선택 = 옐로 스티커 + 기울기 */
+.lf-choice-card {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+  padding: var(--lf-space-7) var(--lf-card-padding);
+  border: var(--lf-border-card) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-xl);
+  background: var(--lf-color-surface);
+  text-align: left;
+  width: 100%;
+  color: var(--lf-color-text-secondary);
+}
+
+.lf-choice-card .material-symbols-rounded { font-size: 26px; color: var(--lf-color-text-muted); }
+.lf-choice-card__title { font-size: var(--lf-type-stamp-size); font-weight: var(--lf-weight-heavy); }
+.lf-choice-card__hint  { margin-top: 2px; font-size: var(--lf-type-meta-size); color: var(--lf-color-text-muted); }
+.lf-choice-card__radio { font-size: 22px; color: var(--lf-color-outline-strong); }
+
+.lf-choice-card[aria-checked='true'],
+.lf-choice-card[aria-pressed='true'] {
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-text);
+  box-shadow: var(--lf-elevation-card);
+  transform: rotate(var(--lf-tilt-sticker));
+}
+
+.lf-choice-card[aria-checked='true'] .material-symbols-rounded,
+.lf-choice-card[aria-pressed='true'] .material-symbols-rounded { color: var(--lf-color-text); }
+
 /* 점선 플레이스홀더 — 자유 입력 / 첨부 안내 */
 .lf-dashed {
-  border: 1.5px dashed var(--lf-color-outline-strong);
+  border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
   border-radius: var(--lf-radius-md);
   padding: var(--lf-space-4) var(--lf-space-5);
   display: flex;
   align-items: center;
   gap: var(--lf-space-3);
   font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text-muted);
 }
 
-.lf-dashed .material-symbols-rounded { font-size: 18px; color: var(--lf-color-outline-icon); }
+.lf-dashed .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text-muted); }
 
-/* 토글 스위치 (리마인드 설정) */
+/* 토글 스위치 (리마인드 설정) — 52×32, ON 옐로 + 잉크 노브 */
 .lf-switch {
-  width: 52px;
-  height: 32px;
+  width: var(--lf-switch-width);
+  height: var(--lf-switch-height);
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-surface);
-  border: 2.2px solid var(--lf-color-text);
+  border: var(--lf-border-card) solid var(--lf-color-text);
   position: relative;
   flex: none;
   transition: background var(--lf-duration-short) var(--lf-easing-standard);
@@ -803,8 +1256,8 @@
   position: absolute;
   top: 50%;
   left: 4px;
-  width: 20px;
-  height: 20px;
+  width: var(--lf-switch-knob);
+  height: var(--lf-switch-knob);
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-outline-icon);
   transform: translateY(-50%);
@@ -812,10 +1265,8 @@
               background var(--lf-duration-short) var(--lf-easing-standard);
 }
 
-/* ON = 버터 트랙 + 잉크 노브 */
 .lf-switch[aria-checked='true'] {
   background: var(--lf-color-primary-container);
-  border-color: var(--lf-color-text);
 }
 
 .lf-switch[aria-checked='true']::after {
@@ -824,11 +1275,12 @@
 }
 
 /* -------------------------------------------------------------
-   LIST
+   LIST — 카드 행 (알림함) · 설정 묶음 (마이)
    ------------------------------------------------------------- */
 .lf-list {
   display: flex;
   flex-direction: column;
+  gap: var(--lf-space-4);
 }
 
 .lf-list-item {
@@ -836,24 +1288,34 @@
   display: flex;
   align-items: center;
   gap: var(--lf-space-5);
-  padding: var(--lf-space-5) 0;
+  padding: var(--lf-space-6) var(--lf-space-7);
+  border: var(--lf-border-card) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-xl);
+  background: var(--lf-color-surface);
   text-align: left;
   width: 100%;
+  color: var(--lf-color-text);
 }
 
-.lf-list-item + .lf-list-item { border-top: 2px dashed var(--lf-color-outline); }
-
+/* 유형별 아이콘 원 40 — 종이 기본, 톤은 배경만 */
 .lf-list-item__icon {
-  width: 40px;
-  height: 40px;
+  width: var(--lf-icon-circle);
+  height: var(--lf-icon-circle);
   border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-record-container);
-  color: var(--lf-color-record);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  color: var(--lf-color-text);
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
 }
+
+.lf-list-item__icon--pink  { background: var(--lf-color-attention-container); }
+.lf-list-item__icon--cream { background: var(--lf-color-background); }
+.lf-list-item__icon--sky   { background: var(--lf-color-record-container); }
+.lf-list-item__icon--mint  { background: var(--lf-color-success-container); }
+.lf-list-item__icon--muted { background: var(--lf-color-surface-muted); }
 
 .lf-list-item__icon .material-symbols-rounded { font-size: 20px; }
 
@@ -861,15 +1323,16 @@
 
 .lf-list-item__headline {
   font-size: var(--lf-type-label-size);
+  line-height: 20px;
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
 
 .lf-list-item__supporting {
   margin-top: 2px;
-  font-size: var(--lf-type-label-size);
-  line-height: var(--lf-line-body);
-  font-weight: var(--lf-weight-bold);
+  font-size: var(--lf-type-meta-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-regular);
   color: var(--lf-color-text-secondary);
 }
 
@@ -880,76 +1343,119 @@
 }
 
 .lf-list-item .material-symbols-rounded.lf-chevron {
-  font-size: 20px;
-  color: var(--lf-color-outline-icon);
+  font-size: 18px;
+  color: var(--lf-color-text);
 }
 
-/* 읽지 않은 알림 */
-.lf-list-item--unread { background: var(--lf-color-record-container); }
-.lf-list-item--unread .lf-list-item__headline { color: var(--lf-color-record); }
+/* 읽지 않은 알림 — 옐로 카드 + 잉크 도트 + 섀도. 읽은 알림은 종이 flat */
+.lf-list-item--unread {
+  background: var(--lf-color-primary-container);
+  box-shadow: var(--lf-elevation-card);
+}
 
-/* 행 전체가 링크처럼 동작하는 진입점 (버전 이력 등) */
+.lf-list-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-text);
+  flex: none;
+}
+
+/* 설정 묶음 — flat 카드 안 48 행, 2px 점선 구분 */
+.lf-settings {
+  padding: var(--lf-space-1) var(--lf-card-padding);
+  display: flex;
+  flex-direction: column;
+}
+
+.lf-settings__row {
+  height: var(--lf-touch-min);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+  width: 100%;
+  text-align: left;
+}
+
+.lf-settings__row + .lf-settings__row { border-top: var(--lf-border-dashed) dashed var(--lf-color-outline); }
+.lf-settings__row .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text); }
+.lf-settings__label { flex: 1; min-width: 0; }
+
+/* 행 전체가 링크처럼 동작하는 진입점 (버전 이력 등) — 48 · 13/700 · arrow_forward */
 .lf-row-link {
   display: flex;
   align-items: center;
   gap: var(--lf-space-3);
   height: var(--lf-touch-min);
-  border-top: 2px dashed var(--lf-color-outline);
+  padding: 0 var(--lf-space-2);
   width: 100%;
   text-align: left;
-}
-
-.lf-row-link__label {
-  flex: 1;
-  font-size: 13.5px;
-  font-weight: var(--lf-weight-medium);
+  font-size: var(--lf-type-chip-size);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
 
-.lf-row-link .material-symbols-rounded { font-size: 20px; color: var(--lf-color-text-muted); }
-.lf-row-link .lf-chevron { color: var(--lf-color-outline-icon); }
+.lf-row-link__label { flex: 1; }
+.lf-row-link .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text); }
+.lf-row-link .lf-chevron { color: var(--lf-color-text); }
 
 /* -------------------------------------------------------------
-   AVATAR
+   AVATAR — 잉크 원 안 옐로 첫 글자. 대기 아바타는 뮤트 + 3px 점선
    ------------------------------------------------------------- */
 .lf-avatar {
-  width: 32px;
-  height: 32px;
+  width: var(--lf-icon-button);
+  height: var(--lf-icon-button);
   border-radius: var(--lf-radius-pill);
-  border: 2.4px solid var(--lf-color-text);
-  background: var(--lf-color-primary-container);
-  color: var(--lf-color-on-primary-container);
+  background: var(--lf-color-text);
+  color: var(--lf-color-primary-container);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--lf-type-body-size);
+  font-size: var(--lf-type-label-size);
   font-weight: var(--lf-weight-bold);
+  flex: none;
+  overflow: hidden;
+}
+
+.lf-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.lf-avatar--sm { width: var(--lf-avatar-sm); height: var(--lf-avatar-sm); font-size: var(--lf-type-chip-size); }
+.lf-avatar--lg { width: var(--lf-avatar-lg); height: var(--lf-avatar-lg); font-size: var(--lf-type-stamp-size); }
+.lf-avatar--xl { width: var(--lf-avatar-xl); height: var(--lf-avatar-xl); font-size: var(--lf-type-subtitle-size); font-weight: var(--lf-weight-heavy); }
+
+.lf-avatar--pending {
+  background: var(--lf-color-surface-muted);
+  color: var(--lf-color-text-muted);
+  border: var(--lf-border-pending) dashed var(--lf-color-outline-strong);
+}
+
+/* -------------------------------------------------------------
+   TRUST — 약속 지킴율 링 (SVG 는 마크업) · 진행 막대
+   ------------------------------------------------------------- */
+.lf-ring {
+  position: relative;
+  width: var(--lf-trust-ring);
+  height: var(--lf-trust-ring);
   flex: none;
 }
 
-.lf-avatar--lg { width: 56px; height: 56px; font-size: 22px; }
+.lf-ring__svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.lf-ring__track { fill: none; stroke: var(--lf-color-surface-muted); stroke-width: var(--lf-trust-ring-stroke); }
+.lf-ring__fill  { fill: none; stroke: var(--lf-color-success-container); stroke-width: var(--lf-trust-ring-stroke); stroke-linecap: round; }
+.lf-ring__ink   { fill: none; stroke: var(--lf-color-text); stroke-width: 2; }
 
-/* -------------------------------------------------------------
-   STAT — 약속 지킴율 (O-D3)
-   ------------------------------------------------------------- */
-.lf-stat-hero {
+.lf-ring__value {
+  position: absolute;
+  inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--lf-space-1);
-}
-
-.lf-stat-hero__value {
-  font-size: 44px;
-  line-height: 52px;
+  justify-content: center;
+  font-size: var(--lf-type-subtitle-size);
   font-weight: var(--lf-weight-heavy);
-  color: var(--lf-color-primary);
-}
-
-.lf-stat-hero__label {
-  font-size: var(--lf-type-label-size);
-  font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-on-primary-container);
+  color: var(--lf-color-text);
 }
 
 .lf-stats {
@@ -960,7 +1466,7 @@
 
 .lf-stat {
   background: var(--lf-color-surface);
-  border: 1px solid var(--lf-color-outline);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   border-radius: var(--lf-radius-md);
   padding: var(--lf-space-5) var(--lf-space-3);
   text-align: center;
@@ -978,22 +1484,24 @@
   color: var(--lf-color-text-muted);
 }
 
-/* 지킴율 진행 막대 */
+/* 진행 막대 — 8 · 잉크 테두리 · 스카이 채움 */
 .lf-progress {
-  height: 10px;
+  height: var(--lf-progress-height);
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-surface-muted);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   overflow: hidden;
 }
 
 .lf-progress__fill {
+  display: block;
   height: 100%;
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-primary);
+  border-radius: 0;
+  background: var(--lf-color-record-container);
 }
 
 /* -------------------------------------------------------------
-   EMPTY STATE — 첫 약속 유도
+   EMPTY STATE — 블롭 + 안내
    ------------------------------------------------------------- */
 .lf-empty {
   flex: 1;
@@ -1002,7 +1510,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: var(--lf-space-5);
+  gap: var(--lf-space-8);
   padding: 0 var(--lf-space-9);
 }
 
@@ -1012,12 +1520,19 @@
   color: var(--lf-color-text);
 }
 
+.lf-empty__hint {
+  font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-muted);
+}
+
 /* 안내용 원형 아이콘 (만료 · 종결 화면) */
 .lf-status-icon {
-  width: 88px;
-  height: 88px;
+  width: var(--lf-trust-ring);
+  height: var(--lf-trust-ring);
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-surface-muted);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1030,38 +1545,41 @@
 }
 
 /* -------------------------------------------------------------
-   AD SLOT — 홈·알림함·프로필 하단 각 1구좌 (F-12 확대, PO 2026-08-24), MVP에서는 비활성 (요청서 §8)
+   AD SLOT — 홈·알림함·프로필 하단 각 1구좌 (F-12 확대, PO 2026-08-24)
+   갤러리에서만 자리를 보여준다. 앱은 ads_enabled=false 면 아무것도 렌더하지 않는다 (ADR 0009).
    ------------------------------------------------------------- */
 .lf-ad-slot {
-  border: 2px dashed var(--lf-color-outline-strong);
+  border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
   border-radius: var(--lf-radius-md);
   padding: var(--lf-space-4) var(--lf-space-6);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--lf-space-3);
-  font-size: var(--lf-type-caption-size);
+  font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text-muted);
 }
 
-.lf-ad-slot .material-symbols-rounded { font-size: 18px; color: var(--lf-color-outline-icon); }
+.lf-ad-slot .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text-muted); }
 
-/* 홈 인피드 배너 — 진행·대기 탭이 6건 이상일 때 5번째 카드(임박 배너 포함) 뒤 1구좌 (ADR 0015 D7).
-   ads_enabled=false·SDK 실패·no-fill 이면 렌더하지 않고 빈 자리도 남기지 않는다.
-   외곽 치수는 .lf-ad-slot 과 같고, 리스트 행이라 좌우 여백만 .lf-home__row 를 따른다. */
+/* 홈 인피드 배너 — 진행·대기 탭이 6건 이상일 때 5번째 카드 뒤 1구좌 (ADR 0015 D7). */
 .lf-home__ad {
   list-style: none;
-  margin: 0 var(--lf-gutter-app) var(--lf-space-5);
-  border: 2px dashed var(--lf-color-outline-strong);
+  margin: 0 var(--lf-gutter-app) var(--lf-space-4);
+  border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
   border-radius: var(--lf-radius-md);
   padding: var(--lf-space-4) var(--lf-space-6);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--lf-space-3);
-  font-size: var(--lf-type-caption-size);
+  font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text-muted);
 }
 
-.lf-home__ad .material-symbols-rounded { font-size: 18px; color: var(--lf-color-outline-icon); }
+.lf-home__ad .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text-muted); }
 
 /* -------------------------------------------------------------
    COMPARE — 변경 전/후 (AMEND_PENDING) · 양측 주장 (DISPUTED)
@@ -1074,14 +1592,15 @@
 
 .lf-compare__item {
   border-radius: var(--lf-radius-md);
-  border: 1px solid var(--lf-color-outline);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   background: var(--lf-color-surface);
   padding: var(--lf-space-5) var(--lf-space-6);
 }
 
 .lf-compare__label {
-  font-size: var(--lf-type-micro-size);
-  font-weight: var(--lf-weight-heavy);
+  font-size: var(--lf-type-eyebrow-size);
+  font-weight: var(--lf-weight-bold);
+  letter-spacing: var(--lf-letter-spacing-wide);
   color: var(--lf-color-text-muted);
 }
 
@@ -1094,65 +1613,93 @@
 
 .lf-compare__item--before { opacity: 0.7; }
 .lf-compare__item--before .lf-compare__value { text-decoration: line-through; }
-.lf-compare__item--after { border-color: var(--lf-color-primary); background: var(--lf-color-primary-soft); }
+.lf-compare__item--after { background: var(--lf-color-record-container); }
 
-/* DISPUTED — 양측 주장을 동등한 무게로 나란히 (P1: 판정하지 않는다) */
+/* DISPUTED — 양측 주장을 같은 톤·같은 크기로 나란히 (P1: 판정하지 않는다) */
 .lf-claims {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--lf-space-3);
+  gap: var(--lf-space-4);
 }
 
 .lf-claim {
-  border: 1px solid var(--lf-color-outline);
-  border-radius: var(--lf-radius-md);
+  border: var(--lf-border-card) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-lg);
   background: var(--lf-color-surface);
-  padding: var(--lf-space-5);
+  padding: var(--lf-space-6);
   text-align: center;
 }
 
 .lf-claim__who {
-  font-size: var(--lf-type-micro-size);
+  font-size: var(--lf-type-eyebrow-size);
   font-weight: var(--lf-weight-bold);
+  letter-spacing: var(--lf-letter-spacing-wide);
   color: var(--lf-color-text-muted);
 }
 
 .lf-claim__answer {
   margin-top: var(--lf-space-2);
-  font-size: 15px;
+  font-size: var(--lf-type-body-size);
   font-weight: var(--lf-weight-heavy);
   color: var(--lf-color-text);
 }
 
 .lf-claim__time {
   margin-top: var(--lf-space-1);
-  font-size: var(--lf-type-micro-size);
+  font-size: var(--lf-type-meta-size);
   color: var(--lf-color-text-muted);
 }
 
 /* -------------------------------------------------------------
-   PROOF — 이행 증빙 사진
+   PROOF — 이행 증빙 사진 타일 (76 · 84) · 사진 추가 점선 타일
    ------------------------------------------------------------- */
 .lf-proof {
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: var(--lf-radius-md);
-  background: var(--lf-color-surface-muted);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--lf-space-2);
+  gap: 2px;
   color: var(--lf-color-text);
   font-size: var(--lf-type-caption-size);
   line-height: var(--lf-line-caption);
   font-weight: var(--lf-weight-bold);
+  position: relative;
 }
 
-.lf-proof .material-symbols-rounded { font-size: 32px; color: var(--lf-color-outline-icon); }
+.lf-proof .material-symbols-rounded { font-size: 22px; color: var(--lf-color-text-muted); }
+
+.lf-proof--tile    { width: var(--lf-thumb); height: var(--lf-thumb); aspect-ratio: auto; flex: none; }
+.lf-proof--tile-lg { width: var(--lf-thumb-lg); height: var(--lf-thumb-lg); aspect-ratio: auto; flex: none; }
+.lf-proof--add {
+  background: transparent;
+  border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
+  color: var(--lf-color-text-muted);
+}
+
+/* 타일 우상단 제거 버튼 */
+.lf-proof__remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-text);
+  color: var(--lf-color-on-action);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lf-proof__remove .material-symbols-rounded { font-size: 14px; color: var(--lf-color-on-action); }
 
 /* -------------------------------------------------------------
-   BOTTOM SHEET — MOD-01 / MOD-02 / MOD-03
+   BOTTOM SHEET — 종이 · 2.5 잉크(하단 없음) · r28 · 핸들 40×5
    ------------------------------------------------------------- */
 .lf-scrim {
   position: absolute;
@@ -1165,67 +1712,89 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--lf-color-background);
-  border: 2.5px solid var(--lf-color-text);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-sheet) solid var(--lf-color-text);
   border-bottom: none;
-  border-radius: var(--lf-radius-2xl) var(--lf-radius-2xl) 0 0;
+  border-radius: var(--lf-radius-hero) var(--lf-radius-hero) 0 0;
   box-shadow: var(--lf-elevation-sheet);
-  padding: var(--lf-space-5) var(--lf-gutter-app) var(--lf-space-9);
+  padding: var(--lf-space-5) var(--lf-space-9) var(--lf-space-3);
   display: flex;
   flex-direction: column;
-  gap: var(--lf-space-5);
+  gap: var(--lf-space-6);
   max-height: 88%;
   overflow-y: auto;
 }
 
 .lf-sheet__handle {
-  width: 32px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--lf-color-outline-strong);
+  width: var(--lf-sheet-handle-width);
+  height: var(--lf-sheet-handle-height);
+  border-radius: 3px;
+  background: var(--lf-color-text);
+  opacity: 0.3;
   align-self: center;
   flex: none;
 }
 
+.lf-sheet__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+}
+
 .lf-sheet__title {
-  font-size: var(--lf-type-subtitle-size);
+  flex: 1;
+  font-size: var(--lf-type-sheet-title-size);
   font-weight: var(--lf-weight-heavy);
   color: var(--lf-color-text);
 }
 
-/* 축하 시트 (MOD-03) — 가운데 정렬 */
+/* 축하 시트 (MOD-03) — 가운데 정렬, 종이 그대로 */
 .lf-sheet--celebrate {
   align-items: center;
   text-align: center;
-  background: var(--lf-color-primary-container);
+  gap: var(--lf-space-5);
 }
 
 /* -------------------------------------------------------------
-   STICKER DECOR — 잉크&스티커 장식 (두들 · 마스코트 · 타자기 인트로)
-   장식 전용: aria-hidden + pointer-events 차단, 색은 전부 토큰.
+   LEGACY — 구 화면(P4 배치 2·3 이전)이 아직 쓰는 핑키 루프 마크 · 스티커 장식.
+   새 화면은 쓰지 않는다. 마지막 소비자가 사라지는 커밋에서 이 구획을 지운다.
    ------------------------------------------------------------- */
-.sl-doodles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+.lf-pinky {
+  --lf-pinky-size: 46px;
+  width: calc(var(--lf-pinky-size) * 1.4);
+  height: var(--lf-pinky-size);
+  background-color: var(--lf-color-brand-symbol);
+  -webkit-mask: url('../assets/images/brand-symbol.png') center / contain no-repeat;
+  mask: url('../assets/images/brand-symbol.png') center / contain no-repeat;
+  flex: none;
 }
 
+.lf-pinky path { display: none; }
+.lf-pinky--on-primary { background-color: var(--lf-color-brand-symbol-on-action); }
+.lf-pinky--xs  { --lf-pinky-size: 20px; }
+.lf-pinky--sm  { --lf-pinky-size: 26px; }
+.lf-pinky--md  { --lf-pinky-size: 46px; }
+.lf-pinky--lg  { --lf-pinky-size: 56px; }
+.lf-pinky--xl  { --lf-pinky-size: 64px; }
+
+.lf-pinky-badge {
+  width: 104px;
+  height: 104px;
+  border-radius: 36px;
+  background: var(--lf-color-primary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.sl-doodles { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
 .sl-doodles svg { position: absolute; }
-
-.sl-ink {
-  fill: none;
-  stroke: var(--lf-color-text);
-  stroke-width: 2.6;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
+.sl-ink { fill: none; stroke: var(--lf-color-text); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
 .sl-fill-butter { fill: var(--lf-color-primary-container); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
 .sl-fill-lavender { fill: var(--lf-color-reward-container); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
 .sl-fill-surface { fill: var(--lf-color-surface); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
 .sl-face { fill: none; stroke: var(--lf-color-text); stroke-width: 1.8; stroke-linecap: round; }
-
 .sl-dd--sparkle-tl { left: 26px; top: 74px; width: 34px; }
 .sl-dd--star-tr    { right: 30px; top: 56px; width: 58px; transform: rotate(9deg); }
 .sl-dd--mail-l     { left: 20px; top: 210px; width: 52px; transform: rotate(-8deg); }
@@ -1233,37 +1802,13 @@
 .sl-dd--tea-bl     { left: 34px; bottom: 200px; width: 44px; transform: rotate(-6deg); }
 .sl-dd--plant-br   { right: 38px; bottom: 194px; width: 48px; transform: rotate(7deg); }
 .sl-dd--sparkle-b  { left: 12px; bottom: 320px; width: 18px; transform: rotate(14deg); }
-
-/* 마스코트 — 버터 블롭 + 얼굴 (로그인·온보딩 배지 내부) */
 .sl-mascot { width: 132px; height: 132px; }
 .lf-onboarding__badge .sl-mascot { width: 124px; height: 124px; }
-
-.sl-mascot__body {
-  fill: var(--lf-color-primary-container);
-  stroke: var(--lf-color-text);
-  stroke-width: 3.2;
-  stroke-linejoin: round;
-}
-
+.sl-mascot__body { fill: var(--lf-color-primary-container); stroke: var(--lf-color-text); stroke-width: 3.2; stroke-linejoin: round; }
 .sl-mascot__eye { fill: var(--lf-color-text); }
-
-.sl-mascot__smile {
-  fill: none;
-  stroke: var(--lf-color-text);
-  stroke-width: 3;
-  stroke-linecap: round;
-}
-
-/* 로그인 — 마스코트 아래 소형 핑키 글리프 */
+.sl-mascot__smile { fill: none; stroke: var(--lf-color-text); stroke-width: 3; stroke-linecap: round; }
 .sl-glyph { --lf-pinky-size: 38px; margin-top: 4px; }
-
-/* 작성 화면 타자기 인트로 */
-.sl-typeline {
-  font-family: var(--lf-font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--lf-color-text-secondary);
-}
+.sl-typeline { font-family: var(--lf-font-mono); font-size: 13px; font-weight: 500; color: var(--lf-color-text-secondary); }
 
 /* -------------------------------------------------------------
    UTILITY
@@ -1273,6 +1818,8 @@
 .lf-wrap     { flex-wrap: wrap; }
 .lf-grow     { flex: 1; min-width: 0; }
 .lf-center   { align-items: center; justify-content: center; text-align: center; }
+.lf-between  { justify-content: space-between; }
+.lf-end      { justify-content: flex-end; }
 .lf-gap-1    { gap: var(--lf-space-1); }
 .lf-gap-2    { gap: var(--lf-space-2); }
 .lf-gap-3    { gap: var(--lf-space-3); }
@@ -1282,3 +1829,4 @@
 .lf-gap-7    { gap: var(--lf-space-7); }
 .lf-text-center { text-align: center; }
 .lf-text-left   { text-align: left; }
+.lf-relative    { position: relative; }

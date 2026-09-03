@@ -200,8 +200,16 @@ describe('잉크&스티커 웹 토큰도 같은 계약을 쓴다', () => {
     expect(css).toMatch(
       /\.lf-card--container\s+\.lf-dday\s*\{[^}]*color:\s*var\(--lf-color-success\)/su,
     );
+    // 읽지 않은 알림은 옐로 스티커 카드다 — 헤드라인 색이 아니라 배경으로 구분한다 (2026-09-03)
     expect(css).toMatch(
-      /\.lf-list-item--unread\s+\.lf-list-item__headline\s*\{[^}]*color:\s*var\(--lf-color-record\)/su,
+      /\.lf-list-item--unread\s*\{[^}]*background:\s*var\(--lf-color-primary-container\)/su,
+    );
+  });
+
+  test('수락 웹의 components.css 는 레퍼런스와 바이트 단위로 같다', () => {
+    // 웹 전용 규칙은 screens/web.css 의 WEB ONLY 구획에만 둔다. 여기가 어긋나면 드리프트다.
+    expect(readFileSync(WEB_COMPONENTS_CSS, 'utf8')).toBe(
+      readFileSync(REFERENCE_COMPONENTS_CSS, 'utf8'),
     );
   });
 
@@ -230,24 +238,28 @@ describe('잉크&스티커 웹 토큰도 같은 계약을 쓴다', () => {
   );
 
   test.each([REFERENCE_COMPONENTS_CSS, WEB_COMPONENTS_CSS])(
-    '보조 캡션·메타·필드 라벨·목록 설명은 14/22 큰 볼드 보조문이다: %s',
+    '보조 본문은 14/22 보조색, 메타는 12 뮤트, 필드 라벨은 eyebrow 다 (파스텔 스티커 계층): %s',
     (path) => {
       const css = readFileSync(path, 'utf8');
-      for (const selector of [
-        'lf-body--secondary',
-        'lf-caption',
-        'lf-field__label',
-        'lf-list-item__supporting',
-        'lf-card__meta',
-      ]) {
-        const body = new RegExp(`\\.${selector}\\s*\\{(?<body>[^}]*)\\}`, 'su').exec(css)
-          ?.groups?.body;
+      const bodyOf = (selector: string) =>
+        new RegExp(`\\.${selector}\\s*\\{(?<body>[^}]*)\\}`, 'su').exec(css)?.groups?.body;
 
+      for (const selector of ['lf-body--secondary', 'lf-caption']) {
+        const body = bodyOf(selector);
         expect(body).toContain('font-size: var(--lf-type-label-size)');
         expect(body).toContain('line-height: var(--lf-line-body)');
-        expect(body).toContain('font-weight: var(--lf-weight-bold)');
         expect(body).toContain('color: var(--lf-color-text-secondary)');
       }
+      for (const selector of ['lf-list-item__supporting', 'lf-card__meta']) {
+        const body = bodyOf(selector);
+        expect(body).toContain('font-size: var(--lf-type-meta-size)');
+        expect(body).toContain('line-height: var(--lf-line-caption)');
+      }
+      const label = bodyOf('lf-field__label');
+      expect(label).toContain('font-size: var(--lf-type-eyebrow-size)');
+      expect(label).toContain('letter-spacing: var(--lf-letter-spacing-wide)');
+      expect(label).toContain('font-weight: var(--lf-weight-bold)');
+      expect(label).toContain('color: var(--lf-color-text-muted)');
     },
   );
 
