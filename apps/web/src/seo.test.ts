@@ -18,6 +18,17 @@ const INDEX_HTML = readFileSync(resolve(WEB_ROOT, 'index.html'), 'utf8');
 // ADR 0005 — 도메인을 사지 않고 기존 Firebase Hosting 을 쓴다.
 const CANONICAL_ORIGIN = 'https://littlefinger-app.web.app';
 
+describe('Google Search Console 소유권 파일', () => {
+  test('검증 파일이 public 에 그대로 있다 — 사라지면 OAuth 브랜드 인증의 도메인 소유권이 끊긴다', () => {
+    // 2026-09-03, Google 인증 플랫폼 브랜드 인증(문제 1: 홈페이지 도메인 미등록). Google 은
+    // 소유권을 주기적으로 재확인하므로 파일은 한 줄짜리 원문 그대로 남아 있어야 한다.
+    const name = 'googleb324b92c6f5d9c19.html';
+    const file = resolve(WEB_ROOT, `public/${name}`);
+    expect(existsSync(file)).toBe(true);
+    expect(readFileSync(file, 'utf8').trim()).toBe(`google-site-verification: ${name}`);
+  });
+});
+
 describe('폰트 CLS 하드닝', () => {
   test('브랜드 폰트는 public 에 있고 preload 와 @font-face 가 같은 경로를 가리킨다', () => {
     // preload 는 URL 이 글자 하나만 달라도 폰트를 **두 번** 내려받는다. 경로를 한 곳에서

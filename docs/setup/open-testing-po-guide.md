@@ -106,10 +106,12 @@ Date: 2026-09-03. `docs/setup/open-testing-release.md`(엔지니어 런북)의 �
 1. https://search.google.com/search-console 에 **task@deephigh.ai**(GCP 프로젝트
    `littlefinger-506104`의 소유 계정)로 로그인한다.
 2. 속성 추가 → **URL 접두어** → `https://littlefinger-app.web.app/` → 계속.
-3. 소유권 확인 방법에서 **HTML 태그**를 고른다. `<meta name="google-site-verification"
-   content="XXXX" />`의 `XXXX` 값을 엔지니어에게 보낸다(비밀 아님, 채팅 가능).
-4. 엔지니어가 그 태그를 `apps/web/index.html`에 넣고 공개 홈과 함께 배포한 뒤 "배포 완료"라고
-   알려 주면, Search Console에서 **확인**을 누른다 → "소유권이 확인됨".
+3. 소유권 확인 방법에서 **HTML 파일**을 골라 `googleXXXX.html`을 내려받아 엔지니어에게 준다
+   (HTML 태그 방식도 가능 — 그때는 `content` 값을 보낸다. 둘 다 비밀 아님).
+4. 엔지니어가 파일을 `apps/web/public/`에 넣고 배포한다 — **2026-09-03 완료**:
+   `https://littlefinger-app.web.app/googleb324b92c6f5d9c19.html` 이 원문 그대로 200으로
+   응답하고, `apps/web/src/seo.test.ts`가 파일을 고정한다(지우면 소유권이 끊기므로). 이제
+   Search Console에서 **확인**을 누른다 → "소유권이 확인됨".
 
 **재인증 순서** — 위 1~4가 끝난 뒤: 브랜딩 페이지 → **문제 보기** → **문제를 해결함**(브랜딩
 재인증 요청) → **계속**. 자동 검사는 보통 몇 분 안에 끝나고 인증 상태가 **게시 준비됨**으로
@@ -227,7 +229,7 @@ Date: 2026-09-03. `docs/setup/open-testing-release.md`(엔지니어 런북)의 �
 2  앱 이름 ko/en 교체:            [ ] 완료
 3  로그인 세부정보:               [ ] 일부 기능 제한 + 안내   [ ] 유지
 4  GCP 동의 화면 프로덕션:        [x] 완료 2026-09-03 (미등록 계정 로그인 확인: [ ])
-4a Search Console HTML 태그 content: ______________   [ ] 소유권 확인됨
+4a Search Console 검증 파일 배포:   [x] 2026-09-03 (googleb324b92c6f5d9c19.html)   [ ] 소유권 확인됨
 4b 브랜딩 앱 이름 리틀핑거 저장:   [ ]   브랜딩 재인증 → 게시: [ ]
 5  Email provider OFF + 계정 삭제: [ ] 완료 (시각 ______)
 6  설문 폼 URL / 의견 URL 등록:   https://forms.gle/________   [ ] 등록
