@@ -1,219 +1,196 @@
 /* =============================================================
-   Little Finger — SCR-A05 약속 상세 (상태별 변형) 전용 스타일
+   Little Finger — SCR-A05 약속 상세 (상태별 변형) 전용 스타일 (파스텔 × 잉크 & 스티커, 2026-09-03)
    components.css / tokens.css / base.css 에 없는 클래스만 여기에 추가한다.
-   담당: screens-app 에이전트. 다른 화면 담당 에이전트와 충돌하지 않도록
-   반드시 .lf-* 이름에 새 값을 더하는 방식으로만 확장한다.
    ============================================================= */
 
 /* -------------------------------------------------------------
-   상태 칩 추가 변형 — components.css의 --status/--urgent/--broken/
-   --neutral 로 표현되지 않는 두 상태(AMEND_PENDING, COMPLETED)
+   HEAD — 상태 칩 + 날짜 · 제목 · D-Day 원 (확정안 4d/4h/4i)
    ------------------------------------------------------------- */
-
-/* 변경 협의 중 — 점선 테두리로 "진행 중이지만 확정 아님"을 표현 */
-.lf-chip--amend {
-  background: transparent;
-  border: 1.5px dashed var(--lf-color-primary);
-  color: var(--lf-color-primary);
+.lf-detail__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--lf-space-5);
+  padding: var(--lf-space-1) var(--lf-space-1) var(--lf-space-2);
 }
 
-/* 완료 — 성공 그린 대신 보상 톤(오렌지)을 사용해 축하 분위기를 맞춘다 */
-.lf-chip--reward {
-  background: var(--lf-color-reward-container);
-  color: var(--lf-color-on-reward-container);
+.lf-detail__head-main { flex: 1; min-width: 0; }
+
+.lf-detail__status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
 }
 
-/* -------------------------------------------------------------
-   확정 스탬프(.lf-stamp) 톤 변형 — ACTIVE(기본) 이외의 종결 상태에서
-   같은 "하이라이트 블록" 골격을 재사용하기 위한 색상 변형.
-   ------------------------------------------------------------- */
-.lf-stamp--reward { background: var(--lf-color-reward-container); }
-.lf-stamp--reward .lf-stamp__headline { color: var(--lf-color-on-reward-container); }
-.lf-stamp--reward .lf-stamp__time     { color: var(--lf-color-reward-label); }
-.lf-stamp--reward .lf-stamp__icon     { color: var(--lf-color-reward-label); }
-
-.lf-stamp--broken { background: var(--lf-color-error-container); }
-.lf-stamp--broken .lf-stamp__headline { color: var(--lf-color-error); }
-.lf-stamp--broken .lf-stamp__time     { color: var(--lf-color-error); }
-.lf-stamp--broken .lf-stamp__icon     { color: var(--lf-color-error); }
-
-.lf-stamp--neutral { background: var(--lf-color-surface-muted); }
-.lf-stamp--neutral .lf-stamp__headline { color: var(--lf-color-text-secondary); }
-.lf-stamp--neutral .lf-stamp__time     { color: var(--lf-color-text-muted); }
-.lf-stamp--neutral .lf-stamp__icon     { color: var(--lf-color-text-muted); }
-
-/* 스탬프 안에 핑키 대신 상태 아이콘을 쓸 때 (완료·불이행·미확정·거절) */
-.lf-stamp__icon { font-size: 34px; }
-
-/* -------------------------------------------------------------
-   아바타 톤 변형 — 인물별 색상(지=primary, 민=primary-pale) 과
-   아직 합류하지 않은/참고용 참여자를 구분한다.
-   ------------------------------------------------------------- */
-.lf-avatar--a { background: var(--lf-color-primary); color: var(--lf-color-on-primary); }
-.lf-avatar--b { background: var(--lf-color-primary-pale); color: var(--lf-color-on-primary); }
-.lf-avatar--muted { background: var(--lf-color-surface-muted); color: var(--lf-color-text-secondary); }
-
-/* PENDING — 아직 손가락을 걸지 않은 상대방 (점선 테두리로 "미확정" 표현) */
-.lf-avatar--pending {
-  background: var(--lf-color-surface-muted);
+.lf-detail__date {
+  font-size: var(--lf-type-meta-size);
   color: var(--lf-color-text-muted);
-  border: 3px dashed var(--lf-color-outline-strong);
 }
 
-/* 44px 크기 변형 — PENDING 대기 카드의 인물 강조용 */
-.lf-avatar--md { width: 44px; height: 44px; font-size: var(--lf-type-body-lg-size); }
+.lf-detail__title { margin-top: var(--lf-space-5); }
+
+/* 상태 칩 별칭 — D7: 변경 협의=스카이 · 완료=민트 */
+.lf-chip--amend  { background: var(--lf-color-record-container); }
+.lf-chip--reward { background: var(--lf-color-success-container); }
 
 /* -------------------------------------------------------------
-   NOTE — 옅은 로즈 배경의 안내 문구 박스 (아이콘 유무 모두 대응)
-   AMEND_PENDING 배너, CHECKING/DISPUTED/UNRESOLVED 하단 안내에 사용
+   확정 스탬프 톤 변형 — 4d(진행: 종이 + 민트 모서리 블롭) · 4i(완료: 민트) · 확장(불이행: 핑크, 중립: 뮤트)
+   ------------------------------------------------------------- */
+.lf-stamp--reward  { background: var(--lf-color-success-container); }
+.lf-stamp--broken  { background: var(--lf-color-attention-container); }
+.lf-stamp--neutral { background: var(--lf-color-surface-muted); }
+.lf-stamp--reward .lf-stamp__pill,
+.lf-stamp--broken .lf-stamp__pill,
+.lf-stamp--neutral .lf-stamp__pill { background: var(--lf-color-surface); }
+
+/* 스탬프 안에 손 루프 대신 상태 아이콘을 쓸 때 (불이행·미확정·거절) */
+.lf-stamp__icon { font-size: 34px; color: var(--lf-color-text); }
+
+/* -------------------------------------------------------------
+   아바타 별칭 — 인물 구분은 글자로, 톤은 잉크 원 하나
+   ------------------------------------------------------------- */
+.lf-avatar--a,
+.lf-avatar--b { background: var(--lf-color-text); color: var(--lf-color-primary-container); }
+.lf-avatar--muted { background: var(--lf-color-surface-muted); color: var(--lf-color-text-secondary); }
+.lf-avatar--md { width: var(--lf-icon-button); height: var(--lf-icon-button); font-size: var(--lf-type-body-lg-size); }
+
+/* -------------------------------------------------------------
+   NOTE — 안내 문구 카드 (스카이 flat). AMEND_PENDING 배너, CHECKING/DISPUTED/UNRESOLVED 하단 안내
    ------------------------------------------------------------- */
 .lf-note {
   display: flex;
   align-items: center;
   gap: var(--lf-space-3);
-  background: var(--lf-color-primary-soft);
-  border-radius: var(--lf-radius-md);
-  padding: var(--lf-space-5) var(--lf-space-6);
+  background: var(--lf-color-record-container);
+  border: var(--lf-border-card) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-xl);
+  padding: var(--lf-space-5) var(--lf-space-7);
   font-size: var(--lf-type-caption-size);
   line-height: var(--lf-line-caption);
-  color: var(--lf-color-text-secondary);
+  color: var(--lf-color-text);
 }
 
 .lf-note .material-symbols-rounded {
   font-size: 18px;
-  color: var(--lf-color-primary);
+  color: var(--lf-color-text);
   flex: none;
 }
 
-/* 발신자 알림처럼 강조가 필요한 배너 (AMEND_PENDING 상단) */
-.lf-note--emphasis { font-weight: var(--lf-weight-medium); }
+.lf-note--emphasis { font-weight: var(--lf-weight-bold); }
+.lf-note--plain { background: transparent; border: none; padding: 0 var(--lf-space-1); color: var(--lf-color-text-secondary); text-align: center; justify-content: center; }
 
 /* -------------------------------------------------------------
-   READONLY — 발송 후 잠긴 내용을 보여주는 회색 박스 (PENDING)
+   READONLY — 발송 후 잠긴 내용 (PENDING) — 뮤트 카드, eyebrow 는 잉크(대비)
    ------------------------------------------------------------- */
 .lf-readonly {
   background: var(--lf-color-surface-muted);
-  border-radius: var(--lf-radius-md);
-  padding: var(--lf-space-5) var(--lf-space-6);
-  font-size: var(--lf-type-body-size);
+  border: var(--lf-border-card) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-xl);
+  padding: var(--lf-card-padding);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-4);
+  font-size: var(--lf-type-label-size);
   line-height: var(--lf-line-body);
-  color: var(--lf-color-text-secondary);
+  color: var(--lf-color-text);
 }
 
-/* -------------------------------------------------------------
-   만료 카운트다운 진행률 — PENDING 초대 링크 만료 바
-   ------------------------------------------------------------- */
+.lf-readonly .lf-eyebrow { color: var(--lf-color-text); }
+
+/* 만료 카운트다운 진행률 — PENDING 초대 링크 만료 바 */
 .lf-progress__fill--expiry { width: 66%; }
 
-/* -------------------------------------------------------------
-   아이콘 유틸리티 — 카드 안에서 홀로 쓰이는 강조/보조 아이콘
-   ------------------------------------------------------------- */
-.lf-icon-primary { font-size: 22px; color: var(--lf-color-primary); flex: none; }
+/* 아이콘 유틸리티 — 카드 안에서 홀로 쓰이는 아이콘 (전부 잉크) */
+.lf-icon-primary { font-size: 22px; color: var(--lf-color-text); flex: none; }
 .lf-icon-muted   { font-size: 18px; color: var(--lf-color-text-muted); flex: none; }
 .lf-icon-error   { font-size: 16px; color: var(--lf-color-error); flex: none; }
-.lf-icon-reward  { font-size: 16px; color: var(--lf-color-reward-label); flex: none; }
+.lf-icon-reward  { font-size: 16px; color: var(--lf-color-text); flex: none; }
 
 /* -------------------------------------------------------------
-   RETENTION ROW — 내 기록 보관 (ADR 0015 D4). 참여자 개인의 보관 기한과 연장 진입점.
-   보관은 "이미 기록된 것"의 메타데이터라 라벤더(기록) 컨테이너를 쓴다 — 성공·마감 의미가 아니다.
-   영구 보관이면 연장 버튼이 없다. 종결 상태(COMPLETED·BROKEN·DISPUTED·UNRESOLVED)와
-   활성화된 뒤의 모든 상태에 놓인다.
+   RETENTION ROW — 내 기록 보관 (ADR 0015 D4). flat 카드 행, 연장은 밑줄 텍스트 (확정안 4i)
    ------------------------------------------------------------- */
 .lf-retention-row {
   display: flex;
   align-items: center;
   gap: var(--lf-space-4);
-  padding: var(--lf-space-4) var(--lf-space-6);
-  border-radius: var(--lf-radius-md);
-  background: var(--lf-color-record-container);
+  padding: var(--lf-space-5) var(--lf-space-7);
 }
 
 .lf-retention-row > .material-symbols-rounded {
   font-size: 20px;
-  color: var(--lf-color-record);
+  color: var(--lf-color-text);
   flex: none;
 }
 
 .lf-retention-row__body { flex: 1; min-width: 0; }
 
 .lf-retention-row__label {
-  font-size: var(--lf-type-caption-size);
-  line-height: var(--lf-line-caption);
+  font-size: var(--lf-type-eyebrow-size);
   font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-record);
-}
-
-.lf-retention-row__value {
-  font-size: var(--lf-type-label-size);
-  line-height: var(--lf-line-body);
-  font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-text);
-}
-
-/* 연장 텍스트 버튼 — 48dp 터치 높이는 .lf-btn 이 보장한다. 라벤더 위라 잉크로 올린다 */
-.lf-retention-row .lf-btn--text {
-  flex: none;
-  padding: 0 var(--lf-space-3);
-  color: var(--lf-color-text);
-}
-
-/* -------------------------------------------------------------
-   INFO ROW — 아이콘 + (라벨 위 · 값 아래) 한 줄 정보 (COMPLETED 보상 안내)
-   ------------------------------------------------------------- */
-.lf-info-row { display: flex; align-items: center; gap: var(--lf-space-4); }
-
-.lf-info-row__label {
-  font-size: var(--lf-type-micro-size);
-  font-weight: var(--lf-weight-heavy);
+  letter-spacing: var(--lf-letter-spacing-wide);
   color: var(--lf-color-text-muted);
 }
 
-.lf-info-row__value {
+.lf-retention-row__value {
   margin-top: 2px;
+  font-size: var(--lf-type-chip-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-retention-row .lf-btn--text {
+  flex: none;
+  font-size: var(--lf-type-chip-size);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------
+   INFO ROW — 아이콘 + (eyebrow 위 · 값 아래) (COMPLETED 보상 안내 — 스카이 카드)
+   ------------------------------------------------------------- */
+.lf-info-row { display: flex; align-items: center; gap: var(--lf-space-5); }
+
+.lf-info-row__label {
+  font-size: var(--lf-type-eyebrow-size);
+  font-weight: var(--lf-weight-bold);
+  letter-spacing: var(--lf-letter-spacing-wide);
+  color: var(--lf-color-text);
+}
+
+.lf-info-row__value {
+  margin-top: var(--lf-space-1);
   font-size: var(--lf-type-label-size);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
 
-/* 초대 링크 만료까지 남은 시간 — 큰 모노스페이스 숫자 (PENDING) */
-.lf-countdown {
-  margin-top: 2px;
-  font-family: var(--lf-font-mono);
-  font-size: var(--lf-type-title-size);
-  font-weight: var(--lf-weight-heavy);
-  color: var(--lf-color-primary);
-}
-
 /* -------------------------------------------------------------
-   RESULT PILL — "지켰어요" / "안 지켜졌어요" 결과 뱃지
-   CHECKING 내 응답, DISPUTED 양측 주장 카드에서 재사용
+   RESULT PILL — "지켰어요" / "안 지켜졌어요" (CHECKING 내 응답, DISPUTED 양측 주장)
+   민트=지킴 · 핑크=안 지킴. DISPUTED 에서는 두 주장을 같은 크기·순서로 둔다 (P1)
    ------------------------------------------------------------- */
 .lf-result {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  height: var(--lf-chip-status-height);
+  padding: 0 var(--lf-space-4);
   border-radius: var(--lf-radius-pill);
-  font-size: var(--lf-type-micro-size);
-  font-weight: var(--lf-weight-heavy);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
   white-space: nowrap;
 }
 
 .lf-result .material-symbols-rounded { font-size: 13px; }
+.lf-result--kept   { background: var(--lf-color-success-container); }
+.lf-result--broken { background: var(--lf-color-attention-container); }
 
-.lf-result--kept { background: var(--lf-color-reward-container); color: var(--lf-color-on-reward-container); }
-.lf-result--kept .material-symbols-rounded { color: var(--lf-color-reward-label); }
-
-.lf-result--broken { background: var(--lf-color-error-container); color: var(--lf-color-error); }
-
-/* -------------------------------------------------------------
-   DISPUTED 주장 카드 내 작은 증빙 썸네일 (56×42)
-   ------------------------------------------------------------- */
+/* DISPUTED 주장 카드 내 작은 증빙 썸네일 (56×42) */
 .lf-claim__evidence {
   width: 56px;
   height: 42px;
   border-radius: var(--lf-radius-xs);
-  background: var(--lf-color-surface-muted);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,24 +201,23 @@
 
 .lf-claim__evidence--empty {
   background: none;
-  border: 1.5px dashed var(--lf-color-outline-strong);
+  border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
 }
 
-/* 증인 서명 줄의 "(참고용 · 판정 아님)" 같은 약한 강조 텍스트 */
 .lf-witness-caveat {
   color: var(--lf-color-text-muted);
   font-weight: var(--lf-weight-bold);
 }
 
 /* -------------------------------------------------------------
-   PHOTO THUMB — 이행 증빙 사진 썸네일 (76×76). 첨부 전(add)과
-   첨부 후를 모두 표현한다. 큰 업로드 유도 박스는 .lf-proof를 쓴다.
+   PHOTO THUMB — 이행 증빙 사진 썸네일 (76×76, 종이 + 2px 잉크). 첨부 전(add)은 점선
    ------------------------------------------------------------- */
 .lf-photo {
-  width: 76px;
-  height: 76px;
+  width: var(--lf-thumb);
+  height: var(--lf-thumb);
   border-radius: var(--lf-radius-md);
-  background: var(--lf-color-surface-muted);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -261,16 +237,18 @@
 
 .lf-photo--add {
   background: none;
-  border: 1.5px dashed var(--lf-color-outline-strong);
+  border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
 }
 
-/* -------------------------------------------------------------
-   CARD — muted 톤 변형 (DISPUTED 상단 안내 카드)
-   components.css의 .lf-card--container(primary 톤) 와 짝을 이루는
-   회색 톤. 새 톤이 필요할 때마다 여기에 --xxx 로 추가한다.
-   ------------------------------------------------------------- */
-.lf-card--muted {
-  background: var(--lf-color-surface-muted);
-  border: none;
-  color: var(--lf-color-text);
+/* 상세 하단 — 아웃라인 + 필 CTA 쌍 (확정안 4d) */
+.lf-detail__actions {
+  flex-direction: row;
+  gap: var(--lf-space-3);
 }
+
+.lf-detail__actions .lf-btn { flex: 1; }
+.lf-detail__actions .lf-btn:has(> .lf-btn__trailing) { align-self: stretch; }
+
+/* 쌍 버튼은 360 폭에서 두 줄로 꺾이지 않도록 14px · 왼쪽 여백 16 · 간격 8 (확정안 4i 는 370 폭) */
+.lf-detail__actions .lf-btn { font-size: var(--lf-type-label-size); white-space: nowrap; }
+.lf-detail__actions .lf-btn:has(> .lf-btn__trailing) { padding-left: var(--lf-space-7); gap: var(--lf-space-3); }

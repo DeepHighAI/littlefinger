@@ -10,79 +10,85 @@
 <link rel="stylesheet" href="../../styles/screens/app-create.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
+<!-- 확정안 4g (2026-09-03): 카톡 미리보기 말풍선 · 만료 카운트다운.
+     D6: 카카오 노란 버튼 + 현재 라벨 '초대 링크 공유하기'(OS 공유 시트) + 아웃라인 '링크 복사하기'.
+     승인 대기 단계에는 상대 이름이 없으므로 '상대방' 으로 쓴다 (D5). -->
 <body class="lf-page" data-screen-id="SCR-A04" data-screen-name="초대 전송·대기">
 <div class="lf-device">
   <div class="lf-device__viewport">
-
-    <!-- 초대 발송 후 상대 승인을 기다리는 화면. O-D1 기본안: 철회 버튼 없이 재발송만 제공(만료 시 활성화). -->
     <div class="lf-screen">
 
-      <div class="lf-appbar">
-        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로가기">
+      <header class="lf-appbar">
+        <button class="lf-icon-button" type="button" aria-label="뒤로">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
         <h1 class="lf-appbar__title">초대 보내기</h1>
-        <span class="lf-chip lf-chip--neutral">승인 대기</span>
-      </div>
+        <span class="lf-chip lf-chip--sm lf-chip--paper">승인 대기</span>
+      </header>
 
       <div class="lf-screen__body">
 
-        <div class="lf-stamp lf-stamp--compact">
-          <svg class="lf-pinky lf-pinky--md lf-pinky--on-container lf-pinky--hooked" viewBox="0 0 120 120" aria-hidden="true">
-            <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
-            <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
+        <div class="lf-stamp">
+          <svg class="lf-blob--corner lf-blob--corner-right" viewBox="0 0 90 70" aria-hidden="true">
+            <path class="lf-blob__yellow" d="M40 6c22-10 50 6 46 30S60 68 36 66 4 50 8 32 22 14 40 6Z"/>
           </svg>
-          <h2 class="lf-stamp__headline">민준님에게 손가락을 내밀어 볼까요?</h2>
-          <p class="lf-stamp__time">카톡으로 초대장을 보내면, 민준님이 걸어야 성립돼요</p>
+          <span class="lf-stamp__pill" aria-hidden="true">
+            <span class="lf-pinky-loop lf-pinky-loop--sm">
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-color.png" alt=""></span>
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-color.png" alt=""></span>
+              <span class="lf-pinky-loop__spark"></span>
+            </span>
+          </span>
+          <p class="lf-stamp__headline">상대방에게 손가락을<br>내밀어 볼까요?</p>
+          <p class="lf-stamp__body">카톡으로 초대장을 보내면, 상대방이 걸어야 성립돼요</p>
         </div>
 
-        <!-- 카톡 공유 시트 진입점. 실제 공식 버튼 가이드 형태의 플레이스홀더(요청서 §8) -->
-        <button class="lf-btn lf-btn--kakao lf-btn--cta lf-btn--block" type="button">
+        <button class="lf-btn lf-btn--kakao lf-btn--block" type="button">
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7L5.6 21c-.1.4.3.7.6.5l4.1-2.7c.5.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="currentColor"/>
           </svg>
-          <span>카카오톡으로 초대 보내기</span>
+          <span>초대 링크 공유하기</span>
         </button>
+        <button class="lf-btn lf-btn--outlined lf-btn--block" type="button">링크 복사하기</button>
 
-        <div>
-          <p class="lf-section-title">민준님에게는 이렇게 보여요</p>
-          <div class="lf-kakao-preview lf-row lf-align-start lf-gap-3">
-            <div class="lf-avatar" aria-hidden="true">지</div>
+        <div class="lf-stack lf-gap-3">
+          <p class="lf-eyebrow lf-eyebrow--inset">PREVIEW · 상대방에게는 이렇게 보여요</p>
+          <div class="lf-kakao-preview" aria-label="카카오톡 미리보기">
+            <span class="lf-avatar lf-avatar--sm" aria-hidden="true">지</span>
             <div class="lf-kakao-bubble">
-              <p class="lf-list-item__headline">지우님이 새끼손가락을 내밀었어요!</p>
-              <p class="lf-body--secondary">약속: 매주 화·목 아침 러닝 같이 하기</p>
+              <p class="lf-kakao-bubble__title">지우님이 새끼손가락을 내밀었어요!</p>
+              <p class="lf-kakao-bubble__body">약속: 매주 화·목 아침 러닝 같이 하기</p>
               <p class="lf-kakao-bubble__cta">약속 확인하기</p>
             </div>
           </div>
         </div>
 
-        <!-- 72시간 만료 카운트다운 -->
-        <div class="lf-card lf-card--web lf-stack lf-gap-4">
-          <div class="lf-row lf-gap-4">
+        <div class="lf-card lf-stack lf-gap-4">
+          <div class="lf-countdown-card__row">
             <span class="material-symbols-rounded lf-countdown-card__icon" aria-hidden="true">schedule</span>
             <div class="lf-grow">
-              <p class="lf-caption">초대 링크 유효 시간</p>
-              <p class="lf-dday lf-dday--lg lf-notice__timer">71:59:32</p>
+              <p class="lf-eyebrow">초대 링크 유효 시간</p>
+              <p class="lf-countdown" aria-label="71시간 59분 32초 남음">71:59:32</p>
             </div>
           </div>
-          <div class="lf-progress">
-            <div class="lf-progress__fill lf-invite-countdown__fill"></div>
+          <div class="lf-progress" role="progressbar" aria-valuenow="99" aria-valuemin="0" aria-valuemax="100" aria-label="초대 링크 유효 시간 남음">
+            <span class="lf-progress__fill lf-invite-countdown__fill"></span>
           </div>
-          <p class="lf-caption">링크는 1회용이에요 · 만료되면 아래에서 재발송할 수 있어요</p>
+          <p class="lf-meta-line">링크는 1회용이에요 · 만료되면 아래에서 재발송할 수 있어요</p>
         </div>
 
-        <!-- O-D1: 철회 버튼 없음. 재발송은 만료 후에만 활성화 -->
-        <button class="lf-btn lf-btn--outlined lf-btn--block" type="button" aria-disabled="true">
+      </div>
+
+      <div class="lf-screen__actions">
+        <button class="lf-btn lf-btn--outlined lf-btn--block" type="button" disabled>
           <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
           <span>재발송 — 만료 후 가능</span>
         </button>
-
       </div>
 
     </div>
   </div>
 </div>
-
 <script src="../frame.js"></script>
 </body>
 </html>

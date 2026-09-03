@@ -3,18 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SCR-A09 지난 약속 히스토리 — 리틀핑거</title>
+<title>SCR-A09 지난 약속 — 리틀핑거</title>
 <link rel="stylesheet" href="../../styles/tokens.css">
 <link rel="stylesheet" href="../../styles/base.css">
 <link rel="stylesheet" href="../../styles/components.css">
 <link rel="stylesheet" href="../../styles/screens/app-entry.css">
+<link rel="stylesheet" href="../../styles/screens/app-support.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
-<!-- ADR 0011 (PO 2026-08-26): 종결 약속 전용 화면. 홈의 완료 탭을 대체한다.
-     탭 4개 — 완료 / 불이행 / 협의 중단(의견 불일치·미확정 종결) / 거절·파기.
-     의견 불일치를 '불이행'에 넣지 않는 분리는 P1(판정하지 않는다)의 요구다.
-     광고 슬롯 없음 — F-12 허용 지면은 A02·A07·A08 뿐이다. -->
-<body class="lf-page" data-screen-id="SCR-A09" data-screen-name="지난 약속 히스토리">
+<!-- 확정안 4m (2026-09-03): 탭 4개 · 종결 상태는 파스텔 도트 + 텍스트. 탭 = 완료 · 불이행 · 협의 중단 · 거절·파기 (ADR 0011 D3) -->
+<body class="lf-page" data-screen-id="SCR-A09" data-screen-name="지난 약속">
 <div class="lf-device">
   <div class="lf-device__viewport">
     <div class="lf-screen">
@@ -24,9 +22,10 @@
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
         <h1 class="lf-appbar__title">지난 약속</h1>
+        <span class="lf-appbar__spacer"></span>
       </header>
 
-      <div class="lf-tabs" role="tablist" aria-label="지난 약속 분류">
+      <div class="lf-tabs lf-history__tabs" role="tablist" aria-label="종결 상태 필터">
         <button class="lf-tab" type="button" role="tab" aria-selected="true">완료 3</button>
         <button class="lf-tab" type="button" role="tab" aria-selected="false">불이행 1</button>
         <button class="lf-tab" type="button" role="tab" aria-selected="false">협의 중단 1</button>
@@ -36,25 +35,47 @@
       <div class="lf-screen__body lf-home__body">
 
         <ul class="lf-home__list">
-          <li class="lf-home__row">
-            <div class="lf-home__row-main">
-              <p class="lf-home__row-title">월말까지 야식 끊기</p>
-              <p class="lf-home__row-meta"><strong>완료</strong> · 종료일 8/11 (화) · 지우 — 민준</p>
-            </div>
+          <li>
+            <a class="lf-card lf-card--list" href="#">
+              <span class="lf-status-dot lf-status-dot--mint" aria-hidden="true"></span>
+              <span class="lf-home__row-main">
+                <span class="lf-home__row-title">월말까지 야식 끊기</span>
+                <span class="lf-home__row-meta"><strong>완료</strong> · 8/11 (화) · 지우 — 민준</span>
+              </span>
+              <span class="material-symbols-rounded lf-chevron" aria-hidden="true">arrow_forward</span>
+            </a>
           </li>
-          <li class="lf-home__row">
-            <div class="lf-home__row-main">
-              <p class="lf-home__row-title">매주 화·목 아침 러닝 같이 하기</p>
-              <p class="lf-home__row-meta"><strong>완료</strong> · 종료일 7/29 (수) · 지우 — 민준</p>
-            </div>
+          <li>
+            <a class="lf-card lf-card--list" href="#">
+              <span class="lf-status-dot lf-status-dot--mint" aria-hidden="true"></span>
+              <span class="lf-home__row-main">
+                <span class="lf-home__row-title">매주 화·목 아침 러닝 같이 하기</span>
+                <span class="lf-home__row-meta"><strong>완료</strong> · 7/29 (수) · 지우 — 민준</span>
+              </span>
+              <span class="material-symbols-rounded lf-chevron" aria-hidden="true">arrow_forward</span>
+            </a>
           </li>
-          <li class="lf-home__row">
-            <div class="lf-home__row-main">
-              <p class="lf-home__row-title">한 달 동안 아침 스트레칭</p>
-              <p class="lf-home__row-meta"><strong>완료</strong> · 종료일 7/15 (수) · 지우 — 하영</p>
-            </div>
+          <li>
+            <a class="lf-card lf-card--list" href="#">
+              <span class="lf-status-dot lf-status-dot--mint" aria-hidden="true"></span>
+              <span class="lf-home__row-main">
+                <span class="lf-home__row-title">한 달 동안 아침 스트레칭</span>
+                <span class="lf-home__row-meta"><strong>완료</strong> · 7/15 (수) · 지우 — 하영</span>
+              </span>
+              <span class="material-symbols-rounded lf-chevron" aria-hidden="true">arrow_forward</span>
+            </a>
           </li>
         </ul>
+
+        <div class="lf-history__empty">
+          <div class="lf-blob lf-blob--history lf-blob--tilt-empty" aria-hidden="true">
+            <svg class="lf-blob__svg" viewBox="0 0 120 100">
+              <path class="lf-blob__paper" d="M60 6c36-6 58 20 54 48s-26 48-56 44S4 78 6 52 26 12 60 6Z"/>
+            </svg>
+            <div class="lf-blob__eyes"><img class="lf-eyes lf-eyes--blob" src="../../assets/images/eyes-e1.png" alt=""></div>
+          </div>
+          <p class="lf-empty__hint">지킨 약속 3개, 잘 쌓였어요.</p>
+        </div>
 
       </div>
 

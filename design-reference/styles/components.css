@@ -1830,3 +1830,13 @@
 .lf-text-center { text-align: center; }
 .lf-text-left   { text-align: left; }
 .lf-relative    { position: relative; }
+
+/* 스탬프 모서리 블롭은 카드 자식 상대 배치 규칙보다 우선해 절대 배치된다 */
+.lf-stamp .lf-blob--corner { position: absolute; }
+
+/* 카드 밖 섹션 eyebrow — 카드 테두리와 줄을 맞추는 4px 안쪽 여백 */
+.lf-eyebrow--inset { padding: 0 var(--lf-space-1); }
+
+/* 행 제목·부제는 span 이라도 두 줄로 쌓인다 (버튼 안에서는 div 를 못 쓴다) */
+.lf-list-item__headline,
+.lf-list-item__supporting { display: block; }

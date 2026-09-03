@@ -180,6 +180,10 @@ svg {
   padding: var(--lf-space-3) var(--lf-gutter-app) var(--lf-space-5);
 }
 
+/* 세로 flex 본문의 자식은 줄어들지 않는다 — overflow:hidden 카드(히어로·스탬프)의 min-height 가 0 이 되어
+   본문이 넘칠 때 카드가 찌그러지는 것을 막는다. 넘치면 스크롤한다. */
+.lf-screen__body > * { flex-shrink: 0; }
+
 .lf-screen__body--web {
   padding: var(--lf-space-7) var(--lf-gutter-web) var(--lf-space-5);
 }

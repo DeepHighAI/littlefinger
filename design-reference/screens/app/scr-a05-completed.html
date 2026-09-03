@@ -10,13 +10,14 @@
 <link rel="stylesheet" href="../../styles/screens/app-detail.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
-<body class="lf-page" data-screen-id="SCR-A05 / COMPLETED" data-screen-name="완료">
+<!-- 확정안 4i (2026-09-03): 민트 스탬프 · 증빙 타일 · 스카이 보상 행 · 보관 기한 행 (ADR 0015 D4) -->
+<body class="lf-page" data-screen-id="SCR-A05" data-screen-name="COMPLETED 완료">
 <div class="lf-device">
   <div class="lf-device__viewport">
     <div class="lf-screen">
 
       <header class="lf-appbar">
-        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로">
+        <button class="lf-icon-button" type="button" aria-label="뒤로">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
         <h1 class="lf-appbar__title">약속 상세</h1>
@@ -27,26 +28,31 @@
 
       <div class="lf-screen__body">
 
-        <div class="lf-row lf-gap-3">
-          <span class="lf-chip lf-chip--reward">완료</span>
-          <span class="lf-caption">2026-08-12 종결</span>
+        <div class="lf-detail__head">
+          <div class="lf-detail__head-main">
+            <div class="lf-detail__status-row">
+              <span class="lf-chip lf-chip--sm lf-chip--mint">완료</span>
+              <span class="lf-detail__date">2026-08-12 종결</span>
+            </div>
+            <h2 class="lf-title lf-detail__title">매주 화·목 아침<br>러닝 같이 하기</h2>
+          </div>
         </div>
 
-        <h2 class="lf-title">매주 화·목 아침 러닝 같이 하기</h2>
-
-        <div class="lf-stamp lf-stamp--compact lf-stamp--reward">
-          <span class="material-symbols-rounded lf-stamp__icon" aria-hidden="true">celebration</span>
+        <div class="lf-stamp lf-stamp--completed">
+          <span class="lf-stamp__pill" aria-hidden="true">
+            <span class="lf-pinky-loop lf-pinky-loop--sm">
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-color.png" alt=""></span>
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-color.png" alt=""></span>
+              <span class="lf-pinky-loop__spark"></span>
+            </span>
+          </span>
           <p class="lf-stamp__headline">약속 지킴! 완주했어요</p>
           <p class="lf-stamp__time">두 사람 모두 "지켰어요" · 8/12 11:40 확인</p>
-          <p class="lf-fingerprint">
-            <span class="material-symbols-rounded" aria-hidden="true">fingerprint</span>
-            <span>기록 지문</span>
-            <span class="lf-fingerprint__code">A3F9-77C2-01</span>
-          </p>
+          <p class="lf-fingerprint">RECORD · <span class="lf-fingerprint__code">A3F9-77C2-01</span></p>
         </div>
 
-        <div>
-          <p class="lf-section-title">증빙</p>
+        <div class="lf-stack lf-gap-3">
+          <p class="lf-eyebrow lf-eyebrow--inset">PROOF · 증빙</p>
           <div class="lf-row lf-gap-3">
             <div class="lf-photo">
               <span class="material-symbols-rounded" aria-hidden="true">image</span>
@@ -59,34 +65,34 @@
           </div>
         </div>
 
-        <div class="lf-card lf-info-row">
+        <div class="lf-card lf-card--sky lf-info-row">
           <span class="material-symbols-rounded lf-icon-primary" aria-hidden="true">redeem</span>
-          <div class="lf-grow">
-            <p class="lf-info-row__label">이제 보상 받을 차례</p>
+          <div>
+            <p class="lf-info-row__label">REWARD · 이제 보상 받을 차례</p>
             <p class="lf-info-row__value">성공하면 오마카세 사주기</p>
           </div>
         </div>
 
-        <!-- 내 기록 보관 (ADR 0015 D4) — 종료일 다음 자정 + 무료 30일. 참여자마다 다르고 만료 뒤엔 되살릴 수 없다.
-             [보관 기간 늘리기]는 MOD-05(RETENTION)를 연다 -->
-        <div class="lf-retention-row">
+        <!-- 내 기록 보관 — 참여자 개인의 보관 기한과 연장 진입점 (ADR 0015 D4) -->
+        <div class="lf-card lf-card--flat lf-retention-row">
           <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
           <div class="lf-retention-row__body">
             <p class="lf-retention-row__label">내 기록 보관</p>
-            <p class="lf-retention-row__value">보관 만료 · 2026-09-11 00:00 (KST)</p>
+            <p class="lf-retention-row__value">만료 · 2026-09-11 00:00 (KST)</p>
           </div>
-          <button class="lf-btn lf-btn--text" type="button">보관 기간 늘리기</button>
+          <button class="lf-btn lf-btn--text" type="button">기간 늘리기</button>
         </div>
 
-        <p class="lf-caption lf-text-center">약속 지킴율에 반영됐어요 · 축하 카드는 완료 순간(MOD-03)에 떠요</p>
+        <p class="lf-note lf-note--plain">약속 지킴율에 반영됐어요</p>
 
       </div>
 
-      <div class="lf-screen__actions">
-        <div class="lf-screen__actions-row">
-          <button class="lf-btn lf-btn--outlined lf-btn--grow" type="button">공유하기</button>
-          <button class="lf-btn lf-btn--filled lf-btn--grow" type="button">새 약속 만들기</button>
-        </div>
+      <div class="lf-screen__actions lf-detail__actions">
+        <button class="lf-btn lf-btn--outlined" type="button">공유하기</button>
+        <button class="lf-btn lf-btn--filled" type="button">
+          <span>새 약속 만들기</span>
+          <span class="lf-btn__trailing lf-btn__trailing--plain"><span class="material-symbols-rounded" aria-hidden="true">add</span></span>
+        </button>
       </div>
 
     </div>

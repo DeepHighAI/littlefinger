@@ -1,114 +1,70 @@
 /* =============================================================
-   Little Finger — App Entry 화면 전용 스타일
+   Little Finger — App Entry 화면 전용 스타일 (파스텔 × 잉크 & 스티커, 2026-09-03)
    대상 화면: SCR-A00(온보딩) · SCR-A01(로그인) · SCR-A02(홈·약속 목록/빈 상태)
    components.css에 없는, 이 화면들만 쓰는 클래스만 여기 둔다.
    ============================================================= */
 
 /* -------------------------------------------------------------
-   SCR-A00 — 온보딩
+   SCR-A00 — 온보딩 (확정안 4a: 블롭 히어로 + 큰 헤드라인)
    ------------------------------------------------------------- */
 
-/* 상단 건너뛰기 행 */
-.lf-onboarding__skip-row {
+/* 상단 행 44 — 마스코트 + 서비스명 / 건너뛰기 */
+.lf-onboarding__top {
   flex: none;
+  height: 44px;
   display: flex;
-  justify-content: flex-end;
-  padding: var(--lf-space-6) var(--lf-space-8) 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--lf-space-5) 0 var(--lf-space-8);
 }
 
+.lf-onboarding__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-3);
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-onboarding__brand .lf-mascot { width: 28px; height: 28px; }
+
 .lf-onboarding__skip {
+  height: 44px;
   min-height: var(--lf-touch-min);
-  padding: 0 var(--lf-space-3);
+  padding: 0 var(--lf-space-5);
   display: flex;
   align-items: center;
   font-size: var(--lf-type-label-size);
   font-weight: var(--lf-weight-medium);
-  color: var(--lf-color-text-muted);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  color: var(--lf-color-text-secondary);
 }
 
-/* 중앙 본문 — 배지·헤드라인·3단계 요약·페이지 점 */
-.lf-onboarding__body {
-  gap: var(--lf-space-8);
-  padding-left: 28px;
-  padding-right: 28px;
-}
-
-/* 마스코트 배지 — 잉크&스티커: 상자 없이 마스코트가 그대로 앉는다 */
-.lf-onboarding__badge {
-  width: auto;
-  height: auto;
-  border-radius: 0;
-  background: transparent;
+/* 헤드라인 + 설명 */
+.lf-onboarding__copy {
+  padding: var(--lf-space-9) 28px 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
+  flex-direction: column;
+  gap: var(--lf-space-6);
 }
 
 .lf-onboarding__subcopy {
-  margin-top: var(--lf-space-4);
-  font-size: var(--lf-type-body-size);
-  line-height: var(--lf-line-body);
+  font-size: var(--lf-type-label-size);
+  line-height: 24px;
   color: var(--lf-color-text-secondary);
 }
 
-/* 핵심 루프 3단계: 작성 → 카톡 초대 → 걸고 지키기 */
-.lf-onboarding__steps {
-  display: flex;
-  align-items: center;
-  gap: var(--lf-space-2);
-}
+/* 하단 — 페이지 점 + CTA. 본문이 남는 공간을 밀어낸다 */
+.lf-onboarding__spacer { flex: 1; }
 
-.lf-onboarding__step {
+.lf-onboarding__bottom {
+  padding: 0 28px var(--lf-space-3);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--lf-space-1);
-  width: 76px;
+  gap: var(--lf-space-7);
 }
 
-.lf-onboarding__step-icon {
-  width: 54px;
-  height: 54px;
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-surface);
-  border: 2.4px solid var(--lf-color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-}
-
-/* 3단계 아이콘에 스티커 톤 — 2번째 단계(버터) · 3번째 단계(라벤더) */
-.lf-onboarding__steps > li:nth-child(3) .lf-onboarding__step-icon { background: var(--lf-color-primary-container); }
-.lf-onboarding__steps > li:nth-child(5) .lf-onboarding__step-icon { background: var(--lf-color-reward-container); }
-
-.lf-onboarding__step-icon .material-symbols-rounded {
-  font-size: 21px;
-  color: var(--lf-color-text);
-}
-
-.lf-onboarding__step-label {
-  font-size: var(--lf-type-micro-size);
-  font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-text-secondary);
-}
-
-/* 단계 사이 화살표 — 장식용, 라벨 행이 아니라 아이콘 행에 맞춰 살짝 위로 */
-.lf-onboarding__arrow {
-  display: flex;
-  align-items: center;
-  margin-bottom: var(--lf-space-7);
-  color: var(--lf-color-text);
-}
-
-.lf-onboarding__arrow .material-symbols-rounded {
-  font-size: 15px;
-}
-
-/* 페이지 인디케이터 점 (1/3) */
+/* 페이지 인디케이터 점 (1/3) — 활성 20×6 잉크, 나머지 6 뮤트 */
 .lf-onboarding__dots {
   display: flex;
   align-items: center;
@@ -116,69 +72,60 @@
 }
 
 .lf-onboarding__dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: var(--lf-radius-pill);
-  background: transparent;
-  border: 2px solid var(--lf-color-text);
+  background: var(--lf-color-outline-strong);
 }
 
 .lf-onboarding__dot--active {
-  width: 22px;
+  width: 20px;
   background: var(--lf-color-text);
-  border-color: var(--lf-color-text);
 }
 
 /* -------------------------------------------------------------
-   SCR-A01 — 로그인
+   SCR-A01 — 로그인 (확정안 4e: 블롭 + 워드마크, 카카오 공식 색 유지)
    ------------------------------------------------------------- */
 
+.lf-login__top { flex: none; height: 44px; }
+
 .lf-login__body {
+  gap: var(--lf-space-7);
   padding-left: 28px;
   padding-right: 28px;
 }
 
-/* 로고 배지 — 탭하면 손가락을 거는 반응(.lf-pinky--tapped)이 붙는 자리.
-   잉크&스티커: 상자 없이 마스코트 + 소형 핑키 글리프(.sl-glyph)가 앉는다 */
-.lf-login__badge {
-  width: auto;
-  height: auto;
-  border-radius: 0;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-}
-
-.lf-login__wordmark {
-  margin-top: 22px;
-  font-size: 40px;
-  line-height: 46px;
-  font-weight: var(--lf-weight-heavy);
-  letter-spacing: 3px;
-  color: var(--lf-color-text);
-}
-
 .lf-login__subtitle {
   margin-top: var(--lf-space-3);
-  font-size: 15px;
+  font-size: var(--lf-type-body-size);
   color: var(--lf-color-text-secondary);
 }
 
-/* .lf-notice 위에 얹는 여백 보정 */
+/* 인사 필 — 종이 스티커, 살짝 기울임 */
 .lf-login__hook {
-  margin-top: var(--lf-space-7);
+  height: 34px;
+  padding: 0 var(--lf-space-6);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-2);
+  transform: rotate(var(--lf-tilt-hero));
+  box-shadow: var(--lf-elevation-card);
 }
 
 .lf-login__actions {
-  padding: 0 var(--lf-space-9) 28px;
+  padding: 0 var(--lf-space-9) var(--lf-space-3);
   gap: var(--lf-space-6);
-  border-top: none;
+  background: none;
 }
 
 .lf-login__terms {
-  font-size: var(--lf-type-caption-size);
+  font-size: var(--lf-type-meta-size);
   line-height: var(--lf-line-micro);
   color: var(--lf-color-text-muted);
   text-align: center;
@@ -190,36 +137,23 @@
 }
 
 /* -------------------------------------------------------------
-   SCR-A02 — 홈·약속 목록 (기본 / 빈 상태 공용)
-   당근식 풀폭 리스트 + 헤어라인 (ADR 0008): 카드 상자를 걷어내고
-   행이 좌우 여백을 스스로 관리한다.
+   SCR-A02 — 홈·약속 목록 (확정안 4b/4f: 옐로 블롭 임박 카드 · 파스텔 상태 도트 · 플로팅 필)
    ------------------------------------------------------------- */
 
-.lf-home__greeting {
-  padding: 0 var(--lf-gutter-app) var(--lf-space-4);
+.lf-home__headline {
+  flex: none;
+  padding: var(--lf-space-4) var(--lf-space-8) 0;
 }
 
-/* 홈 전용 스파클 두들 위치 (인라인 스타일 금지 규칙에 맞춰 클래스로) */
-.sl-dd--sparkle-home-tr { right: 12px; top: 150px; width: 20px; }
-.sl-dd--sparkle-home-bl { left: 8px; bottom: 170px; width: 16px; transform: rotate(14deg); }
+/* 필터 칩 행 — 진행 중 · 대기 · 지난 약속(SCR-A09 진입, ADR 0011 D3) */
+.lf-home__tabs {
+  padding-top: var(--lf-space-7);
+}
 
-/* 탭 아래 스크롤 본문 — 행이 풀폭이어야 하므로 좌우 패딩과 gap 을 끄고,
-   하단은 FAB에 가리지 않도록 넉넉히 */
 .lf-home__body {
-  gap: 0;
-  padding-top: var(--lf-space-6);
-  padding-left: 0;
-  padding-right: 0;
-  padding-bottom: 96px;
-}
-
-/* 풀폭 본문에서 여백이 필요한 비-행 요소들 */
-.lf-home__body .lf-ad-slot {
-  margin: var(--lf-space-5) var(--lf-gutter-app) 0;
-}
-
-.lf-home__body .lf-empty {
-  padding: 0 var(--lf-gutter-app);
+  gap: var(--lf-space-4);
+  padding: var(--lf-space-6) var(--lf-gutter-app) 0;
+  padding-bottom: 120px;
 }
 
 .lf-home__list {
@@ -228,110 +162,109 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--lf-space-4);
 }
 
-/* 임박 약속 배너 — 살짝 기울인 스티커 카드. 좌: 라벨+제목, 우: D-Day */
-.lf-home__pinned {
+/* 임박 약속 히어로 카드 — 기울인 종이 스티커, 우상단 옐로 블롭 + 눈, 잉크 원 화살표 */
+.lf-hero-card {
   display: flex;
   align-items: center;
   gap: var(--lf-space-5);
-  margin: 0 var(--lf-gutter-app) var(--lf-space-3);
-  padding: var(--lf-space-6) var(--lf-space-7);
-  border-radius: var(--lf-radius-record);
-  background: var(--lf-color-surface);
-  border: 2.5px solid var(--lf-color-text);
-  transform: rotate(-1.2deg);
-  box-shadow: var(--lf-elevation-card);
-  color: var(--lf-color-on-primary-container);
+  padding: var(--lf-card-padding) var(--lf-space-8);
+  overflow: hidden;
+  transform: rotate(var(--lf-tilt-hero));
 }
 
-/* 배너의 D-Day 는 lf-card--container 밖으로 나왔으므로 초록 강조를 직접 준다 */
-.lf-home__pinned .lf-dday {
-  color: var(--lf-color-success);
-}
-
-.lf-home__pinned-main {
+.lf-hero-card__main {
   flex: 1;
   min-width: 0;
+  position: relative;
 }
 
-.lf-home__pinned-flag {
-  display: flex;
-  align-items: center;
-  gap: var(--lf-space-2);
-  font-size: var(--lf-type-caption-size);
-  font-weight: var(--lf-weight-heavy);
-  color: var(--lf-color-attention);
-}
-
-.lf-home__pinned-flag .material-symbols-rounded {
-  font-size: 16px;
-  color: var(--lf-color-attention);
-}
-
-.lf-home__pinned-title {
+.lf-hero-card__title {
   margin-top: var(--lf-space-2);
-  font-size: var(--lf-type-body-lg-size);
+  font-size: var(--lf-type-card-title-size);
+  line-height: var(--lf-line-card-title);
   font-weight: var(--lf-weight-heavy);
-  color: var(--lf-color-on-primary-container);
-}
-
-/* 약속 리스트 행 — 잉크 테두리 스티커 카드 (ADR 0012, 헤어라인 풀폭에서 전환) */
-.lf-home__row {
-  display: flex;
-  align-items: center;
-  gap: var(--lf-space-5);
-  margin: 0 var(--lf-gutter-app) var(--lf-space-5);
-  padding: var(--lf-space-6) var(--lf-space-7);
-  border: 2.2px solid var(--lf-color-text);
-  border-radius: var(--lf-radius-lg);
-  background: var(--lf-color-surface);
-}
-
-.lf-home__row-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.lf-home__row-title {
-  font-size: var(--lf-type-body-lg-size);
-  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text);
-  line-height: var(--lf-line-body);
 }
 
-.lf-home__row-meta {
-  margin-top: var(--lf-space-2);
-  font-size: var(--lf-type-label-size);
-  color: var(--lf-color-text-muted);
-}
-
-/* 상태 강조 — §8: 색만으로 구분하지 않는다. 상태는 항상 텍스트다 */
-.lf-home__row-meta strong {
-  font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-primary-ink);
-}
-
-/* D-Day — 라벤더 원형 뱃지 (잉크 테두리) */
-.lf-home__row-dday {
-  flex: none;
+.lf-hero-card__arrow {
+  position: relative;
+  width: var(--lf-icon-button);
+  height: var(--lf-icon-button);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-text);
+  color: var(--lf-color-primary-container);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 46px;
-  height: 46px;
-  padding: 0 var(--lf-space-2);
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-reward-container);
-  border: 2.2px solid var(--lf-color-text);
-  font-family: var(--lf-font-brand);
-  font-size: var(--lf-type-list-dday-size);
+  flex: none;
+}
+
+.lf-hero-card__arrow .material-symbols-rounded { font-size: 18px; }
+
+/* 약속 행 — .lf-card--list 위에 도트·제목·메타·메타 칩 */
+.lf-home__row-main { flex: 1; min-width: 0; }
+
+.lf-home__row-title {
+  font-size: var(--lf-type-body-size);
+  line-height: 20px;
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
 
-/* "이행 확인 필요" 행의 응답 버튼 — 제목과 간격 확보 */
-.lf-home__checking-cta {
-  margin-top: var(--lf-space-5);
-  width: 100%;
+.lf-home__row-meta {
+  margin-top: var(--lf-space-1);
+  font-size: var(--lf-type-meta-size);
+  color: var(--lf-color-text-muted);
 }
+
+/* 상태 강조 — §8: 색만으로 구분하지 않는다. 도트 옆 텍스트가 상태를 말한다 */
+.lf-home__row-meta strong {
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-muted);
+}
+
+/* "이행 확인 필요" 행 — 세로 배치 + 응답 아웃라인 버튼 */
+.lf-home__row--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--lf-space-5);
+}
+
+.lf-home__row-head {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+}
+
+.lf-home__checking-cta {
+  height: 44px;
+  min-height: 44px;
+  width: 100%;
+  font-size: var(--lf-type-chip-size);
+  gap: var(--lf-space-3);
+}
+
+.lf-home__checking-cta .material-symbols-rounded { font-size: 16px; }
+
+/* 빈 상태 — 블롭 + 안내 (확정안 4f) */
+.lf-home__empty {
+  gap: var(--lf-space-8);
+  padding: 0 32px 60px;
+}
+
+.lf-home__empty-copy {
+  font-size: var(--lf-type-label-size);
+  line-height: var(--lf-line-body);
+  color: var(--lf-color-text-secondary);
+}
+
+/* 온보딩 CTA 는 확정안대로 왼쪽에 붙는다 (다른 화면의 필 CTA 는 오른쪽) */
+.lf-onboarding__bottom .lf-btn { align-self: flex-start; }
+
+/* 링크로 만든 행 카드 — 밑줄 없이, 제목·메타는 span 이라도 두 줄로 쌓인다 */
+a.lf-card { text-decoration: none; color: var(--lf-color-text); }
+.lf-home__row-title,
+.lf-home__row-meta { display: block; }

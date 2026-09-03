@@ -7,47 +7,63 @@
 <link rel="stylesheet" href="../../styles/tokens.css">
 <link rel="stylesheet" href="../../styles/base.css">
 <link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-entry.css">
 <link rel="stylesheet" href="../../styles/screens/app-support.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
+<!-- 확정안 4n (2026-09-03): 잉크 테두리 시트 · 민트 블롭 + 손 눈 · 지킴율 변화 옐로 칩. 뒤에는 홈이 흐리게 비친다. -->
 <body class="lf-page" data-screen-id="MOD-03" data-screen-name="완료 축하">
 <div class="lf-device">
   <div class="lf-device__viewport">
     <div class="lf-screen">
 
-      <!-- 배경 — 홈·약속 목록 화면이 흐릿하게 비치는 자리표시자. 실제 콘텐츠가 아니므로 스크린리더에서 숨김 -->
+      <!-- 뒤에 비치는 홈 (자리표시자) -->
       <div class="lf-backdrop" aria-hidden="true">
         <header class="lf-appbar lf-appbar--brand">
-          <svg class="lf-pinky lf-pinky--sm" viewBox="0 0 120 120" aria-hidden="true">
-            <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
-            <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
-          </svg>
-          <span class="lf-appbar__title">리틀핑거</span>
+          <img class="lf-mascot lf-mascot--sm" src="../../assets/images/mascot-face-e1.png" alt="">
+          <h1 class="lf-appbar__title">리틀핑거</h1>
+          <span class="lf-icon-button"><span class="material-symbols-rounded">notifications</span></span>
+          <span class="lf-avatar-button">지</span>
         </header>
+        <div class="lf-home__headline"><p class="lf-headline">지우님, 이번 주<br>약속 6개 순항 중.</p></div>
         <div class="lf-backdrop__body">
-          <div class="lf-backdrop__block lf-backdrop__block--accent lf-backdrop__block--96"></div>
-          <div class="lf-backdrop__block lf-backdrop__block--88"></div>
-          <div class="lf-backdrop__block lf-backdrop__block--88"></div>
+          <div class="lf-backdrop__block lf-backdrop__block--96"></div>
+          <div class="lf-backdrop__block lf-backdrop__block--72"></div>
+          <div class="lf-backdrop__block lf-backdrop__block--72"></div>
         </div>
       </div>
 
-      <div class="lf-scrim"></div>
+      <div class="lf-scrim" aria-hidden="true"></div>
 
-      <!-- COMPLETED 전환 순간의 축하 시트 -->
-      <div class="lf-sheet lf-sheet--celebrate" role="dialog" aria-modal="true" aria-labelledby="mod03-title">
-        <div class="lf-sheet__handle" aria-hidden="true"></div>
-        <svg class="lf-pinky lf-pinky--xl lf-pinky--on-container lf-pinky--hooked" viewBox="0 0 120 120" role="img" aria-label="새끼손가락 걸기">
-          <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
-          <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
-        </svg>
-        <h1 class="lf-title" id="mod03-title">약속 지킴! 축하해요</h1>
-        <p class="lf-body--secondary">매주 화·목 아침 러닝 같이 하기 — 완주!<br>민준님과 하이파이브 하세요</p>
+      <div class="lf-sheet lf-sheet--celebrate" role="dialog" aria-modal="true" aria-labelledby="celebrate-title">
+        <span class="lf-sheet__handle" aria-hidden="true"></span>
+
+        <div class="lf-blob lf-blob--celebrate lf-blob--tilt" aria-hidden="true">
+          <svg class="lf-blob__svg" viewBox="0 0 170 120">
+            <path class="lf-blob__mint" d="M85 6c52-8 82 28 78 60s-36 56-80 52S4 92 6 60 36 12 85 6Z"/>
+          </svg>
+          <div class="lf-blob__eyes">
+            <span class="lf-pinky-loop lf-pinky-loop--eyes">
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
+              <span class="lf-pinky-loop__spark"></span>
+            </span>
+          </div>
+        </div>
+
+        <h2 class="lf-title" id="celebrate-title">약속 지킴! 축하해요</h2>
+        <p class="lf-celebrate__copy">매주 화·목 아침 러닝 같이 하기 — 완주!<br>민준님과 하이파이브 하세요</p>
+
         <p class="lf-stat-change">
           <span class="material-symbols-rounded" aria-hidden="true">trending_up</span>
           <span>약속 지킴율 87% → 89%</span>
         </p>
-        <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">새 약속 만들기</button>
-        <button type="button" class="lf-text-action">공유하기</button>
+
+        <button class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button">
+          <span>새 약속 만들기</span>
+          <span class="lf-btn__trailing lf-btn__trailing--plain"><span class="material-symbols-rounded" aria-hidden="true">add</span></span>
+        </button>
+        <button class="lf-btn-link" type="button">공유하기</button>
       </div>
 
     </div>

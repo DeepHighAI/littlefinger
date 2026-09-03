@@ -10,13 +10,15 @@
 <link rel="stylesheet" href="../../styles/screens/app-support.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
+<!-- 확정안 4k (2026-09-03): 읽지 않음 = 옐로 카드 · 유형별 파스텔 아이콘 원.
+     확정안의 광고 점선 플레이스홀더는 갤러리에만 둔다 — 앱은 비활성이면 그리지 않는다 (ADR 0009). -->
 <body class="lf-page" data-screen-id="SCR-A07" data-screen-name="알림함">
 <div class="lf-device">
   <div class="lf-device__viewport">
     <div class="lf-screen">
 
       <header class="lf-appbar">
-        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로가기">
+        <button class="lf-icon-button" type="button" aria-label="뒤로">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
         <h1 class="lf-appbar__title">알림</h1>
@@ -25,88 +27,75 @@
 
       <div class="lf-screen__body">
 
-        <h2 class="lf-section-title">오늘</h2>
-        <ul class="lf-notif-list">
-          <li>
-            <!-- 승인 요청/확정 유형 — 핑키 마크로 "약속 성립"을 표시 -->
-            <button type="button" class="lf-notif-item lf-notif-item--unread">
-              <div class="lf-notif-item__icon lf-notif-item__icon--accent" aria-hidden="true">
-                <svg class="lf-pinky lf-pinky--xs lf-pinky--on-container" viewBox="0 0 120 120" aria-hidden="true">
-                  <path class="lf-pinky__left"  d="M40 14 L40 62 A21 21 0 0 0 82 62 L82 50"/>
-                  <path class="lf-pinky__right" d="M80 106 L80 58 A21 21 0 0 0 38 58 L38 70"/>
-                </svg>
-              </div>
-              <div class="lf-notif-item__body">
-                <div class="lf-notif-item__headline">민준님이 손가락 걸었어요! 약속 성립</div>
-                <div class="lf-notif-item__meta">매주 화·목 아침 러닝 같이 하기 · 방금</div>
-              </div>
-              <span class="lf-notif-item__dot" aria-hidden="true"></span>
-              <span class="lf-sr-only">읽지 않음</span>
-            </button>
-          </li>
-          <li>
-            <!-- 이행 확인 유형 — 강조색으로 긴급성 표시 -->
-            <button type="button" class="lf-notif-item lf-notif-item--unread">
-              <div class="lf-notif-item__icon lf-notif-item__icon--urgent" aria-hidden="true">
-                <span class="material-symbols-rounded">notification_important</span>
-              </div>
-              <div class="lf-notif-item__body">
-                <div class="lf-notif-item__headline">지켜졌나요? 이행 확인이 필요해요</div>
-                <div class="lf-notif-item__meta">월급날까지 배달앱 금지 · 2시간 전</div>
-              </div>
-              <span class="lf-notif-item__dot" aria-hidden="true"></span>
-              <span class="lf-sr-only">읽지 않음</span>
-            </button>
-          </li>
-        </ul>
+        <section class="lf-notif-section lf-stack lf-gap-4" aria-label="오늘">
+          <p class="lf-eyebrow">TODAY · 오늘</p>
+          <ul class="lf-list">
+            <li>
+              <button class="lf-list-item lf-list-item--unread" type="button">
+                <span class="lf-list-item__icon" aria-hidden="true"><img class="lf-eyes lf-eyes--row" src="../../assets/images/eyes-e1.png" alt=""></span>
+                <span class="lf-list-item__text">
+                  <span class="lf-list-item__headline">민준님이 손가락 걸었어요! 약속 성립</span>
+                  <span class="lf-list-item__supporting">매주 화·목 아침 러닝 같이 하기 · 방금</span>
+                </span>
+                <span class="lf-list-item__dot" aria-hidden="true"></span>
+                <span class="lf-sr-only">읽지 않음</span>
+              </button>
+            </li>
+            <li>
+              <button class="lf-list-item lf-list-item--unread" type="button">
+                <span class="lf-list-item__icon lf-list-item__icon--pink" aria-hidden="true"><span class="material-symbols-rounded">notification_important</span></span>
+                <span class="lf-list-item__text">
+                  <span class="lf-list-item__headline">지켜졌나요? 이행 확인이 필요해요</span>
+                  <span class="lf-list-item__supporting">월급날까지 배달앱 금지 · 2시간 전</span>
+                </span>
+                <span class="lf-list-item__dot" aria-hidden="true"></span>
+                <span class="lf-sr-only">읽지 않음</span>
+              </button>
+            </li>
+          </ul>
+        </section>
 
-        <h2 class="lf-section-title">어제</h2>
-        <ul class="lf-notif-list">
-          <li>
-            <!-- 리마인드 유형 -->
-            <button type="button" class="lf-notif-item">
-              <div class="lf-notif-item__icon" aria-hidden="true">
-                <span class="material-symbols-rounded">alarm</span>
-              </div>
-              <div class="lf-notif-item__body">
-                <div class="lf-notif-item__headline">리마인드 D-3 — 곧 종료일이에요</div>
-                <div class="lf-notif-item__meta">월말까지 야식 끊기 · 어제 09:00</div>
-              </div>
-            </button>
-          </li>
-          <li>
-            <!-- 변경 요청 유형 -->
-            <button type="button" class="lf-notif-item">
-              <div class="lf-notif-item__icon" aria-hidden="true">
-                <span class="material-symbols-rounded">sync_alt</span>
-              </div>
-              <div class="lf-notif-item__body">
-                <div class="lf-notif-item__headline">민준님이 변경을 요청했어요</div>
-                <div class="lf-notif-item__meta">종료일 8/11 → 8/25 · 어제 20:14</div>
-              </div>
-            </button>
-          </li>
-          <li>
-            <!-- 증인 서명 완료 유형 -->
-            <button type="button" class="lf-notif-item">
-              <div class="lf-notif-item__icon" aria-hidden="true">
-                <span class="material-symbols-rounded">draw</span>
-              </div>
-              <div class="lf-notif-item__body">
-                <div class="lf-notif-item__headline">하영님이 증인 서명을 완료했어요</div>
-                <div class="lf-notif-item__meta">매주 화·목 아침 러닝 · 어제 18:03</div>
-              </div>
-            </button>
-          </li>
-        </ul>
+        <section class="lf-notif-section lf-stack lf-gap-4" aria-label="어제">
+          <p class="lf-eyebrow">YESTERDAY · 어제</p>
+          <ul class="lf-list">
+            <li>
+              <button class="lf-list-item" type="button">
+                <span class="lf-list-item__icon lf-list-item__icon--cream" aria-hidden="true"><span class="material-symbols-rounded">alarm</span></span>
+                <span class="lf-list-item__text">
+                  <span class="lf-list-item__headline">리마인드 D-3 — 곧 종료일이에요</span>
+                  <span class="lf-list-item__supporting">월말까지 야식 끊기 · 어제 09:00</span>
+                </span>
+              </button>
+            </li>
+            <li>
+              <button class="lf-list-item" type="button">
+                <span class="lf-list-item__icon lf-list-item__icon--sky" aria-hidden="true"><span class="material-symbols-rounded">sync_alt</span></span>
+                <span class="lf-list-item__text">
+                  <span class="lf-list-item__headline">민준님이 변경을 요청했어요</span>
+                  <span class="lf-list-item__supporting">종료일 8/11 → 8/25 · 어제 20:14</span>
+                </span>
+              </button>
+            </li>
+            <li>
+              <button class="lf-list-item" type="button">
+                <span class="lf-list-item__icon lf-list-item__icon--mint" aria-hidden="true"><span class="material-symbols-rounded">draw</span></span>
+                <span class="lf-list-item__text">
+                  <span class="lf-list-item__headline">하영님이 증인 서명을 완료했어요</span>
+                  <span class="lf-list-item__supporting">매주 화·목 아침 러닝 · 어제 18:03</span>
+                </span>
+              </button>
+            </li>
+          </ul>
+        </section>
 
-        <!-- 광고 슬롯 — F-12 확대 (PO 2026-08-24): 알림함 하단 1구좌, MVP에서는 비활성 표기만 -->
+        <!-- 하단 네이티브 광고 슬롯 — 갤러리에서만 자리를 표시 (F-12 확대, PO 2026-08-24) -->
         <div class="lf-ad-slot">
           <span class="material-symbols-rounded" aria-hidden="true">ads_click</span>
           <span>광고 자리 · MVP에서는 비활성</span>
         </div>
 
       </div>
+
     </div>
   </div>
 </div>

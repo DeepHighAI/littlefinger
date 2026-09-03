@@ -10,18 +10,17 @@
 <link rel="stylesheet" href="../../styles/screens/app-support.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
-<!-- ADR 0009 (PO 2026-08-24): 유료 슬롯 결제 시트. 발송이 E_SLOT_LIMIT 에 막혔을 때(SCR-A03·A04)와
-     프로필 슬롯 행의 [추가]에서 열린다. 신뢰 순간의 결제(§8) — 재촉·타이머·유도 문구 없이
-     슬롯의 규칙(종결 시 반환·구매는 영구)만 서술한다. 가격은 스토어 현지화 가격이 정본이다. -->
+<!-- 확정안 4o (2026-09-03): 재촉 없는 결제 시트 · 규칙만 서술 (ADR 0009). 가격은 서버가 준 문자열을 그대로 쓴다. -->
 <body class="lf-page" data-screen-id="MOD-04" data-screen-name="슬롯 결제">
 <div class="lf-device">
   <div class="lf-device__viewport">
     <div class="lf-screen">
 
-      <!-- 배경 — 약속 작성(검토 단계) 화면이 비치는 자리표시자 -->
       <div class="lf-backdrop" aria-hidden="true">
         <header class="lf-appbar">
-          <span class="lf-appbar__title">약속 만들기</span>
+          <span class="lf-icon-button"><span class="material-symbols-rounded">close</span></span>
+          <h1 class="lf-appbar__title">약속 만들기</h1>
+          <span class="lf-appbar__spacer"></span>
         </header>
         <div class="lf-backdrop__body">
           <div class="lf-backdrop__block lf-backdrop__block--120"></div>
@@ -30,34 +29,35 @@
         </div>
       </div>
 
-      <div class="lf-scrim"></div>
+      <div class="lf-scrim" aria-hidden="true"></div>
 
-      <div class="lf-sheet" role="dialog" aria-modal="true" aria-labelledby="mod04-title">
-        <div class="lf-sheet__handle" aria-hidden="true"></div>
-
-        <div class="lf-row">
-          <h1 class="lf-sheet__title lf-grow" id="mod04-title">약속 슬롯</h1>
+      <div class="lf-sheet" role="dialog" aria-modal="true" aria-labelledby="slot-title">
+        <span class="lf-sheet__handle" aria-hidden="true"></span>
+        <div class="lf-sheet__title-row">
+          <h2 class="lf-sheet__title" id="slot-title">약속 슬롯</h2>
           <button class="lf-icon-button" type="button" aria-label="닫기">
             <span class="material-symbols-rounded" aria-hidden="true">close</span>
           </button>
         </div>
 
-        <!-- 발송이 막혀 열린 경우(reason=limit)에만 보이는 안내 -->
+        <!-- 발송이 막혀 열린 경우의 안내 — 핑크(응답 필요) flat 카드 -->
         <p class="lf-slot-sheet__notice">지금은 슬롯이 가득 차 있어요. 슬롯을 추가하면 바로 보낼 수 있어요.</p>
 
         <p class="lf-slot-sheet__usage">
           <span class="material-symbols-rounded" aria-hidden="true">bookmark</span>
           <span>사용 중 5 / 5</span>
         </p>
-
-        <p class="lf-body--secondary">진행 중인 약속은 슬롯을 하나씩 사용해요. 약속이 종결되면 슬롯은 다시 비워져요.</p>
+        <p class="lf-slot-sheet__rule">진행 중인 약속은 슬롯을 하나씩 사용해요. 약속이 종결되면 슬롯은 다시 비워져요.</p>
 
         <div class="lf-slot-sheet__offer">
-          <p class="lf-subtitle">슬롯 1개 추가</p>
-          <p class="lf-caption">한 번 구매하면 영구히 유지돼요.</p>
+          <p class="lf-slot-sheet__offer-title">슬롯 1개 추가</p>
+          <p class="lf-slot-sheet__offer-meta">한 번 구매하면 영구히 유지돼요.</p>
         </div>
 
-        <button type="button" class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block">₩1,000에 추가하기</button>
+        <button class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button">
+          <span>₩1,000에 추가하기</span>
+          <span class="lf-btn__trailing lf-btn__trailing--plain"><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></span>
+        </button>
       </div>
 
     </div>
