@@ -1,0 +1,418 @@
+/* =============================================================
+   Little Finger — App 화면 전용 보조 클래스 (app-support)
+   components.css에 없는, 아래 화면 전용 클래스만 담는다.
+   담당 화면: SCR-A07(알림함) · SCR-A08(마이) · MOD-01/02/03(모달 시트) · MOD-04(슬롯 결제) · MOD-05(혜택 시트)
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   UTILITY
+   ------------------------------------------------------------- */
+.lf-push-right { margin-left: auto; }
+
+/* -------------------------------------------------------------
+   TEXT ACTION — 앱바/시트의 강조 텍스트 버튼 ("모두 읽음", "공유하기")
+   ------------------------------------------------------------- */
+.lf-text-action {
+  min-height: var(--lf-touch-min);
+  padding: 0 var(--lf-space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-primary);
+  flex: none;
+}
+
+/* -------------------------------------------------------------
+   NOTIFICATION LIST — SCR-A07 알림함
+   ------------------------------------------------------------- */
+.lf-notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-3);
+}
+
+.lf-notif-item {
+  width: 100%;
+  min-height: var(--lf-touch-min);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--lf-space-5);
+  border-radius: var(--lf-radius-lg);
+  padding: var(--lf-space-5) var(--lf-space-6);
+  background: var(--lf-color-surface);
+  border: 1px solid var(--lf-color-outline);
+  text-align: left;
+}
+
+/* 안읽은 알림 — 배경 틴트로 구분 (색상만으로 구분하지 않도록 굵기·점도 동반) */
+.lf-notif-item--unread {
+  background: var(--lf-color-record-container);
+  border-color: transparent;
+}
+
+.lf-notif-item__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--lf-radius-sm);
+  background: var(--lf-color-surface-muted);
+  color: var(--lf-color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.lf-notif-item__icon .material-symbols-rounded { font-size: 19px; }
+
+.lf-notif-item__icon--accent {
+  background: var(--lf-color-record-container);
+  color: var(--lf-color-record);
+}
+
+.lf-notif-item__icon--urgent {
+  background: var(--lf-color-attention-container);
+  color: var(--lf-color-attention);
+}
+
+.lf-notif-item__body { flex: 1; min-width: 0; }
+
+.lf-notif-item__headline {
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-secondary);
+}
+
+.lf-notif-item--unread .lf-notif-item__headline {
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-notif-item__meta {
+  margin-top: 2px;
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-notif-item__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: var(--lf-space-1);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-record);
+  flex: none;
+}
+
+/* -------------------------------------------------------------
+   LIST ITEM ICON — 무채색 변형 (SCR-A08 설정 행에서 사용)
+   ------------------------------------------------------------- */
+.lf-list-item__icon--muted {
+  background: var(--lf-color-surface-muted);
+  color: var(--lf-color-text-secondary);
+}
+
+/* -------------------------------------------------------------
+   TRUST CARD — 약속 지킴율 히어로 (SCR-A08)
+   ------------------------------------------------------------- */
+.lf-trust-card {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-7);
+  background: var(--lf-color-primary-container);
+  border-radius: var(--lf-radius-xl);
+  padding: var(--lf-space-7);
+}
+
+.lf-ring {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  flex: none;
+}
+
+.lf-ring__chart { width: 100%; height: 100%; }
+
+.lf-ring__track {
+  fill: none;
+  stroke: var(--lf-color-surface);
+  opacity: 0.6;
+  stroke-width: 9;
+}
+
+.lf-ring__fill {
+  fill: none;
+  stroke: var(--lf-color-primary);
+  stroke-width: 9;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+}
+
+/* 87% 값 전용 — 원둘레(2πr, r=36 ≈ 226.2) 기준 dasharray/offset 사전 계산 */
+.lf-ring__fill--87 {
+  stroke-dasharray: 226.2;
+  stroke-dashoffset: 29.4;
+}
+
+.lf-ring__value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--lf-type-heading-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-on-primary-container);
+}
+
+.lf-trust-card__stats { flex: 1; min-width: 0; }
+
+.lf-trust-card__label {
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-primary-ink);
+}
+
+.lf-trust-card__value {
+  margin-top: var(--lf-space-1);
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-on-primary-container);
+}
+
+.lf-trust-card__note {
+  margin-top: var(--lf-space-2);
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-primary-ink);
+}
+
+/* -------------------------------------------------------------
+   HINT ROW — 아이콘 + 안내문 (MOD-01 · MOD-02)
+   ------------------------------------------------------------- */
+.lf-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--lf-space-2);
+}
+
+.lf-hint .material-symbols-rounded {
+  font-size: 15px;
+  color: var(--lf-color-primary);
+  margin-top: 1px;
+}
+
+.lf-hint__text {
+  font-size: var(--lf-type-micro-size);
+  line-height: var(--lf-line-micro);
+  color: var(--lf-color-text-secondary);
+}
+
+/* -------------------------------------------------------------
+   SEGMENTED CONTROL — 내용 변경 / 파기 요청 (MOD-01)
+   ------------------------------------------------------------- */
+.lf-segmented {
+  display: flex;
+  gap: var(--lf-space-1);
+  padding: var(--lf-space-1);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-surface-muted);
+}
+
+.lf-segmented__item {
+  flex: 1;
+  height: var(--lf-tab-height);
+  border-radius: var(--lf-radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-secondary);
+}
+
+.lf-segmented__item[aria-selected='true'] {
+  background: var(--lf-color-primary);
+  color: var(--lf-color-on-primary);
+  font-weight: var(--lf-weight-bold);
+}
+
+/* -------------------------------------------------------------
+   WITNESS ROW — 증인 슬롯 (MOD-02)
+   ------------------------------------------------------------- */
+.lf-witness {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+  border-radius: var(--lf-radius-md);
+  border: 1px solid var(--lf-color-outline);
+  background: var(--lf-color-surface);
+  padding: var(--lf-space-5) var(--lf-space-6);
+}
+
+.lf-witness__body { flex: 1; min-width: 0; }
+
+.lf-witness__name {
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-witness__meta {
+  margin-top: 2px;
+  font-size: var(--lf-type-caption-size);
+  color: var(--lf-color-text-muted);
+}
+
+/* 비어 있는 증인 슬롯 */
+.lf-witness--empty {
+  border: 1.5px dashed var(--lf-color-outline-strong);
+}
+
+.lf-witness__avatar--empty {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--lf-radius-pill);
+  border: 1.5px dashed var(--lf-color-outline-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.lf-witness__avatar--empty .material-symbols-rounded {
+  font-size: 17px;
+  color: var(--lf-color-outline-icon);
+}
+
+.lf-witness__empty-label {
+  flex: 1;
+  font-size: var(--lf-type-body-size);
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-muted);
+}
+
+/* 잠긴 증인 자리 — 역할별 보상형 광고 자리 (ADR 0015 D1). 빈 자리(--empty)와 달리
+   아직 열리지 않은 자리라 배경을 낮추고 자물쇠 + "잠김" 텍스트로 상태를 말한다(§8: 색만으로 구분 금지).
+   안내 행 아래에 해제 CTA 가 붙으므로 세로 배치다. */
+.lf-witness-slot--locked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--lf-space-4);
+  border: 1.5px dashed var(--lf-color-outline-strong);
+  background: var(--lf-color-surface-muted);
+}
+
+/* surface-muted 위에서는 보조 잉크 대비가 4.41:1 뿐이라 본문 잉크를 쓴다 (DESIGN.md 타이포) */
+.lf-witness-slot--locked .lf-witness__empty-label,
+.lf-witness-slot--locked .lf-witness__meta {
+  color: var(--lf-color-text);
+}
+
+.lf-witness-slot--locked .lf-witness__avatar--empty .material-symbols-rounded {
+  color: var(--lf-color-text-secondary);
+}
+
+/* "확인 완료" 배지 — 보상 토큰과 동일한 색상쌍을 재사용 */
+.lf-chip--signed {
+  background: var(--lf-color-reward-container);
+  color: var(--lf-color-on-reward-container);
+}
+
+/* -------------------------------------------------------------
+   STAT CHANGE — 완료 축하 시트의 지킴율 변화 chip (MOD-03)
+   ------------------------------------------------------------- */
+.lf-stat-change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lf-space-2);
+  padding: var(--lf-space-3) var(--lf-space-6);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-on-primary-container);
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-heavy);
+}
+
+.lf-stat-change .material-symbols-rounded { font-size: 15px; }
+
+/* -------------------------------------------------------------
+   BACKDROP — 모달 시트 뒤로 흐릿하게 비치는 배경 화면 (MOD-01/02/03)
+   실제 콘텐츠가 아닌 자리표시자이므로 스크린리더에서는 감춘다(aria-hidden).
+   ------------------------------------------------------------- */
+.lf-backdrop {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  opacity: 0.5;
+}
+
+.lf-backdrop__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-5);
+  padding: var(--lf-space-1) var(--lf-gutter-app);
+}
+
+.lf-backdrop__block {
+  flex: none;
+  border-radius: var(--lf-radius-xl);
+  background: var(--lf-color-surface);
+  border: 1px solid var(--lf-color-outline);
+}
+
+.lf-backdrop__block--accent {
+  background: var(--lf-color-primary-container);
+  border: none;
+}
+
+.lf-backdrop__block--120 { height: 120px; }
+.lf-backdrop__block--96  { height: 96px; }
+.lf-backdrop__block--88  { height: 88px; }
+.lf-backdrop__block--60  { height: 60px; }
+
+/* -------------------------------------------------------------
+   MOD-04 — 슬롯 결제 시트 (ADR 0009) · MOD-05 — 혜택 시트 (ADR 0015) 가 같은 골격을 쓴다:
+   막힌 이유 안내(--notice) · 현재 상태 한 줄(--usage) · 구매 항목(--offer)
+   ------------------------------------------------------------- */
+
+/* 발송이 막혀 열린 경우의 가득 참 안내 — 마감·응답 필요 계열(Apricot)이 자리다 */
+.lf-slot-sheet__notice {
+  padding: var(--lf-space-6);
+  border-radius: var(--lf-radius-md);
+  background: var(--lf-color-attention-container);
+  font-size: var(--lf-type-body-size);
+  line-height: var(--lf-line-body);
+  color: var(--lf-color-text);
+}
+
+.lf-slot-sheet__usage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lf-space-4);
+  font-size: var(--lf-type-subtitle-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+.lf-slot-sheet__usage .material-symbols-rounded {
+  font-size: 22px;
+  color: var(--lf-color-primary);
+}
+
+/* 날짜·시각 토큰이 하이픈에서 끊기지 않도록 — 라벨과 값을 각각 한 덩어리로 둔다 (MOD-05) */
+.lf-slot-sheet__usage > span { white-space: nowrap; }
+
+/* 구매 항목 — 상자 하나, 재촉 없는 서술형(§8) */
+.lf-slot-sheet__offer {
+  padding: var(--lf-space-7);
+  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-2);
+}

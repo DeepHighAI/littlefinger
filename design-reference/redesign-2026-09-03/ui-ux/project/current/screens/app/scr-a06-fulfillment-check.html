@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A06 이행 확인 입력 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-create.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<body class="lf-page" data-screen-id="SCR-A06" data-screen-name="이행 확인 입력">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+
+    <!-- 종료일 도래 시 "지켜졌나요?" 응답 화면. 증빙 사진은 선택, 상대에게도 같은 질문이 간다. -->
+    <div class="lf-screen">
+
+      <div class="lf-appbar">
+        <button class="lf-icon-button lf-icon-button--strong" type="button" aria-label="뒤로가기">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <h1 class="lf-appbar__title">이행 확인</h1>
+      </div>
+
+      <form class="lf-screen__body lf-gap-6" id="scr-a06-form" novalidate>
+
+        <div class="lf-card">
+          <p class="lf-list-item__headline">매주 화·목 아침 러닝 같이 하기</p>
+          <p class="lf-card__meta">종료일 8/11 (화) 지남 · 지킬 사람 둘 다</p>
+        </div>
+
+        <div class="lf-text-center">
+          <h2 class="lf-headline">약속, 지켜졌나요?</h2>
+          <p class="lf-caption">민준님에게도 같은 질문이 가요</p>
+        </div>
+
+        <fieldset class="lf-answer-list">
+          <legend class="lf-sr-only">약속을 지켰는지 선택해 주세요</legend>
+          <button class="lf-answer" type="button" aria-pressed="true">
+            <span class="material-symbols-rounded lf-answer__icon" aria-hidden="true">check_circle</span>
+            <span class="lf-answer__text">
+              <span class="lf-answer__title">지켰어요</span>
+              <span class="lf-answer__subtitle">뿌듯한 쪽</span>
+            </span>
+            <span class="material-symbols-rounded lf-answer__indicator" aria-hidden="true">radio_button_checked</span>
+          </button>
+          <button class="lf-answer" type="button" aria-pressed="false">
+            <span class="material-symbols-rounded lf-answer__icon" aria-hidden="true">cancel</span>
+            <span class="lf-answer__text">
+              <span class="lf-answer__title">안 지켜졌어요</span>
+              <span class="lf-answer__subtitle">솔직한 쪽</span>
+            </span>
+            <span class="material-symbols-rounded lf-answer__indicator" aria-hidden="true">radio_button_unchecked</span>
+          </button>
+        </fieldset>
+
+        <div class="lf-field">
+          <span class="lf-field__label" id="a06-proof-label">증빙 사진 <span class="lf-field__optional">선택</span></span>
+
+          <div class="lf-proof-row" role="group" aria-labelledby="a06-proof-label">
+            <div class="lf-proof lf-proof--thumb">
+              <span class="material-symbols-rounded" aria-hidden="true">image</span>
+              <span class="lf-proof__filename">러닝 인증.jpg</span>
+              <button class="lf-icon-button lf-proof__remove" type="button" aria-label="러닝 인증.jpg 삭제">
+                <span class="material-symbols-rounded" aria-hidden="true">close</span>
+              </button>
+            </div>
+
+            <label class="lf-proof lf-proof--thumb lf-proof--dashed" for="a06-proof-input">
+              <span class="material-symbols-rounded" aria-hidden="true">photo_camera</span>
+              <span>사진 추가</span>
+            </label>
+            <input class="lf-sr-only" id="a06-proof-input" name="proof-photo" type="file" accept="image/*">
+          </div>
+
+          <p class="lf-field__hint">상대와 증인에게 공개돼요</p>
+        </div>
+
+        <div class="lf-card">
+          <div class="lf-partner-status">
+            <div class="lf-avatar" aria-hidden="true">민</div>
+            <p class="lf-partner-status__text">민준님은 아직 답하지 않았어요</p>
+            <span class="material-symbols-rounded lf-partner-status__icon" aria-hidden="true">hourglass_empty</span>
+          </div>
+        </div>
+
+      </form>
+
+      <div class="lf-screen__actions">
+        <button class="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="submit" form="scr-a06-form">제출</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../frame.js"></script>
+</body>
+</html>

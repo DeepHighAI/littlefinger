@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap">
+<script src="./image-slot.js"></script>
+<style>
+@font-face{font-family:'Pretendard';font-weight:100 900;font-display:swap;src:url('current/assets/fonts/PretendardVariable.woff2') format('woff2-variations'),url('current/assets/fonts/PretendardVariable.woff2') format('woff2')}
+body{margin:0;background:#EEF0F3;font-family:'Pretendard',system-ui,sans-serif;color:#23252B;-webkit-font-smoothing:antialiased}
+a{color:#23252B}a:hover{color:#6B7079}
+@keyframes lf-pinky-l{0%,15%{transform:translate(4px,0) rotate(8deg)}45%,60%{transform:translate(-3px,-2px) rotate(-6deg)}75%{transform:translate(-2px,-1px) rotate(-3deg)}100%{transform:translate(4px,0) rotate(8deg)}}
+@keyframes lf-pinky-spark{0%,40%{opacity:0;transform:scale(.4)}52%{opacity:1;transform:scale(1.1)}70%{opacity:0;transform:scale(1.3)}100%{opacity:0}}
+.material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;user-select:none;flex:none}
+</style>
+</helmet>
+
+<section id="t4" style="padding:56px 64px 72px;display:flex;flex-direction:column;gap:44px;background:#F3ECDC;border-bottom:2.5px solid #221C13">
+
+  <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:680px">
+      <p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.16em;color:#706652">리틀핑거 · 파스텔 × 잉크 & 스티커 · 전체 화면</p>
+      <h1 style="margin:0;font-size:36px;line-height:44px;font-weight:800;letter-spacing:-.02em;color:#221C13111">파스텔 위에 <span style="display:inline-block;background:#FFE59A;padding:0 14px;border-radius:999px;border:2.5px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);transform:rotate(-1.2deg)">잉크 & 스티커</span></h1>
+      <p style="margin:0;font-size:15px;line-height:24px;color:#6F6552;text-wrap:pretty">확정안. 크림 종이 위에 잉크 테두리·오프셋 섀도 스티커, 파스텔 4색(옐로=브랜드/선택 · 민트=진행·완료 · 핑크=마감·벌칙 · 스카이=기록·보상), E-1 마스코트, iOS 26 크롬. 앱 화면 13종 + 시트 2종. 상태 문구·디스클레이머·카카오 버튼 색은 원본 그대로예요.</p>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:4px">
+        <span style="width:44px;height:52px;border-radius:16px;background:#111111;border:2px solid #221C13"></span>
+        <span style="width:44px;height:52px;border-radius:16px;background:#F3ECDC;border:2px solid #221C13"></span>
+        <span style="width:44px;height:52px;border-radius:16px;background:#FFE59A;border:2px solid #221C13"></span>
+        <span style="width:44px;height:52px;border-radius:16px;background:#FFB5C1;border:2px solid #221C13"></span>
+        <span style="width:44px;height:52px;border-radius:16px;background:#B7E1D1;border:2px solid #221C13"></span>
+        <span style="width:44px;height:52px;border-radius:16px;background:#A9D3FF;border:2px solid #221C13"></span>
+        <span style="font-size:12px;color:#706652;margin-left:6px">#111111 · #F3ECDC · #FFE59A 브랜드 · #FFB5C1 마감/벌칙 · #B7E1D1 완료 · #A9D3FF 기록/보상</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><img src="assets/icon-face-e1.png" alt="앱 아이콘" style="width:88px;height:88px;border-radius:24px"><span style="font-size:12px;color:#706652">앱 아이콘 · E-1</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:88px;height:88px;border-radius:24px;background:#fff;border:2px solid #221C13;display:flex;align-items:center;justify-content:center">{{ pinkyAnim }}</div><span style="font-size:12px;color:#706652">인앱 애니메이션 · C-1</span></div>
+      <span style="width:72px;height:72px;border-radius:20px;background:#FFE59A;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-face-e1.png" alt="" style="width:56px;height:56px"></span>
+      <span style="width:72px;height:72px;border-radius:20px;background:#fff;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><img src="assets/eyes-e1.png" alt="" style="width:52px;height:21px"></span>
+      <span style="width:72px;height:72px;border-radius:20px;background:#111111;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-face-e1.png" alt="" style="width:56px;height:56px"></span>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:56px;align-items:flex-start">
+
+    <!-- ===== 3a 온보딩 ===== -->
+    <div id="4a" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4a" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4a</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A00 온보딩</span><span style="font-size:12px;color:#706652">블롭 히어로 + 큰 헤드라인</span></div>
+      <div data-screen-label="4a 온보딩" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+          <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 20px"><span style="display:flex;align-items:center;gap:8px"><img src="assets/mascot-face-e1.png" alt="" style="width:28px;height:28px"><span style="font-size:14px;font-weight:700">리틀핑거</span></span><span style="height:44px;padding:0 12px;display:flex;align-items:center;font-size:14px;font-weight:600;color:#6F6552">건너뛰기</span></div>
+          <div style="position:relative;height:290px;margin:8px 20px 0;transform:rotate(-2deg)">
+            <svg viewBox="0 0 330 290" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" aria-hidden="true">
+              <path d="M120 40c60-30 130 10 140 70s-20 120-90 120S30 210 30 150 60 70 120 40Z" fill="#FFFDF4" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"></path>
+              <path d="M200 160c40-20 100 0 110 40s-10 80-60 80-70-20-90-50 0-50 40-70Z" fill="#FFE59A" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"></path>
+              </svg>
+            <div style="position:absolute;left:90px;top:96px;width:110px;height:52px;display:flex;align-items:center;justify-content:center">{{ pinkyEyes }}</div>
+          </div>
+          <div style="padding:24px 28px 0;display:flex;flex-direction:column;gap:14px">
+            <h1 style="margin:0;font-size:34px;line-height:42px;font-weight:800;letter-spacing:-.02em">약속하고,<br>걸고,<br>지키는 재미.</h1>
+            <p style="margin:0;font-size:14px;line-height:24px;color:#6F6552">둘이 정한 약속을 기록하고 잊지 않게 챙겨드려요.<br>작성 → 카톡 초대 → 새끼손가락 걸기, 세 단계면 끝.</p>
+          </div>
+          <div style="flex:1"></div>
+          <div style="padding:0 28px 8px;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;gap:6px;align-items:center"><span style="width:20px;height:6px;border-radius:999px;background:#221C13"></span><span style="width:6px;height:6px;border-radius:999px;background:#B8AB92"></span><span style="width:6px;height:6px;border-radius:999px;background:#B8AB92"></span></div>
+            <button style="align-self:flex-start;height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:16px;cursor:pointer">시작하기<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:18px;color:#221C13">arrow_forward</span></span></button>
+          </div>
+          <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#221C13"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 3b 홈 ===== -->
+    <div id="4b" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4b" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4b</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A02 홈</span><span style="font-size:12px;color:#706652">옐로 블롭 임박 카드 · 파스텔 상태 도트</span></div>
+      <div data-screen-label="4b 홈" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+          <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px 0 20px">
+            <img src="assets/mascot-face-e1.png" alt="" style="width:30px;height:30px">
+            <span style="flex:1;font-size:15px;font-weight:700">리틀핑거</span>
+            <span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;position:relative"><span class="material-symbols-rounded" style="font-size:20px">notifications</span><span style="position:absolute;top:11px;right:12px;width:7px;height:7px;border-radius:999px;background:#FFB5C1;border:1.5px solid #fff"></span></span>
+            <span style="width:44px;height:44px;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">지</span>
+          </div>
+          <div style="padding:10px 20px 0"><h1 style="margin:0;font-size:26px;line-height:34px;font-weight:800;letter-spacing:-.02em">지우님, 이번 주<br>약속 6개 순항 중.</h1></div>
+          <div style="display:flex;gap:6px;padding:16px 20px 0">
+            <span style="height:32px;padding:0 14px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;font-size:13px;font-weight:700;display:flex;align-items:center">진행 중 6</span>
+            <span style="height:32px;padding:0 14px;border-radius:999px;background:#fff;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center">대기 1</span>
+          </div>
+          <div style="flex: 1; overflow: hidden; padding: 14px 16px 0; display: flex; flex-direction: column; gap: 10px; position: relative">
+            <div style="position:relative;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:18px 20px;transform:rotate(-1.2deg);display:flex;align-items:center;gap:12px;overflow:hidden">
+              
+              <div style="flex:1;min-width:0;position:relative"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">D-1 · 내일까지</p><p style="margin:6px 0 0;font-size:19px;font-weight:800;line-height:26px">월말까지<br>야식 끊기</p><svg viewBox="0 0 120 100" style="position: absolute; top: -46px; width: 130px; left: 153px" aria-hidden="true"><path d="M50 10c30-14 66 6 62 40s-30 52-60 46S2 62 10 40 30 20 50 10Z" fill="#FFE59A"></path><image href="assets/eyes-e1.png" x="42" y="36" width="56" height="22"></image></svg></div>
+              <span style="position:relative;width:44px;height:44px;border-radius:999px;background:#221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:18px;color:#FFE59A">arrow_forward</span></span>
+            </div>
+            <div style="background:#FFFDF4;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;flex:none"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:700;line-height:20px">매주 화·목 아침 러닝 같이 하기</p><p style="margin:4px 0 0;font-size:12px;color:#706652">진행 중 · 8/11 (화) · 지우 — 민준</p></div><span style="height:30px;padding:0 12px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">D-17</span></div>
+            <div style="background:#FFFDF4;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:999px;background:#FFB5C1;border:2px solid #221C13;flex:none"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:700;line-height:20px">월급날까지 배달앱 금지</p><p style="margin:4px 0 0;font-size:12px;color:#706652">이행 확인 필요 · 응답 기한 6일</p></div></div><button style="height:44px;border:2.4px solid #221C13;border-radius:999px;background:#fff;font:inherit;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer">지켜졌나요? 답하기<span class="material-symbols-rounded" style="font-size:16px">arrow_forward</span></button></div>
+            <div style="background:#FFFDF4;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;flex:none"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:700;line-height:20px">주 3회 홈트 인증하기</p><p style="margin:4px 0 0;font-size:12px;color:#706652">진행 중 · 8/20 (목) · 지우 — 하영</p></div><span style="height:30px;padding:0 12px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">D-26</span></div>
+            <div style="background:#FFFDF4;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:999px;background:#A9D3FF;border:2px solid #221C13;flex:none"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:700;line-height:20px">매주 일요일 부모님께 안부 전화하기</p><p style="margin:4px 0 0;font-size:12px;color:#706652">진행 중 · 종료일 없음 · 지우 — 민준</p></div><span style="height:30px;padding:0 12px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">∞</span></div>
+            <div style="background:#FFFDF4;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;flex:none"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:700;line-height:20px">이번 달 책 한 권 같이 읽기</p><p style="margin:4px 0 0;font-size:12px;color:#706652">진행 중 · 8/31 (월) · 지우 — 민준</p></div><span style="height:30px;padding:0 12px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">D-37</span></div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:140px;background:linear-gradient(to bottom,rgba(247,243,239,0),#F3ECDC 60%);pointer-events:none"></div>
+          <button style="position:absolute;left:50%;bottom:48px;transform:translateX(-50%);height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:14px;cursor:pointer">약속 만들기<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-face-e1.png" alt="" style="width:34px;height:34px"></span></button>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#221C13"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 3c 약속 만들기 ===== -->
+    <div id="4c" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4c" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4c</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A03 약속 만들기</span><span style="font-size:12px;color:#706652">소문자 섹션 라벨 · 파스텔 선택 칩</span></div>
+      <div data-screen-label="4c 약속 만들기" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+          <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px">
+            <span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">close</span></span>
+            <span style="flex:1;text-align:center;font-size:15px;font-weight:700">약속 만들기</span>
+            <span style="height:30px;padding:0 12px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">작성 중</span>
+          </div>
+          <div style="padding:8px 20px 0;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+            <h1 style="margin:0;font-size:24px;line-height:32px;font-weight:800;letter-spacing:-.02em">새로운 약속을<br>적어볼까요?</h1>
+            <svg viewBox="0 0 80 64" style="width:80px;flex:none" aria-hidden="true"><path d="M30 6c20-10 46 4 44 28S54 62 30 60 2 44 6 28 16 12 30 6Z" fill="#FFB5C1"></path><image href="assets/eyes-e1.png" x="20" y="24" width="44" height="18"></image></svg>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:18px 16px 0;display:flex;flex-direction:column;gap:12px">
+            <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:18px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">TITLE · 제목</span><div style="height:48px;border-radius:12px;border:2px solid #221C13;padding:0 14px;display:flex;align-items:center;font-size:15px;font-weight:600">매주 화·목 아침 러닝 같이 하기</div></div>
+              <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">CONTENT · 내용</span><div style="min-height:80px;border-radius:12px;border:2px solid #221C13;padding:12px 14px;font-size:14px;line-height:22px">8월 11일까지 매주 화·목 아침 7시, 반포한강공원에서 함께 러닝한다. 우천 시 다음 날로 순연.</div></div>
+              <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">CATEGORY · 카테고리</span><div style="display:flex;gap:6px;flex-wrap:wrap">
+                <span style="height:36px;padding:0 14px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;font-size:13px;font-weight:700;display:flex;align-items:center">습관</span>
+                <span style="height:36px;padding:0 14px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center">내기</span>
+                <span style="height:36px;padding:0 14px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center">금전</span>
+                <span style="height:36px;padding:0 14px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center">기타</span></div></div>
+            </div>
+            <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:18px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">END DATE · 종료일 <span style="color:#221C13">필수</span></span><div style="height:48px;border-radius:12px;border:2px solid #221C13;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><span class="material-symbols-rounded" style="font-size:18px">event</span><span style="flex:1">2026-08-11 (화)</span><span class="material-symbols-rounded" style="font-size:20px">expand_more</span></div><p style="margin:0;font-size:12px;line-height:18px;color:#706652">새 약속은 만든 날부터 30일까지 무료예요. 더 긴 기간은 보상형 광고 또는 영구 보관으로 열 수 있어요.</p></div>
+              <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">WHO · 지킬 사람</span><div style="display:flex;gap:6px">
+                <span style="height:36px;padding:0 14px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center">나</span>
+                <span style="height:36px;padding:0 14px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center">상대</span>
+                <span style="height:36px;padding:0 14px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;font-size:13px;font-weight:700;display:flex;align-items:center">둘 다</span></div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="background:#A9D3FF;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 16px"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#221C13">REWARD · 보상</p><p style="margin:6px 0 0;font-size:14px;font-weight:700;line-height:20px">성공하면 오마카세 사주기</p></div>
+              <div style="background:#FFB5C1;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 16px"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#221C13">PENALTY · 벌칙</p><p style="margin:6px 0 0;font-size:14px;font-weight:700;line-height:20px">커피 셔틀</p></div>
+            </div>
+          </div>
+          <div style="padding:12px 20px 8px;display:flex;justify-content:flex-end;background:linear-gradient(to bottom,rgba(247,243,239,0),#F3ECDC 40%)">
+            <button style="height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:14px;cursor:pointer">상대에게 보내기<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:18px;color:#221C13">send</span></span></button>
+          </div>
+          <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#221C13"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 3d 약속 상세 ===== -->
+    <div id="4d" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4d" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4d</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A05 약속 상세</span><span style="font-size:12px;color:#706652">민트 확정 카드 · 파스텔 보상/벌칙</span></div>
+      <div data-screen-label="4d 약속 상세" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+          <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+          <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px">
+            <span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">arrow_back</span></span>
+            <span style="flex:1;text-align:center;font-size:15px;font-weight:700">약속 상세</span>
+            <span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">share</span></span>
+            <span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">more_horiz</span></span>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:8px 16px 0;display:flex;flex-direction:column;gap:10px">
+            <div style="padding:4px 4px 6px;display:flex;align-items:flex-start;gap:12px">
+              <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><span style="height:28px;padding:0 12px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">진행 중</span><span style="font-size:12px;color:#706652">종료일 2026-08-11 (화)</span></div><h2 style="margin:12px 0 0;font-size:24px;line-height:32px;font-weight:800;letter-spacing:-.02em">매주 화·목 아침<br>러닝 같이 하기</h2></div>
+              <span style="flex:none;width:56px;height:56px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800">D-17</span>
+            </div>
+            <div style="position:relative;flex:none;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:20px 18px;transform:rotate(-0.8deg);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;overflow:hidden">
+              <svg viewBox="0 0 90 70" style="position:absolute;left:-14px;top:-10px;width:90px" aria-hidden="true"><path d="M40 6c22-10 50 6 46 30S60 68 36 66 4 50 8 32 22 14 40 6Z" fill="#B7E1D1"></path></svg>
+              <span style="position:relative;width:100px;height:60px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;display:flex;align-items:center;justify-content:center">{{ pinkyAnimSm }}</span>
+              <p style="margin:6px 0 0;font-size:17px;font-weight:800;position:relative">두 사람이 손가락 걸었어요!</p>
+              <p style="margin:0;font-size:12px;color:#706652">2026-07-12 21:04 확정</p>
+              <div style="display:flex;gap:6px;margin-top:4px">
+                <span style="height:30px;padding:0 12px;border-radius:999px;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap"><span style="width:8px;height:8px;border-radius:999px;background:#B7E1D1"></span>지우 20:58</span>
+                <span style="height:30px;padding:0 12px;border-radius:999px;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap"><span style="width:8px;height:8px;border-radius:999px;background:#B7E1D1"></span>민준 21:04</span>
+              </div>
+              <p style="margin:6px 0 0;font-size:11px;font-weight:700;letter-spacing:.1em;color:#706652;white-space:nowrap">RECORD · A3F9-77C2-01</p>
+            </div>
+            <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:18px;display:flex;flex-direction:column;gap:10px">
+              <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">CONTENT · 내용</p>
+              <p style="margin:0;font-size:14px;line-height:22px">8월 11일까지 매주 화·목 아침 7시, 반포한강공원에서 함께 러닝한다. 우천 시 다음 날로 순연.</p>
+              <div style="display:flex;gap:6px"><span style="height:30px;padding:0 12px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">습관</span><span style="height:30px;padding:0 12px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">둘 다</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="background:#A9D3FF;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 16px"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em">REWARD · 보상</p><p style="margin:6px 0 0;font-size:14px;font-weight:700;line-height:20px">성공하면 오마카세 사주기</p></div>
+              <div style="background:#FFB5C1;border-radius:20px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 16px"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em">PENALTY · 벌칙</p><p style="margin:6px 0 0;font-size:14px;font-weight:700;line-height:20px">한 달 커피 셔틀</p></div>
+            </div>
+            <div style="height:48px;display:flex;align-items:center;gap:8px;padding:0 6px;font-size:13px;font-weight:700"><span style="flex:1">버전 이력 · v1</span><span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span></div>
+            <p style="margin:0;padding:0 4px;font-size:11.5px;line-height:18px;color:#706652">리틀핑거의 약속 기록은 공증이나 전자계약 서비스가 아니며, 법적 효력을 보증하지 않습니다. 다만 양측의 승인 이력과 시각 정보는 분쟁 시 참고 자료로 활용될 수 있습니다.</p>
+          </div>
+          <div style="padding:12px 16px 8px;display:flex;gap:8px;background:linear-gradient(to bottom,rgba(247,243,239,0),#F3ECDC 40%)">
+            <button style="flex:1;height:50px;border:2.4px solid #221C13;border-radius:999px;background:transparent;font:inherit;font-size:14px;font-weight:700;cursor:pointer">변경·파기 요청</button>
+            <button style="flex:1;height:50px;padding:5px 5px 5px 18px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer">증인 초대<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:18px;color:#221C13">person_add</span></span></button>
+          </div>
+          <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#221C13"></span></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 4f 홈 빈 상태 -->
+    <div id="4f" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4f" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4f</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A02 홈 · 빈 상태</span><span style="font-size:12px;color:#706652">마스코트가 첫 약속을 유도</span></div>
+      <div data-screen-label="4f SCR-A02 홈 · 빈 상태" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px 0 20px"><img src="assets/mascot-face-e1.png" alt="" style="width:32px;height:32px"><span style="flex:1;font-size:15px;font-weight:700">리틀핑거</span><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;position:relative"><span class="material-symbols-rounded" style="font-size:20px">notifications</span><span style="position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:999px;background:#FFB5C1;border:1.5px solid #221C13"></span></span><span style="width:44px;height:44px;border-radius:999px;background:#221C13;color:#FFE59A;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">지</span></div>
+        <div style="padding:10px 20px 0"><h1 style="margin:0;font-size:26px;line-height:34px;font-weight:800;letter-spacing:-.02em">아직 건 약속이<br>없어요.</h1></div>
+        <div style="display:flex;gap:6px;padding:16px 20px 0">
+          <span style="height:32px;padding:0 14px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;font-size:13px;font-weight:700;display:flex;align-items:center">진행 중 0</span>
+          <span style="height:32px;padding:0 14px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center">대기 0</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:0 32px 60px;text-align:center">
+          <div style="position:relative;width:200px;height:170px;transform:rotate(-2deg)">
+            <svg viewBox="0 0 200 170" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" aria-hidden="true">
+              <path d="M100 10c62-8 96 34 90 80s-44 80-94 76S6 130 10 86 44 18 100 10Z" fill="#FFFDF4" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"></path>
+              <path d="M140 104c30-12 56 8 52 36s-26 36-52 30-36-22-30-40 12-20 30-26Z" fill="#B7E1D1" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"></path>
+            </svg>
+            <div style="position:absolute;left:45px;top:58px;width:110px;height:52px;display:flex;align-items:center;justify-content:center">{{ pinkyEyes }}</div>
+          </div>
+          <p style="margin:0;font-size:14px;line-height:22px;color:#6F6552">소중한 사람과 새끼손가락 걸고<br>지킬 약속을 만들어보세요.</p>
+          <p style="margin:0;font-size:12px;font-weight:700;color:#706652">아래 <span style="background:#FFE59A;padding:0 6px;border-radius:6px;color:#221C13">약속 만들기</span>를 눌러 시작해요</p>
+        </div>
+        <button style="position:absolute;left:50%;bottom:48px;transform:translateX(-50%);height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:14px;cursor:pointer">약속 만들기<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;display:flex;align-items:center;justify-content:center"><img src="assets/mascot-face-e1.png" alt="" style="width:34px;height:34px"></span></button>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4g 초대 전송·대기 -->
+    <div id="4g" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4g" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4g</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A04 초대 보내기</span><span style="font-size:12px;color:#706652">카톡 미리보기 말풍선 · 만료 카운트다운</span></div>
+      <div data-screen-label="4g SCR-A04 초대 보내기" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px"><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">arrow_back</span></span><span style="flex:1;text-align:center;font-size:15px;font-weight:700">초대 보내기</span><span style="height:30px;padding:0 12px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">승인 대기</span></div>
+        <div style="flex:1;overflow:hidden;padding:8px 16px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="flex:none;position:relative;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:20px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transform:rotate(-0.8deg);overflow:hidden">
+            <svg viewBox="0 0 90 70" style="position:absolute;right:-14px;top:-10px;width:90px" aria-hidden="true"><path d="M40 6c22-10 50 6 46 30S60 68 36 66 4 50 8 32 22 14 40 6Z" fill="#FFE59A" stroke="#221C13" stroke-width="2"></path></svg>
+            <span style="position:relative;width:100px;height:60px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;display:flex;align-items:center;justify-content:center">{{ pinkyAnimSm }}</span>
+            <p style="margin:6px 0 0;font-size:17px;font-weight:800;position:relative">민준님에게 손가락을<br>내밀어 볼까요?</p>
+            <p style="margin:0;font-size:12.5px;line-height:18px;color:#6F6552">카톡으로 초대장을 보내면, 민준님이 걸어야 성립돼요</p>
+          </div>
+          <button style="height:54px;border:2.5px solid #221C13;border-radius:999px;background:#FEE500;color:#191919;font:inherit;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:3px 4px 0 rgba(34,28,19,.14)"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7L5.6 21c-.1.4.3.7.6.5l4.1-2.7c.5.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="currentColor"></path></svg>카카오톡으로 초대 보내기</button>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <p style="margin:0;padding:0 4px;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">PREVIEW · 민준님에게는 이렇게 보여요</p>
+            <div style="background:#EAE1CB;border-radius:16px;padding:12px;display:flex;gap:8px;align-items:flex-start">
+              <span style="width:34px;height:34px;border-radius:999px;background:#221C13;color:#FFE59A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none">지</span>
+              <div style="flex:1;background:#FFFDF4;border:2px solid #221C13;border-radius:6px 16px 16px 16px;padding:12px 14px;display:flex;flex-direction:column;gap:4px">
+                <p style="margin:0;font-size:14px;font-weight:700">지우님이 새끼손가락을 내밀었어요!</p>
+                <p style="margin:0;font-size:13px;color:#6F6552">약속: 매주 화·목 아침 러닝 같이 하기</p>
+                <p style="margin:6px 0 0;padding:10px;border-radius:10px;background:#FFE59A;border:2px solid #221C13;text-align:center;font-size:12.5px;font-weight:700">약속 확인하기</p>
+              </div>
+            </div>
+          </div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px"><span class="material-symbols-rounded" style="font-size:22px">schedule</span><div style="flex:1"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">초대 링크 유효 시간</p><p style="margin:2px 0 0;font-size:22px;font-weight:800;letter-spacing:.02em">71:59:32</p></div></div>
+            <div style="height:8px;border-radius:999px;background:#EAE1CB;border:2px solid #221C13;overflow:hidden"><span style="display:block;width:99%;height:100%;background:#A9D3FF"></span></div>
+            <p style="margin:0;font-size:12px;line-height:18px;color:#6F6552">링크는 1회용이에요 · 만료되면 아래에서 재발송할 수 있어요</p>
+          </div>
+        </div>
+        <div style="padding:12px 16px 8px;background:linear-gradient(to bottom,rgba(243,236,220,0),#F3ECDC 40%)"><button disabled style="width:100%;height:50px;border:2.4px solid #221C13;border-radius:999px;background:transparent;font:inherit;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;opacity:.3"><span class="material-symbols-rounded" style="font-size:18px">refresh</span>재발송 — 만료 후 가능</button></div>
+        <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4h 승인 대기 상세 -->
+    <div id="4h" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4h" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4h</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A05 약속 상세 · 승인 대기</span><span style="font-size:12px;color:#706652">점선 아바타 = 아직 안 걸었음</span></div>
+      <div data-screen-label="4h SCR-A05 약속 상세 · 승인 대기" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px"><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">arrow_back</span></span><span style="flex:1;text-align:center;font-size:15px;font-weight:700">약속 상세</span><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">more_horiz</span></span></div>
+        <div style="flex:1;overflow:hidden;padding:8px 16px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="padding:4px 4px 0"><div style="display:flex;align-items:center;gap:8px"><span style="height:28px;padding:0 12px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">승인 대기</span><span style="font-size:12px;color:#706652">보낸 시각 오늘 09:12</span></div><h2 style="margin:12px 0 0;font-size:24px;line-height:32px;font-weight:800;letter-spacing:-.02em">제주 여행 경비<br>반반 모으기</h2></div>
+          <div style="flex:none;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:20px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;transform:rotate(-0.8deg)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:48px;height:48px;border-radius:999px;background:#221C13;color:#FFE59A;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700">지</span>
+              <img src="assets/hand-solid.png" alt="" style="width:30px;height:28px;transform:scaleX(-1)">
+              <span style="width:20px;border-top:2px dashed #B8AB92"></span>
+              <img src="assets/hand-solid.png" alt="" style="width:30px;height:28px;opacity:.25">
+              <span style="width:48px;height:48px;border-radius:999px;background:#EAE1CB;color:#706652;border:3px dashed #B8AB92;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700">민</span>
+            </div>
+            <p style="margin:4px 0 0;font-size:16px;font-weight:800">민준님의 확인을 기다리는 중</p>
+            <p style="margin:0;font-size:12.5px;line-height:18px;color:#6F6552">민준님이 걸어야 약속이 성립돼요<br>승인하면 푸시로 바로 알려드릴게요</p>
+          </div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px"><span class="material-symbols-rounded" style="font-size:22px">schedule</span><div style="flex:1"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">초대 링크 만료까지</p><p style="margin:2px 0 0;font-size:22px;font-weight:800;letter-spacing:.02em">47:12:08</p></div></div>
+            <div style="height:8px;border-radius:999px;background:#EAE1CB;border:2px solid #221C13;overflow:hidden"><span style="display:block;width:66%;height:100%;background:#A9D3FF"></span></div>
+          </div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:18px;display:flex;flex-direction:column;gap:10px;background:#EAE1CB">
+            <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">CONTENT · 내용 (읽기 전용)</p>
+            <p style="margin:0;font-size:14px;line-height:22px">10월 여행 전까지 매달 25일에 각자 30만 원씩 공동 통장에 입금한다.</p>
+            <div style="display:flex;gap:6px"><span style="height:30px;padding:0 12px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">금전</span><span style="height:30px;padding:0 12px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">둘 다</span></div>
+          </div>
+          <p style="margin:0;text-align:center;font-size:12px;line-height:18px;color:#6F6552">발송 후에는 내용을 바꿀 수 없어요 · 만료되면 재발송할 수 있어요</p>
+        </div>
+        <div style="padding:12px 16px 8px;background:linear-gradient(to bottom,rgba(243,236,220,0),#F3ECDC 40%)"><button disabled style="width:100%;height:50px;border:2.4px solid #221C13;border-radius:999px;background:transparent;font:inherit;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;opacity:.3"><span class="material-symbols-rounded" style="font-size:18px">refresh</span>재발송 — 만료 후 가능</button></div>
+        <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4i 완료 상세 -->
+    <div id="4i" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4i" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4i</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A05 약속 상세 · 완료</span><span style="font-size:12px;color:#706652">민트 스탬프 · 보관 기한 행</span></div>
+      <div data-screen-label="4i SCR-A05 약속 상세 · 완료" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px"><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">arrow_back</span></span><span style="flex:1;text-align:center;font-size:15px;font-weight:700">약속 상세</span><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">share</span></span></div>
+        <div style="flex:1;overflow:hidden;padding:8px 16px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="padding:4px 4px 0"><div style="display:flex;align-items:center;gap:8px"><span style="height:28px;padding:0 12px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;font-size:12px;font-weight:700;display:flex;align-items:center">완료</span><span style="font-size:12px;color:#706652">2026-08-12 종결</span></div><h2 style="margin:12px 0 0;font-size:24px;line-height:32px;font-weight:800;letter-spacing:-.02em">매주 화·목 아침<br>러닝 같이 하기</h2></div>
+          <div style="flex:none;position:relative;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);background:#B7E1D1;padding:20px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transform:rotate(-0.8deg)">
+            <span style="width:100px;height:60px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center">{{ pinkyAnimSm }}</span>
+            <p style="margin:6px 0 0;font-size:17px;font-weight:800">약속 지킴! 완주했어요</p>
+            <p style="margin:0;font-size:12.5px;color:#221C13">두 사람 모두 "지켰어요" · 8/12 11:40 확인</p>
+            <p style="margin:4px 0 0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652;white-space:nowrap">RECORD · A3F9-77C2-01</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><p style="margin:0;padding:0 4px;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">PROOF · 증빙</p><div style="display:flex;gap:8px">
+            <div style="width:76px;height:76px;border-radius:16px;background:#FFFDF4;border:2px solid #221C13;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><span class="material-symbols-rounded" style="font-size:22px;color:#706652">image</span><span style="font-size:11.5px;font-weight:700">지우 · 1장</span></div>
+            <div style="width:76px;height:76px;border-radius:16px;background:#FFFDF4;border:2px solid #221C13;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><span class="material-symbols-rounded" style="font-size:22px;color:#706652">image</span><span style="font-size:11.5px;font-weight:700">민준 · 1장</span></div></div></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);background:#A9D3FF;padding:14px 16px;display:flex;align-items:center;gap:12px"><span class="material-symbols-rounded" style="font-size:22px">redeem</span><div><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652;color:#221C13">REWARD · 이제 보상 받을 차례</p><p style="margin:4px 0 0;font-size:14px;font-weight:700">성공하면 오마카세 사주기</p></div></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:none"><span class="material-symbols-rounded" style="font-size:20px">inventory_2</span><div style="flex:1;min-width:0"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">내 기록 보관</p><p style="margin:2px 0 0;font-size:13px;font-weight:700">만료 · 2026-09-11 00:00 (KST)</p></div><span style="font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:3px;white-space:nowrap">기간 늘리기</span></div>
+          <p style="margin:0;text-align:center;font-size:12px;line-height:18px;color:#6F6552">약속 지킴율에 반영됐어요</p>
+        </div>
+        <div style="padding:12px 16px 8px;display:flex;gap:8px;background:linear-gradient(to bottom,rgba(243,236,220,0),#F3ECDC 40%)">
+          <button style="flex:1;height:50px;border:2.4px solid #221C13;border-radius:999px;background:transparent;font:inherit;font-size:14px;font-weight:700;cursor:pointer">공유하기</button>
+          <button style="flex:1;height:50px;padding:5px 5px 5px 18px;height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:14px;cursor:pointer;font-size:14px;justify-content:space-between">새 약속 만들기<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:18px;color:#221C13">add</span></span></button>
+        </div>
+        <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4j 이행 확인 -->
+    <div id="4j" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4j" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4j</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A06 이행 확인</span><span style="font-size:12px;color:#706652">큰 선택 카드 · 선택 = 옐로 스티커</span></div>
+      <div data-screen-label="4j SCR-A06 이행 확인" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px"><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">arrow_back</span></span><span style="flex:1;text-align:center;font-size:15px;font-weight:700">이행 확인</span><span style="width:44px"></span></div>
+        <div style="flex:1;overflow:hidden;padding:8px 16px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 18px;box-shadow:none"><p style="margin:0;font-size:15px;font-weight:700">매주 화·목 아침 러닝 같이 하기</p><p style="margin:4px 0 0;font-size:12px;color:#706652">종료일 8/11 (화) 지남 · 지킬 사람 둘 다</p></div>
+          <div style="padding:8px 4px 0;text-align:center"><h2 style="margin:0;font-size:24px;line-height:32px;font-weight:800;letter-spacing:-.02em">약속, 지켜졌나요?</h2><p style="margin:6px 0 0;font-size:13px;color:#6F6552">민준님에게도 같은 질문이 가요</p></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);background:#FFE59A;padding:16px 18px;display:flex;align-items:center;gap:12px;transform:rotate(-0.8deg)"><span class="material-symbols-rounded" style="font-size:26px">check_circle</span><div style="flex:1"><p style="margin:0;font-size:17px;font-weight:800">지켰어요</p><p style="margin:2px 0 0;font-size:12px;color:#6F6552">뿌듯한 쪽</p></div><span class="material-symbols-rounded" style="font-size:22px">radio_button_checked</span></div>
+            <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:none"><span class="material-symbols-rounded" style="font-size:26px;color:#706652">cancel</span><div style="flex:1"><p style="margin:0;font-size:17px;font-weight:800;color:#6F6552">안 지켜졌어요</p><p style="margin:2px 0 0;font-size:12px;color:#706652">솔직한 쪽</p></div><span class="material-symbols-rounded" style="font-size:22px;color:#B8AB92">radio_button_unchecked</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><p style="margin:0;padding:0 4px;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">PROOF · 증빙 사진 <span style="color:#706652;letter-spacing:0">선택</span></p><div style="display:flex;gap:10px">
+            <div style="position:relative;width:84px;height:84px;border-radius:16px;background:#FFFDF4;border:2px solid #221C13;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><span class="material-symbols-rounded" style="font-size:22px;color:#706652">image</span><span style="font-size:11.5px;font-weight:700">러닝 인증.jpg</span><span style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:999px;background:#221C13;color:#FFFDF4;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:14px">close</span></span></div>
+            <div style="width:84px;height:84px;border-radius:16px;border:2px dashed #B8AB92;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#706652"><span class="material-symbols-rounded" style="font-size:22px">photo_camera</span><span style="font-size:11.5px;font-weight:700">사진 추가</span></div></div>
+            <p style="margin:0;padding:0 4px;font-size:12px;color:#6F6552">상대와 증인에게 공개돼요</p></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:none"><span style="width:34px;height:34px;border-radius:999px;background:#EAE1CB;border:2px dashed #B8AB92;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#706652">민</span><p style="margin:0;flex:1;font-size:13px;color:#6F6552">민준님은 아직 답하지 않았어요</p><span class="material-symbols-rounded" style="font-size:18px;color:#706652">hourglass_empty</span></div>
+        </div>
+        <div style="padding:12px 20px 8px;display:flex;justify-content:flex-end;background:linear-gradient(to bottom,rgba(243,236,220,0),#F3ECDC 40%)"><button style="height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:14px;cursor:pointer">제출<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:18px;color:#221C13">check</span></span></button></div>
+        <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4k 알림함 -->
+    <div id="4k" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4k" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4k</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A07 알림함</span><span style="font-size:12px;color:#706652">읽지 않음 = 옐로 카드 · 유형별 파스텔 아이콘</span></div>
+      <div data-screen-label="4k SCR-A07 알림함" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px"><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">arrow_back</span></span><span style="flex:1;text-align:center;font-size:15px;font-weight:700">알림</span><span style="height:36px;padding:0 12px;font-size:13px;font-weight:700;display:flex;align-items:center;text-decoration:underline;text-underline-offset:3px">모두 읽음</span></div>
+        <div style="flex:1;overflow:hidden;padding:8px 16px 0;display:flex;flex-direction:column;gap:10px">
+          <p style="margin:0;padding:0 4px;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">TODAY · 오늘</p>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);background:#FFE59A;padding:14px 16px;display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;flex:none"><img src="assets/eyes-e1.png" alt="" style="width:26px;height:10px"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;line-height:20px">민준님이 손가락 걸었어요! 약속 성립</p><p style="margin:2px 0 0;font-size:12px;color:#6F6552">매주 화·목 아침 러닝 같이 하기 · 방금</p></div><span style="width:8px;height:8px;border-radius:999px;background:#221C13;flex:none"></span></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);background:#FFE59A;padding:14px 16px;display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:999px;background:#FFB5C1;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;flex:none"><span class="material-symbols-rounded" style="font-size:20px">notification_important</span></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;line-height:20px">지켜졌나요? 이행 확인이 필요해요</p><p style="margin:2px 0 0;font-size:12px;color:#6F6552">월급날까지 배달앱 금지 · 2시간 전</p></div><span style="width:8px;height:8px;border-radius:999px;background:#221C13;flex:none"></span></div>
+          <p style="margin:8px 0 0;padding:0 4px;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">YESTERDAY · 어제</p>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:none"><span style="width:40px;height:40px;border-radius:999px;background:#F3ECDC;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;flex:none"><span class="material-symbols-rounded" style="font-size:20px">alarm</span></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;line-height:20px">리마인드 D-3 — 곧 종료일이에요</p><p style="margin:2px 0 0;font-size:12px;color:#6F6552">월말까지 야식 끊기 · 어제 09:00</p></div></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:none"><span style="width:40px;height:40px;border-radius:999px;background:#A9D3FF;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;flex:none"><span class="material-symbols-rounded" style="font-size:20px">sync_alt</span></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;line-height:20px">민준님이 변경을 요청했어요</p><p style="margin:2px 0 0;font-size:12px;color:#6F6552">종료일 8/11 → 8/25 · 어제 20:14</p></div></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:none"><span style="width:40px;height:40px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;flex:none"><span class="material-symbols-rounded" style="font-size:20px">draw</span></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:14px;font-weight:700;line-height:20px">하영님이 증인 서명을 완료했어요</p><p style="margin:2px 0 0;font-size:12px;color:#6F6552">매주 화·목 아침 러닝 · 어제 18:03</p></div></div>
+          <div style="margin-top:6px;height:48px;border-radius:16px;border:2px dashed #B8AB92;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:700;color:#706652"><span class="material-symbols-rounded" style="font-size:18px">ads_click</span>광고 자리 · MVP에서는 비활성</div>
+        </div>
+        <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4l 마이·신뢰 프로필 -->
+    <div id="4l" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4l" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4l</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A08 마이</span><span style="font-size:12px;color:#706652">지킴율 링 · 설정은 스티커 카드 묶음</span></div>
+      <div data-screen-label="4l SCR-A08 마이" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px"><span style="width:44px"></span><span style="flex:1;text-align:center;font-size:15px;font-weight:700">마이</span><span style="width:44px"></span></div>
+        <div style="flex:1;overflow:hidden;padding:8px 16px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px;padding:0 4px"><span style="width:52px;height:52px;border-radius:999px;background:#221C13;color:#FFE59A;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800">지</span><div><p style="margin:0;font-size:20px;font-weight:800">지우</p><p style="margin:2px 0 0;font-size:12px;color:#706652">계정 연결됨</p></div></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:18px;display:flex;align-items:center;gap:16px;transform:rotate(-0.8deg)">
+            <div style="position:relative;width:88px;height:88px;flex:none"><svg viewBox="0 0 88 88" style="width:88px;height:88px;transform:rotate(-90deg)" aria-hidden="true"><circle cx="44" cy="44" r="36" fill="none" stroke="#EAE1CB" stroke-width="10"></circle><circle cx="44" cy="44" r="36" fill="none" stroke="#B7E1D1" stroke-width="10" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="29"></circle><circle cx="44" cy="44" r="41" fill="none" stroke="#221C13" stroke-width="2"></circle><circle cx="44" cy="44" r="31" fill="none" stroke="#221C13" stroke-width="2"></circle></svg><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800">87%</span></div>
+            <div style="flex:1;min-width:0"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">TRUST · 약속 지킴율</p><p style="margin:4px 0 0;font-size:15px;font-weight:800">완료 7건 · 불이행 1건</p><p style="margin:6px 0 0;font-size:11.5px;line-height:16px;color:#6F6552">의견 불일치 1건 · 미확정 종결 1건 · 진행 중 2건. 의견 불일치와 미확정 종결은 계산에서 제외돼요.</p></div>
+          </div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:none"><span style="width:40px;height:40px;border-radius:999px;background:#A9D3FF;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;flex:none"><span class="material-symbols-rounded" style="font-size:20px">bookmark</span></span><div style="flex:1"><p style="margin:0;font-size:14px;font-weight:700">약속 슬롯 · 사용 중 2 / 5</p><p style="margin:2px 0 0;font-size:12px;color:#6F6552">약속이 종결되면 슬롯은 다시 비워져요</p></div><span style="height:36px;padding:0 14px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;font-size:13px;font-weight:700;display:flex;align-items:center">추가</span></div>
+          <p style="margin:4px 0 -4px;padding:0 4px;font-size:11px;font-weight:700;letter-spacing:.12em;color:#706652">REMIND · 리마인드</p>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:4px 18px;display:flex;flex-direction:column;box-shadow:none">
+            <div style="height:48px;display:flex;align-items:center;gap:10px;border-bottom:2px dashed #E0D5BA"><span style="flex:1;font-size:14px;font-weight:700">D-7 리마인드</span><span style="position:relative;width:52px;height:32px;border-radius:999px;background:#FFE59A;border:2.2px solid #221C13;display:block;flex:none"><span style="position:absolute;top:4px;left:24px;width:20px;height:20px;border-radius:999px;background:#221C13"></span></span></div>
+            <div style="height:48px;display:flex;align-items:center;gap:10px;border-bottom:2px dashed #E0D5BA"><span style="flex:1;font-size:14px;font-weight:700">D-3 리마인드</span><span style="position:relative;width:52px;height:32px;border-radius:999px;background:#FFE59A;border:2.2px solid #221C13;display:block;flex:none"><span style="position:absolute;top:4px;left:24px;width:20px;height:20px;border-radius:999px;background:#221C13"></span></span></div>
+            <div style="height:48px;display:flex;align-items:center;gap:10px;border-bottom:2px dashed #E0D5BA"><span style="flex:1;font-size:14px;font-weight:700">D-1 리마인드</span><span style="position:relative;width:52px;height:32px;border-radius:999px;background:#FFFDF4;border:2.2px solid #221C13;display:block;flex:none"><span style="position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:999px;background:#8A7E66"></span></span></div>
+            <div style="height:48px;display:flex;align-items:center;gap:10px;border-bottom:2px dashed #E0D5BA"><span style="flex:1;font-size:14px;font-weight:700">D-Day 리마인드</span><span style="position:relative;width:52px;height:32px;border-radius:999px;background:#FFE59A;border:2.2px solid #221C13;display:block;flex:none"><span style="position:absolute;top:4px;left:24px;width:20px;height:20px;border-radius:999px;background:#221C13"></span></span></div>
+            <div style="height:48px;display:flex;align-items:center;gap:8px"><span class="material-symbols-rounded" style="font-size:18px">schedule</span><span style="flex:1;font-size:14px;font-weight:700">발송 시각 · 09:00 KST</span><span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span></div>
+          </div>
+          <div style="display:flex;gap:8px"><span style="flex:1;height:44px;height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:14px;cursor:pointer;padding:0;justify-content:center;font-size:14px;box-shadow:3px 4px 0 rgba(34,28,19,.14)">한국어 · 선택됨</span><span style="flex:1;height:44px;border:2.4px solid #221C13;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">English</span></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:4px 18px;display:flex;flex-direction:column;box-shadow:none">
+            <div style="height:48px;display:flex;align-items:center;gap:8px;border-bottom:2px dashed #E0D5BA"><span class="material-symbols-rounded" style="font-size:18px">description</span><span style="flex:1;font-size:14px;font-weight:700">이용약관</span><span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span></div>
+            <div style="height:48px;display:flex;align-items:center;gap:8px;border-bottom:2px dashed #E0D5BA"><span class="material-symbols-rounded" style="font-size:18px">privacy_tip</span><span style="flex:1;font-size:14px;font-weight:700">개인정보 처리방침</span><span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span></div>
+            <div style="height:48px;display:flex;align-items:center;gap:8px"><span class="material-symbols-rounded" style="font-size:18px">block</span><span style="flex:1;font-size:14px;font-weight:700">차단 목록 관리</span><span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span></div>
+          </div>
+          <p style="margin:0;padding:0 4px;font-size:11.5px;line-height:18px;color:#6F6552">리틀핑거의 약속 기록은 공증이나 전자계약 서비스가 아니며, 법적 효력을 보증하지 않습니다. 다만 양측의 승인 이력과 시각 정보는 분쟁 시 참고 자료로 활용될 수 있습니다.</p>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:110px;background:linear-gradient(to bottom,rgba(243,236,220,0),#F3ECDC 60%);pointer-events:none"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4m 지난 약속 -->
+    <div id="4m" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4m" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4m</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A09 지난 약속</span><span style="font-size:12px;color:#706652">탭 4개 · 종결 상태는 파스텔 도트+텍스트</span></div>
+      <div data-screen-label="4m SCR-A09 지난 약속" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px"><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">arrow_back</span></span><span style="flex:1;text-align:center;font-size:15px;font-weight:700">지난 약속</span><span style="width:44px"></span></div>
+        <div style="display:flex;gap:6px;padding:8px 20px 0;overflow:hidden">
+          <span style="height:32px;padding:0 14px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;font-size:13px;font-weight:700;display:flex;align-items:center;white-space:nowrap">완료 3</span>
+          <span style="height:32px;padding:0 14px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center;white-space:nowrap">불이행 1</span>
+          <span style="height:32px;padding:0 14px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center;white-space:nowrap">협의 중단 1</span>
+          <span style="height:32px;padding:0 14px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:13px;font-weight:600;color:#6F6552;display:flex;align-items:center;white-space:nowrap">거절·파기 2</span>
+        </div>
+        <div style="flex:1;overflow:hidden;padding:14px 16px 0;display:flex;flex-direction:column;gap:10px">
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;flex:none"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:700;line-height:20px">월말까지 야식 끊기</p><p style="margin:4px 0 0;font-size:12px;color:#706652">완료 · 8/11 (화) · 지우 — 민준</p></div><span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;flex:none"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:700;line-height:20px">매주 화·목 아침 러닝 같이 하기</p><p style="margin:4px 0 0;font-size:12px;color:#706652">완료 · 7/29 (수) · 지우 — 민준</p></div><span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);padding:16px 18px;display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:999px;background:#B7E1D1;border:2px solid #221C13;flex:none"></span><div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:700;line-height:20px">한 달 동안 아침 스트레칭</p><p style="margin:4px 0 0;font-size:12px;color:#706652">완료 · 7/15 (수) · 지우 — 하영</p></div><span class="material-symbols-rounded" style="font-size:18px">arrow_forward</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding-bottom:40px">
+            <div style="position:relative;width:120px;height:100px;transform:rotate(3deg)"><svg viewBox="0 0 120 100" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" aria-hidden="true"><path d="M60 6c36-6 58 20 54 48s-26 48-56 44S4 78 6 52 26 12 60 6Z" fill="#FFFDF4" stroke="#221C13" stroke-width="2.5"></path></svg><div style="position:absolute;left:23px;top:32px;width:74px;height:32px"><img src="assets/eyes-e1.png" alt="" style="width:74px;height:30px"></div></div>
+            <p style="margin:0;font-size:12px;font-weight:700;color:#706652">지킨 약속 3개, 잘 쌓였어요.</p>
+          </div>
+        </div>
+        <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4n 완료 축하 시트 -->
+    <div id="4n" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4n" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4n</a><span style="font-size:14px;font-weight:700;color:#221C13">MOD-03 완료 축하</span><span style="font-size:12px;color:#706652">잉크 테두리 시트 · 손 애니메이션</span></div>
+      <div data-screen-label="4n MOD-03 완료 축하" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px 0 20px"><img src="assets/mascot-face-e1.png" alt="" style="width:32px;height:32px"><span style="flex:1;font-size:15px;font-weight:700">리틀핑거</span><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center;position:relative"><span class="material-symbols-rounded" style="font-size:20px">notifications</span><span style="position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:999px;background:#FFB5C1;border:1.5px solid #221C13"></span></span><span style="width:44px;height:44px;border-radius:999px;background:#221C13;color:#FFE59A;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">지</span></div>
+        <div style="padding:10px 20px 0;opacity:.5"><h1 style="margin:0;font-size:26px;line-height:34px;font-weight:800;letter-spacing:-.02em">지우님, 이번 주<br>약속 6개 순항 중.</h1></div>
+        <div style="flex:1;padding:16px 16px 0;display:flex;flex-direction:column;gap:10px;opacity:.5"><div style="height:96px;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);box-shadow:none"></div><div style="height:72px;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);box-shadow:none"></div><div style="height:72px;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);box-shadow:none"></div></div>
+        <div style="position:absolute;inset:0;background:rgba(20,15,8,.42)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;background:#FFFDF4;border:2.5px solid #221C13;border-bottom:0;border-radius:28px 28px 0 0;padding:12px 24px 8px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;box-shadow:0 -6px 24px rgba(34,28,19,.12)">
+          <span style="width:40px;height:5px;border-radius:3px;background:#221C13;opacity:.3"></span>
+          <div style="position:relative;width:170px;height:120px;transform:rotate(-2deg);margin-top:4px"><svg viewBox="0 0 170 120" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" aria-hidden="true"><path d="M85 6c52-8 82 28 78 60s-36 56-80 52S4 92 6 60 36 12 85 6Z" fill="#B7E1D1" stroke="#221C13" stroke-width="2.5"></path></svg><div style="position:absolute;left:30px;top:34px;width:110px;height:52px;display:flex;align-items:center;justify-content:center">{{ pinkyEyes }}</div></div>
+          <h1 style="margin:0;font-size:24px;line-height:32px;font-weight:800;letter-spacing:-.02em">약속 지킴! 축하해요</h1>
+          <p style="margin:0;font-size:14px;line-height:22px;color:#6F6552">매주 화·목 아침 러닝 같이 하기 — 완주!<br>민준님과 하이파이브 하세요</p>
+          <span style="height:32px;padding:0 14px;border-radius:999px;background:#FFE59A;border:2px solid #221C13;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;transform:rotate(-1.2deg)"><span class="material-symbols-rounded" style="font-size:16px">trending_up</span>약속 지킴율 87% → 89%</span>
+          <button style="width:100%;margin-top:6px;height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:14px;cursor:pointer;justify-content:space-between">새 약속 만들기<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:18px;color:#221C13">add</span></span></button>
+          <span style="height:44px;display:flex;align-items:center;font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:3px">공유하기</span>
+          <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+        </div>
+    </div>
+      </div>
+    </div>
+
+    <!-- 4o 슬롯 결제 시트 -->
+    <div id="4o" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4o" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4o</a><span style="font-size:14px;font-weight:700;color:#221C13">MOD-04 슬롯 결제</span><span style="font-size:12px;color:#706652">재촉 없는 결제 시트 · 규칙만 서술</span></div>
+      <div data-screen-label="4o MOD-04 슬롯 결제" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:52px;display:flex;align-items:center;gap:8px;padding:0 16px"><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">close</span></span><span style="flex:1;text-align:center;font-size:15px;font-weight:700">약속 만들기</span><span style="width:44px"></span></div>
+        <div style="flex:1;padding:16px 16px 0;display:flex;flex-direction:column;gap:10px;opacity:.5"><div style="height:120px;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);box-shadow:none"></div><div style="height:96px;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);box-shadow:none"></div><div style="height:60px;background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);box-shadow:none"></div></div>
+        <div style="position:absolute;inset:0;background:rgba(20,15,8,.42)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;background:#FFFDF4;border:2.5px solid #221C13;border-bottom:0;border-radius:28px 28px 0 0;padding:12px 24px 8px;display:flex;flex-direction:column;gap:14px;box-shadow:0 -6px 24px rgba(34,28,19,.12)">
+          <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:#221C13;opacity:.3"></span>
+          <div style="display:flex;align-items:center;gap:8px"><h1 style="margin:0;flex:1;font-size:22px;font-weight:800">약속 슬롯</h1><span style="width:44px;height:44px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:20px">close</span></span></div>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);background:#FFB5C1;padding:12px 16px;font-size:13px;line-height:20px;font-weight:700;box-shadow:none">지금은 슬롯이 가득 차 있어요. 슬롯을 추가하면 바로 보낼 수 있어요.</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800"><span class="material-symbols-rounded" style="font-size:20px">bookmark</span>사용 중 5 / 5</div>
+          <p style="margin:0;font-size:14px;line-height:22px;color:#6F6552">진행 중인 약속은 슬롯을 하나씩 사용해요. 약속이 종결되면 슬롯은 다시 비워져요.</p>
+          <div style="background:#FFFDF4;border-radius:22px;border:2.2px solid #221C13;box-shadow:3px 4px 0 rgba(34,28,19,.14);background:#FFE59A;padding:16px 18px;transform:rotate(-0.8deg)"><p style="margin:0;font-size:18px;font-weight:800">슬롯 1개 추가</p><p style="margin:4px 0 0;font-size:12.5px;color:#6F6552">한 번 구매하면 영구히 유지돼요.</p></div>
+          <button style="width:100%;height:52px;padding:6px 6px 6px 22px;border:0;border-radius:999px;background:#221C13;color:#FFFDF4;box-shadow:3px 4px 0 rgba(34,28,19,.22);font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:14px;cursor:pointer;justify-content:space-between">₩1,000에 추가하기<span style="width:40px;height:40px;border-radius:999px;background:#FFE59A;display:flex;align-items:center;justify-content:center"><span class="material-symbols-rounded" style="font-size:18px;color:#221C13">arrow_forward</span></span></button>
+          <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+        </div>
+    </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- 4e 로그인 -->
+    <div id="4e" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px"><a href="#4e" style="text-decoration:none;font-size:12px;font-weight:800;background:#221C13;color:#FFE59A;padding:3px 9px;border-radius:999px">4e</a><span style="font-size:14px;font-weight:700;color:#221C13">SCR-A01 로그인</span><span style="font-size:12px;color:#706652">카카오 공식 색 유지 · 잉크 테두리만</span></div>
+      <div data-screen-label="4e SCR-A01 로그인" style="width:390px;height:844px;background:#111111;border-radius:54px;padding:10px;box-shadow:0 30px 70px rgba(17,17,17,.22)">
+        <div style="width:370px;height:824px;border-radius:46px;overflow:hidden;background:#F3ECDC;display:flex;flex-direction:column;position:relative;font-family:'Pretendard',system-ui,sans-serif;color:#221C13">
+        <div style="height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:15px;font-weight:600"><span>9:41</span><span style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:120px;height:34px;border-radius:999px;background:#111"></span><span style="display:flex;gap:5px;align-items:center"><span class="material-symbols-rounded" style="font-size:17px">signal_cellular_alt</span><span class="material-symbols-rounded" style="font-size:17px">wifi</span><span class="material-symbols-rounded" style="font-size:20px">battery_full</span></span></div>
+        <div style="height:44px;display:flex;align-items:center;justify-content:flex-end;padding:0 20px"></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 28px;text-align:center">
+          <div style="position:relative;width:220px;height:200px;transform:rotate(-2deg)">
+            <svg viewBox="0 0 220 200" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" aria-hidden="true">
+              <path d="M110 12c70-10 106 40 100 90s-50 92-104 88S6 150 10 100 50 20 110 12Z" fill="#FFFDF4" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"></path>
+              <path d="M150 120c34-14 66 8 62 40s-30 44-62 38-40-26-34-48 14-24 34-30Z" fill="#FFE59A" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"></path>
+            </svg>
+            <div style="position:absolute;left:55px;top:70px;width:110px;height:52px;display:flex;align-items:center;justify-content:center">{{ pinkyEyes }}</div>
+          </div>
+          <div><h1 style="margin:0;font-size:38px;line-height:44px;font-weight:800;letter-spacing:.04em">리틀핑거</h1><p style="margin:8px 0 0;font-size:15px;color:#6F6552">새끼손가락 걸고, 약속!</p></div>
+          <span style="height:34px;padding:0 14px;border-radius:999px;background:#FFFDF4;border:2px solid #221C13;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;transform:rotate(-1.2deg);box-shadow:3px 4px 0 rgba(34,28,19,.14)">오늘도 새끼손가락 걸어볼까요?</span>
+        </div>
+        <div style="padding:0 24px 8px;display:flex;flex-direction:column;gap:14px">
+          <button style="height:54px;border:2.5px solid #221C13;border-radius:999px;background:#FEE500;color:#191919;font:inherit;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:3px 4px 0 rgba(34,28,19,.14)"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7L5.6 21c-.1.4.3.7.6.5l4.1-2.7c.5.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="currentColor"></path></svg>카카오로 시작하기</button>
+          <p style="margin:0;text-align:center;font-size:12px;line-height:16px;color:#706652">시작하면 <a href="#" style="color:inherit">이용약관</a>과 <a href="#" style="color:inherit">개인정보 처리방침</a>에 동의하게 돼요</p>
+        </div>
+        <div style="height:34px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:#111"></span></div>
+    </div>
+      </div>
+    </div>
+
+    
+    
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  // C-1 손: 새끼손가락이 마주 닿는 루프 애니메이션. 재렌더에도 상태가 유지되도록 createElement로 만든다.
+  pinky(size, src = 'assets/hand-color.png', gapRatio = .12) {
+    const h = React.createElement;
+    const w = Math.round(size * 804 / 763);
+    // C-1 포즈: 왼손은 정적으로 미러(새끼손가락이 가운데를 향함), 애니메이션은 안쪽 img에만 건다
+    const hand = (side) => h('span', {
+      style: { position: 'absolute', top: 0, [side]: 0, width: w, height: size, display: 'block',
+        transform: side === 'left' ? 'scaleX(-1)' : 'none' }
+    }, h('img', {
+      src, alt: '',
+      style: { width: w, height: size, display: 'block', transformOrigin: '50% 90%',
+        animation: 'lf-pinky-l 2.6s cubic-bezier(.32,.72,0,1) infinite' }
+    }));
+    const spark = h('span', { style: { position: 'absolute', left: '50%', top: '18%', width: size * .22, height: size * .22, marginLeft: -size * .11,
+      borderRadius: 999, background: '#FFE59A', animation: 'lf-pinky-spark 2.6s ease-out infinite' } });
+    return h('span', { style: { position: 'relative', display: 'block', width: w * 2 + size * gapRatio, height: size } }, hand('left'), hand('right'), spark);
+  }
+  renderVals() {
+    return { pinkyAnim: this.pinky(40), pinkyAnimSm: this.pinky(28), pinkyAnimLg: this.pinky(72), pinkyEyes: this.pinky(44, 'assets/hand-solid.png', .5) };
+  }
+}
+</script>
+</body>
+</html>

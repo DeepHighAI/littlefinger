@@ -1,0 +1,226 @@
+/* =============================================================
+   Little Finger — 앱 화면 전용 추가 스타일
+   대상: SCR-A03 약속 작성 / SCR-A04 초대 전송·대기 / SCR-A06 이행 확인 입력
+   components.css 에 없는 조합만 여기에 추가한다. 색상·크기는 전부
+   tokens.css 변수를 조합해서 만든다 (신규 하드코딩 값 없음).
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   FORM 보조 — 라벨 안의 필수/선택 표기, 네이티브 fieldset 리셋
+   (SCR-A03 작성 폼, SCR-A06 증빙 사진 라벨에서 공용)
+   ------------------------------------------------------------- */
+
+/* .lf-field__label 안에 넣는 "필수" 표기 — 굵기는 라벨의 bold를 그대로 상속 */
+.lf-field__required {
+  color: var(--lf-color-primary);
+}
+
+/* .lf-field__label 안에 넣는 "선택" 표기 */
+.lf-field__optional {
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
+}
+
+/* choices 그룹을 <fieldset class="lf-field">로 감쌀 때 브라우저 기본
+   테두리/여백을 제거해서 일반 .lf-field 레이아웃과 동일하게 보이게 한다 */
+fieldset.lf-field,
+fieldset.lf-answer-list {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+legend.lf-field__label {
+  padding: 0;
+}
+
+/* -------------------------------------------------------------
+   UTILITY 추가 — components.css의 lf-row(중앙 정렬)만으로 부족한 경우
+   ------------------------------------------------------------- */
+
+.lf-align-start {
+  align-items: flex-start;
+}
+
+/* -------------------------------------------------------------
+   SCR-A04 — 카톡 알림 미리보기 ("민준님에게는 이렇게 보여요")
+   ------------------------------------------------------------- */
+
+/* 미리보기를 담는 톤 배경 (카톡 채팅창을 축약 표현) */
+.lf-kakao-preview {
+  border-radius: var(--lf-radius-md);
+  background: var(--lf-color-surface-muted);
+  padding: var(--lf-space-5);
+}
+
+/* 말풍선 — 왼쪽 위만 각지고 나머지는 둥근 채팅 말풍선 모양 */
+.lf-kakao-bubble {
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--lf-radius-xs) var(--lf-radius-md) var(--lf-radius-md) var(--lf-radius-md);
+  background: var(--lf-color-surface);
+  padding: var(--lf-space-5) var(--lf-space-6);
+}
+
+/* 말풍선 안의 "약속 확인하기" 가짜 버튼 — 실제로는 상대방 화면이라 클릭 불가 */
+.lf-kakao-bubble__cta {
+  margin-top: var(--lf-space-3);
+  padding: var(--lf-space-4);
+  border-radius: var(--lf-radius-xs);
+  background: var(--lf-color-surface-muted);
+  text-align: center;
+  font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+/* 초대 링크 만료 카운트다운 진행 막대 — 71:59:32 남음 ≈ 99% */
+.lf-invite-countdown__fill {
+  width: 99%;
+}
+
+/* 카운트다운 카드 좌측 큰 시계 아이콘 (기본 .lf-card 아이콘 크기보다 큼) */
+.lf-countdown-card__icon {
+  font-size: 22px;
+  color: var(--lf-color-primary);
+}
+
+/* -------------------------------------------------------------
+   SCR-A06 — "지켰어요 / 안 지켜졌어요" 큰 선택 행
+   ------------------------------------------------------------- */
+
+.lf-answer-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lf-space-4);
+}
+
+.lf-answer {
+  width: 100%;
+  min-height: calc(var(--lf-touch-min) + var(--lf-space-9));
+  padding: 0 var(--lf-space-8);
+  border-radius: var(--lf-radius-lg);
+  border: 1px solid var(--lf-color-outline-strong);
+  background: var(--lf-color-surface);
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+  text-align: left;
+}
+
+.lf-answer__icon {
+  font-size: 26px;
+  color: var(--lf-color-text-muted);
+}
+
+.lf-answer__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.lf-answer__title {
+  font-size: var(--lf-type-body-lg-size);
+  font-weight: var(--lf-weight-heavy);
+  color: var(--lf-color-text-secondary);
+}
+
+.lf-answer__subtitle {
+  font-size: var(--lf-type-micro-size);
+  color: var(--lf-color-text-muted);
+}
+
+.lf-answer__indicator {
+  font-size: 20px;
+  color: var(--lf-color-outline-icon);
+}
+
+/* 선택된 답변 — 강조 테두리 + 컨테이너 톤 (색상만으로 구분하지 않도록 텍스트도 함께 진해짐) */
+.lf-answer[aria-pressed='true'] {
+  border: 2px solid var(--lf-color-primary);
+  background: var(--lf-color-primary-container);
+}
+
+.lf-answer[aria-pressed='true'] .lf-answer__icon,
+.lf-answer[aria-pressed='true'] .lf-answer__indicator {
+  color: var(--lf-color-primary);
+}
+
+.lf-answer[aria-pressed='true'] .lf-answer__title {
+  color: var(--lf-color-on-primary-container);
+}
+
+.lf-answer[aria-pressed='true'] .lf-answer__subtitle {
+  color: var(--lf-color-primary-ink);
+}
+
+/* -------------------------------------------------------------
+   SCR-A06 — 증빙 사진 썸네일 (.lf-proof 를 84×84 정사각형 타일로 축소)
+   ------------------------------------------------------------- */
+
+.lf-proof-row {
+  display: flex;
+  gap: var(--lf-space-3);
+}
+
+.lf-proof--thumb {
+  position: relative;
+  flex: none;
+  width: 84px;
+  height: 84px;
+  aspect-ratio: 1 / 1;
+}
+
+.lf-proof--thumb .lf-proof__filename {
+  padding: 0 var(--lf-space-2);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+}
+
+/* "사진 추가" 타일 — 첨부 안내는 점선 플레이스홀더 톤을 따른다 */
+.lf-proof--dashed {
+  background: transparent;
+  border: 1.5px dashed var(--lf-color-outline-strong);
+}
+
+/* 첨부된 사진 삭제 버튼 — 썸네일 우상단에 겹쳐 배치.
+   크기·형태는 .lf-icon-button과 함께 사용해서 44dp 터치 영역을 확보한다. */
+.lf-proof__remove {
+  position: absolute;
+  top: calc(var(--lf-space-3) * -1);
+  right: calc(var(--lf-space-3) * -1);
+  background: var(--lf-color-text-secondary);
+  color: var(--lf-color-on-primary);
+}
+
+.lf-proof__remove .material-symbols-rounded {
+  font-size: 14px;
+}
+
+/* -------------------------------------------------------------
+   SCR-A06 — 상대방 응답 대기 상태 행
+   ------------------------------------------------------------- */
+
+.lf-partner-status {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-4);
+}
+
+.lf-partner-status__text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--lf-type-label-size);
+  color: var(--lf-color-text-secondary);
+}
+
+.lf-partner-status__icon {
+  font-size: 17px;
+  color: var(--lf-color-text-muted);
+}
