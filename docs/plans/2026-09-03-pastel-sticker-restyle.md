@@ -245,8 +245,11 @@ verified in a local release on SM-N981N. The PO then supplied the separate Play-
 feature graphics and ten ko/en screenshot candidates under `docs/디자인/store/`; their manifest is
 `README.md`. A later PO instruction explicitly authorized merging/pushing the latest work and creating
 the Google Play package. The mobile P8 set now also includes the E-1 splash, `#FFE59A` notification
-colour, and `0.3.0` version. Cross-surface derivatives remain coupled to P7; screenshot selection and
-the Play Console upload remain separate PO actions.
+colour, and `0.3.0` version. EAS production build `4f03e02a-107e-435b-a6aa-8d3b1a79640b` completed
+from pushed commit `0860177` as versionCode 22; the downloaded AAB passed bundletool, manifest,
+permission, ABI, signature, certificate, embedded-secret and extracted-brand-asset checks.
+Cross-surface derivatives remain coupled to P7; screenshot selection and the Play Console upload
+remain separate PO actions.
 
 #### P9 — 문서 · ADR · 기준선 동결 (세션 9)
 

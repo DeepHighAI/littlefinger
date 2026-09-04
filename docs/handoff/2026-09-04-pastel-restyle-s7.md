@@ -1,16 +1,16 @@
-# Handoff — pastel sticker restyle, session 7 (pre-commit remediation)
+# Handoff — pastel sticker restyle, session 7 (Play package complete)
 
 ## Goal and current status
 
 Apply the PO-approved Claude Design handoff, preserve the supplied Google Play graphics, and close
-every finding from the pre-commit code and security review. P0–P5 are implemented in the uncommitted
-working tree. The A08 back-navigation defect, E-1 launcher, compact SCR-A03 flow, condition presets,
+every finding from the pre-commit code and security review. P0–P5 are implemented and pushed to
+`main`. The A08 back-navigation defect, E-1 launcher, compact SCR-A03 flow, condition presets,
 PENDING card tone, malformed external-link crash surface, exposed `SECURITY DEFINER` helpers, and
 150% font-scale layout findings are fixed. The current release APK is installed and verified on the
-SM-N981N. The PO has now authorized merging/pushing this scope and creating a Google Play package.
-Mobile P8 packaging is in progress as `0.3.0` / remote code 22; P6's full screen-by-screen native
-comparison, P7's production web markup port, cross-surface derivatives, and Play Console upload
-remain outside this package unit.
+SM-N981N. The PO authorized merging/pushing this scope and creating a Google Play package. Mobile
+P8 is complete as signed EAS production AAB `0.3.0` / code 22 from commit `0860177`; P6's full
+screen-by-screen native comparison, P7's production web markup port, cross-surface derivatives, and
+Play Console upload remain outside this package unit.
 
 ## Files created / modified
 
@@ -27,10 +27,10 @@ remain outside this package unit.
 - Mobile P8: `apps/mobile/app.json`, `apps/mobile/assets/images/splash-icon.png`,
   `apps/mobile/config/firebase-config.test.js`, `tools/export-brand-icons.js`, `DESIGN.md`,
   `docs/adr/0019-e1-face-launcher-icon.md`, and the accepted redesign plan.
+- Build record: `docs/DEVELOPMENT_STATUS.md`, the accepted redesign plan, and this handoff document.
 - The earlier P5 redesign, E-1 assets, SCR-A03 refinements, ADR/runbook changes, and 23 PO-provided
-  Play assets remain in the same working tree. `design-reference/ui-ux/` remains the unmodified,
-  untracked user source and must not be staged. The authoritative tracked design request was restored
-  exactly from HEAD and has no diff.
+  Play assets are included in commit `0860177`. `design-reference/ui-ux/` remains the unmodified,
+  untracked user source and must not be staged. The authoritative tracked design request is unchanged.
 
 ## Decisions made and why
 
@@ -80,6 +80,18 @@ remain outside this package unit.
   production audit reported zero advisories; the online audit endpoint timed out without a result.
   `npm ls` still confirms the known `decode-uri-component@0.2.2` transitive package, so the runtime
   resolver/source-map/injection evidence—not the audit count—is the basis for this mitigation.
+- The full P8 gate passed before commit `0860177`: Vitest 113/113 files and 2,161 tests; jest-expo
+  82/82 suites and 892 tests; five-project typecheck; the 134-module web build; `check:agents`; and
+  `git diff --check`. The commit was pushed to `origin/main` before the cloud build.
+- EAS production build `4f03e02a-107e-435b-a6aa-8d3b1a79640b` completed from exactly `0860177` as
+  version `0.3.0`, versionCode 22. The downloaded artifact is
+  `dist/littlefinger-open-v0.3.0-code22.aab`, **85,558,862** bytes, SHA-256
+  `3FF3A789D3118C5D9B581551510216BEF5675ABC73524B439E1EC50230FC0B59`.
+- The code 22 AAB passed `bundletool 1.18.1 validate` (exit 0), the 20-item manifest/security check,
+  four-ABI inspection, and `jarsigner` (`jar verified.`, exit 0). Its upload-certificate SHA-256 is
+  `C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB`,
+  matching code 21. Extracted launcher/foreground/splash resources visually match E-1; the embedded
+  bundle has no source map or scanned secret marker.
 
 ## Blocked / PO-confirmation items
 
@@ -92,7 +104,8 @@ remain outside this package unit.
 
 ## Exact next step
 
-Run the full gates after the P8 asset/version change, commit everything except
-`design-reference/ui-ux/`, push `main`, then launch the EAS production Android build. Download the
-code 22 AAB, validate its manifest, permissions, ABIs, signature and SHA-256, record the build in
-status/handoff, and push that documentation commit. Do not submit the bundle to a Play track.
+Have the PO select the same eight screenshot numbers for ko-KR and en-US, then manually upload the
+validated code 22 AAB and the curated `docs/디자인/store/` graphics to the intended Play Console
+test track. Do not submit or roll out a release without the PO's explicit track action. In code,
+continue with P6's native screen-by-screen comparison before P7's acceptance-web markup port; keep
+the web deployment hold in place until the P7 visual gate closes.

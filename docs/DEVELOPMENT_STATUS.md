@@ -67,11 +67,14 @@ the approved paper tone rather than the positive yellow tone.
 
 The P6 React Native screen-by-screen layout pass and P7 production acceptance-web markup have **not**
 been ported yet. Do not deploy the web while its production markup still trails the shared CSS grammar.
-The PO's later 2026-09-04 instruction authorizes merging/pushing the latest implementation and
-packaging it for Google Play. Mobile P8 is therefore active: `app.json` is `0.3.0`, the splash uses
-E-1, and launcher/notification colour is `#FFE59A`; EAS remote auto-increment will assign code 22.
+The PO's later 2026-09-04 instruction authorized merging/pushing the latest implementation and
+packaging it for Google Play. Mobile P8 is complete: `main` was pushed, and EAS production build
+`4f03e02a-107e-435b-a6aa-8d3b1a79640b` produced the signed `0.3.0` / code 22 AAB from commit
+`0860177`. The launcher and splash use E-1, and the launcher/notification colour is `#FFE59A`.
 This Android package is an internal/open-test candidate for the current P0–P5 scope, not evidence
 that P6/P7 or the cross-surface redesign is complete, and it does not lift the web deployment hold.
+The bundle is validated and ready for a manual Play Console upload but has not been submitted to a
+track.
 
 ## Open testing release (2026-09-03)
 
@@ -735,6 +738,31 @@ Not done from this machine: a fresh DB backup (no `pg_dump`/Docker here; the wee
 `supabase-backup.yml` artifact is the fallback) — recorded as a known gap. The real AdMob units,
 SSV setup and code 11 rebuild are now complete below; rewarded device QA still waits on registering
 the QA phone as an AdMob test device.
+
+### Build 0.3.0 / versionCode 22 (2026-09-04, pastel-restyle test candidate)
+
+EAS production build `4f03e02a-107e-435b-a6aa-8d3b1a79640b` completed from pushed `main` commit
+`086017797499e8cbf5269d6d03b8609849e3527b` (remote versionCode 21 → 22; all nine production
+environment variables loaded). The artifact is available from the EAS build page and was downloaded
+to `dist/littlefinger-open-v0.3.0-code22.aab` — **85,558,862** bytes, SHA-256
+`3FF3A789D3118C5D9B581551510216BEF5675ABC73524B439E1EC50230FC0B59`.
+Build page: `https://expo.dev/accounts/philwoo/projects/littlefinger/builds/4f03e02a-107e-435b-a6aa-8d3b1a79640b`.
+
+`bundletool 1.18.1 validate` exited 0. The compiled manifest reports package
+`com.littlefinger.app`, versionCode 22, versionName 0.3.0, minSdk 24 and targetSdk 36. It contains
+all four ABIs (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`), the production AdMob application ID,
+the `littlefinger-app.web.app` App Links host, Billing and notification permissions, and no debug
+flag. `CAMERA`, `RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW`, fine/coarse location, phone state, contacts
+and `QUERY_ALL_PACKAGES` are absent. `jarsigner` exited 0 with `jar verified.`; the upload-certificate
+SHA-256 is
+`C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB`,
+identical to code 21 and the published first `assetlinks.json` fingerprint.
+
+The extracted xxxhdpi launcher, adaptive foreground and splash visually match E-1. The 5,013,780-byte
+embedded release bundle contains no source-map entry and no scanned private-key, service-role,
+Google-credentials, Stripe-secret, Expo-token or EAS-token marker. This AAB has not been uploaded or
+submitted to a Play track; the PO still selects eight of the ten localized screenshot candidates and
+performs the console action.
 
 ### Build 0.2.0 / versionCode 21 (2026-09-03, open testing candidate)
 
