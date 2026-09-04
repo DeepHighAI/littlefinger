@@ -216,6 +216,28 @@ describe('lf_promise_detail — SCR-A05 participant snapshot', () => {
     expect(JSON.stringify(creatorView)).not.toMatch(/token_hash|ip_hash|user_agent_hash|storage_key/u);
   });
 
+  test('참여자도 approvals 의 IP·UA 해시 열은 직접 읽지 못한다', async () => {
+    // RLS 는 행 단위라 열을 못 가린다. 상세 뷰가 두 열을 빼도 PostgREST 로 select=* 하면
+    // 그대로 나왔었다. salt 가 고정이라 해시는 동치 비교가 되고, UA 는 자기 헤더를 골라
+    // 자기 행의 해시를 되읽는 방식으로 평문까지 역산된다(04 §12-8 위반).
+    const { rows } = await db.asAdmin(
+      `select has_column_privilege('authenticated', 'public.approvals', 'ip_hash', 'SELECT') ip,
+              has_column_privilege('authenticated', 'public.approvals', 'user_agent_hash', 'SELECT') ua,
+              has_column_privilege('authenticated', 'public.approvals', 'comment', 'SELECT') comment,
+              has_column_privilege('authenticated', 'public.approvals', 'acted_at', 'SELECT') acted_at,
+              has_column_privilege('anon', 'public.approvals', 'ip_hash', 'SELECT') anon_ip`,
+    );
+
+    // comment·acted_at 은 남겨야 한다 — loadAmendSuggestComment 가 쓰는 유일한 직접 경로다.
+    expect(rows[0]).toEqual({
+      ip: false,
+      ua: false,
+      comment: true,
+      acted_at: true,
+      anon_ip: false,
+    });
+  });
+
   test('외부인·hidden actor·DRAFT는 존재나 내용을 공개하지 않는다', async () => {
     const creator = await createUser(db, '보안작성자');
     const partner = await createUser(db, '보안상대방');
