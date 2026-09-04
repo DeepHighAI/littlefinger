@@ -151,19 +151,27 @@ export function LfButton({
       ]}
     >
       {leading}
-      <Text
-        style={{
-          flexShrink: 1,
-          fontSize,
-          fontWeight: labelWeight[variant],
-          color: labelColor[variant],
-          textAlign: 'center',
-          fontFamily: textFontFamily(labelWeight[variant]),
-          textDecorationLine: variant === 'text' ? 'underline' : 'none',
-        }}
-      >
-        {label}
-      </Text>
+      {/*
+       * flexShrink 는 Text 가 아니라 이 View 가 받는다. Text 에 직접 걸면 안드로이드가
+       * 줄바꿈 대신 남는 폭에서 그냥 잘라내, 글꼴 배율이 커진 기기에서 'Google로' 처럼
+       * 말줄임표도 없이 끊긴다. 폭 제약은 상자가 지고 줄바꿈은 Text 가 하게 나눈다.
+       * 버튼은 minHeight 만 가지므로 두 줄이 되면 높이가 따라 늘어난다.
+       */}
+      <View style={{ flexShrink: 1 }}>
+        <Text
+          style={{
+            fontSize,
+            // fontWeight 는 주지 않는다. textFontFamily 가 굵기별 정적 파일을 이미 고르므로
+            // (04 §5-4) 여기서 축을 또 걸면 안드로이드가 다른 얼굴로 재고 다른 얼굴로 그린다.
+            color: labelColor[variant],
+            textAlign: 'center',
+            fontFamily: textFontFamily(labelWeight[variant]),
+            textDecorationLine: variant === 'text' ? 'underline' : 'none',
+          }}
+        >
+          {label}
+        </Text>
+      </View>
       {trailing !== undefined ? (
         <View
           testID={rest.testID === undefined ? undefined : `${rest.testID}-trailing`}

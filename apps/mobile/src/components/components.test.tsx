@@ -222,6 +222,22 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
     expect((styleOf(view, 'b') as ViewStyle).paddingHorizontal).toBe(space[7]);
   });
 
+  test('라벨 Text 는 flexShrink 도 fontWeight 도 직접 갖지 않는다', async () => {
+    // 이 둘이 라벨에 붙으면 큰 글꼴 기기에서 'Google로 시작하기' 가 'Google로' 로 끊긴다.
+    // flexShrink 는 안드로이드가 줄바꿈 대신 잘라내게 만들고(그래서 상자인 View 가 진다),
+    // fontWeight 는 굵기별 정적 파일을 쓰는 04 §5-4 와 충돌해 측정과 렌더가 어긋난다.
+    const view = await render(
+      <LfButton testID="b" size="cta" label="Google로 시작하기" leading={<LfText>G</LfText>} />,
+    );
+    const label = view.getByText('Google로 시작하기');
+    const style = Array.isArray(label.props.style)
+      ? Object.assign({}, ...label.props.style.filter(Boolean))
+      : label.props.style;
+
+    expect(style.flexShrink).toBeUndefined();
+    expect(style.fontWeight).toBeUndefined();
+  });
+
   test('filled 는 소프트 액션 색을 쓴다', async () => {
     const view = await render(<LfButton testID="b" variant="filled" label="확인" />);
     expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.actionFill);
