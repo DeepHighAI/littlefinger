@@ -43,6 +43,13 @@ async function withRelease<T>(run: () => Promise<T> | T): Promise<T> {
  * 이 화면 하나가 이식 규칙 전체를 검증하는 자리다. 여기서는 **구조와 문구**를 잠근다.
  * 픽셀 대조는 실기기·에뮬레이터에서 design-reference 갤러리와 나란히 놓고 해야 한다.
  */
+/** 동의 체크박스를 켠다. 켜기 전에는 두 CTA 가 모두 비활성이라 press 가 통하지 않는다. */
+async function agree(view: Awaited<ReturnType<typeof render>>): Promise<void> {
+  await act(async () => {
+    fireEvent.press(view.getByRole('checkbox', { name: '이용약관과 개인정보 처리방침에 동의합니다' }));
+  });
+}
+
 describe('SCR-A01 로그인', () => {
   beforeEach(() => {
     signInWithKakaoMock.mockReset();
@@ -130,6 +137,7 @@ describe('SCR-A01 로그인', () => {
   test('Google 로그인 취소는 EC-A01 안내를 보여준다', async () => {
     signInWithGoogleMock.mockResolvedValue('CANCELED');
     const view = await render(<LoginScreen />);
+    await agree(view);
 
     await act(async () => {
       fireEvent.press(view.getByRole('button', { name: 'Google로 시작하기' }));
@@ -143,6 +151,7 @@ describe('SCR-A01 로그인', () => {
   test('Google 로그인 오류는 Google 문구로 평탄화한다', async () => {
     signInWithGoogleMock.mockRejectedValue(new Error('provider details'));
     const view = await render(<LoginScreen />);
+    await agree(view);
 
     await act(async () => {
       fireEvent.press(view.getByRole('button', { name: 'Google로 시작하기' }));
@@ -157,6 +166,7 @@ describe('SCR-A01 로그인', () => {
     // onPress 연결이 빠지거나 취소를 장애로 취급하면 이 문구에 도달하지 않는다.
     signInWithKakaoMock.mockResolvedValue('CANCELED');
     const view = await render(<LoginScreen />);
+    await agree(view);
 
     await act(async () => {
       fireEvent.press(view.getByRole('button', { name: '카카오로 시작하기' }));
@@ -171,6 +181,7 @@ describe('SCR-A01 로그인', () => {
     // SDK·네트워크 오류 원문은 사용자에게 노출하지 않고 재시도 가능한 문구로 평탄화한다.
     signInWithKakaoMock.mockRejectedValue(new Error('provider details'));
     const view = await render(<LoginScreen />);
+    await agree(view);
 
     await act(async () => {
       fireEvent.press(view.getByRole('button', { name: '카카오로 시작하기' }));
@@ -186,6 +197,7 @@ describe('SCR-A01 로그인', () => {
   test('EC-A03 닉네임 필수 동의 거부는 재동의를 안내한다', async () => {
     signInWithKakaoMock.mockResolvedValue('NICKNAME_REQUIRED');
     const view = await render(<LoginScreen />);
+    await agree(view);
 
     await act(async () => {
       fireEvent.press(view.getByRole('button', { name: '카카오로 시작하기' }));
@@ -221,11 +233,36 @@ describe('SCR-A01 로그인', () => {
     expect(await view.findByText('다시 로그인해 주세요.')).toBeTruthy();
   });
 
-  test('약관 동의 안내를 보여준다', async () => {
+  test('약관 링크와 명시적 동의 체크박스를 보여준다', async () => {
     const view = await render(<LoginScreen />);
     expect(view.getByRole('link', { name: '이용약관' })).toBeTruthy();
     expect(view.getByRole('link', { name: '개인정보 처리방침' })).toBeTruthy();
-    expect(view.getByText('시작하면 위 문서에 동의하게 돼요')).toBeTruthy();
+    const box = view.getByRole('checkbox', {
+      name: '이용약관과 개인정보 처리방침에 동의합니다',
+    });
+    expect(box.props.accessibilityState.checked).toBe(false);
+  });
+
+  test('동의 전에는 두 로그인 버튼이 모두 잠겨 있다', async () => {
+    // 묵시적 동의를 명시적 동의로 바꾼 이유가 이것이다 — 체크 없이는 어떤 provider 로도
+    // 가입/로그인이 시작되면 안 된다.
+    const view = await render(<LoginScreen />);
+
+    for (const name of ['카카오로 시작하기', 'Google로 시작하기']) {
+      const button = view.getByRole('button', { name });
+      expect(button.props.accessibilityState.disabled).toBe(true);
+      await act(async () => {
+        fireEvent.press(button);
+      });
+    }
+
+    expect(signInWithKakaoMock).not.toHaveBeenCalled();
+    expect(signInWithGoogleMock).not.toHaveBeenCalled();
+
+    await agree(view);
+    expect(
+      view.getByRole('button', { name: '카카오로 시작하기' }).props.accessibilityState.disabled,
+    ).toBe(false);
   });
 
   test.each([

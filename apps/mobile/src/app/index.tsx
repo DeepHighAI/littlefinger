@@ -6,6 +6,7 @@ import { LEGAL_DOCUMENT_LABELS_BY_LOCALE, type LegalDocumentKind } from '@little
 import { GoogleMark } from '../components/GoogleMark';
 import { LfBlob } from '../components/LfBlob';
 import { LfButton } from '../components/LfButton';
+import { LfIcon } from '../components/LfIcon';
 import { LfInput } from '../components/LfInput';
 import { LfNotice } from '../components/LfNotice';
 import { LfPinkyLoop } from '../components/LfPinkyLoop';
@@ -19,7 +20,7 @@ import { useLabels } from '../lib/locale-native';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
 import { LOGIN_LABEL } from '../screens/login-labels.ts';
 import { textFontFamily } from '../theme/fonts';
-import { colors, line, size, space, type, weight } from '../theme/tokens';
+import { border, colors, line, radius, size, space, type, weight } from '../theme/tokens';
 
 /**
  * SCR-A01 로그인 — `design-reference/screens/app/scr-a01-login.html` 이식.
@@ -46,6 +47,8 @@ const WORDMARK_LINE = 46;
 const WORDMARK_TRACKING = 3;
 const SUBTITLE_SIZE = 15;
 const ACTIONS_BOTTOM = 28;
+const CONSENT_BOX = 22;
+const CONSENT_MARK = 16;
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   body: {
@@ -61,6 +64,10 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     marginTop: 22,
+    // letterSpacing 은 마지막 글자 뒤에도 붙는다. 내용 크기 상자에서는 그 여백까지
+    // 재지 못해 끝 글자가 깎일 수 있어, 여기도 본문 폭으로 펴고 가운데 정렬한다.
+    alignSelf: 'stretch',
+    textAlign: 'center',
     fontSize: WORDMARK_SIZE,
     lineHeight: WORDMARK_LINE,
     fontWeight: weight.bold,
@@ -70,6 +77,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     marginTop: space[3],
+    // body 가 alignItems:'center' 라 이 Text 는 내용 폭으로만 상자가 잡힌다. 그러면 폭이
+    // 조금만 모자라도 '새끼손가락 걸고,' 에서 끊긴다. 상자를 본문 폭으로 펴고 정렬은
+    // textAlign 에 맡기면, 배율이 커져도 잘리는 대신 다음 줄로 넘어간다.
+    alignSelf: 'stretch',
+    textAlign: 'center',
     fontSize: SUBTITLE_SIZE,
     color: colors.textSecondary,
     fontFamily: textFontFamily(weight.regular),
@@ -90,11 +102,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    // 글꼴 배율이 커지면 두 링크가 한 줄에 못 들어간다. 접히게 두지 않으면
+    // 두 번째 줄이 잘려 '이용약' 처럼 보인다.
+    flexWrap: 'wrap',
     gap: space[5],
+  },
+  consent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space[3],
+    minHeight: size.touchMin,
+  },
+  consentBox: {
+    width: CONSENT_BOX,
+    height: CONSENT_BOX,
+    borderRadius: radius.sm,
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  consentBoxOn: { backgroundColor: colors.actionFill },
+  consentLabel: {
+    // 배율이 커져도 잘리지 않고 다음 줄로 넘어가게 둔다.
+    flexShrink: 1,
+    fontSize: type.caption,
+    lineHeight: line.micro,
+    color: colors.textMuted,
+    fontFamily: textFontFamily(weight.regular),
   },
   termsLinkTarget: {
     minHeight: size.touchMin,
     justifyContent: 'center',
+    // 줄어들지 않게 못박는다. 좁으면 깎이는 대신 termsLinks 의 flexWrap 으로 접힌다.
+    flexShrink: 0,
   },
   authMessage: {
     fontSize: type.caption,
@@ -123,6 +165,8 @@ export default function LoginScreen(): React.JSX.Element {
   const LEGAL_LABEL = useLabels(LEGAL_DOCUMENT_LABELS_BY_LOCALE);
   const { callbackFailed, sessionExpired = false } = useMobileAuthGate();
   const [signingIn, setSigningIn] = useState(false);
+  // 묵시적 동의를 명시적 동의로 바꾼다 — 체크 전에는 어떤 로그인도 시작되지 않는다.
+  const [agreed, setAgreed] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [testEmail, setTestEmail] = useState('');
   const [testPassword, setTestPassword] = useState('');
@@ -217,7 +261,7 @@ export default function LoginScreen(): React.JSX.Element {
             size="cta"
             block
             label={LABEL.kakaoCta}
-            disabled={signingIn}
+            disabled={signingIn || !agreed}
             onPress={() => void handleKakaoLogin()}
           />
           <LfButton
@@ -226,7 +270,7 @@ export default function LoginScreen(): React.JSX.Element {
             block
             leading={<GoogleMark />}
             label={LABEL.googleCta}
-            disabled={signingIn}
+            disabled={signingIn || !agreed}
             onPress={() => void handleGoogleLogin()}
           />
           {authMessage !== null && (
@@ -252,7 +296,22 @@ export default function LoginScreen(): React.JSX.Element {
               <Text style={[styles.terms, styles.termsLink]}>{LEGAL_LABEL.PRIVACY}</Text>
             </Pressable>
           </View>
-          <Text style={styles.terms}>{LABEL.legalAgreement}</Text>
+          <Pressable
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: agreed }}
+            accessibilityLabel={LABEL.legalConsent}
+            style={styles.consent}
+            onPress={() => {
+              setAgreed((prev) => !prev);
+              setAuthMessage(null);
+            }}
+          >
+            {/* check_box 계열은 아이콘 서브셋에 없다. 사각 테두리 + check 조합으로 만든다. */}
+            <View style={[styles.consentBox, agreed && styles.consentBoxOn]}>
+              {agreed && <LfIcon name="check" size={CONSENT_MARK} color="onAction" />}
+            </View>
+            <Text style={styles.consentLabel}>{LABEL.legalConsent}</Text>
+          </Pressable>
         </LfStack>
         {__DEV__ && (
           <View style={styles.testLogin}>
