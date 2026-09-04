@@ -82,10 +82,12 @@ function harness(
   };
 }
 
+// 마이크로태스크를 몇 번 도는지 세지 않는다. 게이트에 await 이 하나 늘 때마다 그 숫자가
+// 틀려지고, 실패가 "게이트가 안 돈다"가 아니라 "테스트 헬퍼가 모자라다"로 나온다.
 async function flush(): Promise<void> {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  await new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
 }
 
 describe('모바일 루트 세션 게이트', () => {
@@ -116,7 +118,7 @@ describe('모바일 루트 세션 게이트', () => {
 
   test('콜드 스타트 OAuth URL을 루트에서 교환하고 같은 URL은 한 번만 처리한다', async () => {
     const callbackUrl =
-      'littlefinger://auth-callback#access_token=access&refresh_token=refresh';
+      'littlefinger://auth-callback?code=auth-code';
     const complete = jest.fn().mockResolvedValue('SIGNED_IN');
     const h = harness({
       completeKakaoSignIn: complete,
@@ -131,6 +133,24 @@ describe('모바일 루트 세션 게이트', () => {
 
     expect(complete).toHaveBeenCalledTimes(1);
     expect(complete).toHaveBeenCalledWith(callbackUrl);
+  });
+
+  test('이미 로그인돼 있으면 콜백 딥링크로 세션을 갈아끼우지 않는다', async () => {
+    // littlefinger:// 는 exported·BROWSABLE 이라 아무 웹페이지나 다른 앱이 이 URL 을
+    // 던질 수 있다. 세션이 있는데도 교환하면 공격자가 준 링크 한 번으로 피해자가 남의
+    // 계정에 로그인되고, 이후 만드는 약속과 증빙 사진이 그 계정에 쌓인다.
+    const complete = jest.fn().mockResolvedValue('SIGNED_IN');
+    const h = harness({
+      completeKakaoSignIn: complete,
+      getSession: jest.fn().mockResolvedValue(SESSION),
+    });
+
+    startMobileSessionGate(h.deps, h.events);
+    await flush();
+    h.urlListener?.('littlefinger://auth-callback?code=attacker-code');
+    await flush();
+
+    expect(complete).not.toHaveBeenCalled();
   });
 
   test('푸시 권한 거부·네트워크 오류는 로그인 라우팅을 막지 않는다', async () => {

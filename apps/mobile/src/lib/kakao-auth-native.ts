@@ -27,7 +27,7 @@ function liveKakaoAuthDeps(): KakaoAuthDeps {
   return {
     auth: {
       signInWithOAuth: (input) => client.auth.signInWithOAuth(input),
-      setSession: (tokens) => client.auth.setSession(tokens),
+      exchangeCodeForSession: (code) => client.auth.exchangeCodeForSession(code),
     },
     fetch: (input, init) => globalThis.fetch(input, init),
     functionUrl: getMobileFunctionUrl(ENDPOINT.userProvision),
@@ -39,7 +39,6 @@ function liveKakaoAuthDeps(): KakaoAuthDeps {
     },
     parseUrl: getQueryParams,
     redirectTo,
-    sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   };
 }
 

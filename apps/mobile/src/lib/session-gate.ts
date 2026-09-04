@@ -64,6 +64,12 @@ export function startMobileSessionGate(
 
     handledUrls.add(url);
     try {
+      // 이미 로그인돼 있으면 콜백 딥링크로 세션을 갈아끼우지 않는다. 정상 콜백은 언제나
+      // 세션이 없는 상태에서 돌아오므로 잃는 경로가 없고, 공격자가 만든 링크 한 번으로
+      // 피해자를 남의 계정에 밀어 넣는 세션 고정만 막힌다. 따뜻한 경로에서 signInWithKakao
+      // 가 먼저 교환을 끝낸 뒤 리스너가 같은 URL 로 또 부르는 중복 교환도 여기서 걸린다.
+      if ((await deps.getSession()) !== null) return;
+
       await deps.completeKakaoSignIn(url);
     } catch (error) {
       if (active) events.onCallbackError(error);

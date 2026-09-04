@@ -36,35 +36,33 @@ function deps() {
     data: { provider: 'kakao', url: 'https://project.supabase.co/auth/v1/authorize' },
     error: null,
   });
-  const setSession = jest.fn().mockResolvedValue({
+  const exchangeCodeForSession = jest.fn().mockResolvedValue({
     data: { session: SESSION, user: SESSION.user },
     error: null,
   });
-  const auth: MobileAuthClient = { signInWithOAuth, setSession };
+  const auth: MobileAuthClient = { signInWithOAuth, exchangeCodeForSession };
   const openAuthSession = jest.fn().mockResolvedValue({
     type: 'success',
-    url: 'littlefinger://auth-callback#access_token=access-token&refresh_token=refresh-token',
+    url: 'littlefinger://auth-callback?code=auth-code',
   });
   const fetch = jest.fn().mockResolvedValue(new Response(null, { status: 204 }));
-  const sleep = jest.fn().mockResolvedValue(undefined);
   const value: KakaoAuthDeps = {
     auth,
     fetch,
     functionUrl: 'https://project.supabase.co/functions/v1/user-provision',
     openAuthSession,
     parseUrl: () => ({
-      params: { access_token: 'access-token', refresh_token: 'refresh-token' },
+      params: { code: 'auth-code' },
       errorCode: null,
     }),
     redirectTo: 'littlefinger://auth-callback',
-    sleep,
   };
-  return { fetch, openAuthSession, setSession, signInWithOAuth, sleep, value };
+  return { exchangeCodeForSession, fetch, openAuthSession, signInWithOAuth, value };
 }
 
 describe('signInWithKakao', () => {
   test('OAuth 콜백을 세션으로 저장하고 APP 표면 프로비저닝을 호출한다', async () => {
-    // openAuthSessionAsync 뒤 setSession 이 빠지면 로그인 화면만 성공하고 앱 세션은 null 이다.
+    // openAuthSessionAsync 뒤 code 교환이 빠지면 로그인 화면만 성공하고 앱 세션은 null 이다.
     // 프로비저닝 호출이 빠지면 users.kakao_id 는 pending:* 으로 남는다.
     const d = deps();
 
@@ -81,10 +79,7 @@ describe('signInWithKakao', () => {
       'https://project.supabase.co/auth/v1/authorize',
       'littlefinger://auth-callback',
     );
-    expect(d.setSession).toHaveBeenCalledWith({
-      access_token: 'access-token',
-      refresh_token: 'refresh-token',
-    });
+    expect(d.exchangeCodeForSession).toHaveBeenCalledWith('auth-code');
     expect(d.fetch).toHaveBeenCalledWith(
       'https://project.supabase.co/functions/v1/user-provision',
       {
@@ -108,7 +103,7 @@ describe('signInWithKakao', () => {
 
     await expect(signInWithKakao(d.value)).resolves.toBe('CANCELED');
 
-    expect(d.setSession).not.toHaveBeenCalled();
+    expect(d.exchangeCodeForSession).not.toHaveBeenCalled();
     expect(d.fetch).not.toHaveBeenCalled();
   });
 });
@@ -126,10 +121,7 @@ describe('signInWithGoogle', () => {
         skipBrowserRedirect: true,
       },
     });
-    expect(d.setSession).toHaveBeenCalledWith({
-      access_token: 'access-token',
-      refresh_token: 'refresh-token',
-    });
+    expect(d.exchangeCodeForSession).toHaveBeenCalledWith('auth-code');
     expect(d.fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -139,7 +131,7 @@ describe('signInWithGoogle', () => {
 
     await expect(signInWithGoogle(d.value)).resolves.toBe('CANCELED');
 
-    expect(d.setSession).not.toHaveBeenCalled();
+    expect(d.exchangeCodeForSession).not.toHaveBeenCalled();
   });
 });
 
@@ -154,18 +146,18 @@ describe('OAuth 콜백 공통 경로', () => {
     await expect(
       completeKakaoSignIn('littlefinger://auth-callback?error=access_denied', d.value),
     ).resolves.toBe('NICKNAME_REQUIRED');
-    expect(d.setSession).not.toHaveBeenCalled();
+    expect(d.exchangeCodeForSession).not.toHaveBeenCalled();
   });
 
   test('프로비저닝 실패는 저장된 로그인 세션을 실패로 바꾸지 않는다', async () => {
-    // setSession 뒤 함수 호출은 별도 트랜잭션이다. 여기서 throw 하면 실제로 로그인된
+    // 교환 뒤 함수 호출은 별도 트랜잭션이다. 여기서 throw 하면 실제로 로그인된
     // 사용자에게 실패 화면을 보여 주고, 다음 탭에서 갑자기 로그인된 모순이 생긴다.
     const d = deps();
     d.fetch.mockRejectedValue(new TypeError('Failed to fetch'));
 
     await expect(signInWithKakao(d.value)).resolves.toBe('SIGNED_IN');
 
-    expect(d.setSession).toHaveBeenCalledTimes(1);
+    expect(d.exchangeCodeForSession).toHaveBeenCalledTimes(1);
     expect(d.fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -173,7 +165,7 @@ describe('OAuth 콜백 공통 경로', () => {
     // user_metadata 는 사용자가 바꿀 수 있다. 숫자·불리언을 그대로 보내면 함수가
     // E_VALIDATION 으로 거절하고 kakao_id 보정까지 놓친다.
     const d = deps();
-    d.setSession.mockResolvedValue({
+    d.exchangeCodeForSession.mockResolvedValue({
       data: {
         session: {
           ...SESSION,
@@ -193,33 +185,38 @@ describe('OAuth 콜백 공통 경로', () => {
     expect(JSON.parse(String(init.body))).toEqual({});
   });
 
-  test('세션 교환 실패는 1초·2초·4초 뒤 세 번 재시도한다', async () => {
-    // 첫 오류를 바로 사용자에게 보이면 일시적인 카카오 장애가 전부 로그인 실패가 된다.
-    // 반대로 네 번째 이후까지 호출하면 명세보다 오래 사용자를 붙잡는다.
+  test('교환 실패는 재시도하지 않고 그대로 올린다', async () => {
+    // PKCE 는 실패한 교환에서 auth-js 가 code_verifier 를 지운다. 여기서 EC-A02 식으로
+    // 다시 부르면 두 번째 호출은 반드시 "verifier 없음"으로 끝나, 사용자는 진짜 원인과
+    // 다른 오류를 보게 된다. 한 번만 부르고 실패를 그대로 올리는 것이 유일하게 맞다.
     const d = deps();
-    d.setSession
-      .mockReset()
-      .mockResolvedValueOnce({
-        data: { session: null, user: null },
-        error: new Error('temporary-1'),
-      })
-      .mockResolvedValueOnce({
-        data: { session: null, user: null },
-        error: new Error('temporary-2'),
-      })
-      .mockResolvedValueOnce({
-        data: { session: null, user: null },
-        error: new Error('temporary-3'),
-      })
-      .mockResolvedValueOnce({
-        data: { session: SESSION, user: SESSION.user },
-        error: null,
-      });
+    const failure = new Error('exchange-failed');
+    d.exchangeCodeForSession.mockResolvedValue({
+      data: { session: null, user: null },
+      error: failure,
+    });
 
-    await expect(signInWithKakao(d.value)).resolves.toBe('SIGNED_IN');
+    await expect(signInWithKakao(d.value)).rejects.toBe(failure);
 
-    expect(d.setSession).toHaveBeenCalledTimes(4);
-    expect(d.sleep.mock.calls).toEqual([[1000], [2000], [4000]]);
+    expect(d.exchangeCodeForSession).toHaveBeenCalledTimes(1);
+    expect(d.fetch).not.toHaveBeenCalled();
+  });
+
+  test('콜백에 code 가 없으면 토큰이 실려 있어도 세션을 만들지 않는다', async () => {
+    // implicit 으로 되돌아가거나 공격자가 만든 access_token/refresh_token 딥링크가
+    // 들어와도 교환 경로를 타지 않는다는 것을 고정한다.
+    const d = deps();
+    d.value.parseUrl = () => ({
+      params: { access_token: 'stolen', refresh_token: 'stolen' },
+      errorCode: null,
+    });
+
+    await expect(
+      completeKakaoSignIn('littlefinger://auth-callback#access_token=stolen', d.value),
+    ).rejects.toThrow('OAuth callback code is missing.');
+
+    expect(d.exchangeCodeForSession).not.toHaveBeenCalled();
+    expect(d.fetch).not.toHaveBeenCalled();
   });
 
   test('콜드 스타트 딥링크는 OAuth를 다시 열지 않고 세션을 완성한다', async () => {
@@ -227,13 +224,13 @@ describe('OAuth 콜백 공통 경로', () => {
     // URL 처리 진입점이 없으면 사용자는 카카오 동의 뒤 다시 로그인 화면을 본다.
     const d = deps();
     const callbackUrl =
-      'littlefinger://auth-callback#access_token=access-token&refresh_token=refresh-token';
+      'littlefinger://auth-callback?code=auth-code';
 
     await expect(completeKakaoSignIn(callbackUrl, d.value)).resolves.toBe('SIGNED_IN');
 
     expect(d.signInWithOAuth).not.toHaveBeenCalled();
     expect(d.openAuthSession).not.toHaveBeenCalled();
-    expect(d.setSession).toHaveBeenCalledTimes(1);
+    expect(d.exchangeCodeForSession).toHaveBeenCalledTimes(1);
     expect(d.fetch).toHaveBeenCalledTimes(1);
   });
 });

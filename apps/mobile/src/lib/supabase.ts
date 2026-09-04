@@ -18,6 +18,7 @@ interface MobileClientOptions {
     autoRefreshToken?: boolean;
     persistSession?: boolean;
     detectSessionInUrl?: boolean;
+    flowType?: 'pkce' | 'implicit';
     lock?: typeof processLock;
   };
 }
@@ -78,6 +79,11 @@ export function createMobileSupabaseClient(deps: MobileSupabaseClientDeps): Supa
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
+      // 커스텀 스킴(littlefinger://)은 어느 앱이나 같이 등록할 수 있어 콜백이 가로채진다.
+      // implicit 이면 그 콜백에 refresh_token 까지 실려 계정을 통째로 넘겨주는 셈이다.
+      // PKCE 면 가로채도 code 뿐이고, code_verifier 는 이 앱의 암호화 저장소에만 있다.
+      // auth-js 기본값이 implicit 이라 명시하지 않으면 되돌아간다(웹은 이미 pkce).
+      flowType: 'pkce',
       lock: processLock,
     },
   });

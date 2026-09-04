@@ -8,9 +8,11 @@ import {
 } from './supabase.ts';
 
 describe('createMobileSupabaseClient', () => {
-  test('암호화 저장소로 세션을 지속하고 URL 자동 감지는 끈다', () => {
+  test('암호화 저장소로 세션을 지속하고 URL 자동 감지는 끄며 PKCE 로 고정한다', () => {
     // storage 가 빠지면 재실행 때 세션이 사라지고, detectSessionInUrl 이 켜지면 window 가
     // 없는 네이티브에서 웹 콜백 파서를 타게 된다.
+    // flowType 이 빠지면 auth-js 기본값 implicit 으로 되돌아가, 커스텀 스킴 콜백에
+    // refresh_token 이 실려 같은 스킴을 등록한 앱에 계정이 통째로 넘어간다.
     const client = { auth: {} } as SupabaseClient;
     const createClient = jest.fn().mockReturnValue(client);
     const storage = {
@@ -38,6 +40,7 @@ describe('createMobileSupabaseClient', () => {
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: false,
+          flowType: 'pkce',
           lock: expect.any(Function),
         },
       },

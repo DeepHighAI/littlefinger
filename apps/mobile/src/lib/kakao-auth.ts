@@ -1,4 +1,3 @@
-import { AUTH_SESSION_RETRY_DELAYS_MS } from '@littlefinger/shared';
 import type { Session, User } from '@supabase/supabase-js';
 
 interface OAuthResponse {
@@ -6,7 +5,7 @@ interface OAuthResponse {
   error: Error | null;
 }
 
-interface SetSessionResponse {
+interface AuthSessionResponse {
   data: { session: Session | null; user: User | null };
   error: Error | null;
 }
@@ -18,7 +17,7 @@ export interface MobileAuthClient {
     provider: MobileOAuthProvider;
     options: { redirectTo: string; skipBrowserRedirect: true };
   }): Promise<OAuthResponse>;
-  setSession(tokens: { access_token: string; refresh_token: string }): Promise<SetSessionResponse>;
+  exchangeCodeForSession(code: string): Promise<AuthSessionResponse>;
 }
 
 export interface KakaoAuthDeps {
@@ -34,7 +33,6 @@ export interface KakaoAuthDeps {
     errorCode: string | null;
   };
   redirectTo: string;
-  sleep(ms: number): Promise<void>;
 }
 
 export type KakaoSignInResult = 'SIGNED_IN' | 'CANCELED' | 'NICKNAME_REQUIRED';
@@ -51,26 +49,18 @@ export async function completeKakaoSignIn(
     }
     throw new Error(errorCode);
   }
-  const accessToken = params['access_token'];
-  const refreshToken = params['refresh_token'];
-  if (accessToken === undefined || refreshToken === undefined) {
-    throw new Error('Kakao OAuth callback tokens are missing.');
+  // PKCE 콜백은 토큰이 아니라 1회용 code 만 싣고 온다. 가로챈 쪽은 code_verifier 가 없어
+  // 교환에 실패하고, 우리 쪽은 프로세스가 죽었다 살아나도 저장소의 verifier 로 이어받는다.
+  const code = params['code'];
+  if (code === undefined) {
+    throw new Error('OAuth callback code is missing.');
   }
 
-  let sessionResult = await deps.auth.setSession({
-    access_token: accessToken,
-    refresh_token: refreshToken,
-  });
-  for (const delayMs of AUTH_SESSION_RETRY_DELAYS_MS) {
-    if (sessionResult.error === null) break;
-    await deps.sleep(delayMs);
-    sessionResult = await deps.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-  }
-
-  const { data: sessionData, error: sessionError } = sessionResult;
+  // 재시도하지 않는다. auth-js 는 교환이 실패하면 code_verifier 를 지우므로(EC-A02 의
+  // 1·2·4초 재시도는 setSession 시절 이야기다) 두 번째 호출은 반드시 verifier 누락으로
+  // 끝나고, 사용자에게는 원인과 다른 오류만 보인다. 실패하면 로그인부터 다시 한다.
+  const { data: sessionData, error: sessionError } =
+    await deps.auth.exchangeCodeForSession(code);
   if (sessionError !== null) throw sessionError;
   if (sessionData.session === null) throw new Error('Supabase session is missing.');
 
