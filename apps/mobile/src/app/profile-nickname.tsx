@@ -58,11 +58,9 @@ export default function ProfileNicknameScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen}>
       <LfAppBar
         title={LABEL.title}
-        leading={(
-          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.back} style={styles.iconButton} onPress={() => router.back()}>
-            <LfIcon name="arrow_back" />
-          </Pressable>
-        )}
+        leading="back"
+        leadingAccessibilityLabel={LABEL.back}
+        onLeadingPress={() => router.back()}
       />
       <View style={styles.body}>
         <LfField label={LABEL.field} required {...(error === undefined ? {} : { error })}>

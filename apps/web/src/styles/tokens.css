@@ -132,6 +132,7 @@
   --lf-line-headline:   34px;
   --lf-line-title:      32px;
   --lf-line-card-title: 26px;
+  --lf-line-body-strong: 20px;
   --lf-line-hero-dday:  50px;
   --lf-line-body:       22px;
   --lf-line-caption:    18px;
@@ -212,6 +213,7 @@
   --lf-chip-meta-height:   30px;
   --lf-chip-status-height: 28px;
   --lf-input-height:  48px;
+  --lf-textarea-min-height: 80px;
   --lf-card-padding:  18px;
   --lf-bottom-nav-content-height: 64px;
   --lf-center-fab: 54px;

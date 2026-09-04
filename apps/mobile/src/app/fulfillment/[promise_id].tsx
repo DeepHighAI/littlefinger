@@ -184,20 +184,6 @@ function promiseIdOf(value: string | string[] | undefined): string | null {
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
-function BackButton({ onPress }: { onPress(): void }): React.JSX.Element {
-  const LABEL = useLabels(SCR_A06_LABEL);
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={LABEL.back}
-      onPress={onPress}
-      style={styles.back}
-    >
-      <LfIcon name="arrow_back" />
-    </Pressable>
-  );
-}
-
 function ScreenFrame({
   onBack,
   children,
@@ -210,7 +196,9 @@ function ScreenFrame({
     <SafeAreaView style={styles.screen}>
       <LfAppBar
         title={LABEL.title}
-        leading={<BackButton onPress={onBack} />}
+        leading="back"
+        leadingAccessibilityLabel={LABEL.back}
+        onLeadingPress={onBack}
       />
       {children}
     </SafeAreaView>
@@ -406,13 +394,13 @@ function ClaimCard({ check }: { check: FulfillmentCheckView }): React.JSX.Elemen
       <View style={styles.claim}>
         <LfRow>
           <View style={styles.answerText}>
-            <LfText variant="sectionTitle">
+            <LfText variant="eyebrow">
               {LABEL.role(check.role)}
             </LfText>
           </View>
           <LfChip
             label={LABEL.answer[check.answer]}
-            tone="status"
+            tone="yellow"
           />
         </LfRow>
         <LfText>
@@ -466,7 +454,7 @@ function RoundHistory({ round }: { round: FulfillmentRoundView }): React.JSX.Ele
   const LABEL = useLabels(SCR_A06_LABEL);
   return (
     <LfStack gap={4}>
-      <LfText variant="sectionTitle">
+      <LfText variant="eyebrow">
         {LABEL.roundHistory(round.round_no)}
       </LfText>
       {round.creator_check !== null && <ClaimCard check={round.creator_check} />}
@@ -943,7 +931,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
         </LfCard>
 
         {actionMessage !== null && (
-          <LfCard variant="container">
+          <LfCard tone="yellow">
             <LfText align="center">{actionMessage}</LfText>
           </LfCard>
         )}
@@ -1050,7 +1038,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
               )}
             </LfField>
             {canAnswer && counterpartHasSubmitted && (
-              <LfCard variant="container">
+              <LfCard tone="yellow">
                 <LfText align="center">{LABEL.counterpartFirst}</LfText>
               </LfCard>
             )}
@@ -1059,7 +1047,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
 
         {isChecking && detail.my_check !== null && !editing && (
           <LfStack gap={5}>
-            <LfCard variant="container">
+            <LfCard tone="yellow">
               <LfText align="center">{LABEL.waiting}</LfText>
             </LfCard>
             <ClaimCard check={detail.my_check} />
@@ -1085,15 +1073,15 @@ export default function FulfillmentScreen(): React.JSX.Element {
             <View style={styles.statusCard}>
               <LfChip
                 label={LABEL.status(detail.status)}
-                tone="status"
+                tone="yellow"
               />
             </View>
             {detail.status === 'DISPUTED' && (
-              <LfCard variant="container">
+              <LfCard tone="yellow">
                 <LfText align="center">{LABEL.disputed}</LfText>
               </LfCard>
             )}
-            <LfText variant="sectionTitle">
+            <LfText variant="eyebrow">
               {LABEL.currentResult}
             </LfText>
             {isUnresolved

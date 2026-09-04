@@ -13,13 +13,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LfAdSlot } from '../components/LfAdSlot';
 import { LfBannerAd } from '../components/LfBannerAd.tsx';
 import { LfAppBar } from '../components/LfAppBar';
-import { LfBottomNav } from '../components/LfBottomNav';
+import { LfAvatarButton } from '../components/LfAvatarButton';
+import { LfBottomFade } from '../components/LfBottomFade';
 import { LfButton } from '../components/LfButton';
 import { LfChip } from '../components/LfChip';
-import { LfDoodle, LfDoodleLayer } from '../components/LfDoodle';
 import { LfEmpty } from '../components/LfEmpty';
+import { LfFab } from '../components/LfFab';
 import { LfHero } from '../components/LfHero';
 import { LfIcon } from '../components/LfIcon';
+import { LfIconButton } from '../components/LfIconButton';
 import { PromiseListRow } from '../components/PromiseListRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
@@ -32,6 +34,7 @@ import { loadTrustProfile } from '../lib/trust-profile-native.ts';
 import { createInitialHomeState, promiseHomeReducer } from '../screens/scr-a02-home-state.ts';
 import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
 import { homeListItemsOf } from '../screens/scr-a02-home-rows.ts';
+import { MOBILE_CHROME_LABEL } from '../screens/mobile-chrome-labels.ts';
 import { colors, gutter, radius, size, space } from '../theme/tokens';
 
 // 홈은 진행·대기 두 탭만 가진다(PO 2026-08-26, ADR 0011). 종결은 SCR-A09 히스토리의 몫이다.
@@ -41,7 +44,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   body: { flex: 1, backgroundColor: colors.background },
   list: { backgroundColor: colors.background },
-  content: { flexGrow: 1, paddingBottom: space[9] },
+  // 큰 글꼴에서도 마지막 행을 고정 FAB 위까지 올릴 수 있어야 한다.
+  content: { flexGrow: 1, paddingBottom: size.fadeHeight },
   greeting: {
     paddingHorizontal: gutter.app,
     paddingTop: space[7],
@@ -73,7 +77,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: gutter.app },
-  empty: { minHeight: size.bottomNavContentHeight * 3, paddingVertical: space[9] },
+  empty: { minHeight: size.heroBlobHeight, paddingVertical: space[9] },
   iconButton: {
     minWidth: size.touchMin,
     minHeight: size.touchMin,
@@ -82,6 +86,7 @@ const styles = StyleSheet.create({
   },
   footer: { gap: space[6], paddingHorizontal: gutter.app, paddingTop: space[8] },
   pageFooter: { paddingVertical: space[7] },
+  appBarActions: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
 });
 
 function partiesOf(item: PromiseHomeCard, partnerFallback: string): string {
@@ -94,11 +99,13 @@ export interface HomeScreenProps {
 
 export default function HomeScreen({ now = new Date() }: HomeScreenProps): React.JSX.Element {
   const LABEL = useLabels(SCR_A02_LABEL);
+  const CHROME = useLabels(MOBILE_CHROME_LABEL);
   const { locale } = useLocale();
   const router = useRouter();
   const [state, dispatch] = useReducer(promiseHomeReducer, undefined, createInitialHomeState);
   const [adsEnabled, setAdsEnabled] = useState(false);
   const [trustRate, setTrustRate] = useState<number | null | undefined>(undefined);
+  const [profileNickname, setProfileNickname] = useState<string | null>(null);
   const stateRef = useRef(state);
   const nextRequestId = useRef(0);
   const loadingTabs = useRef(new Set<PromiseHomeTab>());
@@ -112,7 +119,10 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
     });
     void loadTrustProfile()
       .then((profile) => {
-        if (active) setTrustRate(profile.keep_rate);
+        if (active) {
+          setTrustRate(profile.keep_rate);
+          setProfileNickname(profile.nickname);
+        }
       })
       .catch(() => {
         // 지킴율 보조 정보 실패가 핵심 약속 목록을 가리면 안 된다.
@@ -285,7 +295,7 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
               style={styles.tab}
               onPress={() => dispatch({ type: 'TAB_SELECTED', tab })}
             >
-              <LfChip label={label} tone={active ? 'ink' : 'outline'} size="md" />
+              <LfChip label={label} tone="paper" kind="filter" selected={active} />
             </Pressable>
           );
         })}
@@ -303,8 +313,8 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
             meta={hero.end_date === null
               ? LABEL.noEndDate
               : LABEL.endDate(formatKstDate(hero.end_date, locale))}
-            actionLabel={hero.needs_response ? LABEL.answerFulfillment : LABEL.viewPromise}
-            onAction={() => openPromise(hero)}
+            accessibilityLabel={hero.needs_response ? LABEL.answerFulfillment : LABEL.viewPromise}
+            onPress={() => openPromise(hero)}
           />
         </View>
       )}
@@ -327,30 +337,30 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
     <View style={styles.footer}>
       {pageFooter}
       {trustRate !== undefined && (
-        <LfTrustStrip rate={trustRate} onPress={() => router.replace('/profile')} />
+        <LfTrustStrip rate={trustRate} onPress={() => router.push('/profile')} />
       )}
       <LfAdSlot enabled={adsEnabled} />
     </View>
   );
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
-      <LfDoodleLayer>
-        <LfDoodle placement="sparkle-home-tr" />
-        <LfDoodle placement="sparkle-home-bl" />
-      </LfDoodleLayer>
+    <SafeAreaView style={styles.screen}>
       <LfAppBar
         title={LABEL.brand}
         brand
-        action={(
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={LABEL.notifications}
-            style={styles.iconButton}
-            onPress={() => router.push('/notifications')}
-          >
-            <LfIcon name="notifications" size={size.appbarIcon} />
-          </Pressable>
+        actions={(
+          <View style={styles.appBarActions}>
+            <LfIconButton
+              icon="notifications"
+              accessibilityLabel={LABEL.notifications}
+              onPress={() => router.push('/notifications')}
+            />
+            <LfAvatarButton
+              nickname={profileNickname ?? CHROME.profile}
+              accessibilityLabel={CHROME.profile}
+              onPress={() => router.push('/profile')}
+            />
+          </View>
         )}
       />
       <View style={styles.body}>
@@ -403,12 +413,8 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
           />
         )}
       </View>
-      <LfBottomNav
-        active="home"
-        onHomePress={() => undefined}
-        onCreatePress={() => router.push('/promise/edit')}
-        onProfilePress={() => router.replace('/profile')}
-      />
+      <LfBottomFade />
+      <LfFab label={CHROME.create} onPress={() => router.push('/promise/edit')} />
     </SafeAreaView>
   );
 }

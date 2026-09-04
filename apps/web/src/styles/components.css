@@ -667,7 +667,7 @@
 
 .lf-card__title {
   font-size: var(--lf-type-body-size);
-  line-height: 20px;
+  line-height: var(--lf-line-body-strong);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
@@ -1052,7 +1052,7 @@
 .lf-outcome__value {
   margin-top: var(--lf-space-2);
   font-size: var(--lf-type-label-size);
-  line-height: 20px;
+  line-height: var(--lf-line-body-strong);
   font-weight: var(--lf-weight-bold);
 }
 
@@ -1120,7 +1120,7 @@
 
 .lf-textarea {
   height: auto;
-  min-height: 80px;
+  min-height: var(--lf-textarea-min-height);
   padding: var(--lf-space-5) var(--lf-space-6);
   resize: none;
   font-size: var(--lf-type-label-size);
@@ -1323,7 +1323,7 @@
 
 .lf-list-item__headline {
   font-size: var(--lf-type-label-size);
-  line-height: 20px;
+  line-height: var(--lf-line-body-strong);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
@@ -1607,7 +1607,7 @@
 .lf-compare__value {
   margin-top: var(--lf-space-1);
   font-size: var(--lf-type-label-size);
-  line-height: 20px;
+  line-height: var(--lf-line-body-strong);
   color: var(--lf-color-text);
 }
 

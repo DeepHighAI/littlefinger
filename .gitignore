@@ -7,7 +7,7 @@
 !apps/mobile/assets/images/*.png
 !apps/web/src/assets/images/*.png
 !docs/디자인/icon-proposals/*.png
-!docs/디자인/store/store-icon-512.png
+!docs/디자인/store/**/*.png
 
 # 빌드·테스트 산출물
 dist/

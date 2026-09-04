@@ -9,11 +9,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useLabels, useLocale } from '../lib/locale-native';
 import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
-import { colors, gutter, radius, space } from '../theme/tokens';
+import { statusToneOf } from '../screens/status-tone';
+import { gutter, space } from '../theme/tokens';
 import { LfButton } from './LfButton';
 import { LfCard } from './LfCard';
 import { LfChip } from './LfChip';
 import { LfRow } from './LfRow';
+import { LfStatusDot } from './LfStatusDot';
 import { LfText } from './LfText';
 
 export interface PromiseListRowProps {
@@ -23,49 +25,6 @@ export interface PromiseListRowProps {
   onDelete?: (item: PromiseHomeCard) => void;
 }
 
-// 잉크 테두리 스티커 카드 행 (.lf-home__row) + 라벤더 원형 D-Day 뱃지 (ADR 0012)
-const ROW_BORDER_WIDTH = 2.2;
-const DDAY_BADGE_SIZE = 46;
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[5],
-    paddingVertical: space[6],
-    paddingHorizontal: space[7],
-    marginHorizontal: gutter.app,
-    marginBottom: space[5],
-    borderWidth: ROW_BORDER_WIDTH,
-    borderColor: colors.text,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-  },
-  responseContainer: { paddingHorizontal: gutter.app, paddingVertical: space[3] },
-  containedRow: {
-    paddingHorizontal: 0,
-    paddingVertical: 0,
-    marginHorizontal: 0,
-    marginBottom: 0,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-  },
-  main: { flex: 1, gap: space[2] },
-  response: { marginTop: space[3], gap: space[3] },
-  dday: {
-    minWidth: DDAY_BADGE_SIZE,
-    height: DDAY_BADGE_SIZE,
-    paddingHorizontal: space[2],
-    borderRadius: radius.pill,
-    backgroundColor: colors.rewardContainer,
-    borderWidth: ROW_BORDER_WIDTH,
-    borderColor: colors.text,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-
-/** 스티커 카드 행 (ADR 0012). 상태는 색뿐 아니라 텍스트로 항상 드러낸다. */
 export function PromiseListRow({
   item,
   now,
@@ -77,71 +36,83 @@ export function PromiseListRow({
   const { locale } = useLocale();
   const partnerName = item.partner?.nickname ?? LABEL.partnerFallback;
   const needsResponse = item.status === 'CHECKING' && item.needs_response;
-  const content = (
-    <View style={[styles.row, needsResponse && styles.containedRow]}>
+  const tone = statusToneOf(item.status);
+  const copy = (
+    <View style={needsResponse ? styles.response : styles.row}>
+      <LfStatusDot tone={tone} />
       <View style={styles.main}>
-        <LfText variant="listTitle">{item.title}</LfText>
+        <LfText variant="bodyStrong">{item.title}</LfText>
         <LfRow gap={2} wrap>
-          <LfText variant="listStatus">{STATUS_LABEL[item.status]}</LfText>
-          {item.end_date !== null && (
-            <>
-              <LfText variant="listMeta">·</LfText>
-              <LfText variant="listMeta">
-                {LABEL.endDate(formatKstDate(item.end_date, locale))}
-              </LfText>
-            </>
+          <LfText variant="meta">{STATUS_LABEL[item.status]}</LfText>
+          {item.end_date === null ? null : (
+            <LfText variant="meta">{LABEL.endDate(formatKstDate(item.end_date, locale))}</LfText>
           )}
-          <LfText variant="listMeta">·</LfText>
-          <LfText variant="listMeta">
-            {LABEL.parties(item.creator.nickname, partnerName)}
-          </LfText>
-          {item.has_witness && <LfChip label={LABEL.witness} tone="neutral" />}
+          <LfText variant="meta">{LABEL.parties(item.creator.nickname, partnerName)}</LfText>
+          {item.has_witness ? <LfChip label={LABEL.witness} tone="paper" kind="meta" /> : null}
         </LfRow>
-        {needsResponse && (
-          <View style={styles.response}>
-            <LfText variant="sectionTitle">{LABEL.needsResponse}</LfText>
-            <LfButton label={LABEL.answerFulfillment} onPress={() => onOpen(item)} block />
-          </View>
-        )}
-        {(item.status === 'DRAFT' || item.status === 'PENDING') && onDelete !== undefined && (
-          <LfButton
-            accessibilityLabel={
-              item.status === 'DRAFT'
-                ? LABEL.deleteDraft(item.title)
-                : LABEL.deletePending(item.title)
-            }
-            label={LABEL.delete}
-            variant="text"
-            onPress={() => onDelete(item)}
-          />
-        )}
       </View>
-      {item.end_date !== null && (
-        <View style={styles.dday}>
-          <LfText variant="dday">{formatDday(ddayFrom(item.end_date, now))}</LfText>
-        </View>
-      )}
+      {!needsResponse && item.end_date !== null ? (
+        <LfChip
+          label={formatDday(ddayFrom(item.end_date, now))}
+          tone="cream"
+          kind="meta"
+        />
+      ) : null}
+      {needsResponse ? (
+        <LfButton
+          accessibilityLabel={LABEL.answerFulfillment}
+          label={LABEL.answerFulfillment}
+          variant="outlined"
+          size="compact"
+          trailing="arrow_forward"
+          trailingBorder={false}
+          onPress={() => onOpen(item)}
+          block
+        />
+      ) : null}
+      {(item.status === 'DRAFT' || item.status === 'PENDING') && onDelete !== undefined ? (
+        <LfButton
+          accessibilityLabel={
+            item.status === 'DRAFT'
+              ? LABEL.deleteDraft(item.title)
+              : LABEL.deletePending(item.title)
+          }
+          label={LABEL.delete}
+          variant="text"
+          onPress={() => onDelete(item)}
+        />
+      ) : null}
     </View>
   );
 
-  // 내부 CTA와 중첩 Pressable을 만들지 않는다.
-  if (needsResponse) {
-    return (
-      <View style={styles.responseContainer}>
-        <LfCard testID={`promise-response-${item.promise_id}`} variant="emphasis">
-          {content}
-        </LfCard>
-      </View>
-    );
-  }
+  const card = (
+    <LfCard
+      testID={needsResponse ? `promise-response-${item.promise_id}` : undefined}
+      tone={needsResponse ? 'pink' : 'paper'}
+      shape="list"
+    >
+      {copy}
+    </LfCard>
+  );
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={LABEL.open(item.title)}
-      onPress={() => onOpen(item)}
-    >
-      {content}
-    </Pressable>
+    <View style={styles.container}>
+      {needsResponse ? card : (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={LABEL.open(item.title)}
+          onPress={() => onOpen(item)}
+        >
+          {card}
+        </Pressable>
+      )}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { marginHorizontal: gutter.app, marginBottom: space[5] },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
+  response: { gap: space[4] },
+  main: { flex: 1, gap: space[2] },
+});

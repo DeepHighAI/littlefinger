@@ -858,7 +858,7 @@ describe('서버 전용 경계와 배포 설정', () => {
 
   test('can_read_promise 는 RLS 가 부르므로 authenticated 에게 열려 있어야 한다', async () => {
     const { rows } = await db.asAdmin(
-      `select pg_catalog.has_function_privilege('authenticated', 'public.can_read_promise(uuid)', 'execute') ok`,
+      `select pg_catalog.has_function_privilege('authenticated', 'private.can_read_promise(uuid)', 'execute') ok`,
     );
     expect(rows[0]).toEqual({ ok: true });
   });

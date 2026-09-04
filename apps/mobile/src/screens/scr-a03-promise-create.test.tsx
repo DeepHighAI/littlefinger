@@ -113,7 +113,9 @@ describe('SCR-A03 3단계 약속 작성', () => {
   test('첫 단계에는 내용 필드만 보이고 진행률·임시저장·다음 행동을 제공한다', async () => {
     const view = await render(<PromiseEditorScreen />);
     await settle();
-    expect(view.getAllByText('내용').length).toBeGreaterThan(0);
+    // 고정 헤더에는 프로그레스 라벨만 남고, 같은 단계 제목·설명은 반복하지 않는다.
+    expect(view.getAllByText('내용')).toHaveLength(1);
+    expect(view.queryByText('함께 지킬 약속을 분명하게 적어주세요')).toBeNull();
     expect(view.getByLabelText('제목')).toBeTruthy();
     expect(view.getByLabelText('약속 내용')).toBeTruthy();
     expect(view.getByRole('button', { name: '습관' })).toBeTruthy();
@@ -138,6 +140,10 @@ describe('SCR-A03 3단계 약속 작성', () => {
     expect(view.queryByRole('button', { name: '종료일 없이 계속' })).toBeNull();
     expect(view.getByRole('button', { name: '작성자' })).toBeTruthy();
     expect(view.getByLabelText('보상')).toBeTruthy();
+    expect(view.getAllByRole('button', { name: '스벅쏘기' })).toHaveLength(2);
+    expect(view.getAllByRole('button', { name: '올영쏘기' })).toHaveLength(2);
+    expect(view.getAllByRole('button', { name: '만원' })).toHaveLength(2);
+    expect(view.getByRole('button', { name: '나의 노예가 되어라' })).toBeTruthy();
     expect(view.queryByLabelText('제목')).toBeNull();
   });
 
@@ -165,6 +171,7 @@ describe('SCR-A03 3단계 약속 작성', () => {
     await fireEvent.press(view.getByRole('button', { name: '내용 확인하기' }));
 
     expect(view.getByRole('progressbar').props.accessibilityValue).toMatchObject({ now: 3, text: '확인' });
+    expect(view.getAllByText('확인')).toHaveLength(1);
     expect(view.getByText('상대가 승인하면 이 내용으로 확정돼요.')).toBeTruthy();
     expect(view.getByRole('button', { name: '약속 내용 수정' })).toBeTruthy();
     expect(view.getByRole('button', { name: '약속 조건 수정' })).toBeTruthy();

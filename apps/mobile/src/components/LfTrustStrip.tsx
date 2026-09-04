@@ -4,7 +4,7 @@ import { useLabels } from '../lib/locale-native';
 import { MOBILE_CHROME_LABEL } from '../screens/mobile-chrome-labels.ts';
 import { colors, radius, size, space } from '../theme/tokens';
 import { LfIcon } from './LfIcon';
-import { LfPinky } from './LfPinky';
+import { LfMascotFace } from './LfMascot';
 import { LfText } from './LfText';
 
 export interface LfTrustStripProps {
@@ -37,9 +37,9 @@ export function LfTrustStrip({ rate, onPress }: LfTrustStripProps): React.JSX.El
       style={styles.root}
       onPress={onPress}
     >
-      <LfPinky size="xs" />
+      <LfMascotFace size="sm" />
       <View style={styles.copy}>
-        <LfText variant="listStatus">{LABEL.trustRate}</LfText>
+        <LfText variant="chip">{LABEL.trustRate}</LfText>
         <LfText variant="caption">{summary}</LfText>
       </View>
       <LfIcon name="arrow_forward" color="textMuted" />

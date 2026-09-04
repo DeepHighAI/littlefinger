@@ -9,7 +9,7 @@ import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import { deletePendingPromise } from '../lib/invite-native.ts';
 import { LocaleProvider } from '../lib/locale-native.tsx';
 import { loadTrustProfile } from '../lib/trust-profile-native.ts';
-import { colors } from '../theme/tokens.ts';
+import { colors, size } from '../theme/tokens.ts';
 
 const mockFocusEffects = new Set<() => undefined | (() => void)>();
 function triggerFocus(): void {
@@ -117,8 +117,10 @@ describe('SCR-A02 Soft Promise 홈', () => {
     expect(view.getByRole('tab', { name: '대기 2' })).toBeTruthy();
     expect(view.queryByRole('tab', { name: /완료/u })).toBeNull();
     expect(view.getByRole('button', { name: '지난 약속 히스토리 보기' })).toBeTruthy();
-    expect(view.getByRole('button', { name: '작성' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '약속 만들기' })).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
+    const list = view.getByTestId('home-list');
+    expect(StyleSheet.flatten(list.props.contentContainerStyle).paddingBottom).toBe(size.fadeHeight);
   });
 
   test('대기 탭은 초안·대기 목록을 읽고 두 상태 모두 삭제 진입점을 준다', async () => {
@@ -247,15 +249,18 @@ describe('SCR-A02 Soft Promise 홈', () => {
     expect(view.queryByText(/\([월화수목금토일]\)/u)).toBeNull();
   });
 
-  test('히스토리·지킴율·하단 목적지는 각각 올바른 경로를 연다', async () => {
+  test('히스토리·지킴율·앱바 프로필·플로팅 CTA는 각각 올바른 경로를 연다', async () => {
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
     await fireEvent.press(view.getByRole('button', { name: '지난 약속 히스토리 보기' }));
     await fireEvent.press(view.getByRole('button', { name: '지금까지 약속의 87%를 지켰어요' }));
-    await fireEvent.press(view.getByRole('tab', { name: '마이' }));
+    await fireEvent.press(view.getByRole('button', { name: '마이' }));
+    await fireEvent.press(view.getByRole('button', { name: '약속 만들기' }));
     expect(push).toHaveBeenCalledWith('/history');
-    expect(replace).toHaveBeenNthCalledWith(1, '/profile');
-    expect(replace).toHaveBeenNthCalledWith(2, '/profile');
+    expect(push).toHaveBeenNthCalledWith(2, '/profile');
+    expect(push).toHaveBeenNthCalledWith(3, '/profile');
+    expect(push).toHaveBeenCalledWith('/promise/edit');
+    expect(replace).not.toHaveBeenCalled();
   });
 
   test('광고 플래그가 true일 때만 실제 슬롯을 렌더한다', async () => {

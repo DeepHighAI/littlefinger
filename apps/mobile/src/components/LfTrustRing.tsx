@@ -11,40 +11,32 @@ import Svg, { Circle } from 'react-native-svg';
 
 import { useLabels } from '../lib/locale-native';
 import { MOBILE_CHROME_LABEL } from '../screens/mobile-chrome-labels.ts';
-import { colors, duration, easing, size as sizeToken, space } from '../theme/tokens';
+import { colors, border, duration, easing, size } from '../theme/tokens';
 import { LfStack } from './LfStack';
 import { LfText } from './LfText';
 
-export type LfTrustRingSize = 'sm' | 'lg';
-
 export interface LfTrustRingProps {
   rate: number | null;
-  size?: LfTrustRingSize;
   testID?: string;
 }
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const STROKE_WIDTH = space[1];
+const CENTER = size.trustRing / 2;
+const PROGRESS_RADIUS = CENTER - size.trustRingStroke / 2 - border.pending;
+const OUTER_INK_RADIUS = CENTER - border.pending;
+const INNER_INK_RADIUS = PROGRESS_RADIUS - size.trustRingStroke / 2;
+const CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
 
 export function trustRingDuration(reduceMotion: boolean): number {
   return reduceMotion ? 0 : duration.long;
 }
 
-function diameterOf(size: LfTrustRingSize): number {
-  return size === 'sm'
-    ? sizeToken.bottomNavContentHeight
-    : sizeToken.bottomNavContentHeight + space[8] + space[5];
-}
-
-export function LfTrustRing({ rate, size = 'lg', testID }: LfTrustRingProps): React.JSX.Element {
+export function LfTrustRing({ rate, testID }: LfTrustRingProps): React.JSX.Element {
   const LABEL = useLabels(MOBILE_CHROME_LABEL);
   const reduceMotion = useReducedMotion();
   const clampedRate = rate === null ? null : Math.min(100, Math.max(0, rate));
   const normalized = clampedRate === null ? 0 : clampedRate / 100;
   const progress = useSharedValue(reduceMotion ? normalized : 0);
-  const diameter = diameterOf(size);
-  const ringRadius = diameter / 2 - STROKE_WIDTH;
-  const circumference = 2 * Math.PI * ringRadius;
 
   useEffect(() => {
     const motionDuration = trustRingDuration(reduceMotion);
@@ -57,7 +49,7 @@ export function LfTrustRing({ rate, size = 'lg', testID }: LfTrustRingProps): Re
   }, [normalized, progress, reduceMotion]);
 
   const animatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: circumference * (1 - progress.value),
+    strokeDashoffset: CIRCUMFERENCE * (1 - progress.value),
   }));
 
   return (
@@ -69,35 +61,41 @@ export function LfTrustRing({ rate, size = 'lg', testID }: LfTrustRingProps): Re
       accessibilityValue={clampedRate === null
         ? { text: LABEL.trustPending }
         : { min: 0, max: 100, now: clampedRate }}
-      style={{ width: diameter, height: diameter }}
+      style={styles.root}
     >
-      <Svg width={diameter} height={diameter} style={StyleSheet.absoluteFill}>
+      <Svg width={size.trustRing} height={size.trustRing} style={StyleSheet.absoluteFill}>
         <Circle
-          cx={diameter / 2}
-          cy={diameter / 2}
-          r={ringRadius}
+          cx={CENTER}
+          cy={CENTER}
+          r={PROGRESS_RADIUS}
           fill="none"
-          stroke={colors.outline}
-          strokeWidth={STROKE_WIDTH}
+          stroke={colors.surfaceMuted}
+          strokeWidth={size.trustRingStroke}
         />
         <AnimatedCircle
-          cx={diameter / 2}
-          cy={diameter / 2}
-          r={ringRadius}
+          cx={CENTER}
+          cy={CENTER}
+          r={PROGRESS_RADIUS}
           fill="none"
-          stroke={colors.primaryInk}
-          strokeWidth={STROKE_WIDTH}
+          stroke={colors.successContainer}
+          strokeWidth={size.trustRingStroke}
           strokeLinecap="round"
-          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
           animatedProps={animatedProps}
-          transform={`rotate(-90 ${diameter / 2} ${diameter / 2})`}
+          transform={`rotate(-90 ${CENTER} ${CENTER})`}
         />
+        <Circle cx={CENTER} cy={CENTER} r={OUTER_INK_RADIUS} fill="none" stroke={colors.text} strokeWidth={border.chip} />
+        <Circle cx={CENTER} cy={CENTER} r={INNER_INK_RADIUS} fill="none" stroke={colors.text} strokeWidth={border.chip} />
       </Svg>
-      <LfStack grow center gap={1}>
-        <LfText variant={clampedRate === null ? 'caption' : 'title'}>
+      <LfStack grow center>
+        <LfText variant={clampedRate === null ? 'meta' : 'heading'}>
           {clampedRate === null ? LABEL.trustPending : `${clampedRate}%`}
         </LfText>
       </LfStack>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { width: size.trustRing, height: size.trustRing },
+});

@@ -108,9 +108,9 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 파스텔 스티커 확정안의 토큰 183개를 정의한다', () => {
-    // 2026-09-03: 117 + 타이포 12 + 자간 4 + 테두리 5 + 기울기 4 + 치수 39 + 모션 2.
-    expect(cssTokens.size).toBe(183);
+  test('canonical tokens.css 는 파스텔 스티커 확정안의 토큰 185개를 정의한다', () => {
+    // 2026-09-03: 117 + 타이포 13 + 자간 4 + 테두리 5 + 기울기 4 + 치수 40 + 모션 2.
+    expect(cssTokens.size).toBe(185);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {

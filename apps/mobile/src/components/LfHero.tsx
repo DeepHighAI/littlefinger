@@ -1,45 +1,19 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, type PressableProps } from 'react-native';
 
-import { colors, elevation, gutter, radius, space } from '../theme/tokens';
-import { LfButton } from './LfButton';
-import { LfPinky } from './LfPinky';
+import { colors, border, elevation, gutter, radius, size, space, tilt } from '../theme/tokens';
+import { LfBlob } from './LfBlob';
+import { LfIcon } from './LfIcon';
+import { LfEyes } from './LfMascot';
 import { LfStack } from './LfStack';
 import { LfText } from './LfText';
 
-export interface LfHeroProps {
+export interface LfHeroProps extends Omit<PressableProps, 'children' | 'style'> {
   eyebrow: string;
   title: string;
   description?: string;
   dday?: string;
   meta?: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  testID?: string;
 }
-
-// 임박 배너 = 살짝 기울인 잉크 테두리 스티커 카드 (.lf-home__pinned, ADR 0012)
-const HERO_BORDER_WIDTH = 2.5;
-const HERO_TILT = '-1.2deg';
-
-const styles = StyleSheet.create({
-  hero: {
-    marginHorizontal: gutter.app,
-    paddingVertical: space[6],
-    paddingHorizontal: space[7],
-    borderRadius: radius.record,
-    backgroundColor: colors.surface,
-    borderWidth: HERO_BORDER_WIDTH,
-    borderColor: colors.text,
-    transform: [{ rotate: HERO_TILT }],
-    ...elevation.card,
-    gap: space[7],
-  },
-  top: { flexDirection: 'row', alignItems: 'flex-start', gap: space[5] },
-  // 플래그는 배경 없는 살구 텍스트 (.lf-home__pinned-flag)
-  eyebrow: {
-    alignSelf: 'flex-start',
-  },
-});
 
 export function LfHero({
   eyebrow,
@@ -47,26 +21,62 @@ export function LfHero({
   description,
   dday,
   meta,
-  actionLabel,
-  onAction,
-  testID,
+  accessibilityLabel,
+  ...rest
 }: LfHeroProps): React.JSX.Element {
   return (
-    <View testID={testID} style={styles.hero}>
-      <View style={styles.top}>
-        <LfStack grow gap={3}>
-          <View style={styles.eyebrow}>
-            <LfText variant="containerFlag">{eyebrow}</LfText>
-          </View>
-          <LfText variant="title">{title}</LfText>
-          {description !== undefined && <LfText>{description}</LfText>}
-          {meta !== undefined && <LfText variant="caption">{meta}</LfText>}
-        </LfStack>
-        {dday === undefined ? <LfPinky size="sm" /> : <LfText variant="heroDday">{dday}</LfText>}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      {...rest}
+      style={({ pressed }) => [styles.hero, pressed && styles.pressed]}
+    >
+      <View pointerEvents="none" style={styles.decoration}>
+        <LfBlob variant="cornerYellow" tilt="blob"><LfEyes size="card" /></LfBlob>
       </View>
-      {actionLabel !== undefined && onAction !== undefined && (
-        <LfButton label={actionLabel} variant="tonal" onPress={onAction} block />
-      )}
-    </View>
+      <LfStack grow gap={2}>
+        <LfText variant="eyebrow">{eyebrow}</LfText>
+        <LfText variant="cardTitle">{title}</LfText>
+        {description === undefined ? null : <LfText variant="bodySm">{description}</LfText>}
+        {meta === undefined ? null : <LfText variant="meta">{meta}</LfText>}
+        {dday === undefined ? null : <LfText variant="chip">{dday}</LfText>}
+      </LfStack>
+      <View style={styles.arrow}>
+        <LfIcon name="east" size={typeIconSize} color="primaryContainer" />
+      </View>
+    </Pressable>
   );
 }
+
+const typeIconSize = size.appbarIcon - border.chip;
+
+const styles = StyleSheet.create({
+  hero: {
+    marginHorizontal: gutter.app,
+    padding: size.cardPadding,
+    borderRadius: radius.xl,
+    backgroundColor: colors.surface,
+    borderWidth: border.card,
+    borderColor: colors.text,
+    transform: [{ rotate: tilt.hero }],
+    ...elevation.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[5],
+    overflow: 'hidden',
+  },
+  pressed: { backgroundColor: colors.primarySoft },
+  decoration: {
+    position: 'absolute',
+    top: -space[7],
+    right: space[8],
+  },
+  arrow: {
+    width: size.iconButton,
+    height: size.iconButton,
+    borderRadius: radius.pill,
+    backgroundColor: colors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

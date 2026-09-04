@@ -174,16 +174,9 @@ export default function HistoryScreen({ now = new Date() }: HistoryScreenProps):
     <SafeAreaView style={styles.screen}>
       <LfAppBar
         title={LABEL.title}
-        leading={(
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={LABEL.back}
-            style={styles.iconButton}
-            onPress={() => router.back()}
-          >
-            <LfIcon name="arrow_back" />
-          </Pressable>
-        )}
+        leading="back"
+        leadingAccessibilityLabel={LABEL.back}
+        onLeadingPress={() => router.back()}
       />
       <View accessibilityRole="tablist" style={styles.tabs}>
         {HISTORY_TABS.map((tab) => {
@@ -198,7 +191,7 @@ export default function HistoryScreen({ now = new Date() }: HistoryScreenProps):
               style={styles.tab}
               onPress={() => dispatch({ type: 'TAB_SELECTED', tab })}
             >
-              <LfChip label={label} tone={active ? 'ink' : 'outline'} size="md" />
+              <LfChip label={label} tone="paper" kind="filter" selected={active} />
             </Pressable>
           );
         })}

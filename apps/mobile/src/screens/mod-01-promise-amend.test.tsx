@@ -1,7 +1,9 @@
 import type { PromiseAmendCreateRequest, PromiseDetailResponse } from '@littlefinger/shared';
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { PromiseAmendSheet } from '../components/promise-amend-sheet.tsx';
+import { size } from '../theme/tokens.ts';
 
 const PROMISE_ID = '11111111-1111-4111-8111-111111111111';
 const CREATOR_ID = '22222222-2222-4222-8222-222222222222';
@@ -214,6 +216,7 @@ describe('MOD-01 변경·파기 요청', () => {
     await fireEvent.press(view.getByRole('button', { name: '요청 보내기' }));
     expect(confirmCancel).toHaveBeenCalledTimes(2);
     expect(onSubmit).toHaveBeenCalledWith({ promise_id: PROMISE_ID, type: 'CANCEL' });
-    expect(view.getByRole('button', { name: '요청 보내기' })).toHaveStyle({ minHeight: 48 });
+    const submit = view.getByRole('button', { name: '요청 보내기' });
+    expect(StyleSheet.flatten(submit.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
   });
 });

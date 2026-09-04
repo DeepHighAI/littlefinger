@@ -21,6 +21,7 @@ import {
 
 import type { LfChipTone } from '../components/LfChip';
 import { SCR_A05_LABEL } from './scr-a05-labels';
+import { statusToneOf } from './status-tone';
 
 export type PromiseDetailVariant =
   | 'PENDING'
@@ -71,19 +72,6 @@ const HEADLINE: Localized<Record<PromiseDetailStatus, string>> = {
   },
 };
 
-const TONE: Record<PromiseDetailStatus, LfChipTone> = {
-  PENDING: 'neutral',
-  ACTIVE: 'info',
-  AMEND_PENDING: 'urgent',
-  CHECKING: 'urgent',
-  COMPLETED: 'done',
-  BROKEN: 'broken',
-  DISPUTED: 'neutral',
-  UNRESOLVED: 'neutral',
-  DECLINED: 'neutral',
-  CANCELED: 'neutral',
-};
-
 export function detailVariantOf(status: PromiseStatus): PromiseDetailVariant {
   if (status === 'DRAFT') throw new Error('DRAFT_HAS_NO_DETAIL');
   if (status === 'DECLINED' || status === 'CANCELED') return 'TERMINAL';
@@ -102,7 +90,7 @@ export function detailStatusOf(
   return {
     label: PROMISE_STATUS_LABEL_BY_LOCALE[locale][status],
     headline: HEADLINE[locale][status],
-    tone: TONE[status],
+    tone: statusToneOf(status),
   };
 }
 

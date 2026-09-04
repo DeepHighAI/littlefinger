@@ -1,88 +1,83 @@
 import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 
 import { textFontFamily } from '../theme/fonts';
-import { colors, radius, space, type, weight } from '../theme/tokens';
+import { colors, border, radius, size, space, type, weight } from '../theme/tokens';
 
-export type LfChipTone =
-  | 'status'
-  | 'info'
-  | 'neutral'
-  | 'urgent'
-  | 'done'
-  | 'broken'
-  | 'ink'
-  | 'outline';
-export type LfChipSize = 'sm' | 'md';
+export type LfChipTone = 'paper' | 'yellow' | 'mint' | 'pink' | 'sky' | 'muted' | 'cream';
+export type LfChipKind = 'status' | 'meta' | 'filter' | 'select';
 
 export interface LfChipProps extends Omit<ViewProps, 'style' | 'children'> {
   label: string;
   tone?: LfChipTone;
-  /** md 는 홈 필터 탭용 확대 칩 — FAB 라벨(type.body)과 크기를 맞춘다(PO 2026-08-23). */
-  size?: LfChipSize;
+  kind?: LfChipKind;
+  selected?: boolean;
+  dot?: boolean;
 }
 
-// CSS 원본 `.lf-chip` 이 토큰 대신 고정 13px 를 쓴다 — 그대로 미러링 (ADR 0012).
-const CHIP_FONT_SIZE = 13;
-// 잉크 테두리: 상태 칩 2px, 필터 탭(.lf-tab 대응) 2.2px.
-const CHIP_BORDER_WIDTH = 2;
-const TAB_BORDER_WIDTH = 2.2;
+const toneColor: Record<LfChipTone, string> = {
+  paper: colors.surface,
+  yellow: colors.primaryContainer,
+  mint: colors.successContainer,
+  pink: colors.attentionContainer,
+  sky: colors.recordContainer,
+  muted: colors.surfaceMuted,
+  cream: colors.background,
+};
+
+const kindHeight: Record<LfChipKind, number> = {
+  status: size.chipStatusHeight,
+  meta: size.chipMetaHeight,
+  filter: size.tabHeight,
+  select: size.chipSelectHeight,
+};
 
 const styles = StyleSheet.create({
   base: {
     alignSelf: 'flex-start',
-    paddingVertical: space[1],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
     paddingHorizontal: space[5],
     borderRadius: radius.pill,
-    borderWidth: CHIP_BORDER_WIDTH,
+    borderWidth: border.chip,
     borderColor: colors.text,
-    backgroundColor: colors.surface,
   },
-  baseMd: {
-    paddingVertical: space[2],
-  },
+  wide: { paddingHorizontal: space[6] },
   text: {
-    fontSize: CHIP_FONT_SIZE,
+    color: colors.text,
+    fontSize: type.meta,
     fontWeight: weight.bold,
     fontFamily: textFontFamily(weight.bold),
   },
-  textMd: {
-    fontSize: type.body,
+  largeText: { fontSize: type.chip },
+  dot: {
+    width: size.statusDot - border.chip,
+    height: size.statusDot - border.chip,
+    borderRadius: radius.pill,
+    backgroundColor: colors.successContainer,
   },
-  // 톤은 스티커 배경으로만 구분, 테두리는 잉크 공통 (broken 만 빨강)
-  status: { backgroundColor: colors.primaryContainer },
-  info: { backgroundColor: colors.recordContainer },
-  neutral: { backgroundColor: colors.primaryContainer },
-  urgent: { backgroundColor: colors.attentionContainer },
-  done: { backgroundColor: colors.primaryContainer },
-  broken: { backgroundColor: colors.errorContainer, borderColor: colors.error },
-  // 필터 칩 (.lf-tab 대응) — 선택은 잉크 필, 비선택은 표면 + 잉크 테두리
-  ink: { backgroundColor: colors.text, borderWidth: TAB_BORDER_WIDTH, borderColor: colors.text },
-  outline: {
-    backgroundColor: colors.surface,
-    borderWidth: TAB_BORDER_WIDTH,
-    borderColor: colors.text,
-  },
-  statusText: { color: colors.text },
-  infoText: { color: colors.record },
-  neutralText: { color: colors.text },
-  urgentText: { color: colors.attention },
-  doneText: { color: colors.text },
-  brokenText: { color: colors.error },
-  inkText: { color: colors.background },
-  outlineText: { color: colors.text },
 });
 
 export function LfChip({
   label,
-  tone = 'neutral',
-  size = 'sm',
+  tone = 'paper',
+  kind = 'meta',
+  selected = false,
+  dot = false,
   ...rest
 }: LfChipProps): React.JSX.Element {
+  const large = kind === 'filter' || kind === 'select';
   return (
-    <View {...rest} style={[styles.base, size === 'md' && styles.baseMd, styles[tone]]}>
-      <Text style={[styles.text, size === 'md' && styles.textMd, styles[`${tone}Text`]]}>
-        {label}
-      </Text>
+    <View
+      {...rest}
+      style={[
+        styles.base,
+        { height: kindHeight[kind], backgroundColor: selected ? colors.primaryContainer : toneColor[tone] },
+        large && styles.wide,
+      ]}
+    >
+      {dot ? <View testID={rest.testID === undefined ? undefined : `${rest.testID}-dot`} style={styles.dot} /> : null}
+      <Text style={[styles.text, large && styles.largeText]}>{label}</Text>
     </View>
   );
 }

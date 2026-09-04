@@ -234,20 +234,6 @@ function promiseIdOf(value: string | string[] | undefined): string | null {
   return typeof value === 'string' && UUID_PATTERN.test(value) ? value : null;
 }
 
-function BackButton({ onPress }: { onPress(): void }): React.JSX.Element {
-  const LABEL = useLabels(SCR_A05_LABEL);
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={LABEL.back}
-      onPress={onPress}
-      style={styles.back}
-    >
-      <LfIcon name="arrow_back" />
-    </Pressable>
-  );
-}
-
 function ScreenFrame({
   onBack,
   mode = 'terminal-neutral',
@@ -270,7 +256,12 @@ function ScreenFrame({
       ]}
       testID={`promise-detail-${mode}`}
     >
-      <LfAppBar title={LABEL.title} leading={<BackButton onPress={onBack} />} />
+      <LfAppBar
+        title={LABEL.title}
+        leading="back"
+        leadingAccessibilityLabel={LABEL.back}
+        onLeadingPress={onBack}
+      />
       {children}
     </SafeAreaView>
   );
@@ -366,7 +357,7 @@ function ClaimCard({
     <LfCard testID={`detail-claim-${check.role}`}>
       <View style={styles.claim}>
         <LfText variant="subtitle">{claim.nickname}</LfText>
-        <LfChip label={claim.answer} tone="neutral" />
+        <LfChip label={claim.answer} tone="paper" kind="status" />
         <LfText align="center">
           {check.comment === null || check.comment.length === 0
             ? LABEL.noComment
@@ -447,7 +438,7 @@ function VersionHistorySheet({
                 ) : state.value.versions.map((item) => (
                   <LfCard key={item.version.version_no}>
                     <LfStack gap={3}>
-                      <LfText variant="sectionTitle">{LABEL.version(item.version.version_no)}</LfText>
+                      <LfText variant="eyebrow">{LABEL.version(item.version.version_no)}</LfText>
                       <LfText variant="subtitle">{item.version.title}</LfText>
                       <LfText>{item.version.body}</LfText>
                       <InfoRow label={LABEL.category} value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][item.version.category]} />
@@ -509,8 +500,8 @@ function FulfillmentSection({
   );
   return (
     <LfStack gap={5}>
-      <LfText variant="sectionTitle">{LABEL.fulfillment}</LfText>
-      <LfCard variant="container">
+      <LfText variant="eyebrow">{LABEL.fulfillment}</LfText>
+      <LfCard tone="yellow">
         <LfStack gap={3}>
           <LfText>{responseFact(detail.creator.nickname, fulfillment.creator_has_submitted, locale)}</LfText>
           <LfText>
@@ -542,7 +533,7 @@ function FulfillmentSection({
       )}
       {fulfillment.history.length > 0 && (
         <LfStack gap={4}>
-          <LfText variant="sectionTitle">{LABEL.history}</LfText>
+          <LfText variant="eyebrow">{LABEL.history}</LfText>
           {fulfillment.history.map((round) => (
             <LfStack key={round.round_no} gap={3}>
               <LfText variant="caption">{LABEL.round(round.round_no)}</LfText>
@@ -682,7 +673,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
   const status = detailStatusOf(detail.status, locale);
   const visualMode = detailVisualModeOf(detail.status);
-  const contentCardVariant = visualMode === 'record' ? 'record' : 'default';
+  const contentCardTone = visualMode === 'record' ? 'paper' : 'yellow';
   const terminalReason =
     detail.status === 'DECLINED'
       ? (detail.approvals.find((approval) => approval.action === 'DECLINE')?.comment ?? null)
@@ -993,7 +984,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                 <LfText variant="caption">{formatDetailDate(detail.end_date, locale)}</LfText>
               </View>
               <View style={styles.activeMetaSpacer} />
-              <LfText variant="dday">{formatDetailDday(detail.end_date, new Date(), locale)}</LfText>
+              <LfText variant="bodyStrong">{formatDetailDday(detail.end_date, new Date(), locale)}</LfText>
             </View>
             <LfText variant="title">{detail.title}</LfText>
 
@@ -1016,7 +1007,8 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                     >
                       <LfChip
                         label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]} · ${LABEL.approvalAction[approval.action]}`}
-                        tone="outline"
+                        tone="paper"
+                        kind="meta"
                       />
                       <LfText variant="caption">{formatDetailInstant(approval.acted_at)}</LfText>
                     </View>
@@ -1029,7 +1021,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
             </View>
 
             <View style={styles.activeContent}>
-              <LfText variant="sectionTitle">{LABEL.content}</LfText>
+              <LfText variant="eyebrow">{LABEL.content}</LfText>
               <LfText>{detail.body}</LfText>
               <View style={styles.activeChips}>
                 <LfChip
@@ -1043,11 +1035,11 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
             <View style={styles.activeOutcomes}>
               <View style={[styles.activeOutcome, styles.activeReward]}>
-                <LfText variant="sectionTitle">{LABEL.reward}</LfText>
+                <LfText variant="eyebrow">{LABEL.reward}</LfText>
                 <LfText>{detail.reward ?? LABEL.noReward}</LfText>
               </View>
               <View style={[styles.activeOutcome, styles.activePenalty]}>
-                <LfText variant="sectionTitle">{LABEL.penalty}</LfText>
+                <LfText variant="eyebrow">{LABEL.penalty}</LfText>
                 <LfText>{detail.penalty ?? LABEL.noPenalty}</LfText>
               </View>
             </View>
@@ -1064,7 +1056,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
             >
               <LfChip label={status.label} tone={status.tone} />
               <LfText
-                variant={visualMode === 'record' ? 'confirmationHeadline' : 'headline'}
+                variant={visualMode === 'record' ? 'title' : 'headline'}
                 align="center"
               >
                 {status.headline}
@@ -1074,7 +1066,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
               </LfText>
             </View>
 
-            <LfCard variant={contentCardVariant}>
+            <LfCard tone={contentCardTone}>
               <View style={styles.detailText}>
                 <LfText variant="title">{detail.title}</LfText>
                 <LfText>{detail.body}</LfText>
@@ -1094,8 +1086,8 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         )}
 
         <LfStack gap={4}>
-          <LfText variant="sectionTitle">{LABEL.people}</LfText>
-          <LfCard variant={contentCardVariant}>
+          <LfText variant="eyebrow">{LABEL.people}</LfText>
+          <LfCard tone={contentCardTone}>
             <View style={styles.people}>
               <PersonRow person={detail.creator} />
               {detail.partner === null ? (
@@ -1110,15 +1102,15 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         {detail.status !== 'ACTIVE' && (
           <LfStack gap={4}>
-            <LfText variant="sectionTitle">{LABEL.reward}</LfText>
-            <LfCard variant="container"><LfText>{detail.reward ?? LABEL.noReward}</LfText></LfCard>
-            <LfText variant="sectionTitle">{LABEL.penalty}</LfText>
+            <LfText variant="eyebrow">{LABEL.reward}</LfText>
+            <LfCard tone="yellow"><LfText>{detail.reward ?? LABEL.noReward}</LfText></LfCard>
+            <LfText variant="eyebrow">{LABEL.penalty}</LfText>
             <LfCard><LfText>{detail.penalty ?? LABEL.noPenalty}</LfText></LfCard>
           </LfStack>
         )}
 
         {detail.status === 'PENDING' && detail.invitation !== null && (
-          <LfCard variant={visualMode === 'record' ? 'record' : 'container'}>
+          <LfCard tone={visualMode === 'record' ? 'paper' : 'yellow'}>
             <View style={styles.info}>
               <InfoRow
                 label={LABEL.invitation}
@@ -1134,18 +1126,18 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         {pendingAmend !== null && (
           <LfStack gap={4}>
-            <LfText variant="sectionTitle">{LABEL.amend}</LfText>
+            <LfText variant="eyebrow">{LABEL.amend}</LfText>
             {pendingAmend.type === 'AMEND' && pendingAmend.proposed_version !== null ? (
               <ChangedVersionSection
                 before={detail.current_version}
                 after={pendingAmend.proposed_version}
               />
             ) : pendingAmend.type === 'FINISH' ? (
-              <LfCard variant="container">
+              <LfCard tone="sky">
                 <LfText>{LABEL.finishRequested(pendingAmend.requester.nickname)}</LfText>
               </LfCard>
             ) : (
-              <LfCard variant="container">
+              <LfCard tone="sky">
                 <LfText>{LABEL.cancelRequested(pendingAmend.requester.nickname)}</LfText>
               </LfCard>
             )}
@@ -1191,8 +1183,8 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
         {entitlements !== null && detail.current_version.activated_at !== null ? (
           <LfStack gap={4}>
-            <LfText variant="sectionTitle">{LABEL.retention}</LfText>
-            <LfCard variant="container">
+            <LfText variant="eyebrow">{LABEL.retention}</LfText>
+            <LfCard tone="sky">
               <LfStack gap={3}>
                 <LfText>
                   {entitlements.retention.permanent
@@ -1228,9 +1220,9 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           </LfStack>
         ) : (
           <LfStack gap={4}>
-            <LfText variant="sectionTitle">{LABEL.record}</LfText>
+            <LfText variant="eyebrow">{LABEL.record}</LfText>
             <View style={visualMode === 'record' ? styles.recordStamp : null}>
-              <LfCard variant={visualMode === 'record' ? 'record' : 'container'}>
+              <LfCard tone={visualMode === 'record' ? 'paper' : 'yellow'}>
                 <View style={[styles.info, visualMode === 'record' && styles.recordMetadata]}>
                   {/* 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다
                       (PO 2026-08-20). 최초 확정 시각은 승인 이력에 그대로 남는다. */}
@@ -1250,11 +1242,11 @@ export default function PromiseDetailScreen(): React.JSX.Element {
             </View>
             {detail.approvals.length > 0 && (
               <LfStack gap={3}>
-                <LfText variant="sectionTitle">{LABEL.approvals}</LfText>
+                <LfText variant="eyebrow">{LABEL.approvals}</LfText>
                 {detail.approvals.map((approval, index) => (
                   <LfCard
                     key={`${approval.acted_at}.${approval.role}.${index}`}
-                    variant={contentCardVariant}
+                    tone={contentCardTone}
                   >
                     <InfoRow
                       label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]}`}
@@ -1299,7 +1291,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
             />
           ) : null}
           {canNotifyPartner ? (
-            <LfCard variant="container">
+            <LfCard tone="yellow">
               <LfStack gap={3}>
                 <LfText variant="caption">{LABEL.notifyPartnerHint}</LfText>
                 <LfButton

@@ -7,13 +7,7 @@ import {
   type WitnessSlotView,
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useLabels } from '../lib/locale-native';
 import { getPromiseEntitlements, unlockWithRewardedAd } from '../lib/monetization-native.ts';
@@ -24,12 +18,12 @@ import {
   type WitnessInviteWithToken,
 } from '../lib/witness-native.ts';
 import { MOD_02_LABEL } from '../screens/mod-02-labels.ts';
-import { border, colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
+import { colors, radius, size, space } from '../theme/tokens.ts';
 import { LfAvatar } from './LfAvatar.tsx';
 import { LfButton } from './LfButton.tsx';
 import { LfChip } from './LfChip.tsx';
-import { LfIcon } from './LfIcon.tsx';
 import { LfRow } from './LfRow.tsx';
+import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
 import { LfText } from './LfText.tsx';
 
@@ -52,55 +46,10 @@ interface PendingShare {
   invite: WitnessInviteWithToken;
 }
 
-const SHEET_MAX_HEIGHT = '88%';
-
 const styles = StyleSheet.create({
-  scrim: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.scrim,
-  },
-  dismissArea: {
-    flex: 1,
-  },
-  sheet: {
-    maxHeight: SHEET_MAX_HEIGHT,
-    paddingHorizontal: gutter.app,
-    paddingTop: space[5],
-    paddingBottom: space[9],
-    borderTopLeftRadius: radius['2xl'],
-    borderTopRightRadius: radius['2xl'],
-    backgroundColor: colors.surface,
-    ...elevation.sheet,
-    // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: border.sheet,
-    borderBottomWidth: 0,
-    borderColor: colors.text,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: size.iconButton,
-    height: space[1],
-    marginBottom: space[7],
-    borderRadius: radius.pill,
-    backgroundColor: colors.outlineStrong,
-  },
   scrollContent: {
     gap: space[5],
     paddingBottom: space[5],
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: space[3],
-  },
-  close: {
-    width: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.pill,
   },
   witness: {
     paddingHorizontal: space[6],
@@ -150,7 +99,7 @@ function WitnessRow({
           <View style={styles.witnessCopy}>
             <LfStack gap={2}>
               <LfText>{LABEL.anonymous}</LfText>
-              <LfChip label={LABEL.invited} tone="neutral" />
+              <LfChip label={LABEL.invited} tone="paper" kind="status" />
             </LfStack>
           </View>
         </LfRow>
@@ -186,7 +135,8 @@ function WitnessRow({
         </View>
         <LfChip
           label={signedAt !== null ? LABEL.signed : LABEL.unsigned}
-          tone={signedAt !== null ? 'done' : 'neutral'}
+          tone={signedAt !== null ? 'mint' : 'paper'}
+          kind="status"
         />
       </LfRow>
     </View>
@@ -300,49 +250,32 @@ export function WitnessInviteSheet({
     : LABEL.oneRemaining;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.scrim}>
-        <Pressable
-          style={styles.dismissArea}
-          onPress={onClose}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
-        <View style={styles.sheet} accessibilityViewIsModal>
-          <View style={styles.handle} />
-          <View style={styles.header}>
-            <LfRow gap={3} grow>
-              <LfText variant="title">{LABEL.title}</LfText>
-              {list !== null ? (
-                <LfChip label={LABEL.count(list.occupied_count, list.capacity)} />
-              ) : null}
-            </LfRow>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={LABEL.close}
-              style={styles.close}
-              onPress={onClose}
-            >
-              <LfIcon name="close" />
-            </Pressable>
-          </View>
-          <LfText variant="caption">{LABEL.description(WITNESS_MAX)}</LfText>
+    <LfSheet
+      visible={visible}
+      title={LABEL.title}
+      closeLabel={LABEL.close}
+      onClose={onClose}
+    >
+      {list !== null ? (
+        <LfChip label={LABEL.count(list.occupied_count, list.capacity)} />
+      ) : null}
+      <LfText variant="caption">{LABEL.description(WITNESS_MAX)}</LfText>
 
-          {loadState.phase === 'LOADING' ? (
-            <View style={styles.centered}>
-              <LfText align="center">{LABEL.loading}</LfText>
-            </View>
-          ) : null}
-          {loadState.phase === 'ERROR' ? (
-            <View style={styles.centered}>
-              <LfStack gap={5} center>
-                <LfText variant="error" align="center">{LABEL.loadError}</LfText>
-                <LfButton label={LABEL.retry} variant="outlined" onPress={() => void load()} />
-              </LfStack>
-            </View>
-          ) : null}
-          {ready !== null && list !== null ? (
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+      {loadState.phase === 'LOADING' ? (
+        <View style={styles.centered}>
+          <LfText align="center">{LABEL.loading}</LfText>
+        </View>
+      ) : null}
+      {loadState.phase === 'ERROR' ? (
+        <View style={styles.centered}>
+          <LfStack gap={5} center>
+            <LfText variant="error" align="center">{LABEL.loadError}</LfText>
+            <LfButton label={LABEL.retry} variant="outlined" onPress={() => void load()} />
+          </LfStack>
+        </View>
+      ) : null}
+      {ready !== null && list !== null ? (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
               {list.witnesses.map((slot) => (
                 <WitnessRow
                   key={slot.participant_id}
@@ -384,10 +317,8 @@ export function WitnessInviteSheet({
                 disabled={busy || atCapacity}
                 onPress={() => void share(null)}
               />
-            </ScrollView>
-          ) : null}
-        </View>
-      </View>
-    </Modal>
+        </ScrollView>
+      ) : null}
+    </LfSheet>
   );
 }

@@ -27,6 +27,7 @@ Claude Design에서 확정된 리디자인 **「리틀핑거 파스텔 스티커
 | D6 | A04 초대 버튼 | **카카오 노란 버튼(#FEE500) + 현재 라벨 '초대 링크 공유하기'**, 동작은 OS 공유 시트 유지. '링크 복사하기'는 아웃라인 필. 카톡 미리보기 말풍선·만료 카운트다운 진행바 포함 |
 | D7 | 상태→파스텔 | 승인 대기=종이 외곽선 · 진행 중=민트 · 변경 협의=스카이 · 이행 확인 중=핑크 · 완료=민트 · 불이행=핑크 · 의견 불일치=종이 중립 · 미확정·거절·파기=크림 뮤트. 글자는 항상 잉크, 빨강은 에러 전용 |
 | D8 | 브랜드 마크 | **전부 E-1로 교체** (런처·적응형·스플래시·알림 아이콘·인앱·웹 파비콘/OG·스토어 512). Play 콘솔 아이콘/스크린샷 교체는 PO 작업 가이드로 |
+| D9 | SCR-A03 실기기 보정 (2026-09-04) | **고정 영역은 앱바 + 내용·조건·확인 프로그레스만 유지.** 큰 단계 제목·설명은 제거해 입력 높이를 확보. 보상·벌칙 공통 프리셋에 스벅쏘기·올영쏘기·만원/10$를 추가하고 `나의 노예가 되어라`/`Be my servant`는 벌칙에만 추가 |
 
 내가 내린 routine 판단(계획 승인으로 갈음, 프리뷰에서 재확인):
 - 아이콘: Material Symbols Rounded(wght 400·FILL 0·opsz 24)로 통일. 웹의 기존 서브셋 생성기 `tools/subset-icon-font.js`를 확장해 RN용 TTF도 생성 → C-2 종결.
@@ -109,7 +110,7 @@ Claude Design에서 확정된 리디자인 **「리틀핑거 파스텔 스티커
 - **모바일 화면** (`apps/mobile/src/app/`): index(A01)·onboarding(A00)·home(A02)·promise/edit(A03 위저드 743줄)·invite(A04)·promise/[promise_id](A05 1442줄, 변형은 `screens/scr-a05-detail-state.ts`의 TONE 표)·fulfillment/[promise_id](A06)·notifications(A07)·profile(A08, 리마인드 토글 4개+시각 있음)·history(A09)·i/[token]·blocked-users·profile-nickname·update-required·+not-found·_layout.
 - **상태→톤**: `scr-a05-detail-state.ts:74` TONE 표 → `LfChip` tone → 색. D7 매핑을 여기서 바꾼다.
 - **애니메이션**: reanimated 4.5.1·react-native-svg 15.15.4 있음, expo-image 없음. 루프 애니 없음(`withRepeat` 미사용).
-- **브랜드 자산**: `apps/mobile/assets/images/{icon,android-icon-foreground/background/monochrome,splash-icon,brand-symbol,brand-symbol-in-app}.png`, `app.json` adaptiveIcon 배경 #F6E7A3·스플래시 배경 #F3ECDC·알림 색 #F6E7A3, 네이티브 파생물 `android/app/src/main/res/**`, 생성기 `tools/export-brand-icons.js`, 스토어 `docs/디자인/store/store-icon-512.png`. 해시 고정 테스트 존재(ADR 0013).
+- **브랜드 자산**: `apps/mobile/assets/images/{icon,android-icon-foreground/background/monochrome,splash-icon,brand-symbol,brand-symbol-in-app}.png`, `app.json` adaptiveIcon 배경 #F6E7A3·스플래시 배경 #F3ECDC·알림 색 #F6E7A3, 네이티브 파생물 `android/app/src/main/res/**`, 생성기 `tools/export-brand-icons.js`, PO-curated 스토어 세트 `docs/디자인/store/` (2026-09-04 manifest: `README.md`). 해시 고정 테스트 존재(ADR 0013·0019).
 - **웹**: `apps/web/src/screens/scr-w0{1..6}-*.tsx` + `home/response-complete/legal-document/account-deletion`, 컴포넌트는 LfPinky/LfIcon/LfDisclaimer/LocaleSwitch만, 나머지는 raw `lf-*` 클래스. CSS 로드 순서 font-fallback→tokens→icons→base→components→screens/web.css. 파비콘/OG 이미지 **없음**. 아이콘은 자체 서브셋 woff2(34개, `icon-codepoints.ts` 생성).
 - **테스트 게이트**: jest-expo 80 suites/824, Vitest 110 files/2,142, typecheck 5 projects, `check:agents`. 스타일 고정: `tokens.test.ts`, `components.test.tsx`(테두리 두께·기울기·색), `fonts.test.ts`, `apps/web/src/typography.test.ts`, `seo.test.ts`, 브랜드 해시 테스트, config 테스트(`apps/mobile/config/*.test.js`가 app.json 색 검증).
 - **문구 카탈로그**: `apps/mobile/src/screens/*-labels.ts` 22개(`labels-registry.ts` 등록, i18n-parity 테스트), 웹 `scr-w0x-labels.ts` + cross-surface 테스트.
@@ -232,30 +233,39 @@ PO 체크포인트: 갤러리 색 스왑 스크린샷 3장(A02·A05·W02) 통보
 
 #### P8 — 브랜드 파생물 · app.json (세션 9, PO "출시 가능" 신호 후)
 
-1. `tools/export-brand-icons.js` 확장(§E) 실행 → `apps/mobile/assets/images/{icon,android-icon-foreground,android-icon-background,android-icon-monochrome,splash-icon}.png`, `docs/디자인/store/store-icon-512.png`, `apps/web/public/brand/*` 재생성.
+1. `tools/export-brand-icons.js` 확장(§E) 실행 → `apps/mobile/assets/images/{icon,android-icon-foreground,android-icon-background,android-icon-monochrome,splash-icon}.png`, `apps/web/public/brand/*` 재생성. Play 등록용 아이콘·피처 그래픽·스크린샷은 PO-curated `docs/디자인/store/` 세트를 유지하고 생성기가 덮어쓰지 않는다.
 2. `apps/mobile/app.json`: `adaptiveIcon.backgroundColor #FFE59A`, `expo-notifications.color #FFE59A`, 스플래시 배경 `#F3ECDC` 유지, `version 0.3.0`. 권한·플러그인·앱링크 무수정. versionCode는 EAS 원격 — **PO 신호 전 프로덕션 빌드 금지**.
 3. `docs/setup/open-testing-po-guide.md`에 "Play 콘솔 아이콘 512·피처 그래픽·스크린샷 교체" 절(D8, PO 작업).
 
 이동하는 테스트: `firebase-config.test.js` 런처/적응형/스플래시/스토어 해시 재고정 + 색 단언 · `brand-assets.test.js` 파비콘·OG 크기. 검증: 세 러너, `npx expo prebuild --clean --platform android`(로컬, 미커밋)로 mipmap 육안, `android-permissions.test.js` 통과. PO 체크포인트: 런처(라이트/다크/테마)·스플래시·알림 아이콘 스크린샷. 커밋: `feat: switch launcher, splash and notification artwork to E-1`
 
+2026-09-04 execution: after the installed legacy launcher was reported, the PO explicitly authorized
+the E-1 launcher correction. `icon.png` and Android adaptive/monochrome layers were regenerated and
+verified in a local release on SM-N981N. The PO then supplied the separate Play-ready icon, ko/en
+feature graphics and ten ko/en screenshot candidates under `docs/디자인/store/`; their manifest is
+`README.md`. A later PO instruction explicitly authorized merging/pushing the latest work and creating
+the Google Play package. The mobile P8 set now also includes the E-1 splash, `#FFE59A` notification
+colour, and `0.3.0` version. Cross-surface derivatives remain coupled to P7; screenshot selection and
+the Play Console upload remain separate PO actions.
+
 #### P9 — 문서 · ADR · 기준선 동결 (세션 9)
 
-1. `docs/adr/0019-pastel-sticker-restyle-and-e1-mascot.md`: Context(§1), Decision(D1~D8 + routine), 파이프라인, 편차 목록(디스클레이머 유지 · 앱바 마스코트 30 · 뮤트 카드 eyebrow 잉크 · 알림 미읽음 도트 생략 · 광고 플레이스홀더 미표시 · 포커스 링 파생 · 웹 hand-color 402), "tests moved deliberately", Supersedes ADR 0012 시각 시스템·0013/0016/0017/0018(각 Status 줄에 `Superseded by 0019`).
+1. `docs/adr/0020-pastel-sticker-restyle-and-e1-mascot.md`: Context(§1), Decision(D1~D9 + routine), 파이프라인, 편차 목록(디스클레이머 유지 · 앱바 마스코트 30 · 뮤트 카드 eyebrow 잉크 · 알림 미읽음 도트 생략 · 광고 플레이스홀더 미표시 · 포커스 링 파생 · 웹 hand-color 402), "tests moved deliberately", Supersedes ADR 0012 시각 시스템·0013/0016/0017/0018(각 Status 줄에 `Superseded by 0020`; ADR 0019의 E-1 런처 결정은 흡수하되 이력 유지).
 2. `DESIGN.md` 전면 재작성(§3 사양이 정본).
-3. `docs/DEVELOPMENT_STATUS.md` 상단 "Visual-system baseline: 파스텔 × 잉크 & 스티커 (2026-09-03, ADR 0019)".
+3. `docs/DEVELOPMENT_STATUS.md` 상단 "Visual-system baseline: 파스텔 × 잉크 & 스티커 (2026-09-03, ADR 0020)".
 4. `CLAUDE.md`: §3 갤러리 27→41 · §5-1 수치 · §5-3 시스템 설명 · §5-4 아이콘 gotcha(Symbols 서브셋 TTF, 닫힌 이름) · §11 C-2 닫힘 · §4 표 5행에 새 캔버스 경로 병기. `npm run sync:agents`.
 5. `design-reference/README.md` 갱신. `docs/plans/2026-09-03-pastel-sticker-restyle.md` 삭제(ADR 착지).
 6. 마지막 핸드오프가 직전 것을 대체(§G).
 
-검증: `npm run check:agents`, 세 러너, `git diff --check`. 커밋: `docs: record ADR 0019 and rewrite DESIGN.md for the pastel baseline` · `docs: sync agent guidance and status for the pastel restyle`
+검증: `npm run check:agents`, 세 러너, `git diff --check`. 커밋: `docs: record ADR 0020 and rewrite DESIGN.md for the pastel baseline` · `docs: sync agent guidance and status for the pastel restyle`
 
 ### B. 토큰 diff
 
-기준 117개 → P2 후 **183** → P7 삭제 후 **174**(각 커밋 직전 파서 결과로 재확인).
+기준 117개 → P2 후 183, P5에서 누락된 `line-body-strong`·`textarea-min-height`를 보완해 **185** → P7 삭제 후 **176**(각 커밋 직전 파서 결과로 재확인).
 
 재값(이름 유지): `color-primary-container` #F6E7A3→**#FFE59A** · `color-primary-pale` #CDBCEC→#A9D3FF · `color-brand-symbol-on-action`→#FFE59A · `color-surface-chrome`→#F3ECDC · `color-focus-ring` #6B58A8→**#2F6FB3**(파생) · `color-record` #6B58A8→#221C13 · `color-record-container` #E7DFF6→**#A9D3FF** · `color-attention` #B05F2C→#221C13 · `color-attention-container` #F8DDBE→**#FFB5C1** · `reward-container/on-reward-container/reward-label` → #A9D3FF/#221C13/#221C13 · `penalty-container/on-penalty-container/penalty-label` → #FFB5C1/#221C13/#221C13 · `color-success-container` #F6E7A3→**#B7E1D1** · `type-display-size` 30→34 · `type-title-size/line-title` 22/30→24/32 · `radius-md/lg/xl` 14/16/16→16/20/22 · `appbar-height` 56→52 · `cta-height`/`fab-height` 54→52 · `action-height` 48→50 · `tab-height` 38→32 · `appbar-icon` 26→20.
 
-추가(66): type/line 12(`type-wordmark-size 38` `line-wordmark 44` `line-display 42` `type-headline-size 26` `line-headline 34` `type-sheet-title-size 22` `type-card-title-size 19` `line-card-title 26` `type-stamp-size 17` `type-chip-size 13` `type-meta-size 12` `type-eyebrow-size 11`) · letter-spacing 4(`tight -0.02em` `wide 0.12em` `wider 0.16em` `wordmark 0.04em`, 신규 그룹 `letterSpacing`) · border 5(`chip 2` `card 2.2` `outline 2.4` `dashed 2` `pending 3`) · tilt 4(`sticker -0.8deg` `hero -1.2deg` `blob -2deg` `empty 3deg`, 신규 그룹 `tilt`) · size 39(`input-height 48` `kakao-height 54` `icon-circle 40` `card-padding 18` `chip-select-height 36` `chip-meta-height 30` `chip-status-height 28` `switch-width 52` `switch-height 32` `switch-knob 20` `trust-ring 88` `trust-ring-stroke 10` `dday-circle 56` `avatar-sm 34` `avatar-lg 48` `avatar-xl 52` `thumb 76` `thumb-lg 84` `status-dot 10` `progress-height 8` `sheet-handle-width 40` `sheet-handle-height 5` `fade-height 140` `fade-height-sm 110` `mascot-sm 30` `mascot-md 34` `mascot-lg 56` `pinky-sm 28` `pinky-md 40` `pinky-lg 72` `pinky-eyes 44` `eyes-row 26` `eyes-header 44` `eyes-card 56` `eyes-blob 74` `hero-blob-height 290` `login-blob-height 200` `stamp-pill-width 100` `stamp-pill-height 60`) · motion 2(`easing-pinky cubic-bezier(0.32,0.72,0,1)` `duration-pinky 2600ms`).
+추가(68): type/line 13(`type-wordmark-size 38` `line-wordmark 44` `line-display 42` `type-headline-size 26` `line-headline 34` `type-sheet-title-size 22` `type-card-title-size 19` `line-card-title 26` `line-body-strong 20` `type-stamp-size 17` `type-chip-size 13` `type-meta-size 12` `type-eyebrow-size 11`) · letter-spacing 4(`tight -0.02em` `wide 0.12em` `wider 0.16em` `wordmark 0.04em`, 신규 그룹 `letterSpacing`) · border 5(`chip 2` `card 2.2` `outline 2.4` `dashed 2` `pending 3`) · tilt 4(`sticker -0.8deg` `hero -1.2deg` `blob -2deg` `empty 3deg`, 신규 그룹 `tilt`) · size 40(`input-height 48` `textarea-min-height 80` `kakao-height 54` `icon-circle 40` `card-padding 18` `chip-select-height 36` `chip-meta-height 30` `chip-status-height 28` `switch-width 52` `switch-height 32` `switch-knob 20` `trust-ring 88` `trust-ring-stroke 10` `dday-circle 56` `avatar-sm 34` `avatar-lg 48` `avatar-xl 52` `thumb 76` `thumb-lg 84` `status-dot 10` `progress-height 8` `sheet-handle-width 40` `sheet-handle-height 5` `fade-height 140` `fade-height-sm 110` `mascot-sm 30` `mascot-md 34` `mascot-lg 56` `pinky-sm 28` `pinky-md 40` `pinky-lg 72` `pinky-eyes 44` `eyes-row 26` `eyes-header 44` `eyes-card 56` `eyes-blob 74` `hero-blob-height 290` `login-blob-height 200` `stamp-pill-width 100` `stamp-pill-height 60`) · motion 2(`easing-pinky cubic-bezier(0.32,0.72,0,1)` `duration-pinky 2600ms`).
 
 삭제(9, P7): 위 P7 목록. `NOT_PORTED_TOKENS` 6개 그대로.
 

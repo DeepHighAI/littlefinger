@@ -4,7 +4,7 @@ import type {
 } from '@littlefinger/shared';
 import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, Linking, Share } from 'react-native';
+import { Alert, Linking, Share, StyleSheet } from 'react-native';
 
 import PromiseDetailScreen from '../app/promise/[promise_id]';
 import {
@@ -23,6 +23,7 @@ import {
 } from '../lib/fulfillment-native.ts';
 import { MobileApiError } from '../lib/mobile-api.ts';
 import { getPromiseDetail } from '../lib/promise-detail-native.ts';
+import { size } from '../theme/tokens.ts';
 import { formatDetailInstant } from './scr-a05-detail-state.ts';
 import {
   createPromiseAmendIdempotencyKey,
@@ -789,7 +790,8 @@ describe('SCR-A05 약속 상세', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    expect(view.getByRole('button', { name: '변경 승인' })).toHaveStyle({ minHeight: 48 });
+    const approve = view.getByRole('button', { name: '변경 승인' });
+    expect(StyleSheet.flatten(approve.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
     expect(view.getByRole('button', { name: '거절' })).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '변경 승인' }));
     await settle();

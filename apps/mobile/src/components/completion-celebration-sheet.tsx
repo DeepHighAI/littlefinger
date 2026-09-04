@@ -22,7 +22,8 @@ import {
 } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
 import { LfIcon } from './LfIcon.tsx';
-import { LfPinky } from './LfPinky.tsx';
+import { LfPinkyLoop } from './LfPinkyLoop.tsx';
+import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
 import { LfText } from './LfText.tsx';
 
@@ -102,45 +103,25 @@ export function CompletionCelebrationSheet({
   const { locale } = useLocale();
   const open = visible && celebration !== null;
   return (
-    <Modal
+    <LfSheet
       testID="completion-celebration-modal"
       visible={open}
-      transparent
-      animationType="slide"
       onShow={onShown}
-      onRequestClose={onClose}
+      onClose={onClose}
+      title={LABEL.title}
+      closeLabel={LABEL.close}
+      scrimTestID="completion-celebration-scrim"
+      sheetTestID="completion-celebration-sheet"
+      centered
     >
-      <View style={styles.scrim}>
-        <Pressable
-          testID="completion-celebration-scrim"
-          style={styles.dismissArea}
-          onPress={onClose}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
         {celebration !== null ? (
-          <View
-            testID="completion-celebration-sheet"
-            style={styles.sheet}
-            accessibilityViewIsModal
-          >
-            <View style={styles.handle} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={LABEL.close}
-              style={styles.close}
-              onPress={onClose}
-            >
-              <LfIcon name="close" />
-            </Pressable>
             <View style={styles.content}>
               <LfStack gap={5} center>
-                <LfPinky
-                  size="xl"
+                <LfPinkyLoop
+                  size="lg"
                   accessibilityLabel={LABEL.pinky}
                   testID="completion-celebration-pinky"
                 />
-                <LfText variant="title" align="center">{LABEL.title}</LfText>
                 <LfStack gap={2} center>
                   <LfText secondary align="center">
                     {LABEL.complete(celebration.title)}
@@ -177,9 +158,7 @@ export function CompletionCelebrationSheet({
                 </View>
               </LfStack>
             </View>
-          </View>
         ) : null}
-      </View>
-    </Modal>
+    </LfSheet>
   );
 }

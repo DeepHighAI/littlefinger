@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LfAdSlot } from '../components/LfAdSlot';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfAvatar } from '../components/LfAvatar';
-import { LfBottomNav } from '../components/LfBottomNav';
 import { LfButton } from '../components/LfButton';
 import { LfCard } from '../components/LfCard';
 import { LfDisclaimer } from '../components/LfDisclaimer';
@@ -38,6 +37,7 @@ import {
 } from '../lib/trust-profile-native.ts';
 import { SCR_A08_LABEL } from '../screens/scr-a08-labels.ts';
 import { SLOT_LABEL } from '../screens/slot-labels.ts';
+import { MOBILE_CHROME_LABEL } from '../screens/mobile-chrome-labels.ts';
 import {
   createInitialProfileState,
   profileReducer,
@@ -124,6 +124,7 @@ function LanguageRow(): React.JSX.Element {
 export default function ProfileScreen(): React.JSX.Element {
   const LABEL = useLabels(SCR_A08_LABEL);
   const SLOT = useLabels(SLOT_LABEL);
+  const CHROME = useLabels(MOBILE_CHROME_LABEL);
   const router = useRouter();
   const [state, dispatch] = useReducer(profileReducer, undefined, createInitialProfileState);
   const nextLoadId = useRef(0);
@@ -136,6 +137,14 @@ export default function ProfileScreen(): React.JSX.Element {
   const [slotSheetOpen, setSlotSheetOpen] = useState(false);
   // F-12 확대(PO 2026-08-24): 프로필 하단 1구좌. 끄면 렌더 자체를 하지 않는다.
   const [adsEnabled, setAdsEnabled] = useState(false);
+
+  function handleBack(): void {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace('/home');
+  }
 
   async function handleLegalDocument(kind: 'TERMS' | 'PRIVACY'): Promise<void> {
     setLegalDocumentFailed(false);
@@ -284,7 +293,7 @@ export default function ProfileScreen(): React.JSX.Element {
         <LfRow gap={7}>
           <LfTrustRing rate={state.profile.keep_rate} />
           <View style={styles.stats}>
-            <LfText variant="sectionTitle">{LABEL.keepRate}</LfText>
+            <LfText variant="eyebrow">{LABEL.keepRate}</LfText>
             <LfText>{`${LABEL.completed(state.profile.completed_count)} · ${LABEL.broken(state.profile.broken_count)}`}</LfText>
             <LfText variant="caption">{`${LABEL.disputed(state.profile.disputed_count)} · ${LABEL.unresolved(state.profile.unresolved_count)}`}</LfText>
             <LfText variant="caption">{LABEL.active(state.profile.active_count)}</LfText>
@@ -295,7 +304,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
       {slot !== null && (
         <>
-          <LfText variant="sectionTitle">{SLOT.profileTitle}</LfText>
+          <LfText variant="eyebrow">{SLOT.profileTitle}</LfText>
           <LfCard>
             <LfRow gap={4}>
               <LfIcon name="bookmark" color="record" />
@@ -317,7 +326,7 @@ export default function ProfileScreen(): React.JSX.Element {
         </>
       )}
 
-      <LfText variant="sectionTitle">{LABEL.reminderTitle}</LfText>
+      <LfText variant="eyebrow">{LABEL.reminderTitle}</LfText>
       <LfCard>
         <LfStack gap={4}>
           {state.displayedReminders !== null && (
@@ -339,12 +348,25 @@ export default function ProfileScreen(): React.JSX.Element {
         </LfStack>
       </LfCard>
 
-      <LfText variant="sectionTitle">{LABEL.languageTitle}</LfText>
+      <LfText variant="eyebrow">{LABEL.languageTitle}</LfText>
       <LfCard>
         <LanguageRow />
       </LfCard>
 
-      <LfText variant="sectionTitle">{LABEL.legalTitle}</LfText>
+      <LfCard flat>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={CHROME.history}
+          style={styles.legalButton}
+          onPress={() => router.push('/history')}
+        >
+          <LfIcon name="history" color="record" />
+          <View style={styles.legalLabel}><LfText>{CHROME.history}</LfText></View>
+          <LfIcon name="arrow_forward" color="textMuted" />
+        </Pressable>
+      </LfCard>
+
+      <LfText variant="eyebrow">{LABEL.legalTitle}</LfText>
       <LfCard>
         <LfStack gap={2}>
           <Pressable accessibilityRole="button" accessibilityLabel={LABEL.termsAccessibility} style={styles.legalButton} onPress={() => void handleLegalDocument('TERMS')}>
@@ -387,20 +409,19 @@ export default function ProfileScreen(): React.JSX.Element {
   );
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
-      <LfAppBar title={LABEL.title} />
+    <SafeAreaView style={styles.screen}>
+      <LfAppBar
+        title={LABEL.title}
+        leading="back"
+        leadingAccessibilityLabel={CHROME.back}
+        onLeadingPress={handleBack}
+      />
       <View style={styles.body}>{body}</View>
       <SlotPaywallSheet
         visible={slotSheetOpen}
         reason="manage"
         onClose={() => setSlotSheetOpen(false)}
         onPurchased={setSlot}
-      />
-      <LfBottomNav
-        active="profile"
-        onHomePress={() => router.replace('/home')}
-        onCreatePress={() => router.push('/promise/edit')}
-        onProfilePress={() => undefined}
       />
     </SafeAreaView>
   );

@@ -22,6 +22,7 @@ import { PROMISE_ENTITLEMENT_LABEL } from '../screens/promise-entitlement-labels
 import { border, colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
 import { LfIcon } from './LfIcon.tsx';
+import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
 import { LfText } from './LfText.tsx';
 
@@ -192,17 +193,12 @@ export function PromiseEntitlementSheet({
       : LABEL.rewardRetention(RETENTION_EXTENSION_DAYS);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.scrim}>
-        <Pressable style={styles.dismissArea} onPress={onClose} accessibilityElementsHidden />
-        <View style={styles.sheet} accessibilityViewIsModal>
-          <View style={styles.handle} />
-          <View style={styles.header}>
-            <LfText variant="title">{mode === 'DURATION' ? LABEL.durationTitle : LABEL.retentionTitle}</LfText>
-            <Pressable accessibilityRole="button" accessibilityLabel={LABEL.close} onPress={onClose} style={styles.close}>
-              <LfIcon name="close" />
-            </Pressable>
-          </View>
+    <LfSheet
+      visible={visible}
+      title={mode === 'DURATION' ? LABEL.durationTitle : LABEL.retentionTitle}
+      closeLabel={LABEL.close}
+      onClose={onClose}
+    >
           <View style={styles.content}>
             {loading ? <LfText secondary>{LABEL.loading}</LfText> : null}
             {failed ? (
@@ -250,8 +246,6 @@ export function PromiseEntitlementSheet({
               </>
             ) : null}
           </View>
-        </View>
-      </View>
-    </Modal>
+    </LfSheet>
   );
 }

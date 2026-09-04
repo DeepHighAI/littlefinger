@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { colors, radius, space } from '../theme/tokens';
-import { LfPinky } from './LfPinky';
+import { LfEyes } from './LfMascot';
 import { LfText } from './LfText';
 
 export interface LfHelperProps {
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 export function LfHelper({ text }: LfHelperProps): React.JSX.Element {
   return (
     <View style={styles.root}>
-      <LfPinky size="xs" />
+      <LfEyes size="header" />
       <View style={styles.copy}><LfText secondary>{text}</LfText></View>
     </View>
   );

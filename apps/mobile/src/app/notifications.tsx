@@ -1,7 +1,7 @@
 import type { NotificationInboxItem } from '@littlefinger/shared';
 import { useRouter } from 'expo-router';
 import { useEffect, useReducer, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfAdSlot } from '../components/LfAdSlot';
@@ -9,7 +9,7 @@ import { LfAppBar } from '../components/LfAppBar';
 import { LfButton } from '../components/LfButton';
 import { LfEmpty } from '../components/LfEmpty';
 import { LfIcon } from '../components/LfIcon';
-import { LfPinky } from '../components/LfPinky';
+import { LfEyes } from '../components/LfMascot';
 import { LfText } from '../components/LfText';
 import {
   createNotificationReadIdempotencyKey,
@@ -88,8 +88,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  accentIcon: { backgroundColor: colors.primaryContainer },
-  urgentIcon: { backgroundColor: colors.attentionContainer },
+  paperIcon: { backgroundColor: colors.surface },
+  pinkIcon: { backgroundColor: colors.attentionContainer },
+  creamIcon: { backgroundColor: colors.background },
+  skyIcon: { backgroundColor: colors.recordContainer },
+  mutedIcon: { backgroundColor: colors.surfaceMuted },
   itemBody: { flex: 1, minWidth: 0 },
   headline: {
     color: colors.textSecondary,
@@ -120,23 +123,29 @@ const styles = StyleSheet.create({
   pageAction: { gap: space[3] },
 });
 
+const ICON_TONE_STYLE: Record<
+  ReturnType<typeof notificationAppearance>['tone'],
+  ViewStyle
+> = {
+  paper: styles.paperIcon,
+  pink: styles.pinkIcon,
+  cream: styles.creamIcon,
+  sky: styles.skyIcon,
+  muted: styles.mutedIcon,
+};
+
 function iconFor(item: NotificationInboxItem): React.JSX.Element {
   const appearance = notificationAppearance(item.event);
-  if (appearance.icon === 'pinky') {
+  if (appearance.icon === 'eyes') {
     return (
-      <View style={[styles.icon, styles.accentIcon]}>
-        <LfPinky size="xs" />
+      <View style={[styles.icon, ICON_TONE_STYLE[appearance.tone]]}>
+        <LfEyes size="row" />
       </View>
     );
   }
-  const urgent = appearance.tone === 'urgent';
   return (
-    <View style={[styles.icon, urgent && styles.urgentIcon]}>
-      <LfIcon
-        name={appearance.icon}
-        size={type.heading}
-        color={urgent ? 'attention' : 'textSecondary'}
-      />
+    <View style={[styles.icon, ICON_TONE_STYLE[appearance.tone]]}>
+      <LfIcon name={appearance.icon} size={type.heading} color="text" />
     </View>
   );
 }
@@ -286,17 +295,10 @@ export default function NotificationInboxScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen}>
       <LfAppBar
         title={LABEL.title}
-        leading={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={LABEL.back}
-            onPress={() => router.back()}
-            style={styles.back}
-          >
-            <LfIcon name="arrow_back" />
-          </Pressable>
-        }
-        action={action}
+        leading="back"
+        leadingAccessibilityLabel={LABEL.back}
+        onLeadingPress={() => router.back()}
+        actions={action}
       />
       {items === null ? (
         <View style={styles.centered}>
@@ -320,7 +322,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
           )}
           {notificationSections(items, now, locale).map((section) => (
             <View key={section.title} style={styles.section}>
-              <LfText variant="sectionTitle">{section.title}</LfText>
+              <LfText variant="eyebrow">{section.title}</LfText>
               <View style={styles.list}>
                 {section.items.map((item) => {
                   const unread = isNotificationUnread(state, item);
@@ -353,7 +355,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
                         {unread && (
                           <LfText
                             testID={`notification-unread-${item.notification_id}`}
-                            variant="caption"
+                            variant="bodyStrong"
                           >
                             {LABEL.unread}
                           </LfText>

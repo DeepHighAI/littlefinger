@@ -67,26 +67,25 @@ Rules:
 
 ## Brand mark
 
-The approved in-product mark is **Type A — Pinky Loop** (PO-confirmed 2026-08-27, detail-corrected
-2026-08-31): two equal hand silhouettes whose little fingers visibly hook in the centre. Screens
-must not redraw, stretch, split, or recolour its two hands independently. Launcher and in-product
-artwork use this same silhouette (2026-08-31; ADR 0018).
+The approved identity is **E-1 face/eyes with the C-1 pinky motion** from the final Claude Design
+handoff. The PO explicitly selected E-1 for the installed app icon on 2026-09-04, superseding the
+Type A Pinky Loop launcher decision in ADR 0018.
 
-- **Launcher icon:** butter `#F6E7A3` field with solid ink `#221C13` hands. No white fill,
-  outlines, or forced-perspective variant. Android/iOS own the platform mask, so exported artwork
-  has no baked corner radius, cream presentation margin, or shadow.
-- **In-product, all surfaces:** solid ink hands on light surfaces and butter badges; butter hands
-  on ink actions, including the central Create button. No opaque rectangular patch behind the mark.
-- **Splash:** butter circle with ink hands. Android themed/notification icons use the same alpha
-  silhouette with a white fill, leaving the operating system to apply its monochrome colour.
-- Lavender/apricot/danger are never brand-mark colours. They remain semantic UI colours around
-  the mark, not inside it.
-- `apps/mobile/assets/images/brand-symbol.png`, `apps/web/src/assets/images/brand-symbol.png`, and
-  `design-reference/assets/images/brand-symbol.png` are byte-identical copies of the approved
-  730×458 RGBA mask. Its restored side contours stay inside the canvas, and platform derivatives
-  must preserve the antialiased silhouette. Mobile renders the ink derivative from
-  `apps/mobile/assets/images/brand-symbol-in-app.png` with `contain` and semantic ink/butter tint.
-  `node tools/export-brand-icons.js` regenerates platform exports from that shared mask and tokens.
+- **Launcher icon:** yellow `#FFE59A` field, the E-1 organic white face, and its small black hand-eye
+  pair. Android/iOS own the platform mask, so exported artwork has no baked outer corner radius,
+  presentation margin, or shadow.
+- **Android adaptive icon:** the same E-1 face is centred inside the adaptive safe area. The
+  monochrome layer contains only the hand-eye pair so Android can apply the system theme colour.
+- **In-product, all surfaces:** use `mascot-face-e1.png` for the complete face and `eyes-e1.png` for
+  the hand-eye expression. C-1 remains the approved pinky-loop motion; screens do not redraw these
+  assets independently.
+- `node tools/export-brand-icons.js` reproducibly generates `icon.png`, the three Android adaptive
+  layers, and `splash-icon.png` from the permanent E-1 masters. The Play listing icon is the PO-curated
+  `docs/디자인/store/app-icon/littlefinger-icon-512.png`; launcher export must not overwrite it.
+  The source artboard remains `design-reference/ui-ux/project/assets/icon-face-e1.png`.
+- The PO authorized the `0.3.0` Google Play build package on 2026-09-04. The mobile P8 set therefore
+  uses the E-1 splash and `#FFE59A` launcher/notification colour. Cross-surface derivatives remain
+  coupled to the incomplete P7 web port and do not block an Android internal/open-test package.
 
 ## Typography
 
@@ -128,7 +127,10 @@ artwork use this same silhouette (2026-08-31; ADR 0018).
   lavender D-Day badges; ink/outline filter chips; black Create action bottom-center; two small
   sparkle doodles.
 - **Create:** cream canvas, paper fields with 2px ink borders; ink-inverted selected choices;
-  Pretendard intro line; black Send CTA.
+  black Send CTA. The fixed top region contains only the app bar and three-step progress; it does
+  not repeat the active step as a large title or description. Reward and penalty both include the
+  Starbucks, Olive Young and locale-specific 10,000 won / 10-dollar presets; "Be my servant" is
+  penalty-only.
 - **Confirmed detail:** tilted stamp sticker with approvals and fingerprint; lavender record
   metadata; butter status chip; lavender reward / apricot penalty patches; equal neutral treatment
   for both DISPUTED claims.
@@ -169,6 +171,12 @@ first, then mirrored and tested.
 
 ## Decision log
 
+- 2026-09-04: PO compacted SCR-A03's fixed header to app bar + wizard progress only so fields gain
+  vertical space, added Starbucks/Olive Young/10,000-won presets to reward and penalty, and added
+  "Be my servant" to penalty only. Korean display copy is `나의 노예가 되어라`.
+- 2026-09-04: PO rejected the installed Type A launcher and explicitly selected the Claude Design
+  E-1 face icon. The launcher, Android adaptive layers and Play listing export now use the yellow
+  field, organic white face and black hand-eye pair (ADR 0019).
 - 2026-08-31: PO selected the butter-field / solid-ink Type A launcher and ink/butter in-product
   pair. The shared silhouette remains unchanged; the white outlined treatments of ADR 0016/0017
   are superseded (ADR 0018).

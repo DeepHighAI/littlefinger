@@ -192,7 +192,7 @@ export function NativeAdCard({ ad }: { ad: LittlefingerNativeAd }): React.JSX.El
         )}
         <View style={styles.copy}>
           <NativeAsset assetType={NativeAssetType.HEADLINE}>
-            <LfText variant="sectionTitle">{ad.headline}</LfText>
+            <LfText variant="eyebrow">{ad.headline}</LfText>
           </NativeAsset>
           {ad.advertiser !== null && (
             <NativeAsset assetType={NativeAssetType.ADVERTISER}>
@@ -200,7 +200,7 @@ export function NativeAdCard({ ad }: { ad: LittlefingerNativeAd }): React.JSX.El
             </NativeAsset>
           )}
         </View>
-        <LfChip label={LABEL.advertisement} tone="neutral" />
+        <LfChip label={LABEL.advertisement} tone="paper" kind="meta" />
       </LfRow>
       <NativeAsset assetType={NativeAssetType.BODY}>
         <LfText secondary>{ad.body}</LfText>

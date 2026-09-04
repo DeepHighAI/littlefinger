@@ -1,48 +1,76 @@
-import Svg, { Circle, Path } from 'react-native-svg';
+import { Image, type ImageProps } from 'react-native';
 
-import { colors } from '../theme/tokens';
+import { size as sizeToken } from '../theme/tokens';
 
-/**
- * 잉크&스티커 마스코트 — 버터 블롭 + 얼굴 (.sl-mascot, ADR 0012).
- *
- * 로그인·온보딩 배지 안에서만 쓴다. 색은 하드코딩하지 않고 전부 토큰이다:
- * 몸통=primary-container(버터), 선·눈=text(잉크). 장식이므로 기본은 접근성 트리에서
- * 숨기고, 배지처럼 이미지 역할이 필요한 자리는 부모가 role/label 을 단다.
- */
+export type LfMascotFaceSize = 'sm' | 'md' | 'lg';
+export type LfEyesSize = 'row' | 'header' | 'card' | 'blob';
 
-// CSS 원본 크기: 로그인 132px · 온보딩 배지 안 124px (.sl-mascot)
-export type LfMascotSize = 'login' | 'onboarding';
+export interface LfMascotImageProps extends Omit<ImageProps, 'source' | 'style'> {
+  accessibilityLabel?: string;
+}
 
-const SIZES: Record<LfMascotSize, number> = {
-  login: 132,
-  onboarding: 124,
+const MASCOT_FACE = require('../../assets/images/mascot-face-e1.png') as number;
+const EYES = require('../../assets/images/eyes-e1.png') as number;
+
+const MASCOT_SIZE: Record<LfMascotFaceSize, number> = {
+  sm: sizeToken.mascotSm,
+  md: sizeToken.mascotMd,
+  lg: sizeToken.mascotLg,
 };
 
-// 스트로크 굵기는 viewBox(120) 기준 — CSS 원본과 동일
-const BODY_STROKE = 3.2;
-const SMILE_STROKE = 3;
-const EYE_RADIUS = 4.6;
+const EYES_WIDTH: Record<LfEyesSize, number> = {
+  row: sizeToken.eyesRow,
+  header: sizeToken.eyesHeader,
+  card: sizeToken.eyesCard,
+  blob: sizeToken.eyesBlob,
+};
 
-export function LfMascot({ size = 'login' }: { size?: LfMascotSize }): React.JSX.Element {
-  const px = SIZES[size];
+function accessibilityProps(accessibilityLabel: string | undefined): Pick<
+  ImageProps,
+  'accessible' | 'accessibilityElementsHidden' | 'accessibilityLabel' | 'accessibilityRole' | 'importantForAccessibility'
+> {
+  const decorative = accessibilityLabel === undefined;
+  return {
+    accessible: !decorative,
+    accessibilityElementsHidden: decorative,
+    accessibilityLabel,
+    accessibilityRole: 'image',
+    importantForAccessibility: decorative ? 'no-hide-descendants' : 'yes',
+  };
+}
+
+/** 승인된 E-1 얼굴 PNG. 크기만 바꾸고 색상 가공은 하지 않는다. */
+export function LfMascotFace({
+  size = 'md',
+  accessibilityLabel,
+  ...rest
+}: LfMascotImageProps & { size?: LfMascotFaceSize }): React.JSX.Element {
+  const edge = MASCOT_SIZE[size];
   return (
-    <Svg width={px} height={px} viewBox="0 0 120 120" testID="lf-mascot">
-      <Path
-        fill={colors.primaryContainer}
-        stroke={colors.text}
-        strokeWidth={BODY_STROKE}
-        strokeLinejoin="round"
-        d="M60 12q22-5 34 12 14 10 8 30 6 24-15 33-18 12-38 4-24 0-30-21-9-20 5-36 7-20 36-22Z"
-      />
-      <Circle fill={colors.text} cx={45} cy={47} r={EYE_RADIUS} />
-      <Circle fill={colors.text} cx={76} cy={47} r={EYE_RADIUS} />
-      <Path
-        fill="none"
-        stroke={colors.text}
-        strokeWidth={SMILE_STROKE}
-        strokeLinecap="round"
-        d="M48 61q12 10 24 0"
-      />
-    </Svg>
+    <Image
+      {...rest}
+      {...accessibilityProps(accessibilityLabel)}
+      source={MASCOT_FACE}
+      resizeMode="contain"
+      style={{ width: edge, height: edge }}
+    />
+  );
+}
+
+/** 승인된 E-1 눈 PNG. 원본 5:2 비율을 유지한다. */
+export function LfEyes({
+  size = 'row',
+  accessibilityLabel,
+  ...rest
+}: LfMascotImageProps & { size?: LfEyesSize }): React.JSX.Element {
+  const width = EYES_WIDTH[size];
+  return (
+    <Image
+      {...rest}
+      {...accessibilityProps(accessibilityLabel)}
+      source={EYES}
+      resizeMode="contain"
+      style={{ width, height: width * 2 / 5 }}
+    />
   );
 }

@@ -1,7 +1,7 @@
 import { LEGAL_DISCLAIMER, type ReminderPreferences, type TrustProfileDetailResponse } from '@littlefinger/shared';
 import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 
 import ProfileScreen from '../app/profile';
 import { withdrawAccountNative } from '../lib/account-safety-native.ts';
@@ -10,6 +10,7 @@ import { LocaleProvider } from '../lib/locale-native';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
 import { loadSlotStatus } from '../lib/slots-native.ts';
+import { size } from '../theme/tokens.ts';
 import {
   loadTrustProfile,
   logoutCurrentDeviceNative,
@@ -93,6 +94,7 @@ const userIdMock = jest.mocked(currentMobileUserId);
 const openLegalMock = jest.mocked(openLegalDocument);
 const withdrawMock = jest.mocked(withdrawAccountNative);
 const back = jest.fn();
+const canGoBack = jest.fn();
 const push = jest.fn();
 const replace = jest.fn();
 
@@ -143,9 +145,10 @@ describe('SCR-A08 fenced profile state', () => {
 describe('SCR-A08 마이·신뢰 프로필', () => {
   beforeEach(() => {
     back.mockReset();
+    canGoBack.mockReset().mockReturnValue(true);
     push.mockReset();
     replace.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ back, push, replace } as never);
+    jest.mocked(useRouter).mockReturnValue({ back, canGoBack, push, replace } as never);
     loadMock.mockReset();
     slotMock.mockReset().mockResolvedValue({ capacity: 5, used: 2 });
     jest.mocked(readAdsEnabled).mockReset().mockResolvedValue(false);
@@ -407,8 +410,8 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     // 기본 기기는 한국어(jest-setup) — 선택 상태가 색이 아니라 라벨로 드러난다.
     const korean = view.getByRole('button', { name: '한국어 · 선택됨' });
     const english = view.getByRole('button', { name: 'English(으)로 보기' });
-    expect(korean).toHaveStyle({ minHeight: 48 });
-    expect(english).toHaveStyle({ minHeight: 48 });
+    expect(StyleSheet.flatten(korean.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
+    expect(StyleSheet.flatten(english.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
 
     await fireEvent.press(english);
     await settle();
@@ -419,30 +422,47 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.getByText(SCR_A08_LABEL.en.legalTitle)).toBeTruthy();
   });
 
-  test('하단 목적지·법적 문서·설정·로그아웃 control은 모두 48dp 이상이다', async () => {
+  test('앱바·지난 약속·법적 문서·설정·로그아웃 control은 모두 48dp 이상이다', async () => {
     loadMock.mockResolvedValue(PROFILE);
     const view = await render(<ProfileScreen />);
     await settle();
 
     const controls = [
-      view.getByRole('tab', { name: '홈' }),
-      view.getByRole('button', { name: '작성' }),
+      view.getByRole('button', { name: '지난 약속' }),
       view.getByRole('button', { name: '리마인드 발송 시각 12:00' }),
       view.getByRole('button', { name: '이용약관 열기' }),
       view.getByRole('button', { name: '개인정보 처리방침 열기' }),
       view.getByRole('button', { name: '로그아웃' }),
       ...view.getAllByRole('switch'),
     ];
-    for (const control of controls) expect(control).toHaveStyle({ minHeight: 48 });
+    for (const control of controls) {
+      expect(StyleSheet.flatten(control.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
+    }
+    const backButton = view.getByRole('button', { name: '뒤로' });
+    const backStyle = StyleSheet.flatten(backButton.props.style);
+    expect(backStyle.width + backButton.props.hitSlop * 2).toBe(48);
+    expect(backStyle.height + backButton.props.hitSlop * 2).toBe(48);
   });
 
-  test('하단 홈과 작성은 목적지와 핵심 행동 경로를 분리한다', async () => {
+  test('앱바 뒤로와 지난 약속 행은 각각 이전 화면과 히스토리로 이동한다', async () => {
     loadMock.mockResolvedValue(PROFILE);
     const view = await render(<ProfileScreen />);
     await settle();
-    await fireEvent.press(view.getByRole('tab', { name: '홈' }));
-    await fireEvent.press(view.getByRole('button', { name: '작성' }));
+    await fireEvent.press(view.getByRole('button', { name: '뒤로' }));
+    await fireEvent.press(view.getByRole('button', { name: '지난 약속' }));
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(push).toHaveBeenCalledWith('/history');
+  });
+
+  test('이전 스택 없이 열린 마이 화면의 뒤로는 홈으로 복귀한다', async () => {
+    canGoBack.mockReturnValue(false);
+    loadMock.mockResolvedValue(PROFILE);
+    const view = await render(<ProfileScreen />);
+    await settle();
+
+    await fireEvent.press(view.getByRole('button', { name: '뒤로' }));
+
+    expect(back).not.toHaveBeenCalled();
     expect(replace).toHaveBeenCalledWith('/home');
-    expect(push).toHaveBeenCalledWith('/promise/edit');
   });
 });

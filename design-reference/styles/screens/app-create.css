@@ -37,16 +37,6 @@ legend.lf-field__label { padding: 0; }
    SCR-A03 — 약속 작성 (3단계 위저드 유지 · 확정안 4c 카드/eyebrow/파스텔 칩)
    ------------------------------------------------------------- */
 
-/* 제목 행 — 왼쪽 h1, 오른쪽 핑크 소형 블롭 + 눈 */
-.lf-create__title-row {
-  flex: none;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--lf-space-5);
-  padding: var(--lf-space-3) var(--lf-space-8) 0;
-}
-
 /* 위저드 진행 점 — 활성 20×6 잉크, 나머지 6 뮤트 (앱바 아래) */
 .lf-wizard {
   flex: none;

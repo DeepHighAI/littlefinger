@@ -4,12 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LEGAL_DOCUMENT_LABELS_BY_LOCALE, type LegalDocumentKind } from '@littlefinger/shared';
 
 import { GoogleMark } from '../components/GoogleMark';
+import { LfBlob } from '../components/LfBlob';
 import { LfButton } from '../components/LfButton';
-import { LfDoodle, LfDoodleLayer } from '../components/LfDoodle';
 import { LfInput } from '../components/LfInput';
-import { LfMascot } from '../components/LfMascot';
 import { LfNotice } from '../components/LfNotice';
-import { LfPinky } from '../components/LfPinky';
+import { LfPinkyLoop } from '../components/LfPinkyLoop';
 import { LfStack } from '../components/LfStack';
 import {
   signInWithGoogle,
@@ -47,9 +46,6 @@ const WORDMARK_LINE = 46;
 const WORDMARK_TRACKING = 3;
 const SUBTITLE_SIZE = 15;
 const ACTIONS_BOTTOM = 28;
-// 마스코트 아래 소형 핑키 글리프 여백 (.sl-glyph)
-const GLYPH_MARGIN_TOP = 4;
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   body: {
@@ -63,7 +59,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glyph: { marginTop: GLYPH_MARGIN_TOP },
   wordmark: {
     marginTop: 22,
     fontSize: WORDMARK_SIZE,
@@ -195,14 +190,6 @@ export default function LoginScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <LfDoodleLayer>
-        <LfDoodle placement="sparkle-tl" />
-        <LfDoodle placement="star-tr" />
-        <LfDoodle placement="mail-l" />
-        <LfDoodle placement="moon-r" />
-        <LfDoodle placement="tea-bl" />
-        <LfDoodle placement="plant-br" />
-      </LfDoodleLayer>
       <View style={styles.body}>
         <View
           style={styles.badge}
@@ -210,11 +197,9 @@ export default function LoginScreen(): React.JSX.Element {
           accessibilityRole="image"
           accessibilityLabel={LABEL.logo}
         >
-          <LfMascot size="login" />
-        </View>
-        {/* 마스코트 아래 소형 핑키 글리프 (.sl-glyph) — 장식 */}
-        <View style={styles.glyph} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <LfPinky size="sm" />
+          <LfBlob variant="login" tilt="blob">
+            <LfPinkyLoop size="eyes" variant="solid" spark />
+          </LfBlob>
         </View>
 
         <Text style={styles.wordmark}>{LABEL.wordmark}</Text>

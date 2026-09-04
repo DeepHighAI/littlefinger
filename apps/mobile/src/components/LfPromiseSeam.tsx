@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { colors, duration, easing, size, space } from '../theme/tokens';
-import { LfPinky } from './LfPinky';
+import { LfEyes } from './LfMascot';
 
 const styles = StyleSheet.create({
   root: {
@@ -61,7 +61,7 @@ export function LfPromiseSeam(): React.JSX.Element {
       style={styles.root}
     >
       <View style={styles.side}><Animated.View style={[styles.line, leftStyle]} /></View>
-      <LfPinky size="xs" />
+      <LfEyes size="row" />
       <View style={styles.side}><Animated.View style={[styles.line, rightStyle]} /></View>
     </View>
   );

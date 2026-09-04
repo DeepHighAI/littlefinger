@@ -85,16 +85,9 @@ export default function BlockedUsersScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen}>
       <LfAppBar
         title={LABEL.title}
-        leading={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={LABEL.back}
-            onPress={() => router.back()}
-            style={styles.back}
-          >
-            <LfIcon name="arrow_back" />
-          </Pressable>
-        }
+        leading="back"
+        leadingAccessibilityLabel={LABEL.back}
+        onLeadingPress={() => router.back()}
       />
       {items === null && !loadFailed ? (
         <View style={styles.centered}>

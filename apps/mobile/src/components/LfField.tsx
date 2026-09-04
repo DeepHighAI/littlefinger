@@ -32,7 +32,7 @@ export function LfField({
   return (
     <View>
       <LfStack gap={3}>
-        <LfText variant="sectionTitle">
+        <LfText variant="eyebrow">
           {label}
           {suffix}
         </LfText>

@@ -1,8 +1,9 @@
 import type { Localized } from '@littlefinger/shared';
 
 const ko = {
-  home: '홈',
-  create: '작성',
+  create: '약속 만들기',
+  back: '뒤로',
+  history: '지난 약속',
   profile: '마이',
   trustRate: '약속 지킴율',
   trustPending: '집계 중',
@@ -11,8 +12,9 @@ const ko = {
 };
 
 const en = {
-  home: 'Home',
-  create: 'Create',
+  create: 'Create a promise',
+  back: 'Back',
+  history: 'Past promises',
   profile: 'My',
   trustRate: 'Promise keep rate',
   trustPending: 'Calculating',

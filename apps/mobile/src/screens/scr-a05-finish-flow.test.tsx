@@ -1,7 +1,7 @@
 import type { PromiseDetailResponse, PromiseEntitlementsView } from '@littlefinger/shared';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, type AlertButton } from 'react-native';
+import { Alert, StyleSheet, type AlertButton } from 'react-native';
 
 import PromiseDetailScreen from '../app/promise/[promise_id]';
 import { getPromiseEntitlements } from '../lib/monetization-native.ts';
@@ -12,6 +12,7 @@ import {
   withdrawPromiseAmend,
 } from '../lib/promise-amend-native.ts';
 import { getPromiseDetail } from '../lib/promise-detail-native.ts';
+import { size } from '../theme/tokens.ts';
 
 /**
  * SCR-A05 FINISH(마무리) 흐름 — 02 §7-1 T-19~T-21.
@@ -214,7 +215,8 @@ describe('SCR-A05 마무리(FINISH) 흐름', () => {
   test('종료일 없는 ACTIVE 약속은 당사자에게만 마무리 요청 액션을 보여준다', async () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
-    expect(view.getByRole('button', { name: '이 약속 마무리 요청' })).toHaveStyle({ minHeight: 48 });
+    const finish = view.getByRole('button', { name: '이 약속 마무리 요청' });
+    expect(StyleSheet.flatten(finish.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
     // 종료일 없는 약속의 보관 기준 시각은 마무리 합의가 정한다.
     expect(view.getByText('마무리 합의 뒤 보관이 시작돼요')).toBeTruthy();
 

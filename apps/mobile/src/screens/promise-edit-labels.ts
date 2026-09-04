@@ -8,17 +8,12 @@ import { PROMISE_STATUS_LABEL_BY_LOCALE, type Localized } from '@littlefinger/sh
  */
 const ko = {
   title: '약속 만들기',
-  // 잉크&스티커 타자기 인트로 — 장식 텍스트 (ADR 0012). en 은 PO 확인 대기 초안.
-  typeline: '→ 새로운 약속을 적어볼까요?',
   editing: PROMISE_STATUS_LABEL_BY_LOCALE.ko.DRAFT,
   close: '닫기',
   previous: '이전 단계',
   stepContent: '내용',
   stepConditions: '조건',
   stepReview: '확인',
-  stepContentDescription: '함께 지킬 약속을 분명하게 적어주세요',
-  stepConditionsDescription: '언제까지 누가 지킬지 정해요',
-  stepReviewDescription: '보내기 전에 서로 확인할 내용을 살펴보세요',
   stepCount: (step: number) => `${step}/3 단계`,
   nextConditions: '조건 정하기',
   nextReview: '내용 확인하기',
@@ -61,16 +56,12 @@ const ko = {
 
 const en = {
   title: 'Create a promise',
-  typeline: '→ Shall we write a new promise?',
   editing: PROMISE_STATUS_LABEL_BY_LOCALE.en.DRAFT,
   close: 'Close',
   previous: 'Previous step',
   stepContent: 'Details',
   stepConditions: 'Terms',
   stepReview: 'Review',
-  stepContentDescription: 'Describe clearly what you will keep together',
-  stepConditionsDescription: 'Set who keeps it and by when',
-  stepReviewDescription: 'Review what your partner will see before sending',
   stepCount: (step: number) => `Step ${step} of 3`,
   nextConditions: 'Set the terms',
   nextReview: 'Review promise',

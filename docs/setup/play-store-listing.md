@@ -201,47 +201,44 @@ Pinky swear, it's a promise!
 
 | 애셋 | 규격 | 파일 | 상태 |
 |---|---|---|---|
-| 앱 아이콘 | 512×512, 32-bit PNG, 투명도 없음, 1MB 이하 | `docs/디자인/store/store-icon-512.png` (21 KB, alpha 전 픽셀 255) | ✅ 콘솔 등록 완료 (2026-09-03 확인) |
-| 피처 그래픽 (ko) | 1024×500, 24-bit PNG | `docs/디자인/store/feature-graphic-1024x500.png` (83 KB) | ✅ 콘솔 등록 완료 — PO가 업로드로 승인 (2026-09-03) |
-| 피처 그래픽 (en) | 1024×500, 24-bit PNG | `docs/디자인/store/feature-graphic-1024x500-en.png` (91 KB) | ✅ 콘솔 등록 완료 (2026-09-03) |
-| 스크린샷 | 휴대전화 9:16, 8장 | 원본 파일은 PO 보관(저장소에 없음) | ✅ 콘솔 8/8 등록 (2026-09-03) — 갤러리 렌더 + 상단 버터 밴드 오버레이 스토리보드 |
+| 앱 아이콘 | 512×512, 32-bit PNG, 1MB 이하 | `docs/디자인/store/app-icon/littlefinger-icon-512.png` (24,900 B, alpha 전 픽셀 1.0) | ✅ 로컬 최종본 · ⬜ 콘솔 교체 대기 (2026-09-04) |
+| 피처 그래픽 (ko) | 1024×500, 24-bit PNG, 알파 없음 | `docs/디자인/store/feature-graphic/littlefinger-feature-1024x500-ko.png` (60,897 B) | ✅ 로컬 최종본 · ⬜ 콘솔 교체 대기 (2026-09-04) |
+| 피처 그래픽 (en) | 1024×500, 24-bit PNG, 알파 없음 | `docs/디자인/store/feature-graphic/littlefinger-feature-1024x500-en.png` (63,739 B) | ✅ 로컬 최종본 · ⬜ 콘솔 교체 대기 (2026-09-04) |
+| 휴대전화 스크린샷 (ko) | 1080×1920, 24-bit PNG, 알파 없음 | `docs/디자인/store/screenshots-ko/` 10장 | ✅ 후보 10장 · ⚠️ 업로드 8장 선택 필요 |
+| 휴대전화 스크린샷 (en) | 1080×1920, 24-bit PNG, 알파 없음 | `docs/디자인/store/screenshots-en/` 10장 | ✅ 후보 10장 · ⚠️ 업로드 8장 선택 필요 |
 | 태블릿 스크린샷 (7·10인치) | 선택 | — | ⬜ 미등록 — 등록정보는 "검토를 위해 전송 준비 완료" 상태라 필수 아님 |
 | 홍보 동영상 | YouTube URL | — | ⛔ 미제작, 이번 범위 밖 |
 
-아이콘은 ADR 0016의 런처 아트워크(`apps/mobile/assets/images/icon.png`, 1024² 버터 필드 +
-페이퍼 화이트 손 + 잉크 외곽선)를 512로 축소하고 알파를 버터로 flatten 한 것이다. 런처 아트가
-바뀌면 이 파일도 다시 뽑아야 한다.
+2026-09-03에 등록한 기존 아이콘·피처 그래픽·8장 스크린샷은 새 파일을 콘솔에 올리기 전까지
+현재 등록정보에 남는다. 2026-09-04 세트가 교체 정본이며, 전체 규격·해시 목록은
+`docs/디자인/store/README.md`에 고정했다.
 
-피처 그래픽은 잉크&스티커 시스템(크림 `#F3ECDC` 캔버스 + 버터 `#F6E7A3` 스티커 카드 + 잉크
-`#221C13` 6px 테두리와 하드 오프셋 그림자 + Pretendard ExtraBold/SemiBold)으로 조립했다.
-카피는 인앱 태그라인 `새끼손가락 걸고, 약속!` / `Pinky swear, it's a promise!` 와 부제
-`둘이 지키는 약속 기록` / `The promises you two keep`. 홍보 수식어는 없다.
+아이콘은 ADR 0019의 E-1 얼굴이다. 네이티브 런처 파생물이 아니라 PO가 저장한 Play 전용 구도라
+`tools/export-brand-icons.js`가 덮어쓰지 않는다. 피처 그래픽은 크림 캔버스, E-1 아이콘 스티커,
+핑크·스카이·민트 포인트와 잉크 외곽선을 공유하고 ko/en 카피만 현지화한다.
 
-### 2-2. 스크린샷 스토리보드 (8장)
+### 2-2. 스크린샷 스토리보드 (후보 10장 → 등록 8장)
 
-**2026-09-03 등록본**은 `design-reference/screens/` 갤러리 렌더에 상단 버터 밴드 오버레이를 얹어
-PO가 만든 8장이다(실기기 캡처가 아님). 아래 규칙은 **다음 갱신** 때 적용한다:
-소스는 내부 테스트 빌드를 올린 실기기에서 1080×2400으로 캡처하고, 최종 등록 파일은
-1080×1920(9:16) 24-bit PNG로 내보낸다. Play는 장변이 단변의 2배를 넘는 이미지를 받지
-않으므로 1080×2400 원본을 그대로 올리면 안 된다. 기기 QA
-(`docs/qa/ADR0015_DEVICE_QA.md`) 때 같이 찍는다. 아래는 촬영 지시서이고, 소스 화면은 모두
-`design-reference/screens/`에 실재한다(`npm run preview`로 확인 가능).
+2026-09-04 최종 후보는 ko/en 각각 같은 순서의 10장이다. 전부 1080×1920(9:16), 24-bit
+sRGB PNG이고 알파가 없다. Play는 기기 유형별 최대 8장만 받으므로 **두 장 제외와 최종 순서는
+PO 확인 필요**다. 선택 전에는 어느 파일도 삭제하지 않는다.
 
-| # | 소스 화면 | 상단 오버레이 카피 (ko / en) | 무엇을 증명하는가 |
-|---:|---|---|---|
-| 1 | `scr-a02-home.html` | 약속이 한눈에, 잊지 않게 / Every promise, in one place | **훅** — 앱을 열면 뭘 보게 되는가 |
-| 2 | `scr-a03-promise-create.html` | 보상도 벌칙도 함께 적어요 / Reward and forfeit, written down | 주력 기능 — 합의 "내용"을 다룬다 |
-| 3 | `scr-a04-invite-sent.html` | 카톡 링크 하나면 끝 / One KakaoTalk link is all it takes | **차별점** — 초대 동선 |
-| 4 | `web/scr-w02-promise-review.html` | 상대는 앱 설치 없이 승인해요 / They approve on the web, no install | **차별점 증명** — 아이폰 상대도 참여 |
-| 5 | `scr-a06-fulfillment-check.html` | 종료일에 서로 확인해요 / On the end date you both check in | 이행 확인 루프 |
-| 6 | `mod-02-witness-invite.html` | 친구를 증인으로 불러요 / Bring a friend in as a witness | 시그니처 기능 |
-| 7 | `scr-a08-profile.html` | 약속 지킴율이 쌓여요 / Your keep rate adds up | 리텐션 동력 |
-| 8 | `mod-03-completion-celebrate.html` | 지켰다면, 같이 축하해요 / Kept it? Celebrate together | 감정 마무리 |
+| # | 파일 역할 | 무엇을 증명하는가 |
+|---:|---|---|
+| 1 | `onboarding` | 새끼손가락 약속 브랜드와 제품 목적 |
+| 2 | `home` | 진행 중 약속과 마감 한눈 보기 |
+| 3 | `create` | 30초 3단계 약속 작성 |
+| 4 | `invite` | 카카오톡 링크 초대 흐름 |
+| 5 | `detail` | 두 사람 승인과 확정 기록 |
+| 6 | `checkin` | 종료 후 이행 확인 |
+| 7 | `completed` | 완료 기록과 보상 |
+| 8 | `celebrate` | 완료 축하와 지킴율 피드백 |
+| 9 | `notifications` | 리마인더와 알림함 |
+| 10 | `profile` | 개인 약속 지킴율·슬롯·설정 |
 
-오버레이 규칙: 상단 1줄, Pretendard ExtraBold, 잉크 `#221C13`, 버터 `#F6E7A3` 밴드 위.
-카피 영역은 전체 높이의 20% 이내이고, 앱 화면을 찌그러뜨리지 않는다. 1~3번에 가장 강한
-가치를 배치한다(가이드 §2.2). 캡처에 실명·실제 전화번호·테스트 계정 이메일이 보이면 안 된다.
-상태 표시줄의 통신사명·알림 아이콘 등 불필요한 요소는 최종본에서 제외한다.
+1~3번은 핵심 가치 순서를 유지한다. ko는 `screenshots-ko/NN-*-ko.png`, en은
+`screenshots-en/NN-*-en.png`를 사용하며 서로 다른 번호를 섞지 않는다. 캡처에는 실명·전화번호·
+테스트 계정 이메일이 없고, 상단 카피와 앱 UI를 한 이미지 안에서 보여준다.
 
 ---
 
@@ -386,7 +383,7 @@ other than a text record.
 | 자세한 설명이 불릿 구조로 읽기 쉬움 | ✅ | 5개 섹션, 기능 7불릿, ko 1,493자 / en 2,562자 |
 | 금지 홍보 문구 배제 | ✅ | 1위·최고·No.1·Best·무료·특가 0건 (§1-5) |
 | 아이콘 512×512 / 피처 그래픽 1024×500 규격 | ✅ | `magick identify` 확인, 아이콘 alpha 전 픽셀 255 |
-| 첫 3장 스크린샷에 최강 가치 | ✅ | 콘솔 8/8 등록(2026-09-03), §2-2 스토리보드 순서 |
+| 첫 3장 스크린샷에 최강 가치 | ⚠️ | 새 후보 10장의 1~3 순서는 확정; 콘솔용 8장 선택·업로드 대기 |
 | 카테고리 1개 + 태그 5개 | ✅ | 커뮤니케이션 + 5태그, 콘솔 선택값을 §3에 기록 (PO 2026-09-03) |
 | 앱 이름 콘솔 값 = §1-1 등록값 | ⚠️ | 2026-09-03 콘솔은 ko `리틀핑거` / en `Liitlefinger-promise`(오타) — PO가 §1-1 값으로 교체 (`open-testing-po-guide.md` §2) |
 | 개발자 연락처·웹사이트·방침 URL | ✅ | §4 |
@@ -404,4 +401,5 @@ other than a text record.
 4. **AdMob 계정 승인 대기** — 앱과 Play 등록정보 연결 전까지 실광고 미노출
    (`monetization-retention-release.md`).
 
-해결: 스크린샷 8장·피처 그래픽은 2026-09-03 콘솔 등록으로 종결(§2-1).
+2026-09-03 등록본은 종결됐지만, 2026-09-04 E-1 교체 세트는 8장 선택과 콘솔 업로드가 남았다
+(§2-1·§2-2).

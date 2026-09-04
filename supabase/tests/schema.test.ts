@@ -28,6 +28,34 @@ function readMigrations(): string {
 const sql = readMigrations();
 const lower = sql.toLowerCase();
 
+describe('SECURITY DEFINER Data API 경계', () => {
+  const migration = readFileSync(
+    join(MIGRATIONS_DIR, '20260903232317_restrict_security_definer_helpers.sql'),
+    'utf8',
+  ).toLowerCase();
+
+  test('RLS·트리거 보조 함수를 비노출 스키마로 옮긴다', () => {
+    for (const signature of [
+      'public.can_read_promise(uuid)',
+      'public.is_promise_participant(uuid)',
+      'public.lf_is_active_actor()',
+      'public.lf_user_stub()',
+    ]) {
+      expect(migration).toContain(`alter function ${signature} set schema private`);
+    }
+  });
+
+  test('트리거 함수는 Supabase Auth 실행 주체에게만 연다', () => {
+    expect(migration).toContain(
+      'revoke all on function private.lf_user_stub() from public, anon, authenticated',
+    );
+    expect(migration).toContain("rolname = 'supabase_auth_admin'");
+    expect(migration).toContain(
+      "execute 'grant execute on function private.lf_user_stub() to supabase_auth_admin'",
+    );
+  });
+});
+
 describe('F-12 remote ad flag', () => {
   test('seeds ads_enabled false without overwriting an operator decision', () => {
     expect(lower).toMatch(

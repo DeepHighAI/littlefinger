@@ -34,13 +34,14 @@ describe('SCR-A00 온보딩', () => {
     completeMock.mockResolvedValue(undefined);
   });
 
-  test('승인된 첫 페이지의 핵심 루프와 접근성 라벨을 표시한다', async () => {
+  test('승인된 핵심 문구와 E-1 히어로의 접근성 라벨을 표시한다', async () => {
     const view = await render(<OnboardingScreen />);
     expect(view.getByText('약속하고, 걸고,\n지키는 재미')).toBeTruthy();
     expect(view.getByText('둘이 정한 약속을 기록하고\n잊지 않게 챙겨드려요')).toBeTruthy();
-    expect(view.getByText('작성')).toBeTruthy();
-    expect(view.getByText('카톡 초대')).toBeTruthy();
-    expect(view.getByText('걸고 지키기')).toBeTruthy();
+    expect(view.getByRole('image', { name: '리틀핑거 마스코트' })).toBeTruthy();
+    expect(view.queryByText('작성')).toBeNull();
+    expect(view.queryByText('카톡 초대')).toBeNull();
+    expect(view.queryByText('걸고 지키기')).toBeNull();
     // 단일 페이지 확정(Q-5 (b)) — 페이지 인디케이터는 더 이상 없다.
     expect(view.queryByRole('image', { name: '1/3 단계' })).toBeNull();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();

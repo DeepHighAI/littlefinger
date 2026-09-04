@@ -58,6 +58,9 @@ const REWARD_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
     '소원권 1장',
     '주말 계획 결정권',
     '칭찬 세 가지',
+    '스벅쏘기',
+    '올영쏘기',
+    '만원',
   ],
   en: [
     'A coffee treat',
@@ -65,6 +68,9 @@ const REWARD_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
     'One wish coupon',
     'Decide the weekend plan',
     'Three compliments',
+    'Starbucks treat',
+    'Olive Young treat',
+    '10$',
   ],
 };
 
@@ -75,6 +81,10 @@ const PENALTY_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
     '다음 데이트 비용',
     '노래방 한 곡',
     '소원권 1장 주기',
+    '스벅쏘기',
+    '올영쏘기',
+    '만원',
+    '나의 노예가 되어라',
   ],
   en: [
     'Buy a coffee',
@@ -82,6 +92,10 @@ const PENALTY_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
     'Pay for the next date',
     'Sing one karaoke song',
     'Give one wish coupon',
+    'Starbucks treat',
+    'Olive Young treat',
+    '10$',
+    'Be my servant',
   ],
 };
 

@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors, space } from '../theme/tokens';
+import { colors, radius, size, space } from '../theme/tokens';
 import { LfText } from './LfText';
 
 export type LfWizardStep = 1 | 2 | 3;
@@ -17,9 +17,9 @@ const styles = StyleSheet.create({
   line: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.outlineStrong },
   lineComplete: { backgroundColor: colors.primaryInk },
   dot: {
-    width: space[5],
-    height: space[5],
-    borderRadius: space[5] / 2,
+    width: size.switchKnob,
+    height: space[2],
+    borderRadius: radius.pill,
     backgroundColor: colors.outlineStrong,
   },
   dotActive: { backgroundColor: colors.primaryInk },
@@ -43,7 +43,7 @@ export function LfWizardProgress({ step, labels }: LfWizardProgressProps): React
               <View style={[styles.dot, complete && styles.dotActive]} />
               <View style={[styles.line, index < 2 && current < step && styles.lineComplete]} />
             </View>
-            <LfText variant={current === step ? 'listStatus' : 'caption'}>{label}</LfText>
+            <LfText variant={current === step ? 'chip' : 'caption'}>{label}</LfText>
           </View>
         );
       })}

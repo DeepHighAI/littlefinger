@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { textFontFamily } from '../theme/fonts';
-import { colors, radius, size, space, type, weight } from '../theme/tokens';
+import { colors, border, radius, size, space, type, weight } from '../theme/tokens';
 
 export interface LfChoiceProps {
   label: string;
@@ -9,23 +9,23 @@ export interface LfChoiceProps {
   onPress(): void;
 }
 
-// 잉크 테두리 선택 칩 — 선택은 잉크 반전 (배경 잉크 · 글자 크림, ADR 0012)
-const CHOICE_BORDER_WIDTH = 2.2;
-
 const styles = StyleSheet.create({
-  base: {
+  target: {
     minHeight: size.touchMin,
+    justifyContent: 'center',
+  },
+  visual: {
+    height: size.chipSelectHeight,
     paddingHorizontal: space[6],
     borderRadius: radius.pill,
-    borderWidth: CHOICE_BORDER_WIDTH,
+    borderWidth: border.chip,
     borderColor: colors.text,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   selected: {
-    borderColor: colors.text,
-    backgroundColor: colors.text,
+    backgroundColor: colors.primaryContainer,
   },
   label: {
     color: colors.text,
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     fontWeight: weight.medium,
     fontSize: type.label,
   },
-  selectedLabel: { color: colors.background, fontWeight: weight.bold },
+  selectedLabel: { color: colors.text, fontWeight: weight.bold },
 });
 
 export function LfChoice({ label, selected, onPress }: LfChoiceProps): React.JSX.Element {
@@ -43,9 +43,11 @@ export function LfChoice({ label, selected, onPress }: LfChoiceProps): React.JSX
       accessibilityState={{ selected }}
       accessibilityLabel={label}
       onPress={onPress}
-      style={[styles.base, selected && styles.selected]}
+      style={styles.target}
     >
-      <Text style={[styles.label, selected && styles.selectedLabel]}>{label}</Text>
+      <View style={[styles.visual, selected && styles.selected]}>
+        <Text style={[styles.label, selected && styles.selectedLabel]}>{label}</Text>
+      </View>
     </Pressable>
   );
 }

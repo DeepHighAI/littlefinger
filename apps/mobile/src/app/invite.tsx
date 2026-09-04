@@ -12,9 +12,9 @@ import { LfButton } from '../components/LfButton';
 import { LfCard } from '../components/LfCard';
 import { LfChip } from '../components/LfChip';
 import { LfIcon } from '../components/LfIcon';
-import { LfPinky } from '../components/LfPinky';
 import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
+import { LfStamp } from '../components/LfStamp';
 import { LfText } from '../components/LfText';
 import { SlotPaywallSheet } from '../components/slot-paywall-sheet.tsx';
 import { WitnessInviteSheet } from '../components/witness-invite-sheet.tsx';
@@ -54,13 +54,6 @@ const styles = StyleSheet.create({
     padding: gutter.app,
     paddingBottom: space[9],
     gap: space[6],
-  },
-  stamp: {
-    alignItems: 'center',
-    borderRadius: radius.xl,
-    backgroundColor: colors.primaryContainer,
-    padding: space[8],
-    gap: space[4],
   },
   preview: {
     borderRadius: radius.md,
@@ -304,29 +297,15 @@ export default function InviteScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen}>
       <LfAppBar
         title={LABEL.title}
-        leading={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={LABEL.back}
-            onPress={() => router.push('/home')}
-            style={styles.back}
-          >
-            <LfIcon name="arrow_back" />
-          </Pressable>
-        }
-        action={<LfChip label={LABEL.waiting} tone="neutral" />}
+        leading="back"
+        leadingAccessibilityLabel={LABEL.back}
+        onLeadingPress={() => router.push('/home')}
+        actions={<LfChip label={LABEL.waiting} tone="yellow" kind="status" />}
       />
 
       <ScrollView contentContainerStyle={styles.body}>
-        <View style={styles.stamp}>
-          <LfPinky size="lg" />
-          <LfText variant="subtitle" align="center">
-            {LABEL.headline}
-          </LfText>
-          <LfText variant="caption" align="center">
-            {LABEL.description}
-          </LfText>
-        </View>
+        <LfStamp variant="pending" headline={LABEL.headline} />
+        <LfText variant="caption" align="center">{LABEL.description}</LfText>
 
         {!needsIssue && invite !== null && (
           <>
@@ -349,7 +328,7 @@ export default function InviteScreen(): React.JSX.Element {
             </LfStack>
 
             <LfStack gap={3}>
-              <LfText variant="sectionTitle">{LABEL.preview}</LfText>
+              <LfText variant="eyebrow">{LABEL.preview}</LfText>
               <View style={styles.preview}>
                 <View style={styles.bubble}>
                   <LfStack gap={3}>
@@ -389,7 +368,7 @@ export default function InviteScreen(): React.JSX.Element {
         )}
 
         {needsIssue && (
-          <LfCard variant="container">
+          <LfCard tone="yellow">
             <LfStack gap={5} center>
               <LfIcon name="link_off" color="primary" />
               <LfText variant="subtitle" align="center">

@@ -1,4 +1,5 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { WitnessInviteSheet } from '../components/witness-invite-sheet.tsx';
 import {
@@ -7,6 +8,7 @@ import {
   shareWitnessInvite,
 } from '../lib/witness-native.ts';
 import { getPromiseEntitlements, unlockWithRewardedAd } from '../lib/monetization-native.ts';
+import { size } from '../theme/tokens.ts';
 
 jest.mock('../lib/witness-native.ts', () => ({
   issueWitnessInvite: jest.fn(),
@@ -220,7 +222,7 @@ describe('MOD-02 witness invitation sheet', () => {
     const view = await render(<WitnessInviteSheet visible promiseId={PROMISE_ID} onClose={close} />);
     await settle();
     const button = view.getByTestId('witness-invite-button');
-    expect(button).toHaveStyle({ minHeight: 48 });
+    expect(StyleSheet.flatten(button.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
     await fireEvent.press(button);
     await settle();
     expect(issueMock).toHaveBeenCalledWith(PROMISE_ID, null);

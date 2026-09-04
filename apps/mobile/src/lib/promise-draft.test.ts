@@ -27,6 +27,9 @@ describe('SCR-A03 약속 초안 규칙', () => {
       '소원권 1장',
       '주말 계획 결정권',
       '칭찬 세 가지',
+      '스벅쏘기',
+      '올영쏘기',
+      '만원',
     ]);
     expect(penaltyPresets()).toEqual([
       '커피 한 잔 사기',
@@ -34,10 +37,36 @@ describe('SCR-A03 약속 초안 규칙', () => {
       '다음 데이트 비용',
       '노래방 한 곡',
       '소원권 1장 주기',
+      '스벅쏘기',
+      '올영쏘기',
+      '만원',
+      '나의 노예가 되어라',
     ]);
-    // en 은 ko 와 같은 개수의 칩을 제공한다 — 화면 구성이 로케일에 따라 변하지 않는다.
+    expect(rewardPresets('en')).toEqual([
+      'A coffee treat',
+      'Pick the next menu',
+      'One wish coupon',
+      'Decide the weekend plan',
+      'Three compliments',
+      'Starbucks treat',
+      'Olive Young treat',
+      '10$',
+    ]);
+    expect(penaltyPresets('en')).toEqual([
+      'Buy a coffee',
+      'Dishes for a week',
+      'Pay for the next date',
+      'Sing one karaoke song',
+      'Give one wish coupon',
+      'Starbucks treat',
+      'Olive Young treat',
+      '10$',
+      'Be my servant',
+    ]);
+    // 벌칙에만 추가된 프리셋 하나를 제외하면 두 로케일의 칩 구성이 같다.
     expect(rewardPresets('en')).toHaveLength(rewardPresets('ko').length);
     expect(penaltyPresets('en')).toHaveLength(penaltyPresets('ko').length);
+    expect(rewardPresets()).not.toContain('나의 노예가 되어라');
   });
 
   test('8개 필드가 유효해야 전송할 수 있고 명세 실패 문구를 그대로 돌려준다', () => {

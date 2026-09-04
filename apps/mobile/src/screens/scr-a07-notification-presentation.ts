@@ -20,7 +20,7 @@ export type NotificationSemanticType =
   | 'RESULT';
 
 export type NotificationIcon =
-  | 'pinky'
+  | 'eyes'
   | 'cancel'
   | 'sync_alt'
   | 'alarm'
@@ -30,7 +30,7 @@ export type NotificationIcon =
 export interface NotificationAppearance {
   semanticType: NotificationSemanticType;
   icon: NotificationIcon;
-  tone: 'accent' | 'urgent' | 'default';
+  tone: 'paper' | 'pink' | 'cream' | 'sky' | 'muted';
   label: string;
 }
 
@@ -68,12 +68,12 @@ const NOTIFICATION_SEMANTIC_APPEARANCE: Record<
   NotificationSemanticType,
   Omit<NotificationAppearance, 'semanticType' | 'label'>
 > = {
-  CONFIRMATION: { icon: 'pinky', tone: 'accent' },
-  APPROVAL: { icon: 'cancel', tone: 'default' },
-  AMEND: { icon: 'sync_alt', tone: 'default' },
-  REMINDER: { icon: 'alarm', tone: 'default' },
-  FULFILLMENT: { icon: 'notification_important', tone: 'urgent' },
-  RESULT: { icon: 'inventory_2', tone: 'default' },
+  CONFIRMATION: { icon: 'eyes', tone: 'paper' },
+  APPROVAL: { icon: 'cancel', tone: 'muted' },
+  AMEND: { icon: 'sync_alt', tone: 'sky' },
+  REMINDER: { icon: 'alarm', tone: 'cream' },
+  FULFILLMENT: { icon: 'notification_important', tone: 'pink' },
+  RESULT: { icon: 'inventory_2', tone: 'paper' },
 };
 
 export function notificationAppearance(

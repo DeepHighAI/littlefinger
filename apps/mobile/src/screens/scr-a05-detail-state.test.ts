@@ -53,16 +53,16 @@ describe('SCR-A05 상태별 표현 계약', () => {
   });
 
   test.each([
-    ['PENDING', 'PENDING', '승인 대기', '상대방의 승인을 기다리고 있어요', 'neutral'],
-    ['ACTIVE', 'ACTIVE', '진행 중', '함께 확인한 약속이에요', 'info'],
-    ['AMEND_PENDING', 'AMEND_PENDING', '변경 협의 중', '변경 내용을 확인하고 있어요', 'urgent'],
-    ['CHECKING', 'CHECKING', '이행 확인 중', '약속, 지켜졌나요?', 'urgent'],
-    ['COMPLETED', 'COMPLETED', '완료', '함께 지킨 약속으로 기록됐어요', 'done'],
-    ['BROKEN', 'BROKEN', '불이행', '이번엔 못 지켰어요', 'broken'],
-    ['DISPUTED', 'DISPUTED', '의견 불일치', '서로의 응답이 달라요', 'neutral'],
-    ['UNRESOLVED', 'UNRESOLVED', '미확정 종결', '응답 없이 종료됐어요', 'neutral'],
-    ['DECLINED', 'TERMINAL', '거절됨', '이번엔 성립되지 않았어요', 'neutral'],
-    ['CANCELED', 'TERMINAL', '파기됨', '약속이 파기됐어요', 'neutral'],
+    ['PENDING', 'PENDING', '승인 대기', '상대방의 승인을 기다리고 있어요', 'paper'],
+    ['ACTIVE', 'ACTIVE', '진행 중', '함께 확인한 약속이에요', 'mint'],
+    ['AMEND_PENDING', 'AMEND_PENDING', '변경 협의 중', '변경 내용을 확인하고 있어요', 'sky'],
+    ['CHECKING', 'CHECKING', '이행 확인 중', '약속, 지켜졌나요?', 'pink'],
+    ['COMPLETED', 'COMPLETED', '완료', '함께 지킨 약속으로 기록됐어요', 'mint'],
+    ['BROKEN', 'BROKEN', '불이행', '이번엔 못 지켰어요', 'pink'],
+    ['DISPUTED', 'DISPUTED', '의견 불일치', '서로의 응답이 달라요', 'paper'],
+    ['UNRESOLVED', 'UNRESOLVED', '미확정 종결', '응답 없이 종료됐어요', 'muted'],
+    ['DECLINED', 'TERMINAL', '거절됨', '이번엔 성립되지 않았어요', 'muted'],
+    ['CANCELED', 'TERMINAL', '파기됨', '약속이 파기됐어요', 'muted'],
   ] as const)(
     '%s를 9개 시각 변형과 확정 문구로 매핑한다',
     (status, variant, label, headline, tone) => {

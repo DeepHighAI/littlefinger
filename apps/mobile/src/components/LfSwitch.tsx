@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, size, space } from '../theme/tokens';
+import { colors, border, radius, size, space } from '../theme/tokens';
 
 export interface LfSwitchProps {
   accessibilityLabel: string;
@@ -9,25 +9,28 @@ export interface LfSwitchProps {
   disabled?: boolean;
 }
 
-// 잉크 테두리 트랙 — ON 은 버터 트랙 + 잉크 노브 (ADR 0012)
-const TRACK_BORDER_WIDTH = 2.2;
-
 const styles = StyleSheet.create({
-  track: {
-    width: size.touchMin,
+  target: {
+    width: size.switchWidth,
     minHeight: size.touchMin,
-    padding: space[2],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  track: {
+    width: size.switchWidth,
+    height: size.switchHeight,
+    paddingHorizontal: space[1],
     borderRadius: radius.pill,
     backgroundColor: colors.surface,
-    borderWidth: TRACK_BORDER_WIDTH,
+    borderWidth: border.card,
     borderColor: colors.text,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   checked: { backgroundColor: colors.primaryContainer },
   thumb: {
-    width: space[8],
-    height: space[8],
+    width: size.switchKnob,
+    height: size.switchKnob,
     borderRadius: radius.pill,
     backgroundColor: colors.outlineIcon,
   },
@@ -47,9 +50,11 @@ export function LfSwitch({
       accessibilityState={{ checked: value, disabled }}
       disabled={disabled}
       onPress={() => onValueChange(!value)}
-      style={[styles.track, value && styles.checked]}
+      style={styles.target}
     >
-      <View style={[styles.thumb, value && styles.checkedThumb]} />
+      <View style={[styles.track, value && styles.checked]}>
+        <View style={[styles.thumb, value && styles.checkedThumb]} />
+      </View>
     </Pressable>
   );
 }

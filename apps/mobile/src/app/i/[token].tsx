@@ -16,7 +16,7 @@ import { GoogleMark } from '../../components/GoogleMark';
 import { LfButton } from '../../components/LfButton';
 import { LfCard } from '../../components/LfCard';
 import { LfDisclaimer } from '../../components/LfDisclaimer';
-import { LfPinky } from '../../components/LfPinky';
+import { LfEyes, LfMascotFace } from '../../components/LfMascot';
 import { LfText } from '../../components/LfText';
 import { LfTextarea } from '../../components/LfTextarea';
 import { formatInviteCountdown } from '../../lib/invite-flow.ts';
@@ -244,7 +244,7 @@ export default function InviteReviewScreen(): React.JSX.Element {
     return (
       <SafeAreaView style={styles.screen}>
         <View style={[styles.scroll, styles.centered]} accessibilityRole="progressbar">
-          <LfPinky size="xl" accessibilityLabel={L.handoffTitle} />
+          <LfMascotFace size="lg" accessibilityLabel={L.handoffTitle} />
         </View>
       </SafeAreaView>
     );
@@ -338,14 +338,14 @@ export default function InviteReviewScreen(): React.JSX.Element {
             {`${remaining} ${L.countdownSuffix}`}
           </LfText>
           <View style={styles.badge}>
-            <LfPinky size="xl" accessibilityLabel={L.previewSectionTitle} />
+            <LfEyes size="header" accessibilityLabel={L.previewSectionTitle} />
           </View>
           <LfText variant="title" align="center">
             {L.landingHeadline(phase.invite.creator_nickname)}
           </LfText>
           <LfCard>
             <View style={styles.fieldRow}>
-              <LfText variant="sectionTitle">{L.previewSectionTitle}</LfText>
+              <LfText variant="eyebrow">{L.previewSectionTitle}</LfText>
               <LfText variant="subtitle">{phase.invite.title}</LfText>
               <LfText variant="caption">{L.previewHint}</LfText>
             </View>
@@ -443,7 +443,7 @@ export default function InviteReviewScreen(): React.JSX.Element {
           </View>
         ) : amending ? (
           <View style={styles.actions}>
-            <LfText variant="sectionTitle">{L.amendFieldLabel}</LfText>
+            <LfText variant="eyebrow">{L.amendFieldLabel}</LfText>
             <LfTextarea
               value={amendComment}
               onChangeText={setAmendComment}
@@ -497,7 +497,7 @@ export default function InviteReviewScreen(): React.JSX.Element {
 function ReviewField({ label, value }: { label: string; value: string }): React.JSX.Element {
   return (
     <View style={styles.fieldRow}>
-      <LfText variant="sectionTitle">{label}</LfText>
+      <LfText variant="eyebrow">{label}</LfText>
       <LfText variant="body">{value}</LfText>
     </View>
   );

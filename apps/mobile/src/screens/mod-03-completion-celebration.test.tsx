@@ -1,7 +1,9 @@
 import type { CompletionCelebrationView } from '@littlefinger/shared';
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { CompletionCelebrationSheet } from '../components/completion-celebration-sheet.tsx';
+import { size } from '../theme/tokens.ts';
 
 const BASE: CompletionCelebrationView = {
   claim_id: '11111111-1111-4111-8111-111111111111',
@@ -78,8 +80,8 @@ describe('MOD-03 완료 축하', () => {
     const newPromise = view.getByRole('button', { name: '새 약속 만들기' });
     const share = view.getByRole('button', { name: '공유하기' });
 
-    expect(newPromise).toHaveStyle({ minHeight: 48 });
-    expect(share).toHaveStyle({ minHeight: 48 });
+    expect(StyleSheet.flatten(newPromise.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
+    expect(StyleSheet.flatten(share.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
     await fireEvent.press(share);
     expect(props.onShare).toHaveBeenCalledTimes(1);
     expect(props.onClose).not.toHaveBeenCalled();

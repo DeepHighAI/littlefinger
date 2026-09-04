@@ -21,19 +21,18 @@ import {
   type PromiseDetailResponse,
 } from '@littlefinger/shared';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useLabels, useLocale } from '../lib/locale-native';
 import { MOD_01_LABEL } from '../screens/scr-a05-labels.ts';
-import { border, colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
+import { colors, radius, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
 import { LfChoice } from './LfChoice.tsx';
 import { LfField } from './LfField.tsx';
-import { LfIcon } from './LfIcon.tsx';
 import { LfInput } from './LfInput.tsx';
 import { LfPicker } from './LfPicker.tsx';
 import { LfRow } from './LfRow.tsx';
-import { LfStack } from './LfStack.tsx';
+import { LfSheet } from './LfSheet.tsx';
 import { LfText } from './LfText.tsx';
 import { LfTextarea } from './LfTextarea.tsx';
 
@@ -53,50 +52,8 @@ type Mode = 'AMEND' | 'CANCEL';
 
 const CATEGORIES = Object.keys(PROMISE_CATEGORY_LABEL) as PromiseCategory[];
 const KEEPERS = Object.keys(KEEPER_LABEL) as Keeper[];
-const SHEET_MAX_HEIGHT = '92%';
 
 const styles = StyleSheet.create({
-  scrim: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.scrim,
-  },
-  dismissArea: { flex: 1 },
-  sheet: {
-    maxHeight: SHEET_MAX_HEIGHT,
-    paddingHorizontal: gutter.app,
-    paddingTop: space[5],
-    paddingBottom: space[9],
-    borderTopLeftRadius: radius['2xl'],
-    borderTopRightRadius: radius['2xl'],
-    backgroundColor: colors.surface,
-    ...elevation.sheet,
-    // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: border.sheet,
-    borderBottomWidth: 0,
-    borderColor: colors.text,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: size.iconButton,
-    height: space[1],
-    marginBottom: space[7],
-    borderRadius: radius.pill,
-    backgroundColor: colors.outlineStrong,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: space[3],
-  },
-  close: {
-    width: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.pill,
-  },
   content: { gap: space[6], paddingBottom: space[5] },
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space[3] },
   notice: {
@@ -207,28 +164,13 @@ export function PromiseAmendSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.scrim}>
-        <Pressable
-          style={styles.dismissArea}
-          onPress={onClose}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
-        <View style={styles.sheet} accessibilityViewIsModal>
-          <View style={styles.handle} />
-          <View style={styles.header}>
-            <LfText variant="title">{LABEL.title}</LfText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={LABEL.close}
-              onPress={onClose}
-              style={styles.close}
-            >
-              <LfIcon name="close" />
-            </Pressable>
-          </View>
-          <ScrollView contentContainerStyle={styles.content}>
+    <LfSheet
+      visible={visible}
+      title={LABEL.title}
+      closeLabel={LABEL.close}
+      onClose={onClose}
+    >
+      <ScrollView contentContainerStyle={styles.content}>
             <LfRow>
               <LfButton
                 label={LABEL.amendTab}
@@ -344,9 +286,7 @@ export function PromiseAmendSheet({
               disabled={!submitEnabled}
               onPress={() => void submit()}
             />
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
+      </ScrollView>
+    </LfSheet>
   );
 }

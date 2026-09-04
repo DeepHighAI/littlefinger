@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, size, space } from '../theme/tokens';
+import { colors, border, radius, size, space, type } from '../theme/tokens';
 import { LfIcon } from './LfIcon';
 import { LfText } from './LfText';
 
@@ -12,16 +12,14 @@ export interface LfPickerProps {
   disabled?: boolean;
 }
 
-// 잉크 테두리 피커 (ADR 0012)
-const PICKER_BORDER_WIDTH = 2;
-
 const styles = StyleSheet.create({
   picker: {
+    height: size.inputHeight,
     minHeight: size.touchMin,
     paddingHorizontal: space[6],
-    borderWidth: PICKER_BORDER_WIDTH,
+    borderWidth: border.chip,
     borderColor: colors.text,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     backgroundColor: colors.surface,
     flexDirection: 'row',
     alignItems: 'center',
@@ -47,7 +45,7 @@ export function LfPicker({
       onPress={onPress}
       style={styles.picker}
     >
-      <LfIcon name="event" color="primary" />
+      <LfIcon name="event" size={type.subtitle} />
       <View style={styles.value}>
         <LfText secondary={value === undefined}>{value ?? placeholder}</LfText>
       </View>

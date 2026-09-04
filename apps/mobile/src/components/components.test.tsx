@@ -1,29 +1,32 @@
 import { render, userEvent } from '@testing-library/react-native';
 import type { TextStyle, ViewStyle } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as Reanimated from 'react-native-reanimated';
 
-import { colors, line, size, space, type, weight } from '../theme/tokens';
-import { LfAvatar } from './LfAvatar';
+import { colors, letterSpacing, line, size, space, type, weight } from '../theme/tokens';
 import { LfAppBar } from './LfAppBar';
+import { LfAvatar } from './LfAvatar';
+import { LfAvatarButton } from './LfAvatarButton';
 import { LfButton } from './LfButton';
-import { LfBottomNav } from './LfBottomNav';
+import { LfBlob } from './LfBlob';
 import { LfCard } from './LfCard';
+import { LfChip } from './LfChip';
 import { LfChoice } from './LfChoice';
 import { LfDisclaimer } from './LfDisclaimer';
-import { LfDoodle, LfDoodleLayer } from './LfDoodle';
-import { LfMascot } from './LfMascot';
+import { LfEyes, LfMascotFace } from './LfMascot';
 import { LfFab } from './LfFab';
 import { LfHelper } from './LfHelper';
 import { LfHero } from './LfHero';
 import { LfField } from './LfField';
 import { LfIcon } from './LfIcon';
+import { LfIconButton } from './LfIconButton';
 import { LfInput } from './LfInput';
 import { LfNotice } from './LfNotice';
 import { LfPicker } from './LfPicker';
-import { LfPinky } from './LfPinky';
+import { LfPinkyLoop, pinkyLoopDuration } from './LfPinkyLoop';
 import { LfPromiseSeam, promiseSeamDuration } from './LfPromiseSeam';
 import { LfRow } from './LfRow';
 import { LfStack } from './LfStack';
+import { LfStatusDot } from './LfStatusDot';
 import { LfSwitch } from './LfSwitch';
 import { LfText } from './LfText';
 import { LfTrustRing, trustRingDuration } from './LfTrustRing';
@@ -69,14 +72,19 @@ describe('LfText', () => {
   });
 
   test.each([
-    ['headline', 22, weight.bold],
-    ['confirmationHeadline', 22, weight.heavy],
-    ['title', type.title, weight.bold],
-    ['subtitle', type.subtitle, weight.bold],
-    ['sectionTitle', type.label, weight.bold],
-    ['listMeta', type.label, weight.bold],
+    ['wordmark', type.wordmark, weight.heavy],
+    ['display', type.display, weight.heavy],
+    ['headline', type.headline, weight.heavy],
+    ['title', type.title, weight.heavy],
+    ['sheetTitle', type.sheetTitle, weight.heavy],
+    ['cardTitle', type.cardTitle, weight.heavy],
+    ['heading', type.heading, weight.bold],
+    ['subtitle', type.subtitle, weight.heavy],
+    ['bodyStrong', type.body, weight.bold],
     ['body', type.body, weight.regular],
-    ['caption', type.label, weight.bold],
+    ['caption', type.label, weight.regular],
+    ['meta', type.meta, weight.regular],
+    ['eyebrow', type.eyebrow, weight.bold],
   ] as const)('%s 는 원본 CSS 와 같은 크기·굵기를 쓴다', async (variant, expectedSize, expectedWeight) => {
     const view = await render(<LfText testID="t" variant={variant} />);
     const s = styleOf(view, 't') as TextStyle;
@@ -84,22 +92,29 @@ describe('LfText', () => {
     expect(s.fontWeight).toBe(expectedWeight);
   });
 
-  test('secondary 는 큰 볼드 보조문 색과 굵기를 쓴다', async () => {
+  test('secondary 는 본문 굵기를 바꾸지 않고 보조색만 쓴다', async () => {
     const view = await render(<LfText testID="t" secondary />);
     expect(styleOf(view, 't') as TextStyle).toMatchObject({
       color: colors.textSecondary,
-      fontWeight: weight.bold,
+      fontWeight: weight.regular,
     });
   });
 
-  test('caption 은 14/22 큰 볼드 보조문으로 읽힌다', async () => {
+  test('caption 은 14/22 보조문으로 읽힌다', async () => {
     const view = await render(<LfText testID="t" variant="caption" />);
     expect(styleOf(view, 't') as TextStyle).toMatchObject({
       color: colors.textSecondary,
       fontSize: type.label,
       lineHeight: line.body,
-      fontWeight: weight.bold,
+      fontWeight: weight.regular,
     });
+  });
+
+  test('eyebrow 자간은 토큰의 em 값을 RN dp로 환산한다', async () => {
+    const view = await render(<LfText testID="t" variant="eyebrow" />);
+    expect((styleOf(view, 't') as TextStyle).letterSpacing).toBe(
+      type.eyebrow * letterSpacing.wide,
+    );
   });
 
   test('색을 직접 넘길 수 없다 — 토큰 밖 값이 새는 걸 막는다', async () => {
@@ -195,7 +210,16 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
 
   test('cta 크기는 더 크다', async () => {
     const view = await render(<LfButton testID="b" size="cta" label="확인" />);
-    expect((styleOf(view, 'b') as ViewStyle).height).toBe(size.ctaHeight);
+    const style = styleOf(view, 'b') as ViewStyle;
+    expect(style.minHeight).toBe(size.ctaHeight);
+    expect(style.height).toBeUndefined();
+  });
+
+  test('아이콘 포함 CTA는 큰 글꼴에서도 라벨 폭을 확보한다', async () => {
+    const view = await render(
+      <LfButton testID="b" size="cta" label="Start with Google" leading={<LfText>G</LfText>} />,
+    );
+    expect((styleOf(view, 'b') as ViewStyle).paddingHorizontal).toBe(space[7]);
   });
 
   test('filled 는 소프트 액션 색을 쓴다', async () => {
@@ -257,7 +281,7 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
 
   test('비활성 상태가 흐리게 보인다', async () => {
     const view = await render(<LfButton testID="b" label="확인" disabled />);
-    expect((styleOf(view, 'b') as ViewStyle).opacity).toBe(0.38);
+    expect((styleOf(view, 'b') as ViewStyle).opacity).toBe(0.3);
   });
 
   test('호출자가 선택 상태를 더해도 공통 비활성 상태를 보존한다', async () => {
@@ -269,6 +293,18 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
       selected: true,
     });
   });
+
+  test('trailing 아이콘은 40dp 옐로 원 안에 놓이고 테두리를 끌 수 있다', async () => {
+    const view = await render(
+      <LfButton testID="b" label="보내기" trailing="send" trailingBorder={false} />,
+    );
+    expect(styleOf(view, 'b-trailing')).toMatchObject({
+      width: size.iconCircle,
+      height: size.iconCircle,
+      backgroundColor: colors.brandSymbolOnAction,
+    });
+    expect(styleOf(view, 'b-trailing').borderWidth).toBeUndefined();
+  });
 });
 
 describe('LfFab', () => {
@@ -276,108 +312,145 @@ describe('LfFab', () => {
     const button = LfFab({ label: '약속 만들기' });
     expect(pressedStyleOf(button).backgroundColor).toBe(colors.actionFillPressed);
   });
-});
 
-describe('LfPinky', () => {
-  test.each(['default', 'onPrimary'] as const)('브랜드 심볼은 %s 배경에 맞춘 단색 손모양을 표시한다', async (tone) => {
-    const view = await render(
-      <LfPinky testID="pinky" size="lg" tone={tone} accessibilityLabel="새끼손가락 약속" />,
-    );
-    const mark = view.getByTestId('pinky');
-    const style = flatten(mark.props.style);
-
-    expect(mark.type).toBe('Image');
-    expect(mark.props.resizeMode).toBe('contain');
-    expect(style.backgroundColor).toBeUndefined();
-    expect(style.tintColor).toBe(tone === 'onPrimary' ? colors.brandSymbolOnAction : colors.brandSymbol);
-    expect(style.width).toBeGreaterThan(style.height as number);
-    expect(view.getByRole('image', { name: '새끼손가락 약속' })).toBeTruthy();
-  });
-
-  test('검정 FAB는 버터색 손을 명시한다', () => {
-    const fab = LfFab({ label: '약속 만들기' });
-    const mark = (fab.props.children as React.ReactElement[])[0];
-    expect(mark?.props).toEqual({ size: 'xs', tone: 'onPrimary' });
+  test('트레일링 옐로 원 안에 E-1 얼굴을 표시한다', async () => {
+    const view = await render(<LfFab testID="fab" label="약속 만들기" />);
+    expect(styleOf(view, 'fab-trailing')).toMatchObject({
+      width: size.iconCircle,
+      height: size.iconCircle,
+      backgroundColor: colors.brandSymbolOnAction,
+    });
+    const mascot = view.getByTestId('fab-mascot', { includeHiddenElements: true });
+    expect(mascot.type).toBe('Image');
+    expect(flatten(mascot.props.style)).toMatchObject({
+      width: size.mascotMd,
+      height: size.mascotMd,
+    });
   });
 });
 
 describe('LfCard', () => {
-  test('기본 카드는 잉크 테두리 스티커 카드다 (ADR 0012)', async () => {
-    const view = await render(<LfCard testID="c" />);
-    const s = styleOf(view, 'c') as ViewStyle;
-    expect(s.backgroundColor).toBe(colors.surface);
-    expect(s.borderColor).toBe(colors.text);
-    expect(s.borderWidth).toBe(2.2);
-  });
-
-  test('emphasis 는 2dp Record Blue 테두리로 정보 구조를 강조한다', async () => {
-    const view = await render(<LfCard testID="c" variant="emphasis" />);
-    const s = styleOf(view, 'c') as ViewStyle;
-    expect(s.borderWidth).toBe(2);
-    expect(s.borderColor).toBe(colors.record);
-  });
-
-  test('container 는 톤 배경에 테두리가 없다', async () => {
-    const view = await render(<LfCard testID="c" variant="container" />);
-    const s = styleOf(view, 'c') as ViewStyle;
-    expect(s.backgroundColor).toBe(colors.primaryContainer);
-    expect(s.borderWidth).toBe(0);
+  test.each([
+    ['paper', colors.surface],
+    ['yellow', colors.primaryContainer],
+    ['mint', colors.successContainer],
+    ['pink', colors.attentionContainer],
+    ['sky', colors.recordContainer],
+    ['muted', colors.surfaceMuted],
+  ] as const)('%s 톤도 같은 잉크 테두리와 패딩을 쓴다', async (tone, backgroundColor) => {
+    const view = await render(<LfCard testID="c" tone={tone} />);
+    expect(styleOf(view, 'c')).toMatchObject({
+      backgroundColor,
+      borderColor: colors.text,
+      borderWidth: 2.2,
+      padding: size.cardPadding,
+    });
   });
 
   test('flat 은 배경도 테두리도 여백도 없다', async () => {
-    const view = await render(<LfCard testID="c" variant="flat" />);
+    const view = await render(<LfCard testID="c" flat />);
     const s = styleOf(view, 'c') as ViewStyle;
     expect(s.borderWidth).toBe(0);
     expect(s.backgroundColor).toBe('transparent');
-    expect(s.paddingVertical).toBe(0);
-    expect(s.paddingHorizontal).toBe(0);
+    expect(s.padding).toBe(0);
   });
 
-  test('record 는 확정 기록용 대칭 곡률을 쓴다', async () => {
-    const view = await render(<LfCard testID="c" variant="record" />);
-    expect(styleOf(view, 'c').borderRadius).toBe(18);
+  test('list 모양과 hero 기울기를 함께 적용한다', async () => {
+    const view = await render(<LfCard testID="c" shape="list" tilt="hero" />);
+    expect(styleOf(view, 'c')).toMatchObject({
+      borderRadius: 20,
+      transform: [{ rotate: '-1.2deg' }],
+    });
+  });
+});
+
+describe('LfChip / LfStatusDot', () => {
+  test('선택 필터도 글자는 잉크이고 배경만 옐로로 바뀐다', async () => {
+    const view = await render(
+      <LfChip testID="chip" label="전체" tone="paper" kind="filter" selected />,
+    );
+    expect(styleOf(view, 'chip')).toMatchObject({
+      height: size.tabHeight,
+      backgroundColor: colors.primaryContainer,
+      borderColor: colors.text,
+    });
+    expect(flatten(view.getByText('전체').props.style).color).toBe(colors.text);
+  });
+
+  test('상태 점은 10dp 파스텔 면에 2dp 잉크 링을 쓴다', async () => {
+    const view = await render(<LfStatusDot testID="dot" tone="pink" />);
+    const dot = flatten(view.getByTestId('dot', { includeHiddenElements: true }).props.style);
+    expect(dot).toMatchObject({
+      width: size.statusDot,
+      height: size.statusDot,
+      backgroundColor: colors.attentionContainer,
+      borderColor: colors.text,
+      borderWidth: 2,
+    });
   });
 });
 
 describe('Soft Promise 공통 컴포넌트', () => {
-  test('히어로는 기울인 잉크 테두리 스티커 카드에 대형 D-Day를 쓴다 (ADR 0012)', async () => {
+  test('히어로는 r22 기울임 카드와 칩 타이포 D-Day를 쓴다', async () => {
     const view = await render(
       <LfHero testID="hero" eyebrow="가장 가까운 약속" title="함께 걷기" dday="D-3" />,
     );
     const hero = styleOf(view, 'hero') as ViewStyle;
-    expect(hero.borderRadius).toBe(18);
-    expect(hero.borderWidth).toBe(2.5);
+    expect(hero.borderRadius).toBe(22);
+    expect(hero.borderWidth).toBe(2.2);
     expect(hero.borderColor).toBe(colors.text);
     expect(hero.transform).toEqual([{ rotate: '-1.2deg' }]);
-    expect(flatten(view.getByText('D-3').props.style).fontSize).toBe(type.heroDday);
+    expect(flatten(view.getByText('D-3').props.style).fontSize).toBe(type.chip);
   });
 
-  test('하단 내비는 목적지와 라벨된 중앙 작성 행동을 분리하고 safe-area를 더한다', async () => {
-    const onCreate = jest.fn();
+  test('앱바는 뒤로 원과 아바타 액션을 각각 버튼으로 제공한다', async () => {
+    const onBack = jest.fn();
+    const onProfile = jest.fn();
     const view = await render(
-      <SafeAreaProvider
-        initialMetrics={{
-          frame: { x: 0, y: 0, width: 360, height: 800 },
-          insets: { top: 24, left: 0, right: 0, bottom: 24 },
-        }}
-      >
-        <LfBottomNav
-          active="home"
-          onHomePress={() => undefined}
-          onCreatePress={onCreate}
-          onProfilePress={() => undefined}
-        />
-      </SafeAreaProvider>,
+      <LfAppBar
+        title="마이"
+        leading="back"
+        leadingAccessibilityLabel="뒤로"
+        onLeadingPress={onBack}
+        actions={(
+          <LfAvatarButton
+            nickname="지우"
+            accessibilityLabel="마이"
+            onPress={onProfile}
+          />
+        )}
+      />,
     );
-    expect(view.getByRole('tab', { name: '홈' }).props.accessibilityState).toEqual({ selected: true });
-    const create = view.getByRole('button', { name: '작성' });
-    expect(flatten(create.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
-    expect(flatten(create.props.style).backgroundColor).toBe(colors.actionFill);
-    expect(flatten(view.getByTestId('lf-bottom-nav-create-mark', { includeHiddenElements: true }).props.style).tintColor)
-      .toBe(colors.brandSymbolOnAction);
-    expect(styleOf(view, 'lf-bottom-nav').paddingBottom).toBe(24);
-    await userEvent.press(create);
-    expect(onCreate).toHaveBeenCalledTimes(1);
+    const back = view.getByRole('button', { name: '뒤로' });
+    const profile = view.getByRole('button', { name: '마이' });
+    expect(flatten(back.props.style)).toMatchObject({
+      width: size.iconButton,
+      height: size.iconButton,
+      backgroundColor: colors.surface,
+    });
+    expect(flatten(profile.props.style)).toMatchObject({
+      width: size.iconButton,
+      height: size.iconButton,
+      backgroundColor: colors.text,
+    });
+    await userEvent.press(back);
+    await userEvent.press(profile);
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(onProfile).toHaveBeenCalledTimes(1);
+  });
+
+  test('아이콘 버튼은 44dp 원과 hitSlop으로 48dp 터치 영역을 만든다', async () => {
+    const view = await render(
+      <LfIconButton
+        icon="notifications"
+        accessibilityLabel="알림"
+        onPress={() => undefined}
+      />,
+    );
+    const button = view.getByRole('button', { name: '알림' });
+    const style = flatten(button.props.style);
+    expect(style).toMatchObject({ width: size.iconButton, height: size.iconButton });
+    expect(size.iconButton + button.props.hitSlop * 2).toBe(size.touchMin);
   });
 
   test.each([0, 87, 100])('지킴율 %i를 progressbar로 읽는다', async (rate) => {
@@ -523,6 +596,11 @@ describe('M4 접근성 의미와 터치 하한', () => {
           value={false}
           onValueChange={() => undefined}
         />
+        <LfIconButton
+          icon="notifications"
+          accessibilityLabel="알림"
+          onPress={() => undefined}
+        />
         <LfFab label="약속 만들기" />
       </>,
     );
@@ -536,25 +614,68 @@ describe('M4 접근성 의미와 터치 하한', () => {
         size.touchMin,
       );
     }
+    const iconButton = view.getByRole('button', { name: '알림' });
+    expect(size.iconButton + iconButton.props.hitSlop * 2).toBe(size.touchMin);
   });
 });
 
-describe('잉크&스티커 장식 컴포넌트 (ADR 0012)', () => {
-  test('마스코트는 토큰 색으로 그려진다', async () => {
-    const view = await render(<LfMascot />);
-    expect(view.getByTestId('lf-mascot')).toBeTruthy();
+describe('E-1 마스코트와 C-1 손 루프', () => {
+  test('얼굴과 눈은 승인된 PNG를 가공 없이 쓰고 장식이면 접근성 트리에서 숨긴다', async () => {
+    const view = await render(
+      <>
+        <LfMascotFace testID="face" size="lg" />
+        <LfEyes testID="eyes" size="blob" />
+      </>,
+    );
+
+    for (const testID of ['face', 'eyes']) {
+      const image = view.getByTestId(testID, { includeHiddenElements: true });
+      expect(image.type).toBe('Image');
+      expect(image.props.resizeMode).toBe('contain');
+      expect(flatten(image.props.style).tintColor).toBeUndefined();
+      expect(image.props.accessibilityElementsHidden).toBe(true);
+      expect(image.props.importantForAccessibility).toBe('no-hide-descendants');
+    }
   });
 
-  test('두들 레이어는 터치를 막지 않고 접근성 트리에서 빠진다', async () => {
+  test('손 루프는 왼손 컨테이너만 좌우 반전하고 의미가 있으면 이미지로 읽힌다', async () => {
     const view = await render(
-      <LfDoodleLayer testID="doodles">
-        <LfDoodle placement="sparkle-tl" />
-        <LfDoodle placement="star-tr" />
-      </LfDoodleLayer>,
+      <LfPinkyLoop testID="loop" size="lg" accessibilityLabel="새끼손가락 걸기" />,
     );
-    const layer = view.getByTestId('doodles', { includeHiddenElements: true });
-    expect(layer.props.pointerEvents).toBe('none');
-    expect(layer.props.accessibilityElementsHidden).toBe(true);
-    expect(layer.props.importantForAccessibility).toBe('no-hide-descendants');
+    const left = styleOf(view, 'loop-left') as ViewStyle;
+
+    expect(left.transform).toEqual([{ scaleX: -1 }]);
+    expect(view.getByRole('image', { name: '새끼손가락 걸기' })).toBeTruthy();
+  });
+
+  test('모션 축소에서는 progress를 0에 두고 스파크를 렌더하지 않는다', async () => {
+    const reducedMotion = jest.spyOn(Reanimated, 'useReducedMotion').mockReturnValue(true);
+    const view = await render(<LfPinkyLoop testID="loop" spark />);
+    const hands = view.getAllByTestId('loop-hand', { includeHiddenElements: true });
+
+    expect(pinkyLoopDuration(true)).toBe(0);
+    expect(view.queryByTestId('loop-spark', { includeHiddenElements: true })).toBeNull();
+    expect(flatten(hands[0]?.props.style).transform).toEqual([
+      { translateX: 4 },
+      { translateY: 0 },
+      { rotate: '8deg' },
+    ]);
+    reducedMotion.mockRestore();
+  });
+});
+
+describe('LfBlob', () => {
+  test('승인된 블롭은 토큰 치수를 쓰고 장식으로 숨긴다', async () => {
+    const view = await render(
+      <LfBlob testID="blob" variant="empty" tilt="empty">
+        <LfEyes size="blob" />
+      </LfBlob>,
+    );
+    const blob = view.getByTestId('blob', { includeHiddenElements: true });
+    const style = flatten(blob.props.style) as ViewStyle;
+
+    expect(style.width).toBe(size.loginBlobHeight);
+    expect(style.height).toBe(size.loginBlobHeight - size.appbarIcon - space[4]);
+    expect(blob.props.accessibilityElementsHidden).toBe(true);
   });
 });

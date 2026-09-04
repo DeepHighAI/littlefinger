@@ -18,7 +18,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   ToastAndroid,
   View,
   type NativeScrollEvent,
@@ -66,8 +65,7 @@ import {
   type PromiseDraftFields,
 } from '../../lib/promise-draft.ts';
 import { PROMISE_EDIT_LABEL } from '../../screens/promise-edit-labels.ts';
-import { textFontFamily } from '../../theme/fonts';
-import { colors, duration, gutter, size, space, weight } from '../../theme/tokens';
+import { colors, duration, gutter, size, space } from '../../theme/tokens';
 
 const CATEGORIES = Object.keys(PROMISE_CATEGORY_LABEL) as PromiseCategory[];
 const KEEPERS = Object.keys(KEEPER_LABEL) as Keeper[];
@@ -83,9 +81,6 @@ export function editorStepForField(field: PromiseDraftField): 1 | 2 | 3 {
   return 3;
 }
 
-// CSS 원본 .sl-typeline 의 고정 13px — 토큰에 없는 장식 전용 수치
-const TYPELINE_FONT_SIZE = 13;
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   close: {
@@ -98,14 +93,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: gutter.app,
     paddingTop: space[7],
     paddingBottom: space[5],
-  },
-  intro: { paddingHorizontal: gutter.app, paddingBottom: space[5], gap: space[2] },
-  // 장식 문구도 사용자 텍스트와 같은 Pretendard를 써서 화면 간 서체를 통일한다.
-  typeline: {
-    fontFamily: textFontFamily(weight.medium),
-    fontSize: TYPELINE_FONT_SIZE,
-    fontWeight: weight.medium,
-    color: colors.textSecondary,
   },
   scroll: { flex: 1 },
   body: { paddingHorizontal: gutter.app, paddingBottom: space[9], gap: space[6] },
@@ -138,7 +125,7 @@ function routePromiseId(value: string | string[] | undefined): string | null {
 function ReviewValue({ label, value }: { label: string; value: string }): React.JSX.Element {
   return (
     <View style={styles.reviewRow}>
-      <LfText variant="sectionTitle">{label}</LfText>
+      <LfText variant="eyebrow">{label}</LfText>
       <LfText>{value}</LfText>
     </View>
   );
@@ -457,18 +444,12 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     );
   }
 
-  const stepTitle = steps[step - 1];
-  const stepDescription = step === 1
-    ? LABEL.stepContentDescription
-    : step === 2
-      ? LABEL.stepConditionsDescription
-      : LABEL.stepReviewDescription;
   const entering = reduceMotion
     ? undefined
     : (direction === 1 ? FadeInRight : FadeInLeft).duration(duration.medium);
 
   const stepOne = (
-    <LfCard variant="flat"><LfStack gap={7}>
+    <LfCard flat><LfStack gap={7}>
       <LfField label={LABEL.titleField} required error={errorFor('title')}>
         <LfInput
           accessibilityLabel={LABEL.titleField}
@@ -504,7 +485,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   );
 
   const stepTwo = (
-    <LfCard variant="flat"><LfStack gap={7}>
+    <LfCard flat><LfStack gap={7}>
       <LfField label={LABEL.endDate} required error={errorFor('end_date')}>
         <LfPicker
           accessibilityLabel={LABEL.endDatePicker}
@@ -579,7 +560,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const stepThree = (
     <LfStack gap={6}>
       <LfHelper text={LABEL.reviewNotice} />
-      <LfCard variant="record"><LfStack gap={4}>
+      <LfCard><LfStack gap={4}>
         <LfRow gap={4}>
           <View style={styles.reviewHeader}><LfText variant="subtitle">{LABEL.reviewContent}</LfText></View>
           <LfButton
@@ -597,7 +578,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][draft.category === '' ? 'ETC' : draft.category]}
         />
       </LfStack></LfCard>
-      <LfCard variant="record"><LfStack gap={4}>
+      <LfCard><LfStack gap={4}>
         <LfRow gap={4}>
           <View style={styles.reviewHeader}><LfText variant="subtitle">{LABEL.reviewConditions}</LfText></View>
           <LfButton
@@ -639,28 +620,12 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen}>
       <LfAppBar
         title={LABEL.title}
-        leading={(
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={step === 1 ? LABEL.close : LABEL.previous}
-            onPress={previousStep}
-            style={styles.close}
-          >
-            <LfIcon name={step === 1 ? 'close' : 'arrow_back'} />
-          </Pressable>
-        )}
-        action={<LfChip label={LABEL.stepCount(step)} tone="neutral" />}
+        leading={step === 1 ? 'close' : 'back'}
+        leadingAccessibilityLabel={step === 1 ? LABEL.close : LABEL.previous}
+        onLeadingPress={previousStep}
+        actions={<LfChip label={LABEL.stepCount(step)} tone="paper" kind="status" />}
       />
       <View style={styles.progress}><LfWizardProgress step={step} labels={steps} /></View>
-      <View style={styles.intro}>
-        {step === 1 && (
-          <Text style={styles.typeline} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            {LABEL.typeline}
-          </Text>
-        )}
-        <LfText variant="title">{stepTitle}</LfText>
-        <LfText secondary>{stepDescription}</LfText>
-      </View>
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
@@ -675,7 +640,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         ]}
       >
         {amendComment !== null && (
-          <LfCard variant="container" testID="amend-comment-banner">
+          <LfCard tone="yellow" testID="amend-comment-banner">
             <LfStack gap={2}>
               <LfText variant="caption" secondary>{LABEL.amendComment}</LfText>
               <LfText>{amendComment}</LfText>

@@ -1,23 +1,22 @@
 import { StyleSheet, TextInput, type TextInputProps } from 'react-native';
 
 import { textFontFamily } from '../theme/fonts';
-import { colors, radius, size, space, type, weight } from '../theme/tokens';
-
-// 잉크 테두리 입력 필드 (ADR 0012)
-const INPUT_BORDER_WIDTH = 2;
+import { colors, border, line, radius, size, space, type, weight } from '../theme/tokens';
 
 const styles = StyleSheet.create({
   input: {
+    height: size.inputHeight,
     minHeight: size.touchMin,
-    borderWidth: INPUT_BORDER_WIDTH,
+    borderWidth: border.chip,
     borderColor: colors.text,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     backgroundColor: colors.surface,
     color: colors.text,
     paddingHorizontal: space[6],
     paddingVertical: space[4],
     fontFamily: textFontFamily(weight.regular),
     fontSize: type.body,
+    lineHeight: line.body,
   },
 });
 

@@ -1,15 +1,9 @@
-import { Pressable, type PressableProps, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type PressableProps } from 'react-native';
 
 import { textFontFamily, type TextFontWeight } from '../theme/fonts';
-import { colors, elevation, radius, size, space, type, weight } from '../theme/tokens';
-
-/**
- * 버튼 — 원본 `.lf-btn` 과 변형 10종을 props 로 접은 것 (04 §5-2).
- *
- * **터치 타깃 48dp 는 어떤 변형에서도 내려가지 않는다**(04 §12-7).
- * 원본 CSS 의 `.lf-btn--compact` 는 height 44px 이지만 `.lf-btn` 의 min-height 48px 가
- * 이긴다. 여기서도 `minHeight` 를 항상 걸어 같은 결과를 만든다.
- */
+import { colors, border, elevation, radius, size, space, type, weight } from '../theme/tokens';
+import { LfIcon, type LfIconName } from './LfIcon';
+import { LfMascotFace } from './LfMascot';
 
 export type LfButtonVariant =
   | 'filled' | 'tonal' | 'outlined' | 'text' | 'kakao' | 'google' | 'danger';
@@ -21,25 +15,19 @@ export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children'
   size?: LfButtonSize;
   block?: boolean;
   grow?: boolean;
-  /** 라벨 앞 브랜드 마크 자리 (Google G 등). 장식이라 접근성 라벨에는 들어가지 않는다. */
   leading?: React.JSX.Element;
+  trailing?: LfIconName | 'mascot';
+  trailingBorder?: boolean;
 }
 
-const DISABLED_OPACITY = 0.38;
+const DISABLED_OPACITY = 0.3;
 const PRESSED_OPACITY = 0.94;
-// 잉크&스티커 굵은 잉크 테두리 (ADR 0012) — CSS 원본의 2.2~2.5px 그대로.
-const STICKER_OUTLINE_WIDTH = 2.4;
-const KAKAO_OUTLINE_WIDTH = 2.5;
-const DANGER_OUTLINE_WIDTH = 2.2;
-// Google 버튼 가이드는 1px 고정 테두리다 — 잉크 테두리를 얹지 않는다.
-const GOOGLE_OUTLINE_WIDTH = 1;
 
 const container = StyleSheet.create({
   base: {
-    height: size.actionHeight,
-    // 접근성 하한. 줄이지 않는다.
-    minHeight: size.touchMin,
-    paddingHorizontal: space[8],
+    minHeight: size.actionHeight,
+    paddingHorizontal: space[9],
+    paddingVertical: space[2],
     borderRadius: radius.pill,
     flexDirection: 'row',
     alignItems: 'center',
@@ -48,36 +36,55 @@ const container = StyleSheet.create({
   },
   filled: { backgroundColor: colors.actionFill, ...elevation.fab },
   tonal: {
+    minHeight: size.touchMin,
     backgroundColor: colors.primaryContainer,
-    borderWidth: STICKER_OUTLINE_WIDTH,
+    borderWidth: border.chip,
     borderColor: colors.text,
   },
   outlined: {
-    backgroundColor: colors.surface,
-    borderWidth: STICKER_OUTLINE_WIDTH,
+    backgroundColor: 'transparent',
+    borderWidth: border.outline,
     borderColor: colors.text,
   },
   text: { backgroundColor: 'transparent' },
   kakao: {
+    minHeight: size.kakaoHeight,
     backgroundColor: colors.kakao,
-    borderWidth: KAKAO_OUTLINE_WIDTH,
+    borderWidth: border.sheet,
     borderColor: colors.text,
   },
   google: {
+    minHeight: size.kakaoHeight,
     backgroundColor: colors.google,
-    borderWidth: GOOGLE_OUTLINE_WIDTH,
+    borderWidth: border.chip / 2,
     borderColor: colors.googleBorder,
   },
   danger: {
-    backgroundColor: colors.surface,
-    borderWidth: DANGER_OUTLINE_WIDTH,
+    backgroundColor: 'transparent',
+    borderWidth: border.card,
     borderColor: colors.error,
   },
+  trailingLayout: {
+    paddingTop: space[2],
+    paddingRight: space[2],
+    paddingBottom: space[2],
+    paddingLeft: space[8] + border.chip,
+    gap: space[6],
+  },
+  trailing: {
+    width: size.iconCircle,
+    height: size.iconCircle,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brandSymbolOnAction,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trailingBorder: { borderWidth: border.chip, borderColor: colors.text },
 });
 
 const labelColor: Record<LfButtonVariant, string> = {
   filled: colors.onAction,
-  tonal: colors.onPrimaryContainer,
+  tonal: colors.text,
   outlined: colors.text,
   text: colors.textMuted,
   kakao: colors.onKakao,
@@ -85,10 +92,9 @@ const labelColor: Record<LfButtonVariant, string> = {
   danger: colors.error,
 };
 
-/** 변형별 라벨 굵기. 스타일 객체에서 캐내지 않고 여기서 한 번에 선언한다. */
 const labelWeight: Record<LfButtonVariant, TextFontWeight> = {
-  filled: weight.heavy,
-  tonal: weight.heavy,
+  filled: weight.bold,
+  tonal: weight.bold,
   outlined: weight.bold,
   text: weight.medium,
   kakao: weight.bold,
@@ -97,8 +103,8 @@ const labelWeight: Record<LfButtonVariant, TextFontWeight> = {
 };
 
 const labelSize: Record<LfButtonSize, number> = {
-  default: type.body,
-  cta: type.bodyLg,
+  default: type.label,
+  cta: type.body,
   compact: type.label,
 };
 
@@ -109,12 +115,13 @@ export function LfButton({
   block = false,
   grow = false,
   leading,
+  trailing,
+  trailingBorder = true,
   disabled,
+  accessibilityState,
   ...rest
 }: LfButtonProps): React.JSX.Element {
-  // PressableProps 의 disabled 는 null 도 허용해서 그대로는 accessibilityState 에 못 넣는다.
   const isDisabled = disabled ?? false;
-  // 로그인 버튼 두 종만 기본 크기에서도 한 단계 큰 글자를 쓴다 (원본 .lf-btn--kakao).
   const fontSize =
     buttonSize === 'default' && (variant === 'kakao' || variant === 'google')
       ? type.bodyLg
@@ -123,37 +130,50 @@ export function LfButton({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled }}
+      accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
       disabled={isDisabled}
       {...rest}
       style={({ pressed }) => [
         container.base,
         container[variant],
-        buttonSize === 'cta' && { height: size.ctaHeight },
-        buttonSize === 'compact' && { paddingHorizontal: space[7] },
+        buttonSize === 'cta' && { minHeight: size.ctaHeight },
+        buttonSize === 'compact' && { minHeight: size.touchMin, paddingHorizontal: space[7] },
+        leading !== undefined && { paddingHorizontal: space[7] },
+        trailing !== undefined && container.trailingLayout,
         block && { width: '100%' },
         grow && { flex: 1 },
-        pressed &&
-          (variant === 'filled'
+        pressed && (
+          variant === 'filled'
             ? { backgroundColor: colors.actionFillPressed }
-            : { opacity: PRESSED_OPACITY }),
+            : { opacity: PRESSED_OPACITY }
+        ),
         isDisabled && { opacity: DISABLED_OPACITY },
       ]}
     >
       {leading}
       <Text
         style={{
+          flexShrink: 1,
           fontSize,
           fontWeight: labelWeight[variant],
           color: labelColor[variant],
           textAlign: 'center',
           fontFamily: textFontFamily(labelWeight[variant]),
-          // 링크형 보조 액션은 CSS 원본처럼 밑줄로 구분한다 (underline-offset 은 RN 미지원)
           textDecorationLine: variant === 'text' ? 'underline' : 'none',
         }}
       >
         {label}
       </Text>
+      {trailing !== undefined ? (
+        <View
+          testID={rest.testID === undefined ? undefined : `${rest.testID}-trailing`}
+          style={[container.trailing, trailingBorder && container.trailingBorder]}
+        >
+          {trailing === 'mascot'
+            ? <LfMascotFace size="md" />
+            : <LfIcon name={trailing} size={type.subtitle} />}
+        </View>
+      ) : null}
     </Pressable>
   );
 }

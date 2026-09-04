@@ -1,21 +1,77 @@
 # Development Status
 
-Snapshot date: **2026-09-03 KST**.
+Snapshot date: **2026-09-04 KST**.
 
 ## Pastel sticker restyle (in progress, 2026-09-03)
 
 The PO-approved Claude Design source is
 `design-reference/redesign-2026-09-03/ui-ux/project/리틀핑거 파스텔 스티커.dc.html`.
 P0–P4 are complete: the E-1 masters and Material Symbols Rounded subset are present, the
-183-token palette and reference component grammar have landed, and the gallery now contains 41
+185-token palette and reference component grammar have landed, and the gallery now contains 41
 pastel-reference screens. The 15 source artboards and 26 extrapolated app/web states load with no
 broken assets or horizontal overflow. `components.css` and `screens/web.css` are byte-equal between
 the reference and web targets.
 
-The React Native components/screens and production acceptance-web markup have **not** been ported
-yet (P5–P7). Do not deploy the web while its production markup still trails the shared CSS grammar.
-Launcher/splash/notification derivatives and the 0.3.0 release bump remain held for P8; no release
-build is authorized by the reference work alone.
+P5's React Native component layer is implemented: the approved E-1 face/eyes, C-1 pinky loop,
+blobs, stamp, sheet, pastel card/chip/status system, appbar actions and floating create CTA replace
+the retired `LfPinky`, `LfDoodle`, `LfBottomNav` and mobile `brand-symbol*` assets. The five sheets
+use the shared shell, A02 has no bottom tab bar, and A08 has a back action plus the past-promises
+row. Verification is green (`npm run typecheck`; Vitest **113 files / 2,161 tests**; jest-expo
+**82 suites / 892 tests**; `git diff --check`). On an authorized SM-N981N, tapping A02's My action,
+opening A08, and tapping A08's visible back action returned to A02. The regression was caused by
+A02 replacing the route instead of pushing it; both entry points now push, while A08 safely falls
+back to `/home` when no prior route exists. The A02/A08 visual gate is now closed: the release APK
+was inspected on SM-N981N at exact 360×800dp with font scales 1.0 and 1.5. The 1.5 pass exposed and
+fixed inflexible button heights and insufficient A02 list clearance above the floating CTA; the
+Google login label, A02's final trust strip, A08 content, and A08 → A02 back path now pass without
+clipping, obstruction, horizontal overflow, or fatal logs.
+
+The PO explicitly authorized the E-1 launcher correction on 2026-09-04. The legacy Type A launcher
+was replaced by the final yellow-field, white organic face and black hand-eye composition; Android
+adaptive and monochrome layers plus the Play listing export were regenerated and hash-locked. A
+local test release APK was rebuilt, update-installed on the SM-N981N, and the One UI launcher was
+visually confirmed to show E-1 (ADR 0019). It is APK Signature Scheme v2-valid but uses the Android
+Debug certificate, so it is a sideload QA artifact rather than a Play upload artifact.
+
+The PO's 2026-09-04 installed-build refinement for SCR-A03 is implemented and device-verified. The
+fixed region now ends after the app bar and `내용 · 조건 · 확인` progress, removing the repeated
+large step title, decorative intro and description so the first input begins immediately below the
+progress. Reward and penalty both add `스벅쏘기`, `올영쏘기`, and locale-specific `만원` / `10$`;
+`나의 노예가 되어라` / `Be my servant` is penalty-only. The updated ARM64 APK passed signature,
+ABI and embedded-bundle checks and was update-installed on SM-N981N. Device screenshots confirm the
+compact first step and all four Korean condition presets. Full gates remain green: Vitest **113
+files / 2,161 tests**, jest-expo **82 suites / 892 tests**, and five-project typecheck.
+
+The PO placed the replacement Google Play graphics under `docs/디자인/store/` on 2026-09-04: one
+E-1 512px app icon, localized 1024×500 ko/en feature graphics, and ten matched 1080×1920 phone
+screenshots per locale. ImageMagick inspection confirms sRGB PNGs, required dimensions, no alpha on
+feature graphics/screenshots, and fully opaque icon pixels; all 23 SHA-256 values are recorded in
+`docs/디자인/store/README.md`. Visual inspection confirms the E-1 composition and matching ten-step
+ko/en story. The replacement set is local and not yet uploaded; Play permits only eight phone
+screenshots per device type, so the PO must select the same eight numbers for both locales before
+console replacement. Targeted `.gitignore` exceptions now keep these source assets visible to Git.
+
+The 2026-09-04 pre-commit security review is remediated. Expo Router's external URL path now resolves
+`query-string` to a bounded local parser that tolerates malformed percent escapes and caps query
+input at 8,192 characters / 100 pairs; unit tests, release-bundle source-map inspection, and malformed
+plus oversized Android deep-link injections passed without a crash. The vulnerable transitive
+`decode-uri-component@0.2.2` remains in the lockfile but is no longer reachable from the packaged
+router path. Migration `20260903232317_restrict_security_definer_helpers.sql` moves the four exposed
+`SECURITY DEFINER` helpers into `private`, revokes public execution, and grants only the roles needed
+by RLS/auth internals; it is applied to the linked project and schema-tested. The current Security
+Advisor result has no exposed-definer warning: 18 informational no-policy findings remain for
+intentional server-only deny-all tables, plus the leaked-password-protection warning. That password
+check is Pro-only; this Free project instead has the email/password provider disabled, and a live
+password-grant request returned 422, while Kakao and Google remain enabled. PENDING cards also use
+the approved paper tone rather than the positive yellow tone.
+
+The P6 React Native screen-by-screen layout pass and P7 production acceptance-web markup have **not**
+been ported yet. Do not deploy the web while its production markup still trails the shared CSS grammar.
+The PO's later 2026-09-04 instruction authorizes merging/pushing the latest implementation and
+packaging it for Google Play. Mobile P8 is therefore active: `app.json` is `0.3.0`, the splash uses
+E-1, and launcher/notification colour is `#FFE59A`; EAS remote auto-increment will assign code 22.
+This Android package is an internal/open-test candidate for the current P0–P5 scope, not evidence
+that P6/P7 or the cross-surface redesign is complete, and it does not lift the web deployment hold.
 
 ## Open testing release (2026-09-03)
 
@@ -117,8 +173,8 @@ Priority order; each item names what it needs.
    code 21 `.catch`).
 6. Before production: refund → reconcile revocation (row 12), retention expiry/purge/NT-22·23
    (rows 16–18, staging SQL + worker secrets), ADR 0015 non-functional passes, remote concurrency
-   EC rows (5), J-10/J-11 double-run idempotence, TalkBack speech, font scale 1.5, dashed border and
-   sticker shadow on device, Security Advisor WARN backlog (55), web CLS 0.1666,
+   EC rows (5), J-10/J-11 double-run idempotence, TalkBack speech, dashed border and sticker shadow
+   on device, the 18 intentional server-only Security Advisor INFO items, web CLS 0.1666,
    `deeplink-dev-qa.md` A–D, legal `2026-08-30.2` re-versioning, Q-5 onboarding pages 2–3.
 7. Operations: close the survey two weeks after go-live, `ads_enabled` traffic gate (100 daily
    confirmations), AdMob app ↔ listing link after approval.
@@ -268,12 +324,9 @@ contact block. PO decisions on the day: primary category **라이프스타일**,
 Kept`, with two A/B alternates recorded — the brand name is never used alone because of open issue
 N-1 (a same-name company and a similar Play app already exist).
 
-Two store graphics were produced into `docs/디자인/store/`: `store-icon-512.png` (512×512, alpha
-flattened to butter, every alpha pixel 255, 253 KB) from the ADR 0016 launcher artwork, and
-`feature-graphic-1024x500{,-en}.png` drafts in the 잉크 & 스티커 system (cream canvas, butter
-sticker card with an ink border and hard offset shadow, Pretendard). The feature graphics are
-**drafts awaiting PO approval**; screenshots are storyboard-only and get captured on a real device
-during ADR 0015 device QA.
+The original 2026-08-31 store icon and feature-graphic drafts were superseded by the PO-provided
+2026-09-04 E-1 set documented at `docs/디자인/store/README.md`. The 2026-09-03 console upload is
+historical and remains visible only until that replacement set is uploaded.
 
 Verified: all eight paste-ready blocks are inside their Play limits by NFC code-point count
 (name 19/27, short 55/72, full 1,493/2,562, release notes 281/476) and contain **zero** §8-3
@@ -754,8 +807,8 @@ units are present, and the Hermes bundle contains the latest `promise-pending-de
 The packaged in-app mark is pixel-identical to the approved export; the extracted launcher,
 adaptive foreground, and in-app mark were visually inspected. Validation evidence is in
 gitignored `dist/code15-inspection/`. This AAB has not been submitted to Play or installed on a
-physical device. The Play listing icon remains a separate upload at
-`docs/디자인/store/store-icon-512.png`.
+physical device. The Play listing icon remains a separate PO-curated upload at
+`docs/디자인/store/app-icon/littlefinger-icon-512.png`.
 
 ### Build 0.2.0 / versionCode 13 (2026-08-31, pushed-source candidate)
 
@@ -832,9 +885,13 @@ Read-only metadata and rollback-safe remote tests produced these results:
 - ACTIVE access, WITHDRAWN denial, active nickname RPC idempotency, and withdrawn RPC rejection all
   passed; fixtures were rolled back.
 
-Supabase Security Advisor returned no ERROR and 55 WARN findings: 30 mutable function search paths,
-4 anonymous and 4 authenticated security-definer grants, 1 leaked-password-protection setting, and
-16 RLS init-plan findings. They are a hardening backlog, not a failed result of the scoped checks.
+This 2026-08-20 pass originally returned no ERROR and 55 WARN findings: 30 mutable function search
+paths, 4 anonymous and 4 authenticated security-definer grants, 1 leaked-password-protection
+setting, and 16 RLS init-plan findings. The 2026-09-04 hardening pass cleared every database WARN,
+including the eight exposed-definer grants. The current database advisor has only 18 INFO findings
+for intentional server-only tables with RLS and no client policy. Auth retains one
+leaked-password-protection WARN because the feature is unavailable on Free; email/password auth is
+disabled and a live password grant is rejected, so production remains SSO-only.
 
 Reusable verification SQL is committed under `supabase/tests/remote/`.
 

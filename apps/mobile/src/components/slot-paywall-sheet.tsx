@@ -15,6 +15,7 @@ import { border, colors, elevation, gutter, radius, size, space } from '../theme
 import { LfButton } from './LfButton.tsx';
 import { LfIcon } from './LfIcon.tsx';
 import { LfRow } from './LfRow.tsx';
+import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
 import { LfText } from './LfText.tsx';
 
@@ -151,28 +152,7 @@ export function SlotPaywallSheet({
   const priceText = price ?? LABEL.priceFallback(SLOT_PRICE_KRW_DEFAULT);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.scrim}>
-        <Pressable
-          style={styles.dismissArea}
-          onPress={onClose}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
-        <View style={styles.sheet} accessibilityViewIsModal>
-          <View style={styles.handle} />
-          <View style={styles.header}>
-            <LfText variant="title">{LABEL.sheetTitle}</LfText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={LABEL.close}
-              onPress={onClose}
-              style={styles.close}
-            >
-              <LfIcon name="close" />
-            </Pressable>
-          </View>
-
+    <LfSheet visible={visible} title={LABEL.sheetTitle} closeLabel={LABEL.close} onClose={onClose}>
           <View style={styles.content}>
             {phase === 'loading' && <LfText secondary>{LABEL.loading}</LfText>}
 
@@ -228,8 +208,6 @@ export function SlotPaywallSheet({
               </>
             )}
           </View>
-        </View>
-      </View>
-    </Modal>
+    </LfSheet>
   );
 }

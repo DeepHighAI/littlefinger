@@ -4,6 +4,8 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('node:path');
 
+const { createSafeQueryStringResolver } = require('./metro.safe-query-resolver');
+
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, '../..');
 
@@ -16,5 +18,7 @@ config.resolver.nodeModulesPaths = [
 ];
 // 워크스페이스 패키지가 루트에 호이스트돼도 중복 해석되지 않게 한다.
 config.resolver.disableHierarchicalLookup = true;
+
+config.resolver.resolveRequest = createSafeQueryStringResolver(projectRoot);
 
 module.exports = config;
