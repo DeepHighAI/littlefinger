@@ -408,6 +408,50 @@ describe('서명 대상과 전략적 응답 보호', () => {
       ).toBe('E_NOT_FOUND');
     }
   });
+
+  test('보존 열람권이 끝나면 캐시해 둔 evidence_id 로도 서명 대상을 받지 못한다', async () => {
+    // 2026-08-29 보존 도입이 약속 범위 읽기를 전부 lf_has_record_access 로 감쌌는데
+    // 이 함수만 빠져 있었다. participants.status 는 만료로 바뀌지 않아 JOINED 그대로라,
+    // 역할 검사만으로는 절대 안 걸린다. 목록은 막히고 파일만 열리는 상태였다.
+    const fixture = await seedChecking();
+    const { evidenceId } = await bindOne(fixture);
+
+    const before = await one<{ payload: { evidence_id: string } }>(
+      `select public.lf_evidence_sign_target($1::uuid, $2::uuid, 'FULL') as payload`,
+      [fixture.creatorId, evidenceId],
+    );
+    expect(before.payload.evidence_id).toBe(evidenceId);
+
+    // 종료일과 anchor 를 과거로 보내 무료 보존 30일을 넘긴다(EC-K01 과 같은 방식).
+    // activated_at 이 없으면 anchor 자체가 null 이라 만료 판정에 들어가지도 않는다.
+    await db.asAdmin(
+      `update public.promises
+          set activated_at = now() - interval '60 days',
+              end_date = (now() at time zone 'Asia/Seoul')::date - 60,
+              retention_anchor_at = now() - interval '59 days'
+        where id = $1`,
+      [fixture.promiseId],
+    );
+
+    expect(
+      await errorCode(() =>
+        db.asAdmin(
+          `select public.lf_evidence_sign_target($1::uuid, $2::uuid, 'FULL')`,
+          [fixture.creatorId, evidenceId],
+        ),
+      ),
+    ).toBe('E_NOT_FOUND');
+
+    // 정리가 아직 안 돌아 기록도 사진도 살아 있는 창이 정확히 취약했던 구간이다.
+    const alive = await one<{ purge_state: string; joined: number }>(
+      `select p.purge_state::text as purge_state,
+              (select count(*)::int from public.promise_participants pp
+                where pp.promise_id = p.id and pp.user_id = $2 and pp.status = 'JOINED') as joined
+         from public.promises p where p.id = $1`,
+      [fixture.promiseId, fixture.creatorId],
+    );
+    expect(alive).toEqual({ purge_state: 'AVAILABLE', joined: 1 });
+  });
 });
 
 describe('보존 기한과 J-08 정리', () => {
