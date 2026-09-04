@@ -304,3 +304,45 @@ then fails the native debug build. Set a task-scoped `JAVA_HOME` to
 `C:\Program Files\Android\Android Studio\jbr` before `npx expo run:android`; that JBR reports Java
 21 and the same build completes (`BUILD SUCCESSFUL`). Do not change the user's global Java setup
 for this workaround.
+
+## `supabase db dump` needs Docker; the Management API is the way to read remote state (2026-09-05)
+
+`db push`, `migration list` and `db push --dry-run` all talk to the remote database directly and
+work on this machine. **`supabase db dump` does not** — it shells out to a Docker image and fails
+with `LegacyDockerRunError: failed to connect to the docker API at npipe://…`. Docker is not
+installed here (§3 of `CLAUDE.md` says the same about `functions serve`), so a schema dump is not
+an option for verifying that a pushed migration actually took effect.
+
+`migration list` only proves the migration *row* was recorded, not that the DDL did what you meant.
+To read real remote state, POST SQL to the Management API with the PAT already in `.env`:
+
+```bash
+export SUPABASE_ACCESS_TOKEN=$(grep '^SUPABASE_ACCESS_TOKEN=' .env | cut -d= -f2- | tr -d '')
+curl -s -X POST "https://api.supabase.com/v1/projects/<ref>/database/query"   -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json"   -d '{"query":"select has_column_privilege(...)"}'
+```
+
+This is the same PAT path the 2026-08-23 auth-allowlist PATCH used. Keep the queries read-only —
+this endpoint will happily run DDL, and `config push` remains banned for the reasons in `CLAUDE.md` §3.
+
+## Mobile PKCE lands on `code_challenge_method=plain`, and that is fine (2026-09-05)
+
+`apps/mobile` sets `flowType: 'pkce'` (2026-09-05 security fix — the auth-js default is `implicit`,
+which put a `refresh_token` in a custom-scheme callback any app can register). On device the
+challenge is **`plain`, not S256**, and there is no bug to chase:
+
+- `@supabase/auth-js` `generatePKCEChallenge` requires `crypto.subtle` **and** `TextEncoder`.
+- Expo's winter runtime (`node_modules/expo/src/winter/runtime.native.ts`) installs `TextDecoder`,
+  `URL`, `DOMException`, `structuredClone` — but **not `TextEncoder`**, and nothing installs
+  `crypto.subtle` on native. `react-native-get-random-values` only supplies `getRandomValues`.
+- So auth-js logs `WebCrypto API is not supported…` and falls back to `plain`.
+
+Both methods were probed against the live GoTrue on 2026-09-05 and **both 302 to Kakao**, so `plain`
+does not break login. It also still closes the attack the fix was for: an app that intercepts the
+custom-scheme redirect sees only the `code`; the verifier travels in the *outbound* authorize URL,
+which it never sees.
+
+Do not "fix" this by shipping a hand-written `crypto.subtle` shim without device testing. A unit test
+would pass regardless — Node has `crypto.subtle`, `TextEncoder` and `btoa`, the device has none of
+them — so a green suite would prove nothing, and a shim that throws at runtime fails sign-in
+outright, which is worse than `plain`. If S256 is wanted, add a real polyfill package and verify on
+a device.

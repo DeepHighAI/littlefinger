@@ -1,6 +1,40 @@
 # Development Status
 
-Snapshot date: **2026-09-04 KST**.
+Snapshot date: **2026-09-05 KST**.
+
+## Security review and fixes (2026-09-05)
+
+A four-area security review (Edge Function auth layer, DB/RLS, public + monetization endpoints,
+both clients) found four exploitable issues, all now fixed and verified. Nothing was found in the
+AdMob SSV, Play Billing, invite-resolve/preview or evidence-upload paths, and no SQL injection,
+unpinned `search_path`, RLS-less table or append-only violation exists.
+
+| # | Issue | Severity | Fix |
+|---|---|---|---|
+| 1 | `apps/mobile` created its Supabase client with no `flowType`, so auth-js's `implicit` default put an `access_token` **and long-lived `refresh_token`** in the `littlefinger://auth-callback` deep link. Any app registering the same custom scheme could take the account over. | HIGH | `flowType: 'pkce'`; callback now exchanges `code` via `exchangeCodeForSession`, `setSession` removed from `MobileAuthClient` |
+| 2 | The root session gate turned **any** inbound `auth-callback` deep link into a session — no state, no in-flight check, no existing-session check — so a single crafted link silently logged the victim into the attacker's account. | MEDIUM | Callback is ignored when a session already exists; PKCE makes an injected `code` unexchangeable |
+| 3 | `lf_evidence_sign_target` was the one promise-scoped read the 2026-08-29 retention sweep missed. Because `promise_participants.status` stays `JOINED` after expiry, a participant whose access had lapsed could still exchange a cached `evidence_id` for a signed URL to private evidence photos. | MEDIUM | `20260905000001` adds the `lf_has_record_access` gate, answering `E_NOT_FOUND` for both a missing id and expired access |
+| 4 | `approvals` kept table-wide `SELECT` for `authenticated`. RLS is row-level, so any participant could `select=*` and read every co-participant's `ip_hash` / `user_agent_hash`. A constant salt plus attacker-chosen User-Agent makes those an online oracle that recovers the plaintext UA. | MEDIUM | `20260905000002` revokes table SELECT and re-grants the 10 non-PII columns |
+
+Both migrations are **applied to production** (`db push`, `upToDate: true`) and confirmed live via
+the Management API: `ip_hash`/`user_agent_hash` are closed for `authenticated`, `comment`/`acted_at`
+remain open (the single direct client read still works), and the deployed `lf_evidence_sign_target`
+body contains the retention gate. No Edge Function changed, so no function deploy was required.
+
+Verification: `npm run typecheck` clean across all five projects; Vitest **113 files / 2,163 tests**;
+jest-expo **82 suites / 894 tests**. Two regression tests were added — an expired-access participant
+is refused a signing target while the record is still `AVAILABLE` and the participant still
+`JOINED`, and `has_column_privilege` pins the `approvals` column split.
+
+**Open, needs the PO.** The PKCE switch changes the auth protocol on the wire and cannot be
+validated here: a Kakao and Google sign-in on a real device is required before release. Two
+consequences are recorded in [`docs/notes/environment-gotchas.md`](notes/environment-gotchas.md):
+the challenge method is `plain` on device (Expo installs no `TextEncoder` and no `crypto.subtle`;
+both methods were probed against live GoTrue and both 302, and `plain` still closes the attack), and
+`db dump` cannot run without Docker. EC-A02's "1·2·4s, three retries" is also gone — PKCE deletes
+the `code_verifier` on a failed exchange, so a retry can only fail with a different, misleading
+error; `AUTH_SESSION_RETRY_DELAYS_MS` is now unused but was left in `config.ts` as a spec-derived
+constant pending the PO's call.
 
 ## Pastel sticker restyle (in progress, 2026-09-03)
 
