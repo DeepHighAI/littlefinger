@@ -346,3 +346,44 @@ would pass regardless — Node has `crypto.subtle`, `TextEncoder` and `btoa`, th
 them — so a green suite would prove nothing, and a shim that throws at runtime fails sign-in
 outright, which is worse than `plain`. If S256 is wanted, add a real polyfill package and verify on
 a device.
+
+## The mobile native project is generated, and a stale `.env.local` ships with it (2026-09-05)
+
+`apps/mobile/android/` is **gitignored** (`apps/mobile/.gitignore:43`). It is prebuild output, so
+editing it fixes only the machine you are on and the next `expo prebuild` discards the edit. The
+tracked sources are what matter: `app.config.js` builds the App Link intent filter from
+`EXPO_PUBLIC_WEB_BASE_URL`, and prebuild writes `versionName` from `app.json`'s `version`.
+
+The trap is that **nothing re-runs prebuild**, so the generated project keeps whatever it was born
+with. Two stale values shipped in the 2026-09-04 QA APK this way:
+
+- **App Link host** — `apps/mobile/.env.local` still held the retired
+  `littlefinger-app-philwoo.web.app` and *overrides* `apps/mobile/.env`. The repo root `.env` and
+  `.env.example` had the correct ADR 0010 origin all along, so nothing looked wrong in git. Both env
+  files are gitignored, so **no test can catch this** — verify the built APK instead. The override
+  is now removed and the value lives once, in `apps/mobile/.env`.
+- **`versionName`** — stuck at `0.2.0` while `app.json` said `0.3.0`, so two different QA builds were
+  indistinguishable by version. (`versionCode` staying at 1 is *correct*: Play's number comes from
+  EAS `appVersionSource: remote`, and the native value is sideload-only.)
+
+Do not "fix" either by adding a test that reads `android/app/build.gradle` or the generated
+`AndroidManifest.xml` — those files do not exist in a clean checkout and the suite would fail.
+
+**Verify the artifact, not the source.** Both checks need the build-tools on an explicit path:
+
+```bash
+SDK=~/AppData/Local/Android/Sdk
+MSYS_NO_PATHCONV=1 "$SDK/build-tools/36.1.0/aapt2.exe" dump xmltree \
+  --file AndroidManifest.xml 'C:\...\app-release.apk' | grep -E 'host|versionName'
+```
+
+For the JS side, `assets/index.android.bundle` is **Hermes bytecode**, not JavaScript (magic
+`c61fbc03`). ASCII string literals grep normally, but **Korean is stored UTF-16**, so a UTF-8 grep
+returns 0 for text that is certainly present — check a control string such as `리틀핑거` before
+concluding anything is missing. In Python: `data.count(s.encode('utf-16-le'))`.
+
+The retired domain also **301s `/.well-known/assetlinks.json`**, and Android's App Link verifier does
+not follow redirects — so that host could never verify, and links on it have always opened in the
+browser. Separately, a **debug-signed QA APK never verifies App Links at all**: its certificate
+(`FA:C6:17:45…`) is not among the three fingerprints in `apps/web/public/.well-known/assetlinks.json`.
+Invite links opening the browser instead of the app on a sideload build is expected, not a bug.
