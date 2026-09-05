@@ -2,6 +2,67 @@
 
 Snapshot date: **2026-09-05 KST**.
 
+## Play upload package — 0.3.0 / code 23 (2026-09-05)
+
+Main was already fully merged. PO confirmation commit `0c67c87` was pushed before EAS production
+build `7f3db88b-a548-42fe-aecc-0c2efab5cf7f`; remote versionCode increased 22 → 23. The build
+finished at 12:38:56 KST. Artifact: `dist/littlefinger-play-v0.3.0-code23.aab` (85,558,773 bytes).
+SHA-256: `7B24B4B52AAD1965F649D63185E7B2CC305FAD5BBFCBF69E7EC4753838974246`.
+Download: `https://expo.dev/artifacts/eas/xCo3akzfwTf4LQHeRpoywkoF8QhgkqUOcvgUImpq_qE.aab`.
+
+Verification: five-project typecheck passed; Vitest `113 passed` files / `2163 passed` tests;
+jest-expo `82 passed` suites / `897 passed` tests; check:agents passed. Bundletool 1.18.1 validate
+exited 0, and jarsigner reported `jar verified.`. Upload certificate SHA-256 matches prior builds:
+`C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB`.
+Manifest checks passed for `com.littlefinger.app`, version 0.3.0 / code 23, minSdk 24, targetSdk 36,
+no debuggable flag, production AdMob app ID, correct invitation host, required permissions and
+absence of the blocked permission set. All five bundled ad-unit IDs match production code 22.
+The PO requested packaging only; this AAB has not been submitted to a Play track.
+
+All 35 permission declarations match code 22, including SDK bounds. ARM64, armeabi-v7a, x86 and
+x86_64 are included; the embedded release bundle is 5,009,552 bytes.
+
+<details>
+<summary>Code 23 final permission list</summary>
+
+- `android.permission.INTERNET`
+- `android.permission.READ_EXTERNAL_STORAGE`
+- `android.permission.VIBRATE`
+- `android.permission.WRITE_EXTERNAL_STORAGE`
+- `android.permission.WAKE_LOCK`
+- `android.permission.ACCESS_NETWORK_STATE`
+- `com.android.vending.BILLING`
+- `android.permission.RECEIVE_BOOT_COMPLETED`
+- `android.permission.POST_NOTIFICATIONS`
+- `android.permission.USE_BIOMETRIC`
+- `android.permission.USE_FINGERPRINT`
+- `com.google.android.gms.permission.AD_ID`
+- `android.permission.ACCESS_ADSERVICES_AD_ID`
+- `android.permission.ACCESS_ADSERVICES_ATTRIBUTION`
+- `android.permission.ACCESS_ADSERVICES_TOPICS`
+- `com.google.android.c2dm.permission.RECEIVE`
+- `android.permission.FOREGROUND_SERVICE`
+- `com.littlefinger.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`
+- `com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE`
+- `com.sec.android.provider.badge.permission.READ`
+- `com.sec.android.provider.badge.permission.WRITE`
+- `com.htc.launcher.permission.READ_SETTINGS`
+- `com.htc.launcher.permission.UPDATE_SHORTCUT`
+- `com.sonyericsson.home.permission.BROADCAST_BADGE`
+- `com.sonymobile.home.permission.PROVIDER_INSERT_BADGE`
+- `com.anddoes.launcher.permission.UPDATE_COUNT`
+- `com.majeur.launcher.permission.UPDATE_BADGE`
+- `com.huawei.android.launcher.permission.CHANGE_BADGE`
+- `com.huawei.android.launcher.permission.READ_SETTINGS`
+- `com.huawei.android.launcher.permission.WRITE_SETTINGS`
+- `android.permission.READ_APP_BADGE`
+- `com.oppo.launcher.permission.READ_SETTINGS`
+- `com.oppo.launcher.permission.WRITE_SETTINGS`
+- `me.everything.badger.permission.BADGE_COUNT_READ`
+- `me.everything.badger.permission.BADGE_COUNT_WRITE`
+
+</details>
+
 ## PO device confirmation and Play package request (2026-09-05)
 
 The PO confirmed the corrected login text displays properly on Galaxy S25. Bug 4 could not be

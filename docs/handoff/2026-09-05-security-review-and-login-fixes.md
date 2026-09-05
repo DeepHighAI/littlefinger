@@ -2,7 +2,11 @@
 
 ## Goal of the session and current status
 
-Work is on primary checkout `C:/DEV/littlefinger`, `main` at product commit `a9478a3`, pushed.
+Work is on primary checkout `C:/DEV/littlefinger`, `main` at `0c67c87`, pushed.
+Product source is `a9478a3`; later commits record deployment and PO confirmation.
+Production AAB build `7f3db88b-a548-42fe-aecc-0c2efab5cf7f` finished, version 0.3.0 / code 23.
+`dist/littlefinger-play-v0.3.0-code23.aab` passed bundletool, upload signature, manifest and
+production ad configuration checks. Download URL/hash are in DEVELOPMENT_STATUS. Not submitted.
 The PO authorized web deployment, a new app build, commit and push on September 5, then selected
 APK only. Firebase target `web` is deployed; published HTML, JS and E-1 image match the local build.
 EAS preview APK build `c9479ab1-c269-42d6-a86a-36d1a39de9fb` finished (0.3.0 / code 22).
@@ -81,9 +85,8 @@ This is a display check, not a new two-provider OAuth approval reproduction.
 
 ## The exact next step
 
-Commit/push the PO confirmation, run the production EAS AAB build from main, then validate its
-bundle, signature, version, App Links and production ad configuration. Record the artifact and
-push the release record. Do not submit to Play as part of this packaging request.
+The requested main synchronization and Play packaging are complete. The PO can upload
+`dist/littlefinger-play-v0.3.0-code23.aab` to Play; console submission requires their next request.
 If they continue Bug 4, use the corrected September 3 timeline in DEVELOPMENT_STATUS and obtain
 incident-specific artifact/tab/promise evidence; do not investigate the unrelated September 5
 09:57 approval again. Never edit an applied migration or the frozen design-reference baseline.
