@@ -2,6 +2,29 @@
 
 Snapshot date: **2026-09-05 KST**.
 
+## Authorized UI release (2026-09-05)
+
+The PO authorized deployment, a new build, commit and push, then selected **APK only**.
+Product commit `a9478a3` (`fix: reflow login labels and refresh invitation branding`) is on
+`origin/main`. Firebase Hosting target `web` deployed successfully to
+`https://littlefinger-app.web.app`; `app.html`, `assets/main-DswCwHBt.js`, and
+`assets/mascot-face-e1-B83Vx6Ed.png` each returned HTTP 200 with SHA-256 identical to the local
+production build. The legacy hosting target was not deployed.
+
+EAS preview APK build `c9479ab1-c269-42d6-a86a-36d1a39de9fb` finished at 11:58:57 KST from
+product commit `a9478a3`, version `0.3.0`, versionCode `22`. Downloaded to
+`dist/littlefinger-0.3.0-22-a9478a3.apk` (119,133,525 bytes), SHA-256
+`ADBACE24C45CA2C4CB9544EB3CE73A6D49195AA7CE9198ED4A4F9355B5D14E32`.
+Build page: `https://expo.dev/accounts/philwoo/projects/littlefinger/builds/c9479ab1-c269-42d6-a86a-36d1a39de9fb`.
+Artifact: `https://expo.dev/artifacts/eas/TKozCodj1X-r4UrZSd1blbxTsnrto-V7Va3MXzYh1p8.apk`.
+
+Artifact checks passed: ARM64 included (also armeabi-v7a/x86/x86_64), APK v2 signature verifies,
+package `com.littlefinger.app`, target SDK 36, and HTTPS invitation host/path
+`littlefinger-app.web.app/i/`. Signing certificate SHA-256 is
+`C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB`,
+already listed in App Links. This internal profile uses test AdMob IDs and the production backend
+environment. No AAB or Play submission was requested. S25 device validation remains outstanding.
+
 ## Login text allocation and invitation E-1 mark (2026-09-05)
 
 The PO reported clipped login/terms text on Galaxy S25 (Note20 unaffected) and the old mark on
@@ -20,7 +43,7 @@ jest-expo **82 suites / 897 tests** passed; check:agents passed; production web 
 login/components 107 tests. Android API 36.1 emulator, 360dp width, font scales 1.0 and 1.5:
 actual current-source rendering with `--no-dev` shows complete login and legal labels and wrapped
 consent text. Compared against the PO's clipped screenshot; **Samsung-specific rendering is not
-verified**. No new APK/EAS build, production deployment, commit, or push was performed.
+verified**. These checks preceded the separately authorized release recorded above.
 
 Visual evidence lives in the local Codex artifact directory
 `C:/Users/batis/.codex/visualizations/2026/09/05/01a06f2f-14db-72e0-9f37-15d9d2329be0/`:

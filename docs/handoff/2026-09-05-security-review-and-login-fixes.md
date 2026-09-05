@@ -2,9 +2,12 @@
 
 ## Goal of the session and current status
 
-Work is on primary checkout `C:/DEV/littlefinger`, `main` at `330007a`. Changes below are
-being released: the PO authorized web deployment, a new app build, commit and push on September 5.
-The default new artifact is an installable EAS preview APK; AAB preference was asked separately.
+Work is on primary checkout `C:/DEV/littlefinger`, `main` at product commit `a9478a3`, pushed.
+The PO authorized web deployment, a new app build, commit and push on September 5, then selected
+APK only. Firebase target `web` is deployed; published HTML, JS and E-1 image match the local build.
+EAS preview APK build `c9479ab1-c269-42d6-a86a-36d1a39de9fb` finished (0.3.0 / code 22).
+Artifact: `dist/littlefinger-0.3.0-22-a9478a3.apk`; full hash and remote download URL are in
+DEVELOPMENT_STATUS. ARM64, APK v2 signature, package/version and invitation App Links passed.
 Read AGENTS.md, this file, then
 `docs/notes/environment-gotchas.md` before continuing.
 
@@ -12,7 +15,7 @@ The earlier security fixes and PKCE change are already committed; both September
 are already in production. Their permanent record is in `docs/DEVELOPMENT_STATUS.md`.
 
 Current follow-up addressed the PO's S25 login text clipping and outdated invitation-web mark.
-The layout changes and E-1 image are implemented and verified locally. Samsung-specific
+The layout changes and E-1 image are implemented, verified and released. Samsung-specific
 rendering remains unverified. Bug 4 (empty promise list) is still unresolved.
 
 The PO corrected Bug 4's time to **September 3 after 17:35 KST**, explicitly NOT September 5
@@ -36,7 +39,7 @@ must not be conflated into a claim that the original incident is fixed.
 Visual artifacts are in
 `C:/Users/batis/.codex/visualizations/2026/09/05/01a06f2f-14db-72e0-9f37-15d9d2329be0/`:
 `login-font-1-after.png`, `login-font-15-after.png`, `invite-e1-production.png`.
-No design-reference file, applied migration, production data, or release artifact changed.
+No design-reference file, applied migration or production data changed.
 
 ## Decisions made + why
 
@@ -69,18 +72,16 @@ This is a display check, not a new two-provider OAuth approval reproduction.
 
 - Bug 4: identify the September 3 promise, installed artifact and selected tab if further tracing
   is requested; current available logs cannot establish the original empty-screen cause.
-- S25 confirmation on the updated mobile build remains outstanding. No APK or EAS build was made.
-- Web changes are local, not deployed.
-- Existing PO-only gates remain: device QA, EC-A02 retry-removal policy, Play Console/upload,
-  and new EAS build. Do not change these without a new instruction.
+- S25 confirmation on the new EAS preview APK remains outstanding.
+- Existing PO-only gates remain: device QA, EC-A02 retry-removal policy and Play Console/upload.
+  Deployment, APK build, commit and push are authorized; do not request permission again.
 - The previous sideload QA APK is still
   `apps/mobile/android/app/build/outputs/apk/release/littlefinger-qa-20260905-9fddd48.apk`.
   It does NOT contain this session's layout changes and must not be presented as the new fix.
 
 ## The exact next step
 
-Finish the authorized Firebase web deployment and EAS app build, validate the published assets
-and downloaded APK, then record their identifiers and push the release record.
+The authorized release is finished. Await PO feedback from the new APK on S25.
 If they continue Bug 4, use the corrected September 3 timeline in DEVELOPMENT_STATUS and obtain
 incident-specific artifact/tab/promise evidence; do not investigate the unrelated September 5
 09:57 approval again. Never edit an applied migration or the frozen design-reference baseline.
