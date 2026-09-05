@@ -324,6 +324,14 @@ curl -s -X POST "https://api.supabase.com/v1/projects/<ref>/database/query"   -H
 This is the same PAT path the 2026-08-23 auth-allowlist PATCH used. Keep the queries read-only —
 this endpoint will happily run DDL, and `config push` remains banned for the reasons in `CLAUDE.md` §3.
 
+For this project's request logs, GET `/v1/projects/<ref>/analytics/endpoints/logs.all` with an
+URL-encoded `sql` and explicit `iso_timestamp_start` / `iso_timestamp_end` (at most 24 hours).
+On 2026-09-05 the documented newer `from logs where source='function_edge_logs'` form returned
+`Backend error`; the existing `from function_edge_logs` plus `cross join unnest(metadata)`
+form worked. Select only timestamps, method, URL, status and `request.sb.auth_user` when comparing
+approval/list identities; never dump complete metadata (it can contain sensitive fields).
+These logs do not capture the response body, so a 200 alone does not prove list contents.
+
 ## Mobile PKCE lands on `code_challenge_method=plain`, and that is fine (2026-09-05)
 
 `apps/mobile` sets `flowType: 'pkce'` (2026-09-05 security fix — the auth-js default is `implicit`,

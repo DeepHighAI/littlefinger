@@ -9,9 +9,9 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 
+import mascotFaceUrl from '../assets/images/mascot-face-e1.png';
 import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
-import { LfPinky } from '../components/LfPinky.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import { INTERNAL_MESSAGE_BY_LOCALE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { useLabels, useLocale } from '../lib/locale.tsx';
@@ -391,15 +391,15 @@ export function ScrW01InviteLanding(): React.JSX.Element {
 }
 
 /**
- * 브랜드 마크. 레퍼런스의 path 를 그대로 옮긴다 — 형태가 바뀌면 원본 대조가 무의미해진다.
+ * 브랜드 마크는 승인된 E-1 원본과 기존 마스코트 토큰을 사용한다.
  * SCR-W02 의 로딩도 이것을 쓴다. 같은 흐름의 두 화면 중 하나만 흰 화면이면 로딩이
  * 아니라 끊긴 것처럼 보인다.
  */
 export function PinkyBadge(): React.JSX.Element {
   const L = useLabels(SCR_W01_LABEL);
   return (
-    <div className="lf-pinky-badge">
-      <LfPinky size="xl" accessibilityLabel={L.pinkyBadge} />
+    <div className="lf-mascot-tile">
+      <img className="lf-mascot lf-mascot--lg" src={mascotFaceUrl} alt={L.pinkyBadge} />
     </div>
   );
 }

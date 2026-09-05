@@ -81,13 +81,14 @@ afterEach(() => {
 });
 
 describe('SCR-W01 초대 랜딩', () => {
-  it('동일한 진한 그린 브랜드 이미지로 새끼손가락 약속을 표시한다', async () => {
+  it('승인된 E-1 얼굴 원본으로 초대 브랜드를 표시한다', async () => {
     fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
     renderAt();
     const mark = await screen.findByRole('img', { name: '새끼손가락 걸기' });
 
     expect(mark.tagName).toBe('IMG');
-    expect(mark.getAttribute('src')).toContain('brand-symbol');
+    expect(mark.getAttribute('src')).toContain('mascot-face-e1.png');
+    expect(mark.className).toBe('lf-mascot lf-mascot--lg');
   });
 
   it('invite-resolve 가 준 것만 그린다', async () => {

@@ -190,6 +190,25 @@ describe('SCR-A02 Soft Promise 홈', () => {
     });
   });
 
+  test('일반 항목 없이 고정 카드 두 개만 와도 승인된 약속을 행으로 표시한다', async () => {
+    jest.mocked(listHomePromises).mockResolvedValue(response({
+      pinned: [
+        card({ id: ACTIVE_ID, title: '확인할 약속', status: 'CHECKING', needsResponse: true }),
+        { ...card({ id: SECOND_ID, title: '방금 승인한 약속', endDate: '2026-08-17' }), my_role: 'PARTNER' },
+      ],
+    }));
+    const view = await render(<HomeScreen now={NOW} />);
+    await settle();
+
+    expect(view.getByRole('tab', { name: '진행 중 2' })).toBeTruthy();
+    expect(view.getAllByText('확인할 약속')).toHaveLength(1);
+    expect(view.getAllByText('방금 승인한 약속')).toHaveLength(1);
+    await fireEvent.press(view.getByRole('button', { name: '방금 승인한 약속 열기' }));
+    expect(push).toHaveBeenCalledWith({
+      pathname: '/promise/[promise_id]', params: { promise_id: SECOND_ID },
+    });
+  });
+
   test('이행 응답이 필요한 히어로는 상태를 텍스트로 말하고 같은 상세를 연다', async () => {
     jest.mocked(listHomePromises).mockResolvedValue(response({
       pinned: [card({ id: ACTIVE_ID, title: '확인할 약속', status: 'CHECKING', needsResponse: true })],

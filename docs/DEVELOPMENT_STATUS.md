@@ -2,6 +2,84 @@
 
 Snapshot date: **2026-09-05 KST**.
 
+## Login text allocation and invitation E-1 mark (2026-09-05)
+
+The PO reported clipped login/terms text on Galaxy S25 (Note20 unaffected) and the old mark on
+the invitation website. Full-width `LfButton` labels now receive the available row width instead
+of relying on intrinsic text measurement. Login legal links split the available width, consent
+text fills the space beside its checkbox, and a ScrollView allows increased text height to remain
+reachable. Copy, font scaling, legal consent gating, and minimum touch targets are preserved.
+
+The shared web invitation `PinkyBadge` now uses the existing approved `mascot-face-e1.png` inside
+the existing `lf-mascot-tile` and mascot size classes. This also updates its loading/review consumers;
+no new artwork, CSS tokens, frozen reference changes, or independent web restyle was introduced.
+
+Verification: typecheck across five projects passed; Vitest **113 files / 2,163 tests** and
+jest-expo **82 suites / 897 tests** passed; check:agents passed; production web build passed
+(existing >500 kB bundle-size warning remains). Focused checks: web landing 38 tests, native
+login/components 107 tests. Android API 36.1 emulator, 360dp width, font scales 1.0 and 1.5:
+actual current-source rendering with `--no-dev` shows complete login and legal labels and wrapped
+consent text. Compared against the PO's clipped screenshot; **Samsung-specific rendering is not
+verified**. No new APK/EAS build, production deployment, commit, or push was performed.
+
+Visual evidence lives in the local Codex artifact directory
+`C:/Users/batis/.codex/visualizations/2026/09/05/01a06f2f-14db-72e0-9f37-15d9d2329be0/`:
+`login-font-1-after.png`, `login-font-15-after.png`, `invite-e1-production.png`.
+The native captures use an existing development client (its tool bubble is visible), serving
+release-mode JS. Web screenshots use synthetic invite data, not a live account/approval test.
+
+## Bug 4 — approval succeeds; empty-list report remains unconfirmed (2026-09-05)
+
+**PO correction:** the reported incident was after **September 3, 17:35 KST**, explicitly not the
+September 5 trace below. September 3 has CREATOR APPROVE at 17:35:12 and WEB PARTNER APPROVE at
+17:36:23 for `3efb18e4`, followed by cancellation request/approval for `065750fb` at 17:38/17:39.
+The requested September 3 17:35 → September 4 17:35 log window returned events only from
+September 4 11:15 onward; September 3 request/response logs were unavailable. Do not treat that
+absence as proof no request occurred. The September 5 case remains separate diagnostic evidence,
+not a reproduction of the original incident. Incident-specific installed artifact, selected tab,
+and exact promise remain unconfirmed; no speculative product fix was made for Bug 4.
+
+Read-only Management API evidence supersedes the earlier "no approvals since September 3"
+snapshot. Promise `b5c21250` has a Kakao creator (`46f418c0`, APP) and a Google partner
+(`163725f5`, WEB); the partner approved at **09:57:50 KST on September 5**, and it is ACTIVE.
+Only shortened identifiers are recorded here; no invitation tokens or profile data were retained.
+
+| Time (KST) | Request | Result |
+|---|---|---|
+| 09:57:40.870 | invite-preview | HTTP 200 |
+| 09:57:50.518 | promise-approve, Google user `163725f5` | HTTP 200; PARTNER APPROVE row exists |
+| 09:57:53.790 | promise-home-list, same user | HTTP 200 |
+| 09:58:05.784 | promise-home-list, same user | HTTP 200 |
+
+The live STABLE `lf_promise_home_list` was read with that partner and `p_now=09:58:05 KST`.
+It returns `items=[]`, two pinned cards (`1319e791` CHECKING and `b5c21250` ACTIVE),
+and counts `{ACTIVE:2, WAITING:3, COMPLETED:2}`. This uses current rows with an explicit clock;
+it is **not** a captured historical HTTP response or a historical database snapshot. Passing
+the live payload through the current shared parser and mobile reducer produced:
+
+```json
+{"parser":"PASS","items":0,"pinned":2,"hero":"1319e791","rows":["b5c21250"],"loadFailed":false,"activeCount":2}
+```
+
+An added SCR-A02 regression test models this pinned-only response and checks that the approved
+partner card is visible once and opens its own detail route. The focused suite passes 13/13.
+No production code, database data, deployment, APK, or design baseline was changed.
+
+Full verification: `npm run typecheck` exited 0 across five projects; `npm test` exited 0 with
+Vitest `Test Files 113 passed (113)` / `Tests 2163 passed (2163)` and jest-expo
+`Test Suites: 82 passed, 82 total` / `Tests: 897 passed, 897 total`.
+`npm run check:agents` exited 0 (AGENTS.md synchronized); `git diff --check` passed.
+No visual diff was run because only tests and documentation changed; device rendering remains
+unverified. The first focused run failed on a mistyped expected tab label, corrected before the
+passing focused and full runs.
+
+**Still open:** identify the September 3 incident's promise, installed artifact and selected tab.
+The PO explicitly excluded the September 5 trace above. No new two-provider OAuth flow
+was performed by the agent, and no device QA was attempted. HTTP 200 does not preserve the
+response body in these logs; current-source tests do not prove rendering in the installed APK.
+Do not label this bug fixed or return to provider/RLS/retention speculation. A missing approval
+row alone also cannot distinguish a request that never arrived from one rejected before commit.
+
 ## Security review and fixes (2026-09-05)
 
 A four-area security review (Edge Function auth layer, DB/RLS, public + monetization endpoints,

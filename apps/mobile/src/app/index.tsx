@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LEGAL_DOCUMENT_LABELS_BY_LOCALE, type LegalDocumentKind } from '@littlefinger/shared';
 
@@ -51,11 +51,13 @@ const CONSENT_BOX = 22;
 const CONSENT_MARK = 16;
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  content: { flexGrow: 1 },
   body: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: LOGIN_GUTTER,
+    paddingVertical: space[9],
   },
   // 배지 상자는 걷어내고 마스코트가 그대로 앉는다 (.lf-login__badge 리셋)
   badge: {
@@ -125,8 +127,9 @@ const styles = StyleSheet.create({
   },
   consentBoxOn: { backgroundColor: colors.actionFill },
   consentLabel: {
-    // 배율이 커져도 잘리지 않고 다음 줄로 넘어가게 둔다.
-    flexShrink: 1,
+    // 글자 측정 폭 대신 체크박스를 제외한 실제 가용 폭으로 줄바꿈한다.
+    flex: 1,
+    minWidth: 0,
     fontSize: type.caption,
     lineHeight: line.micro,
     color: colors.textMuted,
@@ -135,8 +138,9 @@ const styles = StyleSheet.create({
   termsLinkTarget: {
     minHeight: size.touchMin,
     justifyContent: 'center',
-    // 줄어들지 않게 못박는다. 좁으면 깎이는 대신 termsLinks 의 flexWrap 으로 접힌다.
-    flexShrink: 0,
+    // 안드로이드의 내용 폭 측정에 기대지 않고 각 링크에 가용 폭을 나눠 준다.
+    flex: 1,
+    minWidth: 0,
   },
   authMessage: {
     fontSize: type.caption,
@@ -234,118 +238,120 @@ export default function LoginScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.body}>
-        <View
-          style={styles.badge}
-          accessible
-          accessibilityRole="image"
-          accessibilityLabel={LABEL.logo}
-        >
-          <LfBlob variant="login" tilt="blob">
-            <LfPinkyLoop size="eyes" variant="solid" spark />
-          </LfBlob>
-        </View>
-
-        <Text style={styles.wordmark}>{LABEL.wordmark}</Text>
-        <Text style={styles.subtitle}>{LABEL.subtitle}</Text>
-        {/* 여백은 화면의 몫이다. 컴포넌트는 style 을 받지 않아 디자인 값이 새지 않는다. */}
-        <View style={styles.hook}>
-          <LfNotice label={LABEL.hook} />
-        </View>
-      </View>
-
-      <View style={styles.actions}>
-        <LfStack gap={6}>
-          <LfButton
-            variant="kakao"
-            size="cta"
-            block
-            label={LABEL.kakaoCta}
-            disabled={signingIn || !agreed}
-            onPress={() => void handleKakaoLogin()}
-          />
-          <LfButton
-            variant="google"
-            size="cta"
-            block
-            leading={<GoogleMark />}
-            label={LABEL.googleCta}
-            disabled={signingIn || !agreed}
-            onPress={() => void handleGoogleLogin()}
-          />
-          {authMessage !== null && (
-            <Text accessibilityRole="alert" style={styles.authMessage}>
-              {authMessage}
-            </Text>
-          )}
-          <View style={styles.termsLinks}>
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel={LEGAL_LABEL.TERMS}
-              style={styles.termsLinkTarget}
-              onPress={() => void handleLegalDocument('TERMS')}
-            >
-              <Text style={[styles.terms, styles.termsLink]}>{LEGAL_LABEL.TERMS}</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel={LEGAL_LABEL.PRIVACY}
-              style={styles.termsLinkTarget}
-              onPress={() => void handleLegalDocument('PRIVACY')}
-            >
-              <Text style={[styles.terms, styles.termsLink]}>{LEGAL_LABEL.PRIVACY}</Text>
-            </Pressable>
-          </View>
-          <Pressable
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: agreed }}
-            accessibilityLabel={LABEL.legalConsent}
-            style={styles.consent}
-            onPress={() => {
-              setAgreed((prev) => !prev);
-              setAuthMessage(null);
-            }}
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.body}>
+          <View
+            style={styles.badge}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={LABEL.logo}
           >
-            {/* check_box 계열은 아이콘 서브셋에 없다. 사각 테두리 + check 조합으로 만든다. */}
-            <View style={[styles.consentBox, agreed && styles.consentBoxOn]}>
-              {agreed && <LfIcon name="check" size={CONSENT_MARK} color="onAction" />}
-            </View>
-            <Text style={styles.consentLabel}>{LABEL.legalConsent}</Text>
-          </Pressable>
-        </LfStack>
-        {__DEV__ && (
-          <View style={styles.testLogin}>
-            <LfStack gap={4}>
-              <Text style={styles.testLoginTitle}>{LABEL.testLoginTitle}</Text>
-              <LfInput
-                accessibilityLabel={LABEL.testLoginEmail}
-                placeholder={LABEL.testLoginEmail}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                value={testEmail}
-                onChangeText={setTestEmail}
-              />
-              <LfInput
-                accessibilityLabel={LABEL.testLoginPassword}
-                placeholder={LABEL.testLoginPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-                secureTextEntry
-                value={testPassword}
-                onChangeText={setTestPassword}
-              />
-              <LfButton
-                variant="outlined"
-                block
-                label={LABEL.testLoginSubmit}
-                disabled={signingIn || testEmail.trim() === '' || testPassword === ''}
-                onPress={() => void handleTestLogin()}
-              />
-            </LfStack>
+            <LfBlob variant="login" tilt="blob">
+              <LfPinkyLoop size="eyes" variant="solid" spark />
+            </LfBlob>
           </View>
-        )}
-      </View>
+
+          <Text style={styles.wordmark}>{LABEL.wordmark}</Text>
+          <Text style={styles.subtitle}>{LABEL.subtitle}</Text>
+          {/* 여백은 화면의 몫이다. 컴포넌트는 style 을 받지 않아 디자인 값이 새지 않는다. */}
+          <View style={styles.hook}>
+            <LfNotice label={LABEL.hook} />
+          </View>
+        </View>
+
+        <View style={styles.actions}>
+          <LfStack gap={6}>
+            <LfButton
+              variant="kakao"
+              size="cta"
+              block
+              label={LABEL.kakaoCta}
+              disabled={signingIn || !agreed}
+              onPress={() => void handleKakaoLogin()}
+            />
+            <LfButton
+              variant="google"
+              size="cta"
+              block
+              leading={<GoogleMark />}
+              label={LABEL.googleCta}
+              disabled={signingIn || !agreed}
+              onPress={() => void handleGoogleLogin()}
+            />
+            {authMessage !== null && (
+              <Text accessibilityRole="alert" style={styles.authMessage}>
+                {authMessage}
+              </Text>
+            )}
+            <View style={styles.termsLinks}>
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={LEGAL_LABEL.TERMS}
+                style={styles.termsLinkTarget}
+                onPress={() => void handleLegalDocument('TERMS')}
+              >
+                <Text style={[styles.terms, styles.termsLink]}>{LEGAL_LABEL.TERMS}</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={LEGAL_LABEL.PRIVACY}
+                style={styles.termsLinkTarget}
+                onPress={() => void handleLegalDocument('PRIVACY')}
+              >
+                <Text style={[styles.terms, styles.termsLink]}>{LEGAL_LABEL.PRIVACY}</Text>
+              </Pressable>
+            </View>
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: agreed }}
+              accessibilityLabel={LABEL.legalConsent}
+              style={styles.consent}
+              onPress={() => {
+                setAgreed((prev) => !prev);
+                setAuthMessage(null);
+              }}
+            >
+              {/* check_box 계열은 아이콘 서브셋에 없다. 사각 테두리 + check 조합으로 만든다. */}
+              <View style={[styles.consentBox, agreed && styles.consentBoxOn]}>
+                {agreed && <LfIcon name="check" size={CONSENT_MARK} color="onAction" />}
+              </View>
+              <Text style={styles.consentLabel}>{LABEL.legalConsent}</Text>
+            </Pressable>
+          </LfStack>
+          {__DEV__ && (
+            <View style={styles.testLogin}>
+              <LfStack gap={4}>
+                <Text style={styles.testLoginTitle}>{LABEL.testLoginTitle}</Text>
+                <LfInput
+                  accessibilityLabel={LABEL.testLoginEmail}
+                  placeholder={LABEL.testLoginEmail}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  value={testEmail}
+                  onChangeText={setTestEmail}
+                />
+                <LfInput
+                  accessibilityLabel={LABEL.testLoginPassword}
+                  placeholder={LABEL.testLoginPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  secureTextEntry
+                  value={testPassword}
+                  onChangeText={setTestPassword}
+                />
+                <LfButton
+                  variant="outlined"
+                  block
+                  label={LABEL.testLoginSubmit}
+                  disabled={signingIn || testEmail.trim() === '' || testPassword === ''}
+                  onPress={() => void handleTestLogin()}
+                />
+              </LfStack>
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

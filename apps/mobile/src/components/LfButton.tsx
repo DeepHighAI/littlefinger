@@ -152,12 +152,10 @@ export function LfButton({
     >
       {leading}
       {/*
-       * flexShrink 는 Text 가 아니라 이 View 가 받는다. Text 에 직접 걸면 안드로이드가
-       * 줄바꿈 대신 남는 폭에서 그냥 잘라내, 글꼴 배율이 커진 기기에서 'Google로' 처럼
-       * 말줄임표도 없이 끊긴다. 폭 제약은 상자가 지고 줄바꿈은 Text 가 하게 나눈다.
-       * 버튼은 minHeight 만 가지므로 두 줄이 되면 높이가 따라 늘어난다.
+       * 전체 폭 버튼은 글자의 측정 폭 대신 아이콘을 제외한 실제 가용 폭을 배정한다.
+       * 상자가 줄바꿈 폭을 정하고 minHeight 버튼은 늘어난 줄 수만큼 높아진다.
        */}
-      <View style={{ flexShrink: 1 }}>
+      <View style={[{ flexShrink: 1 }, block && { flex: 1, minWidth: 0 }]}>
         <Text
           style={{
             fontSize,
