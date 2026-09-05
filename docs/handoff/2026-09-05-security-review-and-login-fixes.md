@@ -15,8 +15,9 @@ The earlier security fixes and PKCE change are already committed; both September
 are already in production. Their permanent record is in `docs/DEVELOPMENT_STATUS.md`.
 
 Current follow-up addressed the PO's S25 login text clipping and outdated invitation-web mark.
-The layout changes and E-1 image are implemented, verified and released. Samsung-specific
-rendering remains unverified. Bug 4 (empty promise list) is still unresolved.
+The layout changes and E-1 image are implemented, verified and released. The PO confirmed S25
+display is correct. Bug 4 could not be reproduced; the PO will report a recurrence. Investigation
+is deferred, not declared fixed. The PO now requests main commit/push and a Play-upload AAB.
 
 The PO corrected Bug 4's time to **September 3 after 17:35 KST**, explicitly NOT September 5
 09:57. September 3 has a WEB PARTNER APPROVE at 17:36:23 for `3efb18e4`. The requested historical
@@ -70,9 +71,8 @@ This is a display check, not a new two-provider OAuth approval reproduction.
 
 ## Blocked / PO-confirmation items
 
-- Bug 4: identify the September 3 promise, installed artifact and selected tab if further tracing
-  is requested; current available logs cannot establish the original empty-screen cause.
-- S25 confirmation on the new EAS preview APK remains outstanding.
+- Bug 4: wait for a recurrence report; current logs cannot establish the original cause.
+- S25 login display was confirmed by the PO; this gate is closed.
 - Existing PO-only gates remain: device QA, EC-A02 retry-removal policy and Play Console/upload.
   Deployment, APK build, commit and push are authorized; do not request permission again.
 - The previous sideload QA APK is still
@@ -81,7 +81,9 @@ This is a display check, not a new two-provider OAuth approval reproduction.
 
 ## The exact next step
 
-The authorized release is finished. Await PO feedback from the new APK on S25.
+Commit/push the PO confirmation, run the production EAS AAB build from main, then validate its
+bundle, signature, version, App Links and production ad configuration. Record the artifact and
+push the release record. Do not submit to Play as part of this packaging request.
 If they continue Bug 4, use the corrected September 3 timeline in DEVELOPMENT_STATUS and obtain
 incident-specific artifact/tab/promise evidence; do not investigate the unrelated September 5
 09:57 approval again. Never edit an applied migration or the frozen design-reference baseline.

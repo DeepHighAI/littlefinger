@@ -2,6 +2,14 @@
 
 Snapshot date: **2026-09-05 KST**.
 
+## PO device confirmation and Play package request (2026-09-05)
+
+The PO confirmed the corrected login text displays properly on Galaxy S25. Bug 4 could not be
+reproduced; further investigation is deferred until the PO reports a recurrence. This is not a
+claim that its original cause was identified. The PO requested main synchronization, commit/push,
+and a production AAB for Play upload. All product changes are already on main; no branch merge
+is outstanding. The requested work packages the AAB; it does not submit a Play release.
+
 ## Authorized UI release (2026-09-05)
 
 The PO authorized deployment, a new build, commit and push, then selected **APK only**.
@@ -23,7 +31,8 @@ package `com.littlefinger.app`, target SDK 36, and HTTPS invitation host/path
 `littlefinger-app.web.app/i/`. Signing certificate SHA-256 is
 `C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB`,
 already listed in App Links. This internal profile uses test AdMob IDs and the production backend
-environment. No AAB or Play submission was requested. S25 device validation remains outstanding.
+environment. At this stage no AAB or Play submission was requested; the subsequent PO request
+and S25 confirmation are recorded above.
 
 ## Login text allocation and invitation E-1 mark (2026-09-05)
 
