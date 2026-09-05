@@ -28,6 +28,24 @@ pending device confirmation. **The fourth (bug 4) is unresolved and is the main 
 item** — see *Blocked* below; do not re-investigate from scratch, the negative results are recorded
 here.
 
+## Where to work
+
+Two checkouts of this repo exist on the machine and both sit on `c224334`, clean:
+
+```
+C:/DEV/littlefinger                         [main]
+C:/DEV/littlefinger/.worktrees/supabase-e2e [codex/supabase-e2e]
+```
+
+The worktree was 163 commits behind and was fast-forwarded on 2026-09-05; its stale
+`apps/mobile/android/app/build` and `.expo` caches (1.2 GB, built from August sources) were deleted,
+and its `.env` is a **symlink** to the root `.env`, so the values live in one place. It has its own
+`node_modules`. It does **not** have `apps/mobile/.env`, so mobile builds will not work there until
+that is linked too — backend and Supabase work is what it is set up for.
+
+Prefer `main` in the primary checkout for ordinary work. Use the worktree when something must run in
+isolation from an in-progress edit.
+
 ## Files created / modified
 
 **Security — database** (both migrations are **already applied to production**):
