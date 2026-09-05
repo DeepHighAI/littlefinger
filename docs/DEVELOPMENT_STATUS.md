@@ -6,10 +6,10 @@ Snapshot date: **2026-09-06 KST**.
 
 The scoped Play refund path is now verified end to end. The operator-triggered normal
 `purchase-reconcile` worker returned `checked_count=1` and `revoked_count=1`; the single target
-purchase is revoked, and the buyer's effective permanent access is false. A cold start of the
-unchanged Play-installed code 23 app then showed ordinary expiry (`2026-10-07 00:00 KST`) and
-`보관 기간 늘리기`, with no `영구 보관 중`. No entitlement row was edited directly and no other
-order was refunded.
+purchase is revoked, and the buyer's effective permanent access is false. Cold starts of both the
+previous code 23 package and the final Play-delivered code 24 package show ordinary expiry
+(`2026-10-07 00:00 KST`) and `보관 기간 늘리기`, with no `영구 보관 중`. No entitlement row was
+edited directly and no other order was refunded.
 
 P6/P7 implementation is complete for the accepted scope. Native Home now uses the personalized
 weekly summary and a three-chip active/waiting/history filter; obsolete redesign tokens were
@@ -26,21 +26,35 @@ five-project typecheck, web production build, `check:agents`, and `git diff --ch
 for local Android Gradle work; Java 25 fails in react-native-worklets as recorded in environment
 notes.
 
+The final signed AAB and Play-delivered installation gate are closed. EAS build
+`8ab2a75f-f581-4138-a660-a0a368151c3d` produced 0.3.0/code 24 from commit `938811b`; the downloaded
+85,560,762-byte artifact has SHA-256
+`42616C53DDD4AE1413FE645BC0B356094AB0E7210AF749219C8FECEFA4FFEDEF`. Bundletool, JAR signature,
+upload certificate, manifest, permission, SDK, ABI, production AdMob ID, App Link, bundled-source
+and secret checks passed. Play internal release 15 was published at 02:13 KST and the SM-N981N
+updated through Play at 02:15 KST. The installed package reports code 24 and installer
+`com.android.vending`; session, redesigned Home, target retention state and the real Play Billing
+product sheet all passed smoke verification. No purchase was confirmed and no production-track
+release was created.
+
 The real UMP SDK was executed with the production AdMob app ID and forced EEA test geography, but
 still returned `NOT_REQUIRED` with no form. A real code 23 rewarded request failed with Mobile Ads
-load code 2 and produced no SSV grant. These are unresolved external AdMob readiness gates while
-the app remains `검토 필요` and app-ads.txt/domain discovery is propagating; they are not successful
-consent/reward evidence. A final signed AAB and Play-delivered verification are the next artifact
-gate and must not be called release-ready until those AdMob checks succeed.
+load code 2 and produced no SSV grant. The Play-delivered code 24 retry created one RETENTION_30D
+intent at `2026-09-05 17:18:00.099973+00`, kept the UI locked and produced zero reward grants.
+These are unresolved external AdMob readiness gates while the app remains `검토 필요` and
+app-ads.txt/domain discovery is propagating; they are not successful consent/reward evidence.
+Production release approval therefore remains blocked only on real UMP choice/re-open and one
+idempotent SSV reward grant.
 
 ## Latest console evidence — supersedes earlier pending PO actions
 
 PO confirmed the European message is published for Littlefinger (EEA/UK/Switzerland), and the
-21:45 KST permanent test order was refunded with revocation at 22:47:19 KST. Server reconciliation
-was still pending at the last read; do not repeat the refund. Developer website setup completed
-at 23:15 KST and is accessible through the public Play listing. AdMob's empty app-ads.txt table
-and up-to-seven-day domain detection notice leave verification pending, not configuration undone.
-Actual UMP/SSV, refund entitlement convergence, P6/P7 and final AAB/Play-delivered E2E remain open.
+21:45 KST permanent test order was refunded with revocation at 22:47:19 KST. Normal server
+reconciliation and both code 23/code 24 UI convergence now pass; do not repeat the refund.
+Developer website setup completed at 23:15 KST and is accessible through the public Play listing.
+AdMob's empty app-ads.txt table and up-to-seven-day domain detection notice leave verification
+pending, not configuration undone. P6/P7 and the final AAB/Play-delivered E2E are closed. Actual
+UMP choice/re-open and rewarded SSV remain open.
 
 ## Production readiness second device follow-up — still on hold (2026-09-05 night)
 

@@ -1,7 +1,7 @@
 # Production readiness review
 
-Snapshot: 2026-09-06 KST. **NOT READY: implementation gates pass, but AdMob UMP/SSV and the final
-Play-delivered artifact gate remain open.**
+Snapshot: 2026-09-06 KST. **NOT READY: implementation and final Play-delivered artifact gates pass,
+but actual AdMob UMP choice/re-open and rewarded SSV grant evidence remain open.**
 
 ## September 6 implementation and device closure
 
@@ -9,9 +9,10 @@ Play-delivered artifact gate remain open.**
   refund path. It returned HTTP 200 with `checked_count=1` and `revoked_count=1`. A scoped read then
   found purchases=1, revoked=1 and buyer_permanent=false for the September 5 21:45 KST target.
   No direct purchase, entitlement or retention row was changed.
-- Cold-started the Play-installed code 23 app and reopened the target promise. The former
-  `영구 보관 중` state is gone; it shows ordinary expiry `2026-10-07 00:00 (KST)` and
-  `보관 기간 늘리기`. Evidence: `dist/play-after-refund-bottom.png` and matching UI XML.
+- Cold-started the Play-installed code 23 app and later the final Play-delivered code 24 app, then
+  reopened the target promise. The former `영구 보관 중` state is gone; both show ordinary expiry
+  `2026-10-07 00:00 (KST)` and `보관 기간 늘리기`. Evidence:
+  `dist/play-after-refund-bottom.png`, `dist/play-code24-after-refund.png`, and matching UI XML.
 - Completed P6 native scope: personalized weekly Home summary, three state/history chips and final
   detail-token consumers. Physical fixture checks passed at exactly 360x800 dp, font scale 1.0 and
   1.5; the 1.5 overflow found in the first pass was fixed with the shorter `지난 약속` label and
@@ -27,13 +28,34 @@ Play-delivered artifact gate remain open.**
 - Full verification passed: Vitest 114 files/2,179 tests; jest-expo 84 suites/912 tests; five-project
   typecheck; web production build; `check:agents`; and `git diff --check`. Web output is 614.70 kB
   (179.75 kB gzip) with the existing non-fatal chunk warning.
+- Final production EAS build `8ab2a75f-f581-4138-a660-a0a368151c3d` finished from commit
+  `938811b` as 0.3.0/code 24. Artifact:
+  `https://expo.dev/artifacts/eas/V6qOZYxvaub5bJC7OsO0fvINQtrZe1YE4FkTfPurR-w.aab`;
+  local file `dist/littlefinger-play-v0.3.0-code24.aab`; 85,560,762 bytes; SHA-256
+  `42616C53DDD4AE1413FE645BC0B356094AB0E7210AF749219C8FECEFA4FFEDEF`.
+- Bundletool validation and JAR signature verification passed. Upload certificate SHA-256 is
+  `C1:E0:70:DE:41:70:DE:B9:0A:D4:32:C2:D5:21:99:1F:F7:8B:54:6F:CD:06:BB:90:0F:B8:46:A8:D3:97:37:BB`.
+  Manifest checks passed for package `com.littlefinger.app`, min/target SDK 24/36, no debuggable
+  flag, Play Billing and AD_ID, all production AdMob IDs, invitation App Link, four ABIs and the
+  blocked permission set. Source-map verification passed 2,182 source entries; no QA/mock/dev-client
+  source or sensitive server credential marker was found.
+- Uploaded that exact AAB to Play internal release 15. Play accepted code 24 with no blocking error,
+  zero removed supported devices and one conditional R8/ProGuard mapping warning; this project does
+  not enable R8/ProGuard. Internal release was available at 02:13 KST. The physical SM-N981N updated
+  through Play at 02:15 KST and reports `versionCode=24`, `versionName=0.3.0`, installer
+  `com.android.vending`. Session, redesigned Home, refund-derived retention and Billing sheet passed.
+  Billing displayed `약속 영구 보관`, ₩2,000 and the test-card/no-charge notice; it was canceled
+  before confirmation. Evidence: `dist/play-code24-home.png`, `dist/play-code24-after-refund.png`,
+  and `dist/play-code24-billing-sheet.png`.
 - A real isolated UMP request with the production app ID, correct test-device hash and forced EEA
   geography still returned NOT_REQUIRED/no form; the privacy form was not required. The earlier
-  real rewarded request still ended with Mobile Ads code 2 and no SSV grant. AdMob app verification
-  remains pending while app-ads.txt discovery propagates, so neither actual consent choice/re-open
-  nor reward grant can be marked passed.
-- Disposable QA packages were removed and device density/font scale restored. The original Play
-  package and session remain. No production rollout was performed.
+  real rewarded request ended with Mobile Ads code 2 and no SSV grant. A Play code 24 retry created
+  one RETENTION_30D intent at `2026-09-05 17:18:00.099973+00`, displayed the locked/unavailable
+  state and left the post-attempt reward-grant aggregate empty. AdMob app verification remains
+  pending while app-ads.txt discovery propagates, so neither actual consent choice/re-open nor
+  reward grant can be marked passed.
+- Disposable QA packages were removed and device density/font scale restored. The code 24 Play
+  package and session remain. No production-track rollout was performed.
 
 ## Production-mode bundle verification follow-up
 
@@ -63,14 +85,14 @@ Play-delivered artifact gate remain open.**
 
 Remaining release work, in order:
 
-1. Reconnect phone; verify target refund through real reconciliation (next schedule September 6,
-   12:17 KST), then app state. Do not manually insert a revocation or refund another order.
-2. Complete accepted P6 native batches and P7 acceptance-web redesign with required visual checks.
-3. After AdMob verification, prove actual UMP choice/re-open and rewarded SSV grants on a test
-   device; complete creator/interruption purchase and two-party scenarios.
-4. Build signed AAB from finished source, inspect manifest/permissions/signing/ABIs/assets/debug
-   exclusion/secrets and matching source map, then verify Play-delivered installation and flows.
-   Retain existing privacy/store-console/business gates; passing local tests is not release approval.
+1. Recheck AdMob app/app-ads.txt verification after crawler propagation. Do not republish the
+   already-published European message or change the verified website merely to force a refresh.
+2. After AdMob verification, prove an actual forced-EEA UMP choice and privacy-options re-open, then
+   complete one real test-device rewarded ad through exactly one idempotent SSV grant.
+3. Complete creator-side permanent purchase, interrupted purchase recovery and two-party OAuth /
+   FINISH coverage if the PO requires those broader scenarios before production promotion.
+4. Promote only the already-verified code 24 artifact after the remaining launch gates pass; do not
+   rebuild or publish a production-track release merely to repeat the closed artifact gate.
 
 ## PO console confirmation and read-only refund diagnosis
 

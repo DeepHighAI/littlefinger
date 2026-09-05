@@ -4,15 +4,15 @@
 
 The PO requested the remaining launch-critical work: real UMP/reward verification, refund-driven
 permanent-access revocation, P6/P7 redesign completion, and a final signed AAB with Play-delivered
-verification. The refund path and application convergence are closed. P6/P7 implementation and
-the current source gates are closed. The release is still **not approved** because AdMob app
-verification/app-ads.txt propagation prevents successful real UMP and rewarded SSV evidence, and
-the new signed AAB/Play-delivered installation gate has not yet been completed.
+verification. The refund path and application convergence are closed. P6/P7 implementation,
+current source gates, the signed code 24 AAB and Play-delivered installation are closed. The
+release is still **not approved** because AdMob app verification/app-ads.txt propagation prevents
+successful real UMP and rewarded SSV evidence.
 
-Work is on `main` in `C:/DEV/littlefinger`. The Play-installed app remains 0.3.0/code 23 and keeps
-its session. No production rollout, Firebase deployment, schema change or direct entitlement edit
-was performed. Durable details are in `docs/qa/PRODUCTION_READINESS.md` and the latest section of
-`docs/DEVELOPMENT_STATUS.md`.
+Work is on `main` in `C:/DEV/littlefinger`. The physical device now has Play-delivered 0.3.0/code
+24 and keeps its session. No production-track rollout, Firebase deployment, schema change or
+direct entitlement edit was performed. Durable details are in `docs/qa/PRODUCTION_READINESS.md`
+and the latest section of `docs/DEVELOPMENT_STATUS.md`.
 
 ## Files created/modified (paths)
 
@@ -32,7 +32,8 @@ was performed. Durable details are in `docs/qa/PRODUCTION_READINESS.md` and the 
 - This handoff replaces `2026-09-05-production-readiness.md`; the cited Kakao findings reference
   remains as the documented directory exception.
 - Gitignored evidence under `dist/`, including refund UI, native 360dp/font-scale captures, web
-  privacy capture, fixture APK, UMP probe materials and local source maps.
+  privacy capture, fixture APK, UMP probe materials, code 24 AAB inspection, Play installation /
+  Billing captures and local source maps.
 
 ## Decisions made + why
 
@@ -67,13 +68,23 @@ Refund passed end to end. Worker response was HTTP 200,
 buyer_permanent=false at `2026-09-05 16:21:12.882449+00`. A code 23 cold start shows ordinary
 expiry `2026-10-07 00:00 (KST)` and `보관 기간 늘리기`, with no `영구 보관 중`.
 
+Final artifact passed. EAS build `8ab2a75f-f581-4138-a660-a0a368151c3d` produced 0.3.0/code 24
+from `938811b`. The 85,560,762-byte AAB SHA-256 is
+`42616C53DDD4AE1413FE645BC0B356094AB0E7210AF749219C8FECEFA4FFEDEF`; bundletool, JAR signature,
+certificate, manifest/permission/SDK/ABI/AdMob/App-Link, source-map/debug/mock and secret checks
+passed. Play internal release 15 was published at 02:13 KST. The SM-N981N updated through Play at
+02:15 KST and reports code 24 with installer `com.android.vending`. Session, redesigned Home,
+refund-derived ordinary retention, and the real Billing product sheet passed; purchase was canceled.
+
 Real UMP execution did not pass the user-visible consent gate: production app ID + corrected
 isolated test hash + forced EEA still returned NOT_REQUIRED/no form, and privacy re-open reported
 that a form is not required. The real code 23 RETENTION_30D request failed with Mobile Ads load
 code 2 after about one minute; there is no SSV grant. This is not successful reward evidence.
 
-The final signed AAB and Play-delivered installation are not yet verified. Earlier code 23 excludes
-the current changes. The web build succeeds with a non-fatal 614.70 kB chunk-size warning.
+The Play-delivered code 24 rewarded retry created one new PENDING RETENTION_30D intent at
+`2026-09-05 17:18:00.099973+00`, left the benefit locked and produced no grant. This is expected
+fail-closed behavior, not successful rewarded/SSV verification. The web build succeeds with a
+non-fatal 614.70 kB chunk-size warning.
 
 ## Blocked / PO-confirmation items
 
@@ -84,10 +95,9 @@ discovered the app and the console says domain changes may take up to seven days
 crawler propagates. Actual UMP choice/re-open and rewarded SSV remain blocked on that external
 AdMob readiness state.
 
-The documented `apps/mobile/.secrets/play-service-account.json` is absent, so automated EAS submit
-cannot install a new bundle through the Play internal track. A signed AAB can still be built with
-remote EAS credentials, but Play-delivered verification requires either the key or a manual internal
-track upload. Do not publish to production merely to satisfy this gate.
+The documented `apps/mobile/.secrets/play-service-account.json` remains absent, but manual Play
+Console upload closed the internal-track installation gate. Future automated submits still require
+that key. Do not publish to production merely to repeat this gate.
 
 Creator-side permanent purchase, interrupted purchase recovery and two-party FINISH remain broader
 scenario coverage, not regressions found in this pass. Do not make a real-money purchase or mutate
@@ -95,13 +105,9 @@ production retention records to simulate expiry.
 
 ## The exact next step
 
-Build the production AAB from the fully verified current source with remote EAS credentials. Record
-the build ID, git commit, version code, artifact URL, byte size and SHA-256. Download it and run the
-bundle verifier, bundletool validation, signing-certificate, manifest/permission/SDK/ABI, AdMob ID,
-App Links, debug/mock/source-map and secret checks. Do not call it final if any check fails.
-
-Upload that exact AAB only to the Play **internal** track as a draft, using the missing service key
-if supplied or a manual console upload by the PO. Install through Play, confirm installer/source
-version and smoke-test session, Home, Profile privacy entry, promise detail/retention and Billing.
-Production rollout remains prohibited until AdMob app verification permits an actual EEA UMP form
-choice/re-open and a real test-device rewarded ad produces one server SSV grant idempotently.
+Recheck the AdMob app and app-ads.txt table after crawler propagation (first meaningful check after
+September 6 23:15 KST; investigate if absent after September 12 23:15 KST). Once verification is
+ready, use the Play code 24 test installation and forced-EEA debug geography to record an actual UMP
+choice plus privacy-options re-open. Then complete one real rewarded ad and prove exactly one
+`ADMOB_SSV` grant for its intent, including duplicate-callback idempotence. Production-track
+promotion remains prohibited until both pieces of evidence pass.
