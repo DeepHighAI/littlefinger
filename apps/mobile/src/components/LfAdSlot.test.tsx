@@ -5,6 +5,7 @@ import {
   type LittlefingerNativeAd,
 } from '../lib/admob-native.tsx';
 import { LfAdSlot } from './LfAdSlot';
+import { showAdsPrivacyOptions } from '../lib/ads-consent-native.ts';
 
 jest.mock('../lib/admob-native.tsx', () => ({
   destroyNativeAd: jest.fn(),
@@ -26,6 +27,16 @@ async function settle(): Promise<void> {
 }
 
 describe('LfAdSlot', () => {
+  test('privacy change destroys a loaded ad and loads a fresh consent-safe instance', async () => {
+    loadNativeAdMock.mockResolvedValueOnce('old' as unknown as LittlefingerNativeAd).mockResolvedValueOnce(null);
+    const view = await render(<LfAdSlot enabled />);
+    await settle();
+    await act(async () => { await showAdsPrivacyOptions(); });
+    await settle();
+    expect(destroyNativeAdMock).toHaveBeenCalledWith('old');
+    expect(loadNativeAdMock).toHaveBeenCalledTimes(2);
+    expect(view.toJSON()).toBeNull();
+  });
   beforeEach(() => {
     loadNativeAdMock.mockReset();
     destroyNativeAdMock.mockReset();

@@ -11,6 +11,7 @@ const ko = {
   // 레퍼런스 HTML(scr-w02-promise-review.html)의 헤드라인을 그대로 쓴다. SCR-W01 과 달리
   // 여기서는 작성자 닉네임을 서버가 준다.
   headline: (nickname: string) => `${nickname}님과의 약속, 꼼꼼히 봐주세요`,
+  contentEyebrow: 'PROMISE · 약속 내용',
   endDate: '종료일',
   noEndDate: '종료일 없음',
   keeper: '지킬 사람',
@@ -55,6 +56,7 @@ const ko = {
 
 const en = {
   headline: (nickname: string) => `Review your promise with ${nickname} carefully`,
+  contentEyebrow: 'PROMISE · Promise details',
   endDate: 'End date',
   noEndDate: 'No end date',
   keeper: 'Who keeps it',

@@ -51,7 +51,7 @@ export function LfSheet({
         >
           <View style={styles.handle} />
           <View style={styles.header}>
-            <LfText variant="sheetTitle">{title}</LfText>
+            <View style={styles.title}><LfText variant="sheetTitle">{title}</LfText></View>
             <LfIconButton icon="close" accessibilityLabel={closeLabel} onPress={onClose} />
           </View>
           {children}
@@ -94,4 +94,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: space[3],
   },
+  title: { flex: 1 },
 });

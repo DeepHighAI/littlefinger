@@ -6,9 +6,10 @@ const ko = {
   advertisement: '광고',
   profile: '마이 프로필',
   back: '뒤로',
-  history: '지난 약속 히스토리 보기',
-  greeting: '이번 주도 약속을 챙겨볼까요?',
-  greetingDescription: '함께 정한 약속을 한눈에 확인해요',
+  history: '지난 약속',
+  greeting: (nickname: string | null, count: number) => nickname === null
+    ? `이번 주\n약속 ${count}개 순항 중.`
+    : `${nickname}님, 이번 주\n약속 ${count}개 순항 중.`,
   closestPromise: '가장 가까운 약속',
   activeSection: '진행 중 약속',
   waitingSection: '대기 중 약속',
@@ -58,9 +59,10 @@ const en = {
   advertisement: 'Ad',
   profile: 'My profile',
   back: 'Back',
-  history: 'View past promise history',
-  greeting: 'Shall we check in on your promises?',
-  greetingDescription: 'See the promises you made together at a glance',
+  history: 'Past promises',
+  greeting: (nickname: string | null, count: number) => nickname === null
+    ? `This week\n${count} promises are on track.`
+    : `${nickname}, this week\n${count} promises are on track.`,
   closestPromise: 'Closest promise',
   activeSection: 'Promises in progress',
   waitingSection: 'Waiting promises',

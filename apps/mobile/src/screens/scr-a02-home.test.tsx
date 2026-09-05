@@ -111,12 +111,12 @@ describe('SCR-A02 Soft Promise 홈', () => {
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
     expect(listHomePromises).toHaveBeenCalledWith({ tab: 'ACTIVE' });
-    expect(view.getByText('이번 주도 약속을 챙겨볼까요?')).toBeTruthy();
+    expect(view.getByText('이번 주\n약속 0개 순항 중.')).toBeTruthy();
     // 홈 탭은 진행·대기 둘뿐이다 — 종결은 히스토리 화면의 몫이다.
     expect(view.getByRole('tab', { name: '진행 중 0' })).toBeTruthy();
     expect(view.getByRole('tab', { name: '대기 2' })).toBeTruthy();
     expect(view.queryByRole('tab', { name: /완료/u })).toBeNull();
-    expect(view.getByRole('button', { name: '지난 약속 히스토리 보기' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '지난 약속' })).toBeTruthy();
     expect(view.getByRole('button', { name: '약속 만들기' })).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
     const list = view.getByTestId('home-list');
@@ -271,7 +271,7 @@ describe('SCR-A02 Soft Promise 홈', () => {
   test('히스토리·지킴율·앱바 프로필·플로팅 CTA는 각각 올바른 경로를 연다', async () => {
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '지난 약속 히스토리 보기' }));
+    await fireEvent.press(view.getByRole('button', { name: '지난 약속' }));
     await fireEvent.press(view.getByRole('button', { name: '지금까지 약속의 87%를 지켰어요' }));
     await fireEvent.press(view.getByRole('button', { name: '마이' }));
     await fireEvent.press(view.getByRole('button', { name: '약속 만들기' }));

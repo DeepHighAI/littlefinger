@@ -8,6 +8,27 @@ into `docs/DEVELOPMENT_STATUS.md`. Every row runs on the **production-profile** 
 from the internal testing track — preview builds use Google test ad units, which the SSV callback
 rejects, so rows 2–8 cannot pass on them.
 
+### Code 23 slot smoke follow-up — 2026-09-05
+
+SM-N981N, Play installer, 0.3.0 / code 23. Billing explicitly showed an always-approved test card
+and no-charge test-order notice. One slot purchase at 20:46 KST showed success and capacity 8 → 9
+(usage 3 / 9); cold restart retained the result. Recent server ledger: one row, one distinct order,
+one distinct token, one granted slot, still one after restart. Capture:
+`dist/readiness-slot-purchased.png`. Test slot retained; no real charge, logout or app replacement.
+This does **not** close permanent-access or rewarded rows in the September 2 matrix. The newer UMP
+source changes were not in this installed binary. Full follow-up: `PRODUCTION_READINESS.md`.
+
+### Code 23 partner permanent purchase / ad attempt — 2026-09-05, 21:43–21:55 KST
+
+RETENTION_30D created a real pending intent, but the SDK failed to load with code 2; recent SSV
+grant count remained zero and the UI stayed locked. No rewarded success is claimed. Partner-side
+permanent access then completed through an explicitly no-charge Play test order at 21:45 KST.
+Cold restart retained it; one distinct purchase/order/token, zero slot grant, buyer access true,
+creator access false, no revocation. Refund was requested from the PO in Play Console and is not
+yet verified. Creator-side purchase and interruption recovery remain open. Current-source MOD-05
+stale-lock/clipping fixes were verified separately in a layout fixture, not this Play binary.
+The original September 2 matrix counts are unchanged. Detailed evidence: `PRODUCTION_READINESS.md`.
+
 ### Code 18 physical-device run — 2026-09-02
 
 - Candidate: `0.2.0 (18)`, EAS build `5e543b9d-0680-4617-ba6e-abddbd0c0368`, Git

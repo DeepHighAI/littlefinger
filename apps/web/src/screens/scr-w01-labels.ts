@@ -9,7 +9,7 @@ import type { Localized } from '@littlefinger/shared';
 const ko = {
   headline: (nickname: string) => `${nickname}님이 약속을 보냈어요`,
   countdownSuffix: '안에 확인해 주세요',
-  previewSectionTitle: '약속 미리보기',
+  previewEyebrow: 'PROMISE · 약속 미리보기',
   previewHint: '자세한 내용은 로그인 후 볼 수 있어요',
   serviceIntroLines: ['리틀핑거는 둘이 합의한 약속을 기록하고', '지키게 돕는 서비스예요'],
   kakaoCta: '카카오 로그인하고 내용 보기',
@@ -25,7 +25,7 @@ const ko = {
 const en = {
   headline: (nickname: string) => `${nickname} sent you a promise`,
   countdownSuffix: 'left to respond',
-  previewSectionTitle: 'Promise preview',
+  previewEyebrow: 'PROMISE · PROMISE PREVIEW',
   previewHint: 'Sign in to see the full details',
   serviceIntroLines: [
     'Littlefinger records the promises you make together',

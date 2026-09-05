@@ -1,6 +1,105 @@
 # Development Status
 
-Snapshot date: **2026-09-05 KST**.
+Snapshot date: **2026-09-06 KST**.
+
+## Production readiness closure pass (2026-09-06)
+
+The scoped Play refund path is now verified end to end. The operator-triggered normal
+`purchase-reconcile` worker returned `checked_count=1` and `revoked_count=1`; the single target
+purchase is revoked, and the buyer's effective permanent access is false. A cold start of the
+unchanged Play-installed code 23 app then showed ordinary expiry (`2026-10-07 00:00 KST`) and
+`보관 기간 늘리기`, with no `영구 보관 중`. No entitlement row was edited directly and no other
+order was refunded.
+
+P6/P7 implementation is complete for the accepted scope. Native Home now uses the personalized
+weekly summary and a three-chip active/waiting/history filter; obsolete redesign tokens were
+removed from all three production token targets. The acceptance web now uses the approved E1
+mascot primitives, pastel card/status mappings and production favicon/touch/OG derivatives.
+Representative physical native checks passed at exactly 360x800 dp and font scale 1.0/1.5; web
+Home, expired-link and privacy routes passed browser inspection. Component tests cover the other
+authenticated web states; a fresh exhaustive screenshot of every data/status state was not
+repeated.
+
+Current full gates pass: Vitest **114 files / 2,179 tests**, jest-expo **84 suites / 912 tests**,
+five-project typecheck, web production build, `check:agents`, and `git diff --check`. Web output is
+614.70 kB (179.75 kB gzip) with the existing non-fatal chunk-size warning. Java 21 remains required
+for local Android Gradle work; Java 25 fails in react-native-worklets as recorded in environment
+notes.
+
+The real UMP SDK was executed with the production AdMob app ID and forced EEA test geography, but
+still returned `NOT_REQUIRED` with no form. A real code 23 rewarded request failed with Mobile Ads
+load code 2 and produced no SSV grant. These are unresolved external AdMob readiness gates while
+the app remains `검토 필요` and app-ads.txt/domain discovery is propagating; they are not successful
+consent/reward evidence. A final signed AAB and Play-delivered verification are the next artifact
+gate and must not be called release-ready until those AdMob checks succeed.
+
+## Latest console evidence — supersedes earlier pending PO actions
+
+PO confirmed the European message is published for Littlefinger (EEA/UK/Switzerland), and the
+21:45 KST permanent test order was refunded with revocation at 22:47:19 KST. Server reconciliation
+was still pending at the last read; do not repeat the refund. Developer website setup completed
+at 23:15 KST and is accessible through the public Play listing. AdMob's empty app-ads.txt table
+and up-to-seven-day domain detection notice leave verification pending, not configuration undone.
+Actual UMP/SSV, refund entitlement convergence, P6/P7 and final AAB/Play-delivered E2E remain open.
+
+## Production readiness second device follow-up — still on hold (2026-09-05 night)
+
+Real UMP isolated probe reached the live SDK with the production app ID, but corrected EEA debug
+requests still returned NOT_REQUIRED/no available form; no consent-form success claim. Real Play
+code 23 RETENTION_30D request failed with SDK load code 2, with no SSV grant. Partner permanent-access
+no-charge test purchase at 21:45 KST passed, survived cold restart and produced exactly one ledger
+order/token with buyer-only access. Refund/revocation awaits the PO's console action; documented
+local Play service-account file is absent. No production data was changed outside the user-driven
+test intent/order; no schema, flags, functions, store submission or production build changed.
+
+Fixed the observed MOD-05 stale locked message after successful purchase and clipped result with
+server-state-derived visibility, scrolling and safe-area padding. Advanced this sheet's frozen
+yellow-sticker purchase styling. Shared sheet titles now reflow; button accessible names exclude
+decoration while preserving caller overrides. Physical 360dp ko font1/1.5 and en font1.5 verified,
+including scrolling and a simulated ad-failure → purchase result. Other P6/P7 screens remain open.
+Full npm test: 113 Vitest files/2163 tests and 84 Jest suites/918 tests passed; typecheck and agent
+sync checks passed. Device restored (450 density/font1.0), both isolated QA apps deleted, Play app
+and test purchase retained. Evidence and exact caveats: [production audit](qa/PRODUCTION_READINESS.md).
+
+## Production readiness follow-up — still on hold (2026-09-05 evening)
+
+The PO requested full production readiness across features, redesign, efficiency, security/privacy,
+AdMob/purchases and Play discovery. **Not release-approved.** Permanent findings and continuation:
+[`qa/PRODUCTION_READINESS.md`](qa/PRODUCTION_READINESS.md). Preserved the prior test-ID rejection,
+consent deduplication and startup retry fixes. Added localized UMP-required Profile privacy options,
+serialized SDK consent operations, privacy-time ad/initialization fencing, mounted-ad invalidation
+and clean banner re-enable after no-fill. No source changes are in installed code 23.
+
+Updated ten transitive lock entries within existing ranges; Expo/SDK versions unchanged. Audit
+decreased from 25 (8 high / 17 moderate) to 21 (5 high / 16 moderate). Remaining roots and scoped
+reachability are in the audit. Post-lockfile npm test: **113 Vitest files / 2163 tests; 84 Jest
+suites / 916 tests**, exit 0. Latest full mobile rerun also 84 / 916 after the initialization fence.
+Five-project typecheck, web build (612.84 kB warning), check:agents and diff whitespace passed.
+
+SM-N981N physical device, Play-installed 0.3.0 / code 23: no-charge test card explicitly confirmed
+in Billing; one slot purchase changed usage 3 / 8 to 3 / 9 and survived cold restart. Server recent
+ledger had exactly one order/token/row and one granted slot before and after restart. No account
+logout or Play replacement. The test-purchased slot remains. This does not verify permanent-access
+roles/refunds, SSV or the newer sources.
+
+Actual Profile component layout checked in isolated `.readinessqa` fixture APK: ko at 360dp font
+1.0/1.5 and en at 1.5; no privacy-row clipping and 48dp touch target. Compared with code 23 legal
+card; other legal rows/disclaimer retained. Fixture-only navigation/form wiring worked; real UMP
+was mocked. Harness build/router failures were resolved, temporary Metro changes restored exactly,
+QA package uninstalled, device density restored to 450 and font scale to 1.0. Captures in dist/.
+
+Corrected stale Q-5: single-page onboarding was already PO-approved on August 23. CLAUDE.md was
+updated and AGENTS.md regenerated. Do not implement extra pages as a missing launch feature.
+
+Live probes: no public table missing RLS, no public bucket, no authenticated approval-IP-hash read;
+18 intentional server-only no-policy INFO findings and one password-protection WARN remain.
+Exposure ads are disabled; rewarded ads enabled, but no successful reward intent is recorded.
+Read-only worker follow-up: 67 recent six-hour HTTP responses all 200; retention six runs with zero
+failures/no claimed purge jobs, account deletion 24 with zero retries/no deletions, push 37 with
+zero failed counters/no tickets or receipts. Idle health is not populated-workflow proof. Daily
+purchase-reconcile fell outside retained responses; console stage errors still need review.
+P6/P7, live UMP/SSV, permanent purchases/refunds, two-party OAuth/FINISH, final artifact and store
+gates remain open. No commit, deployment, production build or store submission in this follow-up.
 
 ## Play upload package — 0.3.0 / code 23 (2026-09-05)
 
@@ -383,7 +482,8 @@ Priority order; each item names what it needs.
    (rows 16–18, staging SQL + worker secrets), ADR 0015 non-functional passes, remote concurrency
    EC rows (5), J-10/J-11 double-run idempotence, TalkBack speech, dashed border and sticker shadow
    on device, the 18 intentional server-only Security Advisor INFO items, web CLS 0.1666,
-   `deeplink-dev-qa.md` A–D, legal `2026-08-30.2` re-versioning, Q-5 onboarding pages 2–3.
+   `deeplink-dev-qa.md` A–D, legal `2026-08-30.2` re-versioning. Q-5 was already closed by the
+   August 23 single-page onboarding decision; its prior inclusion here was stale.
 7. Operations: close the survey two weeks after go-live, `ads_enabled` traffic gate (100 daily
    confirmations), AdMob app ↔ listing link after approval.
 

@@ -43,9 +43,12 @@ jest.mock('react-native-google-mobile-ads', () => {
     default: () => ({ initialize: jest.fn().mockResolvedValue(undefined) }),
     AdEventType: { CLOSED: 'closed', ERROR: 'error' },
     AdsConsent: {
+      requestInfoUpdate: jest.fn().mockResolvedValue({ canRequestAds: true, privacyOptionsRequirementStatus: 'NOT_REQUIRED' }),
+      showPrivacyOptionsForm: jest.fn().mockResolvedValue({ canRequestAds: true }),
       gatherConsent: jest.fn().mockResolvedValue(undefined),
       getConsentInfo: jest.fn().mockResolvedValue({ canRequestAds: true }),
     },
+    AdsConsentPrivacyOptionsRequirementStatus: { REQUIRED: 'REQUIRED', NOT_REQUIRED: 'NOT_REQUIRED', UNKNOWN: 'UNKNOWN' },
     BannerAd: Host,
     BannerAdSize: { ANCHORED_ADAPTIVE_BANNER: 'adaptive' },
     NativeAd: { createForAdRequest: jest.fn().mockResolvedValue(null) },

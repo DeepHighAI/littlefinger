@@ -114,8 +114,6 @@
   --lf-type-subtitle-size:    18px;
   --lf-type-stamp-size:       17px; /* 스탬프 헤드라인 · 선택 카드 */
   --lf-type-body-lg-size:     17px;
-  --lf-type-list-dday-size:   16px;
-  --lf-type-hero-dday-size:   46px;
   --lf-type-body-size:        15px;
   --lf-type-label-size:       14px;
   --lf-type-chip-size:        13px; /* 칩 */
@@ -130,7 +128,6 @@
   --lf-line-title:      32px;
   --lf-line-card-title: 26px;
   --lf-line-body-strong: 20px;
-  --lf-line-hero-dday:  50px;
   --lf-line-body:       22px;
   --lf-line-caption:    18px;
   --lf-line-micro:      16px;
@@ -157,8 +154,6 @@
   --lf-radius-xl:   22px; /* 스티커 카드 */
   --lf-radius-2xl:  24px; /* 아이콘 타일 */
   --lf-radius-hero: 28px; /* 시트 상단 */
-  --lf-radius-hero-tail: 12px;
-  --lf-radius-record: 18px;
   --lf-radius-pill: 9999px;
 
   /* ---------------------------------------------------------
@@ -212,9 +207,6 @@
   --lf-input-height:  48px;
   --lf-textarea-min-height: 80px;
   --lf-card-padding:  18px;
-  --lf-bottom-nav-content-height: 64px;
-  --lf-center-fab: 54px;
-  --lf-nav-icon: 26px;
   --lf-appbar-icon: 20px; /* 44 원 안 글리프 */
 
   --lf-switch-width:  52px;
@@ -273,6 +265,5 @@
   --lf-duration-short:  120ms;
   --lf-duration-medium: 240ms;
   --lf-duration-long:   400ms;
-  --lf-duration-hook:  3400ms;
   --lf-duration-pinky: 2600ms;
 }

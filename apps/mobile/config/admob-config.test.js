@@ -72,6 +72,27 @@ describe('F-12 AdMob build configuration', () => {
     ).toThrow('EXPO_PUBLIC_ADMOB_ANDROID_APP_ID');
   });
 
+  test.each([
+    ['EXPO_PUBLIC_ADMOB_ANDROID_APP_ID', GOOGLE_TEST_ANDROID_APP_ID],
+    ['EXPO_PUBLIC_ADMOB_NATIVE_UNIT_ID', GOOGLE_TEST_NATIVE_UNIT_ID],
+    ['EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID', GOOGLE_TEST_BANNER_UNIT_ID],
+    ['EXPO_PUBLIC_ADMOB_REWARDED_WITNESS_UNIT_ID', GOOGLE_TEST_REWARDED_UNIT_ID],
+    ['EXPO_PUBLIC_ADMOB_REWARDED_DURATION_UNIT_ID', GOOGLE_TEST_REWARDED_UNIT_ID],
+    ['EXPO_PUBLIC_ADMOB_REWARDED_RETENTION_UNIT_ID', GOOGLE_TEST_REWARDED_UNIT_ID],
+  ])('production rejects the Google test publisher in %s', (name, value) => {
+    const env = {
+      EAS_BUILD_PROFILE: 'production',
+      EXPO_PUBLIC_ADMOB_ANDROID_APP_ID: 'ca-app-pub-1234567890123456~1234567890',
+      EXPO_PUBLIC_ADMOB_NATIVE_UNIT_ID: 'ca-app-pub-1234567890123456/1234567890',
+      EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID: 'ca-app-pub-1234567890123456/2234567890',
+      EXPO_PUBLIC_ADMOB_REWARDED_WITNESS_UNIT_ID: 'ca-app-pub-1234567890123456/3234567890',
+      EXPO_PUBLIC_ADMOB_REWARDED_DURATION_UNIT_ID: 'ca-app-pub-1234567890123456/4234567890',
+      EXPO_PUBLIC_ADMOB_REWARDED_RETENTION_UNIT_ID: 'ca-app-pub-1234567890123456/5234567890',
+      [name]: value,
+    };
+    expect(() => resolveAdMobBuildConfig(env)).toThrow(name);
+  });
+
   test('Expo plugin receives the native App ID and delays measurement', () => {
     const config = appConfig({
       config: {

@@ -1,6 +1,11 @@
 import type { PromiseEntitlementsView } from '@littlefinger/shared';
 import { act, fireEvent, render } from '@testing-library/react-native';
 
+jest.mock('react-native-safe-area-context', () => ({
+  ...jest.requireActual<typeof import('react-native-safe-area-context')>('react-native-safe-area-context'),
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 24, left: 0 }),
+}));
+
 jest.mock('../lib/monetization-native.ts', () => ({
   getPromiseEntitlements: jest.fn(),
   unlockWithRewardedAd: jest.fn(),
@@ -171,5 +176,24 @@ describe('약속 혜택 시트', () => {
     ));
     expect(purchaseMock).toHaveBeenCalledWith(PROMISE_ID);
     expect(view.getByText('이 기록은 내 계정에 영구 보관돼요')).toBeTruthy();
+  });
+
+  test('광고 실패 뒤 영구 보관을 구매하면 잠김과 불필요한 광고 안내를 지운다', async () => {
+    rewardMock.mockResolvedValue({ phase: 'UNAVAILABLE' });
+    purchaseMock.mockResolvedValue(PERMANENT);
+    const view = await render(
+      <PromiseEntitlementSheet visible promiseId={PROMISE_ID} mode="RETENTION" onClose={jest.fn()} />,
+    );
+    await settle();
+    expect(view.getByTestId('entitlement-scroll')).toBeTruthy();
+    expect(view.getByTestId('entitlement-purchase-offer')).toBeTruthy();
+    await act(async () => fireEvent.press(view.getByRole('button', { name: '광고 보고 내 보관 30일 늘리기' })));
+    expect(view.getByText('지금은 광고를 볼 수 없어 잠겨 있어요.')).toBeTruthy();
+    await act(async () => fireEvent.press(view.getByRole('button', { name: '₩2,000에 영구 보관' })));
+    expect(view.getByText('이 기록은 내 계정에 영구 보관돼요')).toBeTruthy();
+    expect(view.getByText('영구 보관이 적용됐어요.')).toBeTruthy();
+    expect(view.queryByText('지금은 광고를 볼 수 없어 잠겨 있어요.')).toBeNull();
+    expect(view.queryByText(/광고 1개를 보면/u)).toBeNull();
+    expect(view.queryByTestId('entitlement-purchase-offer')).toBeNull();
   });
 });

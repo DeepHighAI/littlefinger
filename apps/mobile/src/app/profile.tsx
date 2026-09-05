@@ -26,6 +26,7 @@ import { LfTrustRing } from '../components/LfTrustRing';
 import { SlotPaywallSheet } from '../components/slot-paywall-sheet.tsx';
 import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
+import { privacyOptionsRequired, showAdsPrivacyOptions } from '../lib/ads-consent-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { useLabels, useLocale } from '../lib/locale-native';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
@@ -132,6 +133,10 @@ export default function ProfileScreen(): React.JSX.Element {
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawFailed, setWithdrawFailed] = useState(false);
   const [legalDocumentFailed, setLegalDocumentFailed] = useState(false);
+  const [privacyRequired, setPrivacyRequired] = useState(false);
+  const [privacyBusy, setPrivacyBusy] = useState(false);
+  const [privacyFailed, setPrivacyFailed] = useState(false);
+  const privacyOpening = useRef(false);
   // 슬롯 현황은 보조 정보다 — 조회 실패가 프로필 화면을 막지 않도록 profile 상태와 분리한다.
   const [slot, setSlot] = useState<SlotStatusResponse | null>(null);
   const [slotSheetOpen, setSlotSheetOpen] = useState(false);
@@ -144,6 +149,32 @@ export default function ProfileScreen(): React.JSX.Element {
       return;
     }
     router.replace('/home');
+  }
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    void privacyOptionsRequired().then((required) => {
+      if (active) setPrivacyRequired(required);
+    }).catch(() => {
+      // 재조회 실패로 기존 진입점을 없애지 않는다. 다음 포커스에서 다시 확인한다.
+    });
+    return () => { active = false; };
+  }, []));
+
+  async function handleAdsPrivacy(): Promise<void> {
+    if (privacyOpening.current) return;
+    privacyOpening.current = true;
+    setPrivacyBusy(true);
+    setPrivacyFailed(false);
+    try {
+      await showAdsPrivacyOptions();
+      setPrivacyRequired(await privacyOptionsRequired());
+    } catch {
+      setPrivacyFailed(true);
+    } finally {
+      privacyOpening.current = false;
+      setPrivacyBusy(false);
+    }
   }
 
   async function handleLegalDocument(kind: 'TERMS' | 'PRIVACY'): Promise<void> {
@@ -380,6 +411,21 @@ export default function ProfileScreen(): React.JSX.Element {
             <LfIcon name="arrow_forward" color="textMuted" />
           </Pressable>
           {legalDocumentFailed && <LfText variant="error">{LABEL.legalDocumentError}</LfText>}
+          {privacyRequired && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={LABEL.adsPrivacy}
+              accessibilityState={{ disabled: privacyBusy, busy: privacyBusy }}
+              disabled={privacyBusy}
+              style={styles.legalButton}
+              onPress={() => void handleAdsPrivacy()}
+            >
+              <LfIcon name="privacy_tip" color="record" />
+              <View style={styles.legalLabel}><LfText>{LABEL.adsPrivacy}</LfText></View>
+              <LfIcon name="arrow_forward" color="textMuted" />
+            </Pressable>
+          )}
+          {privacyFailed && <LfText variant="error">{LABEL.adsPrivacyError}</LfText>}
         </LfStack>
       </LfCard>
       <LfDisclaimer />

@@ -210,9 +210,8 @@ describe('SCR-W05 witness confirmation', () => {
     renderAt(witnessPath(PROMISE_ID));
 
     expect(await screen.findByText(FULL.content!.body)).toBeTruthy();
-    expect(screen.getByText('지우 · 민준의 약속')).toBeTruthy();
+    expect(screen.getByText('지우 · 민준의 약속 · 2026-08-16 18:00 (KST)')).toBeTruthy();
     expect(screen.getByText('증인은 내용을 확인만 해요 — 누가 옳은지 판정하지 않아요')).toBeTruthy();
-    expect(screen.getByText('2026-08-16 18:00 (KST)')).toBeTruthy();
     expect(screen.queryByRole('button', { name: /이행|수정|변경|파기/u })).toBeNull();
     expect(screen.queryByTestId('lf-ad-slot')).toBeNull();
   });

@@ -55,6 +55,7 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: space[3],
     paddingHorizontal: gutter.app,
     paddingBottom: space[6],
@@ -72,8 +73,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background,
-    borderTopLeftRadius: radius.record,
-    borderTopRightRadius: radius.record,
   },
   sectionTitle: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: gutter.app },
@@ -277,8 +276,9 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
   const listHeader = (
     <>
       <View style={styles.greeting}>
-        <LfText variant="headline">{LABEL.greeting}</LfText>
-        <LfText secondary>{LABEL.greetingDescription}</LfText>
+        <LfText variant="headline">
+          {LABEL.greeting(profileNickname ?? null, state.counts.ACTIVE)}
+        </LfText>
       </View>
       <View accessibilityRole="tablist" style={styles.tabs}>
         {HOME_TABS.map((tab) => {
@@ -299,6 +299,14 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
             </Pressable>
           );
         })}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={LABEL.history}
+          style={styles.tab}
+          onPress={() => router.push('/history')}
+        >
+          <LfChip label={LABEL.history} tone="paper" kind="filter" />
+        </Pressable>
       </View>
       {hero !== null && (
         <View style={styles.heroArea}>
@@ -324,11 +332,6 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
             {isActiveTab ? LABEL.activeSection : LABEL.waitingSection}
           </LfText>
         </View>
-        <LfButton
-          label={LABEL.history}
-          variant="text"
-          onPress={() => router.push('/history')}
-        />
       </View>
     </>
   );

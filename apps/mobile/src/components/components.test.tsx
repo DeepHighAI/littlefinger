@@ -196,6 +196,15 @@ describe('LfStack / LfRow', () => {
 describe('LfButton — 접근성 하한이 최우선이다', () => {
   const variants = ['filled', 'tonal', 'outlined', 'text', 'kakao', 'google', 'danger'] as const;
 
+  test('장식 아이콘은 버튼 이름에 섞이지 않고 명시한 접근성 이름은 유지한다', async () => {
+    const view = await render(<>
+      <LfButton label="구매" trailing="inventory_2" />
+      <LfButton label="공유" trailing="share" accessibilityLabel="초대 링크 공유" />
+    </>);
+    expect(view.getByRole('button', { name: '구매' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '초대 링크 공유' })).toBeTruthy();
+  });
+
   test.each(variants)('%s 변형도 터치 타깃 48dp 를 지킨다', async (variant) => {
     // 04 §12-7 절대제약: 터치 타깃 최소 48dp. 어떤 변형에서도 줄지 않는다.
     const view = await render(<LfButton testID="b" variant={variant} label="확인" />);

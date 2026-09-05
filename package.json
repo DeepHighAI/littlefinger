@@ -16,6 +16,7 @@
     "sync:agents": "node tools/sync-agent-docs.js",
     "check:agents": "node tools/sync-agent-docs.js --check",
     "verify:android-apk": "node tools/verify-android-apk-abi.js",
+    "verify:android-bundle": "node tools/verify-android-bundle.js",
     "test:shared": "vitest run",
     "test:mobile": "npm run test --workspace=@littlefinger/mobile"
   },

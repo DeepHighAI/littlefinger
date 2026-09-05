@@ -167,8 +167,8 @@ function WitnessContent({
   const { locale } = useLocale();
   if (detail.visibility === 'LIMITED') {
     return (
-      <article className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
-        <span className="lf-chip lf-chip--neutral">{L.readOnly}</span>
+      <article className="lf-card lf-card--web lf-card--yellow lf-stack lf-gap-4 lf-text-left">
+        <span className="lf-chip lf-chip--paper">{L.readOnly}</span>
         <h2 className="lf-subtitle">{detail.title}</h2>
         <p className="lf-body--secondary">{L.limitedCreator(detail.creator.nickname)}</p>
         <p className="lf-info-banner__text">{L.limitedWait}</p>
@@ -180,23 +180,35 @@ function WitnessContent({
   const partner = detail.partner!;
   return (
     <>
-      <article className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
+      <article className="lf-card lf-card--web lf-card--yellow lf-stack lf-gap-4 lf-text-left">
         <div className="lf-card__header">
-          <span className="lf-chip lf-chip--neutral">{L.readOnly}</span>
-          <span className="lf-chip lf-chip--status">{PROMISE_STATUS_LABEL_BY_LOCALE[locale][detail.status]}</span>
+          <span className="lf-chip lf-chip--paper">{L.readOnly}</span>
+          <span className="lf-chip lf-chip--mint">{PROMISE_STATUS_LABEL_BY_LOCALE[locale][detail.status]}</span>
         </div>
         <h2 className="lf-subtitle">{detail.title}</h2>
         <p className="lf-body">{content.body}</p>
         <hr className="lf-divider" />
-        <p className="lf-body--secondary">
-          {L.category} {PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][content.category]} ·{' '}
-          {content.end_date === null
-            ? L.noEndDate
-            : `${L.endDate} ${formatKstDate(content.end_date, locale)}${KST_MARK}`} ·{' '}
-          {L.keeper} {KEEPER_LABEL_BY_LOCALE[locale][content.keeper]}
-        </p>
-        <p className="lf-caption">{L.parties(detail.creator.nickname, partner.nickname)}</p>
-        <p className="lf-caption">{kst(detail.activated_at!)}</p>
+        <div className="lf-meta__row">
+          <LfIcon name="event" />
+          <span className="lf-body--secondary">
+            {L.category} {PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][content.category]} ·{' '}
+            {content.end_date === null
+              ? L.noEndDate
+              : `${L.endDate} ${formatKstDate(content.end_date, locale)}${KST_MARK}`} ·{' '}
+            {L.keeper} {KEEPER_LABEL_BY_LOCALE[locale][content.keeper]}
+          </span>
+        </div>
+        <div className="lf-row lf-gap-2">
+          <span className="lf-avatar lf-avatar--sm lf-avatar--solid" aria-hidden="true">
+            {Array.from(detail.creator.nickname)[0]}
+          </span>
+          <span className="lf-avatar lf-avatar--sm lf-avatar--alt" aria-hidden="true">
+            {Array.from(partner.nickname)[0]}
+          </span>
+          <span className="lf-caption">
+            {L.parties(detail.creator.nickname, partner.nickname)} · {kst(detail.activated_at!)}
+          </span>
+        </div>
         {content.reward !== null && <p className="lf-body">{L.reward} · {content.reward}</p>}
         {content.penalty !== null && <p className="lf-body">{L.penalty} · {content.penalty}</p>}
       </article>
@@ -252,7 +264,8 @@ function WitnessActions({
             disabled={!checked || signPending || leavePending}
             onClick={onSign}
           >
-            {L.sign}
+            <span>{L.sign}</span>
+            <span className="lf-btn__trailing"><LfIcon name="draw" /></span>
           </button>
         </div>
       ) : canSign && signedAt !== null ? (

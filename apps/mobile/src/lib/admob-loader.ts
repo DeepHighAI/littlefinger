@@ -15,8 +15,9 @@ export interface NativeAdLoaderDeps<T> {
  */
 export function createAdsGate(deps: AdsGateDeps) {
   let initialization: Promise<unknown> | null = null;
+  let readiness: Promise<boolean> | null = null;
 
-  return async function ensureReady(): Promise<boolean> {
+  async function prepare(): Promise<boolean> {
     await deps.gatherConsent();
     const consent = await deps.getConsentInfo();
     if (!consent.canRequestAds) return false;
@@ -28,6 +29,12 @@ export function createAdsGate(deps: AdsGateDeps) {
     });
     await initialization;
     return true;
+  }
+
+  return function ensureReady(): Promise<boolean> {
+    // 같은 프레임의 배너·보상형 요청이 동의 창을 중복해서 열지 않도록 진행 중인 확인을 공유한다.
+    readiness ??= prepare().finally(() => { readiness = null; });
+    return readiness;
   };
 }
 

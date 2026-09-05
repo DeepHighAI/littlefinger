@@ -12,7 +12,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LfDisclaimer } from '../components/LfDisclaimer.tsx';
 import { useLabels, useLocale } from '../lib/locale.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
-import { LfPinky } from '../components/LfPinky.tsx';
+import { LfPinkyLoop } from '../components/LfMascot.tsx';
 import { promisesPath } from '../routes.ts';
 import { SCR_W03_LABEL } from './scr-w03-labels.ts';
 
@@ -160,5 +160,5 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
 /** 브랜드 마크(걸린 상태). 모든 표면이 승인된 동일 이미지 자산을 쓴다. */
 function PinkyHooked(): React.JSX.Element {
   const L = useLabels(SCR_W03_LABEL);
-  return <LfPinky size="lg" tone="onContainer" hooked accessibilityLabel={L.pinkyAlt} />;
+  return <LfPinkyLoop size="sm" color spark accessibilityLabel={L.pinkyAlt} />;
 }

@@ -22,6 +22,7 @@ import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
 import { textFontFamily } from '../theme/fonts';
 import { colors, radius, size, space, type as typography, weight } from '../theme/tokens';
 import { createAdsGate, createNativeAdLoader } from './admob-loader.ts';
+import { gatherAdsConsent, getAdsConsentSnapshot, subscribeAdsConsent } from './ads-consent-native.ts';
 import { useLabels } from './locale-native';
 
 export type LittlefingerNativeAd = NativeAd;
@@ -59,17 +60,26 @@ const styles = StyleSheet.create({
 });
 
 // 배너·네이티브·보상형이 같은 관문을 지난다 — 동의 없이 SDK 를 초기화하는 경로가 하나도 없어야 한다.
-export const ensureAdsReady = createAdsGate({
+const prepareAds = createAdsGate({
   async gatherConsent() {
-    await AdsConsent.gatherConsent();
+    await gatherAdsConsent();
   },
   async getConsentInfo() {
-    return await AdsConsent.getConsentInfo();
+    const before = getAdsConsentSnapshot();
+    const info = await AdsConsent.getConsentInfo();
+    return { canRequestAds: info.canRequestAds && !before.suspended && before === getAdsConsentSnapshot() };
   },
   async initialize() {
     await mobileAds().initialize();
   },
 });
+
+export async function ensureAdsReady(): Promise<boolean> {
+  const before = getAdsConsentSnapshot();
+  if (before.suspended) return false;
+  const ready = await prepareAds();
+  return ready && before === getAdsConsentSnapshot();
+}
 
 const load = createNativeAdLoader<NativeAd>({
   ensureReady: ensureAdsReady,
@@ -140,6 +150,7 @@ export async function showRewardedAd(input: {
         ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => { earned = true; }),
         ad.addAdEventListener(AdEventType.CLOSED, () => finish(earned ? 'EARNED' : 'DISMISSED')),
         ad.addAdEventListener(AdEventType.ERROR, () => finish('UNAVAILABLE')),
+        subscribeAdsConsent(() => finish('UNAVAILABLE')),
       ];
       function finish(result: RewardedAdResult): void {
         if (settled) return;

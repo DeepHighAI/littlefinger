@@ -130,6 +130,7 @@ export function LfButton({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
       disabled={isDisabled}
       {...rest}

@@ -602,6 +602,6 @@ Full detail: `04` §10.
 | ~~N-4~~ | ~~Google SSO for production login~~ | **Implemented 2026-08-20**, GCP client + Dashboard provider **verified live + allowlist fixed 2026-08-23**. Remaining: PO switches the consent screen to **In production** before open testing (`open-testing-po-guide.md` §4 — while it is Testing only listed test users can sign in), then a real-account sign-in on device |
 | N-5 | Play open testing submission | **Started 2026-09-03**: code 21 (permission cleanup), listing names corrected, 광고 ID declaration + consent screen + email-login removal are PO console steps in `open-testing-po-guide.md`; category stays 커뮤니케이션 (PO 2026-09-03) |
 | N-2 | iOS launch timing | Decided in v2 |
-| Q-5 | Onboarding pages 2 and 3 | Only page 1 is implemented |
+| ~~Q-5~~ | ~~Onboarding pages 2 and 3~~ | **Closed 2026-08-23: single-page onboarding, option (b), PO-approved.** No additional pages required; see DEVELOPMENT_STATUS and onboarding-labels.ts. |
 | Q-6 | COMPLETED share card design | Out of scope |
 | Q-7 | Max evidence photo count | **3** (`EVIDENCE_MAX_COUNT`, `02` §5-2·§11-3). S-10 is about amend rounds, not photos |

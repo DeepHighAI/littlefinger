@@ -1,13 +1,16 @@
 'use strict';
 
 const { execFileSync } = require('node:child_process');
+const { mkdirSync } = require('node:fs');
 const { resolve } = require('node:path');
 
 const root = resolve(__dirname, '..');
 const images = resolve(root, 'apps/mobile/assets/images');
 const face = resolve(images, 'mascot-face-e1.png');
 const eyes = resolve(images, 'eyes-e1.png');
+const webBrand = resolve(root, 'apps/web/public/brand');
 const launcherButter = '#FFE59A';
+const canvasCream = '#F3ECDC';
 const magick = (args) => execFileSync('magick', args, { cwd: root, encoding: 'utf8' });
 const png = (path) => ['-strip', '-depth', '8', `PNG32:${path}`];
 
@@ -33,4 +36,25 @@ magick([
 ]);
 magick([face, '-filter', 'Lanczos', '-resize', '512x512', ...png(resolve(images, 'splash-icon.png'))]);
 
-console.log('E-1 launcher and splash exports regenerated; Play listing assets remain PO-curated files.');
+mkdirSync(webBrand, { recursive: true });
+for (const [name, size] of [
+  ['favicon-32.png', 32],
+  ['favicon-192.png', 192],
+  ['apple-touch-icon-180.png', 180],
+]) {
+  magick([
+    resolve(images, 'icon.png'), '-filter', 'Lanczos', '-resize', `${size}x${size}`,
+    ...png(resolve(webBrand, name)),
+  ]);
+}
+magick([
+  '-size', '1200x630', `xc:${canvasCream}`,
+  '(', resolve(images, 'icon.png'), '-filter', 'Lanczos', '-resize', '480x480',
+  '(', '-size', '480x480', 'xc:none', '-fill', 'white',
+  '-draw', 'roundrectangle 0,0 479,479 106,106', ')',
+  '-alpha', 'set', '-compose', 'CopyOpacity', '-composite', ')',
+  '-gravity', 'center', '-compose', 'over', '-composite', '-alpha', 'remove',
+  ...png(resolve(webBrand, 'og-image.png')),
+]);
+
+console.log('E-1 launcher, splash and web brand exports regenerated; Play listing assets remain PO-curated files.');

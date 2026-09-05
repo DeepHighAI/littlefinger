@@ -4,6 +4,7 @@ const GOOGLE_TEST_BANNER_UNIT_ID = 'ca-app-pub-3940256099942544/9214589741';
 const GOOGLE_TEST_REWARDED_UNIT_ID = 'ca-app-pub-3940256099942544/5224354917';
 const APP_ID_PATTERN = /^ca-app-pub-\d{16}~\d{10}$/u;
 const UNIT_ID_PATTERN = /^ca-app-pub-\d{16}\/\d{10}$/u;
+const GOOGLE_TEST_PUBLISHER_PREFIX = 'ca-app-pub-3940256099942544';
 
 function configured(value) {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
@@ -37,6 +38,14 @@ function resolveAdMobBuildConfig(env) {
     throw new Error('EXPO_PUBLIC_ADMOB_NATIVE_UNIT_ID must be a valid production native Ad Unit ID.');
   }
   for (const [name, value] of [
+    ['EXPO_PUBLIC_ADMOB_ANDROID_APP_ID', configuredAppId],
+    ['EXPO_PUBLIC_ADMOB_NATIVE_UNIT_ID', nativeUnitId],
+  ]) {
+    if (value.startsWith(GOOGLE_TEST_PUBLISHER_PREFIX)) {
+      throw new Error(`${name} must not use Google's test publisher in production.`);
+    }
+  }
+  for (const [name, value] of [
     ['EXPO_PUBLIC_ADMOB_BANNER_UNIT_ID', bannerUnitId],
     ['EXPO_PUBLIC_ADMOB_REWARDED_WITNESS_UNIT_ID', rewardedWitnessUnitId],
     ['EXPO_PUBLIC_ADMOB_REWARDED_DURATION_UNIT_ID', rewardedDurationUnitId],
@@ -44,6 +53,9 @@ function resolveAdMobBuildConfig(env) {
   ]) {
     if (value === null || !UNIT_ID_PATTERN.test(value)) {
       throw new Error(`${name} must be a valid production Ad Unit ID.`);
+    }
+    if (value.startsWith(GOOGLE_TEST_PUBLISHER_PREFIX)) {
+      throw new Error(`${name} must not use Google's test publisher in production.`);
     }
   }
 

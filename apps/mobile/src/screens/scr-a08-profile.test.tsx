@@ -8,6 +8,7 @@ import { withdrawAccountNative } from '../lib/account-safety-native.ts';
 import { openLegalDocument } from '../lib/legal-native.ts';
 import { LocaleProvider } from '../lib/locale-native';
 import { readAdsEnabled } from '../lib/ads-config-native.ts';
+import { privacyOptionsRequired, showAdsPrivacyOptions } from '../lib/ads-consent-native.ts';
 import { currentMobileUserId } from '../lib/mobile-api-native.ts';
 import { loadSlotStatus } from '../lib/slots-native.ts';
 import { size } from '../theme/tokens.ts';
@@ -52,6 +53,10 @@ jest.mock('../lib/trust-profile-native.ts', () => ({
 }));
 jest.mock('../lib/slots-native.ts', () => ({ loadSlotStatus: jest.fn() }));
 jest.mock('../lib/ads-config-native.ts', () => ({ readAdsEnabled: jest.fn() }));
+jest.mock('../lib/ads-consent-native.ts', () => ({
+  privacyOptionsRequired: jest.fn().mockResolvedValue(false),
+  showAdsPrivacyOptions: jest.fn().mockResolvedValue(undefined),
+}));
 jest.mock('../components/LfAdSlot', () => {
   const { View } = jest.requireActual<typeof import('react-native')>('react-native');
   return { LfAdSlot: ({ enabled }: { enabled: boolean }) => enabled ? <View testID="lf-ad-slot" /> : null };
@@ -157,6 +162,8 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     userIdMock.mockReset().mockResolvedValue(USER_ID);
     openLegalMock.mockReset().mockResolvedValue(undefined);
     withdrawMock.mockReset().mockResolvedValue(undefined);
+    jest.mocked(privacyOptionsRequired).mockReset().mockResolvedValue(false);
+    jest.mocked(showAdsPrivacyOptions).mockReset().mockResolvedValue(undefined);
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   });
 
@@ -174,6 +181,30 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     await act(async () => triggerFocus());
     await settle();
     expect(loadMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('required privacy entry works with exposure ads off, prevents double-open and supports retry', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    const view = await render(<ProfileScreen />);
+    await settle();
+    expect(view.queryByText('광고 개인정보 설정')).toBeNull();
+    jest.mocked(privacyOptionsRequired).mockResolvedValue(true);
+    await act(async () => triggerFocus());
+    await settle();
+    const action = view.getByRole('button', { name: '광고 개인정보 설정' });
+    expect(StyleSheet.flatten(action.props.style).minHeight).toBe(size.touchMin);
+    const pending = deferred<void>();
+    jest.mocked(showAdsPrivacyOptions).mockReturnValueOnce(pending.promise);
+    await fireEvent.press(action);
+    await fireEvent.press(action);
+    expect(showAdsPrivacyOptions).toHaveBeenCalledTimes(1);
+    expect(action.props.accessibilityState).toEqual({ disabled: true, busy: true });
+    await act(async () => pending.reject(new Error('unavailable')));
+    expect(view.getByText(SCR_A08_LABEL.ko.adsPrivacyError)).toBeTruthy();
+    await fireEvent.press(view.getByRole('button', { name: '광고 개인정보 설정' }));
+    await settle();
+    expect(showAdsPrivacyOptions).toHaveBeenCalledTimes(2);
+    expect(view.queryByText(SCR_A08_LABEL.ko.adsPrivacyError)).toBeNull();
   });
 
   test('약속 슬롯 행: 사용량을 보이고 추가 버튼이 결제 시트를 연다 (PO 2026-08-24)', async () => {

@@ -10,8 +10,8 @@
       name="description"
       content="두 사람의 약속을 기록하고 지키도록 돕는 상호 약속 관리 서비스. 카카오톡으로 받은 초대 링크에서 약속 내용을 확인하고 수락할 수 있어요."
     />
-    <!-- 앱 크롬과 같은 surface-chrome 흰색 — 브라우저 UI 가 화면과 한 몸으로 보인다. -->
-    <meta name="theme-color" content="#FFFFFF" />
+    <!-- 잉크 & 스티커 캔버스와 같은 크림색으로 브라우저 안전영역까지 연결한다. -->
+    <meta name="theme-color" content="#F3ECDC" />
     <meta property="og:title" content="리틀핑거" />
     <meta
       property="og:description"
@@ -20,6 +20,12 @@
     <meta property="og:type" content="website" />
     <!-- ADR 0005 의 오리진. 초대 링크 자체는 토큰 경로라 여기 못 박는 건 오리진뿐이다. -->
     <meta property="og:url" content="https://littlefinger-app.web.app/" />
+    <meta property="og:image" content="https://littlefinger-app.web.app/brand/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/brand/favicon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/brand/apple-touch-icon-180.png" />
     <!-- CSS 가 파싱되기 전에 폰트를 내려받기 시작해야 스왑 구간이 짧다(CLS).
          경로는 tokens.css 의 @font-face 와 같아야 한다 — seo.test.ts 가 비교한다. -->
     <link rel="preload" href="/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin />

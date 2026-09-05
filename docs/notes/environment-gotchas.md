@@ -126,6 +126,22 @@ The failure is **indistinguishable from a dead Edge Function**: `functionUrl()` 
 
 ## 7. Metro on this Windows machine
 
+September 5 isolated physical-layout QA: preserve the Play-signed app by building a debug-signed
+release with `applicationIdSuffix '.readinessqa'` via a gitignored Gradle init script. Set the
+suffix in `plugins.withId('com.android.application')`, not after model finalization. For a custom
+entry/config, use `project.extensions.getByName('react').entryFile.set(...)` and `bundleConfig.set`:
+`project.react` resolves a legacy empty map here and assignment throws `Operation is not supported
+for read-only collection`. Init callbacks also run for included builds with no `:app`; guard them.
+Expo 57 `export:embed` accepts `--config` but its `createMetroServerAndBundleRequestAsync` only
+forwards resetCache/maxWorkers to loadMetroConfigAsync: a custom bundleConfig alone did not apply
+the fixture resolver. Temporarily wire the fixture transformer into the real metro.config.js,
+build, then restore the exact original line before continuing product work. Verify source-map
+inclusion of the fixture mocks and absence of real auth/router wrappers before launching.
+Fixture files outside apps/mobile may not invalidate Gradle inputs: force only the bundle task
+with `outputs.upToDateWhen { false }`. Fixture-only SDK/backend substitutes prove layout only,
+never real UMP/SSV/Billing behavior. Never distribute the generic app-release.apk from this QA build
+as a product artifact; its package, entry and mocks are intentionally non-production.
+
 Two independent failures, both looking like different bugs:
 
 ```bash
@@ -331,6 +347,20 @@ On 2026-09-05 the documented newer `from logs where source='function_edge_logs'`
 form worked. Select only timestamps, method, URL, status and `request.sb.auth_user` when comparing
 approval/list identities; never dump complete metadata (it can contain sensitive fields).
 These logs do not capture the response body, so a 200 alone does not prove list contents.
+
+## UMP test-device hashes differ between Play and isolated QA apps (2026-09-05)
+
+Do not assume a physical device has one reusable UMP debug hash across signed/package variants.
+SM-N981N Play app logs `278D76522FF9E640A4DB636E0016313E`, while the isolated debug-signed
+`com.littlefinger.app.umpqa` logs `79901B55E3D757DF18BC3512863B7EC5`. Use the hash emitted by
+the actual installation being tested, only in its dedicated fixture entry. The first EEA probe
+used the Play hash and therefore was not valid EEA evidence. Correcting it still yielded no form;
+message configuration / isolated-package conditions remain to investigate, not a confirmed SDK bug.
+The generated Android manifest was temporarily set to the real documented app ID and restored
+after each probe build. The UMP-only entry needs no Metro mock wrapper; source-map inspection must
+show real `AdsConsent` plus product `ads-consent-native` and no GMA mocks. A `.map` is JSON, so use
+JSON.parse(readFileSync(...)), not require(...map), which treats it as JavaScript and dumps it in
+the SyntaxError output. Never print an entire source map, as it can include public environment data.
 
 ## Mobile PKCE lands on `code_challenge_method=plain`, and that is fine (2026-09-05)
 

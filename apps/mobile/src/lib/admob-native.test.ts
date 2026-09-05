@@ -30,6 +30,25 @@ describe('consent-aware ads gate', () => {
     expect(deps.initialize).not.toHaveBeenCalled();
   });
 
+  test('concurrent ad requests share consent gathering and can retry after it fails', async () => {
+    const deps = gateway({ canRequestAds: true });
+    let rejectConsent!: (error: Error) => void;
+    deps.gatherConsent.mockImplementationOnce(() => new Promise((_resolve, reject) => {
+      rejectConsent = reject;
+    }));
+    const ensureReady = createAdsGate(deps);
+    const first = ensureReady();
+    const second = ensureReady();
+    expect(first).toBe(second);
+    expect(deps.gatherConsent).toHaveBeenCalledTimes(1);
+    const results = Promise.allSettled([first, second]);
+    rejectConsent(new Error('consent unavailable'));
+    expect((await results).map((result) => result.status)).toEqual(['rejected', 'rejected']);
+    expect(deps.initialize).not.toHaveBeenCalled();
+    await expect(ensureReady()).resolves.toBe(true);
+    expect(deps.gatherConsent).toHaveBeenCalledTimes(2);
+  });
+
   test('initializes the SDK at most once across callers', async () => {
     const deps = gateway({ canRequestAds: true });
     const ensureReady = createAdsGate(deps);

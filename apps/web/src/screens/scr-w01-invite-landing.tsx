@@ -9,9 +9,9 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 
-import mascotFaceUrl from '../assets/images/mascot-face-e1.png';
 import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
+import { LfBlob, LfPinkyLoop } from '../components/LfMascot.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import { INTERNAL_MESSAGE_BY_LOCALE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { useLabels, useLocale } from '../lib/locale.tsx';
@@ -324,8 +324,8 @@ export function ScrW01InviteLanding(): React.JSX.Element {
 
         <h1 className="lf-headline">{L.headline(phase.invite.creator_nickname)}</h1>
 
-        <div className="lf-card lf-card--web lf-text-left">
-          <p className="lf-section-title">{L.previewSectionTitle}</p>
+        <div className="lf-card lf-card--web lf-card--flat lf-text-left">
+          <p className="lf-eyebrow">{L.previewEyebrow}</p>
           <p className="lf-preview__title">{phase.invite.title}</p>
           <p className="lf-preview__hint">{L.previewHint}</p>
         </div>
@@ -396,11 +396,10 @@ export function ScrW01InviteLanding(): React.JSX.Element {
  * 아니라 끊긴 것처럼 보인다.
  */
 export function PinkyBadge(): React.JSX.Element {
-  const L = useLabels(SCR_W01_LABEL);
   return (
-    <div className="lf-mascot-tile">
-      <img className="lf-mascot lf-mascot--lg" src={mascotFaceUrl} alt={L.pinkyBadge} />
-    </div>
+    <LfBlob variant="login">
+      <LfPinkyLoop size="eyes" />
+    </LfBlob>
   );
 }
 

@@ -8,7 +8,8 @@ import {
   type RewardAction,
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useLabels, useLocale } from '../lib/locale-native';
 import { getPromiseEntitlements, unlockWithRewardedAd } from '../lib/monetization-native.ts';
@@ -19,8 +20,9 @@ import {
   SlotPurchaseCancelledError,
 } from '../lib/slot-purchase-native.ts';
 import { PROMISE_ENTITLEMENT_LABEL } from '../screens/promise-entitlement-labels.ts';
-import { border, colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
+import { size, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
+import { LfCard } from './LfCard.tsx';
 import { LfIcon } from './LfIcon.tsx';
 import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
@@ -39,45 +41,10 @@ export interface PromiseEntitlementSheetProps {
 type BusyAction = 'REWARD' | 'PURCHASE' | null;
 
 const styles = StyleSheet.create({
-  scrim: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
-  dismissArea: { flex: 1 },
-  sheet: {
-    paddingHorizontal: gutter.app,
-    paddingTop: space[5],
-    paddingBottom: space[9],
-    borderTopLeftRadius: radius['2xl'],
-    borderTopRightRadius: radius['2xl'],
-    backgroundColor: colors.surface,
-    ...elevation.sheet,
-    borderWidth: border.sheet,
-    borderBottomWidth: 0,
-    borderColor: colors.text,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: size.iconButton,
-    height: space[1],
-    marginBottom: space[7],
-    borderRadius: radius.pill,
-    backgroundColor: colors.outlineStrong,
-  },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  close: {
-    width: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.pill,
-  },
-  content: { gap: space[5], paddingTop: space[5] },
-  offer: {
-    gap: space[2],
-    padding: space[6],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outline,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceChrome,
-  },
+  scroll: { flexShrink: 1 },
+  content: { gap: space[5], paddingHorizontal: space[2], paddingTop: space[2] },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  rowText: { flex: 1 },
 });
 
 export function PromiseEntitlementSheet({
@@ -90,6 +57,7 @@ export function PromiseEntitlementSheet({
 }: PromiseEntitlementSheetProps): React.JSX.Element {
   const LABEL = useLabels(PROMISE_ENTITLEMENT_LABEL);
   const { locale } = useLocale();
+  const insets = useSafeAreaInsets();
   const [value, setValue] = useState<PromiseEntitlementsView | null>(null);
   const [price, setPrice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -199,7 +167,11 @@ export function PromiseEntitlementSheet({
       closeLabel={LABEL.close}
       onClose={onClose}
     >
-          <View style={styles.content}>
+          <ScrollView
+            testID="entitlement-scroll"
+            style={styles.scroll}
+            contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space[9] }]}
+          >
             {loading ? <LfText secondary>{LABEL.loading}</LfText> : null}
             {failed ? (
               <LfStack gap={4}>
@@ -212,12 +184,17 @@ export function PromiseEntitlementSheet({
                 {reason === 'END_DATE_RANGE' && mode === 'DURATION' ? (
                   <LfText>{LABEL.endDateRangeGuide(END_DATE_EXTENSION_DAYS)}</LfText>
                 ) : null}
-                <LfText secondary>
+                {!permanent ? <LfText secondary>
                   {mode === 'DURATION'
                     ? LABEL.durationDescription(END_DATE_EXTENSION_DAYS)
                     : LABEL.retentionDescription(RETENTION_EXTENSION_DAYS)}
-                </LfText>
-                {current !== null ? <LfText variant="subtitle">{current}</LfText> : null}
+                </LfText> : null}
+                {current !== null ? (
+                  <View style={styles.row}>
+                    <LfIcon name={mode === 'DURATION' ? 'event' : 'inventory_2'} size={size.appbarIcon} />
+                    <View style={styles.rowText}><LfText variant="subtitle">{current}</LfText></View>
+                  </View>
+                ) : null}
                 {creatorOnlyNotice ? <LfText variant="caption">{LABEL.durationCreatorOnly}</LfText> : null}
                 {rewardAvailable ? (
                   <LfButton
@@ -228,24 +205,28 @@ export function PromiseEntitlementSheet({
                     onPress={() => void reward()}
                   />
                 ) : null}
-                {locked ? <LfText variant="caption">{LABEL.locked}</LfText> : null}
+                {locked && !permanent ? <LfText variant="caption">{LABEL.locked}</LfText> : null}
                 {!permanent ? (
-                  <View style={styles.offer}>
+                  <LfCard tone="yellow" tilt="sticker" testID="entitlement-purchase-offer">
+                    <LfStack gap={1}>
                     <LfText variant="subtitle">{LABEL.purchaseTitle}</LfText>
                     <LfText variant="caption">{LABEL.purchaseDescription}</LfText>
                     <LfButton
                       label={busyAction === 'PURCHASE' ? LABEL.purchasing : LABEL.purchase(priceText)}
                       size="cta"
+                      trailing="inventory_2"
+                      trailingBorder={false}
                       block
                       disabled={busy}
                       onPress={() => void buy()}
                     />
-                  </View>
+                    </LfStack>
+                  </LfCard>
                 ) : null}
                 {message !== null ? <LfText variant="caption" align="center">{message}</LfText> : null}
               </>
             ) : null}
-          </View>
+          </ScrollView>
     </LfSheet>
   );
 }

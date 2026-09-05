@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import { act, render } from '@testing-library/react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import { AppState, type AppStateStatus } from 'react-native';
 
 import {
   createPushNavigationManager,
@@ -114,6 +115,7 @@ const { startAndroidPushNavigationNative } = jest.requireMock(
 
 describe('루트 인증 게이트', () => {
   beforeEach(() => {
+    jest.spyOn(AppState, 'addEventListener').mockImplementation(() => ({ remove: jest.fn() }));
     capturedEvents = null;
     mockAndroidPushEvents = null;
     mockOnboardingCompleted = undefined;
@@ -204,6 +206,34 @@ describe('루트 인증 게이트', () => {
     await act(async () => { await new Promise<void>((resolve) => setImmediate(() => resolve())); });
     expect(mockReplace).toHaveBeenCalledWith('/update-required');
     expect(mockReplace).not.toHaveBeenCalledWith('/onboarding');
+  });
+
+  test('복귀 시 멈춘 시작 읽기를 재시도하고 늦은 첫 응답은 무시한다', async () => {
+    let onChange: ((state: AppStateStatus) => void) | undefined;
+    const remove = jest.fn();
+    const listener = jest.spyOn(AppState, 'addEventListener').mockImplementation((_event, callback) => {
+      onChange = callback;
+      return { remove };
+    });
+    let resolveFirst!: (required: boolean) => void;
+    mockLoadMinimumAppVersionNative.mockImplementationOnce(() => new Promise<boolean>((resolve) => {
+      resolveFirst = resolve;
+    })).mockResolvedValue(true);
+    mockRootNavigationReady = true;
+    const view = await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
+    await act(async () => onChange?.('active'));
+    expect(mockReplace).toHaveBeenCalledWith('/update-required');
+    mockReplace.mockClear();
+    await act(async () => resolveFirst(false));
+    expect(mockReplace).not.toHaveBeenCalledWith('/home');
+    expect(mockReplace).not.toHaveBeenCalledWith('/');
+    await act(async () => onChange?.('active'));
+    expect(mockLoadMinimumAppVersionNative).toHaveBeenCalledTimes(2);
+    await act(async () => view.unmount());
+    expect(remove).toHaveBeenCalledTimes(1);
+    listener.mockRestore();
   });
 
   test('저장 세션·OAuth 성공은 모두 보호된 SCR-A02 라우트로 전환한다', async () => {

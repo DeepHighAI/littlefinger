@@ -112,11 +112,32 @@ describe('메타·공유 태그', () => {
     expect(INDEX_HTML).toMatch(/<meta\s+property="og:title"\s+content="리틀핑거"/u);
     expect(INDEX_HTML).toMatch(/<meta\s+property="og:description"\s+content="[^"]{20,}"/u);
     expect(INDEX_HTML).toMatch(/<meta\s+property="og:type"\s+content="website"/u);
+    expect(INDEX_HTML).toContain('<meta name="theme-color" content="#F3ECDC" />');
   });
 
   test('og:url 은 ADR 0005 의 오리진이다', () => {
     // 다른 오리진이 박히면 카카오톡 공유 카드가 엉뚱한 주소를 들고 다닌다.
     const ogUrl = INDEX_HTML.match(/<meta property="og:url" content="([^"]+)"/u);
     expect(ogUrl?.[1]).toBe(`${CANONICAL_ORIGIN}/`);
+  });
+
+  test('E-1 파비콘과 공유 이미지를 절대 경로로 공개한다', () => {
+    const assets = [
+      'favicon-32.png',
+      'favicon-192.png',
+      'apple-touch-icon-180.png',
+      'og-image.png',
+    ];
+    for (const name of assets) {
+      expect(existsSync(resolve(WEB_ROOT, `public/brand/${name}`))).toBe(true);
+    }
+    expect(INDEX_HTML).toContain('href="/brand/favicon-32.png"');
+    expect(INDEX_HTML).toContain('href="/brand/favicon-192.png"');
+    expect(INDEX_HTML).toContain('href="/brand/apple-touch-icon-180.png"');
+    expect(INDEX_HTML).toContain(
+      `<meta property="og:image" content="${CANONICAL_ORIGIN}/brand/og-image.png" />`,
+    );
+    expect(INDEX_HTML).toContain('<meta property="og:image:width" content="1200" />');
+    expect(INDEX_HTML).toContain('<meta property="og:image:height" content="630" />');
   });
 });

@@ -81,14 +81,13 @@ afterEach(() => {
 });
 
 describe('SCR-W01 초대 랜딩', () => {
-  it('승인된 E-1 얼굴 원본으로 초대 브랜드를 표시한다', async () => {
+  it('승인된 블롭과 손 루프로 초대 브랜드를 표시한다', async () => {
     fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
     renderAt();
-    const mark = await screen.findByRole('img', { name: '새끼손가락 걸기' });
+    await screen.findByRole('heading');
 
-    expect(mark.tagName).toBe('IMG');
-    expect(mark.getAttribute('src')).toContain('mascot-face-e1.png');
-    expect(mark.className).toBe('lf-mascot lf-mascot--lg');
+    expect(document.querySelector('.lf-blob--login')).not.toBeNull();
+    expect(document.querySelectorAll('img[src*="hand-solid.png"]')).toHaveLength(2);
   });
 
   it('invite-resolve 가 준 것만 그린다', async () => {
@@ -104,7 +103,7 @@ describe('SCR-W01 초대 랜딩', () => {
     const paragraphs = [...document.querySelectorAll('p')].map(visibleText).filter((t) => t);
     expect(paragraphs).toEqual([
       `${formatRemaining(Date.parse(INVITE.expires_at) - Date.now())}안에 확인해 주세요`,
-      '약속 미리보기',
+      'PROMISE · 약속 미리보기',
       '매주 화·목 아침 러닝 같이 하기',
       '자세한 내용은 로그인 후 볼 수 있어요',
       '리틀핑거는 둘이 합의한 약속을 기록하고지키게 돕는 서비스예요',

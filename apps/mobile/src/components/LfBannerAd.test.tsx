@@ -1,4 +1,6 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { AdsConsent } from 'react-native-google-mobile-ads';
+import { showAdsPrivacyOptions } from '../lib/ads-consent-native.ts';
 
 jest.mock('../lib/admob-native.tsx', () => {
   const React = jest.requireActual('react') as typeof import('react');
@@ -31,6 +33,36 @@ beforeEach(() => {
 });
 
 describe('LfBannerAd', () => {
+  test('re-enable clears old failure and waits for a fresh gate', async () => {
+    const view = await render(<LfBannerAd enabled />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: 'fail' }));
+    await view.rerender(<LfBannerAd enabled={false} />);
+    let resolve!: (value: boolean) => void;
+    readyMock.mockReturnValueOnce(new Promise((done) => { resolve = done; }));
+    await view.rerender(<LfBannerAd enabled />);
+    expect(view.toJSON()).toBeNull();
+    await act(async () => resolve(true));
+    expect(view.getByTestId('lf-banner-ad').props.style).toMatchObject({ height: 0 });
+  });
+
+  test('privacy form removes a mounted banner and fresh consent can keep it absent', async () => {
+    const view = await render(<LfBannerAd enabled />);
+    await settle();
+    expect(view.getByTestId('adaptive-banner')).toBeTruthy();
+    let finish!: () => void;
+    jest.mocked(AdsConsent.showPrivacyOptionsForm).mockImplementationOnce(() => new Promise((resolve) => {
+      finish = () => resolve({ canRequestAds: false } as Awaited<ReturnType<typeof AdsConsent.showPrivacyOptionsForm>>);
+    }));
+    let form!: Promise<void>;
+    await act(async () => { form = showAdsPrivacyOptions(); });
+    expect(view.toJSON()).toBeNull();
+    readyMock.mockResolvedValue(false);
+    await act(async () => { finish(); await form; });
+    await settle();
+    expect(view.toJSON()).toBeNull();
+    expect(readyMock).toHaveBeenCalledTimes(2);
+  });
   test('광고가 꺼지면 SDK와 빈 공간을 모두 렌더하지 않는다', async () => {
     const view = await render(<LfBannerAd enabled={false} />);
     await settle();

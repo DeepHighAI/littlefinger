@@ -61,17 +61,23 @@ describe('SCR-W06 링크 무효·만료 안내', () => {
     ]);
   });
 
-  it('아이콘은 리가처가 아니라 코드포인트를 쓴다', () => {
+  it('안내 아이콘은 리가처가 아니라 코드포인트를 쓴다', () => {
     // 리가처를 쓰면 폰트 서브셋이 사실상 불가능하고(실측 5220 KB → 4655 KB), 폰트가 늦게
     // 오면 링크가 끊겼다고 알려 주는 화면에 'link_off' 라는 낱말이 그대로 보인다.
     const { container } = render(<ScrW06LinkExpired reason="E_INVITE_EXPIRED" />);
     const icons = [...container.querySelectorAll('.material-symbols-rounded')];
-    expect(icons.length).toBe(2);
+    expect(icons.length).toBe(1);
     for (const icon of icons) {
       expect(icon.getAttribute('aria-hidden')).toBe('true');
       expect(icon.textContent).not.toMatch(/[a-z_]/);
       expect(icon.textContent?.codePointAt(0)).toBeGreaterThanOrEqual(0xe000);
     }
+  });
+
+  it('만료 상태는 승인된 빈 화면 블롭을 쓴다', () => {
+    const { container } = render(<ScrW06LinkExpired reason="E_INVITE_EXPIRED" />);
+    expect(container.querySelector('.lf-blob--empty')).not.toBeNull();
+    expect(container.querySelector('img[src*="eyes-e1.png"]')).not.toBeNull();
   });
 
   it('광고 슬롯이 없다', () => {

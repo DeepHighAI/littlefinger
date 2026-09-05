@@ -6,6 +6,7 @@
 !design-reference/**/*.png
 !apps/mobile/assets/images/*.png
 !apps/web/src/assets/images/*.png
+!apps/web/public/brand/*.png
 !docs/디자인/icon-proposals/*.png
 !docs/디자인/store/**/*.png
 

@@ -2,6 +2,11 @@ import { act, cleanup, fireEvent, render } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, BackHandler } from 'react-native';
 
+jest.mock('react-native-safe-area-context', () => ({
+  ...jest.requireActual<typeof import('react-native-safe-area-context')>('react-native-safe-area-context'),
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 24, left: 0 }),
+}));
+
 import PromiseEditorScreen, { conditionInputScrollY } from '../app/promise/edit';
 import { MobileApiError } from '../lib/mobile-api.ts';
 import {

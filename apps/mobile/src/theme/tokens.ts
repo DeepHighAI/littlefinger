@@ -114,8 +114,6 @@ export const type = {
   subtitle: 18,
   stamp: 17, // 스탬프 헤드라인 · 선택 카드
   bodyLg: 17, // 카드 제목 · 주 CTA 라벨
-  listDday: 16, // 홈 일반 행 D-Day
-  heroDday: 46, // 히어로 D-Day
   body: 15,
   label: 14,
   chip: 13, // 칩
@@ -132,7 +130,6 @@ export const line = {
   title: 32,
   cardTitle: 26,
   bodyStrong: 20,
-  heroDday: 50,
   body: 22,
   caption: 18,
   micro: 16,
@@ -166,8 +163,6 @@ export const radius = {
   xl: 22, // 스티커 카드
   '2xl': 24, // 아이콘 타일
   hero: 28, // 시트 상단
-  heroTail: 12,
-  record: 18,
   pill: 9999,
 } as const;
 
@@ -240,9 +235,6 @@ export const size = {
   inputHeight: 48,
   textareaMinHeight: 80,
   cardPadding: 18,
-  bottomNavContentHeight: 64,
-  centerFab: 54,
-  navIcon: 26,
   /** 44 원 안 글리프 */
   appbarIcon: 20,
   switchWidth: 52,
@@ -333,7 +325,6 @@ export const duration = {
   short: 120,
   medium: 240,
   long: 400,
-  hook: 3400, // 새끼손가락 걸기 루프 (Q-3)
   pinky: 2600, // C-1 손 루프 한 주기
 } as const;
 

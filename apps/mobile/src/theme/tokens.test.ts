@@ -108,9 +108,9 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 파스텔 스티커 확정안의 토큰 185개를 정의한다', () => {
+  test('canonical tokens.css 는 P7 소비자 정리 후 토큰 176개를 정의한다', () => {
     // 2026-09-03: 117 + 타이포 13 + 자간 4 + 테두리 5 + 기울기 4 + 치수 40 + 모션 2.
-    expect(cssTokens.size).toBe(185);
+    expect(cssTokens.size).toBe(176);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -511,11 +511,6 @@ describe('접근성 하한', () => {
     expect(size.fabHeight).toBe(unitless(cssTokens.get('fab-height') ?? ''));
     expect(size.tabHeight).toBe(unitless(cssTokens.get('tab-height') ?? ''));
     expect(size.iconButton).toBe(unitless(cssTokens.get('icon-button') ?? ''));
-    expect(size.bottomNavContentHeight).toBe(
-      unitless(cssTokens.get('bottom-nav-content-height') ?? ''),
-    );
-    expect(size.centerFab).toBe(unitless(cssTokens.get('center-fab') ?? ''));
-    expect(size.navIcon).toBe(unitless(cssTokens.get('nav-icon') ?? ''));
     expect(size.appbarIcon).toBe(unitless(cssTokens.get('appbar-icon') ?? ''));
     expect(size.inputHeight).toBe(unitless(cssTokens.get('input-height') ?? ''));
     expect(size.iconCircle).toBe(unitless(cssTokens.get('icon-circle') ?? ''));

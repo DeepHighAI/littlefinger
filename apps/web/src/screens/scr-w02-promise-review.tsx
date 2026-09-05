@@ -500,7 +500,8 @@ export function ScrW02PromiseReview(): React.JSX.Element {
           <span className="lf-caption">{PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].CREATOR}</span>
         </div>
 
-        <div className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
+        <div className="lf-card lf-card--web lf-card--flat lf-stack lf-gap-4 lf-text-left">
+          <p className="lf-eyebrow">{L.contentEyebrow}</p>
           <h2 className="lf-subtitle">{preview.title}</h2>
           <p className="lf-body">{preview.body}</p>
           <hr className="lf-divider" />
@@ -601,7 +602,8 @@ export function ScrW02PromiseReview(): React.JSX.Element {
           disabled={endDatePassed || pending !== null}
           onClick={() => setConfirming(true)}
         >
-          {L.approveCta}
+          <span>{L.approveCta}</span>
+          <span className="lf-btn__trailing"><LfIcon name="check" /></span>
         </button>
 
         {/* EC-B10 의 유일한 출구. §4-3-4 가 "= 수정 제안 처리"라고 못박았으므로 [수정 제안]과

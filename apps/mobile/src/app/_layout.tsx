@@ -3,6 +3,7 @@ import { Stack, usePathname, useRootNavigationState, useRouter } from 'expo-rout
 import * as SplashScreen from 'expo-splash-screen';
 import type { Session } from '@supabase/supabase-js';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 import { LocaleProvider } from '../lib/locale-native';
 import { MobileAuthGateContext } from '../lib/mobile-auth-gate.ts';
@@ -74,23 +75,35 @@ export default function RootLayout(): React.JSX.Element {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([
-      readOnboardingCompletionNative(),
-      loadMinimumAppVersionNative(),
-    ]).then(([completed, required]) => {
-      if (!active) return;
-      setOnboardingComplete(completed);
-      setUpdateRequired(required);
-      setStartupReady(true);
-    }).catch(() => {
-      // 두 읽기 모두 자체적으로 fail-open 이지만, 여기서 거부되면 스플래시가 영원히 남는다.
-      // 공개 사용자에게 무한 로딩보다는 로그인 화면이 낫다(저장소 장애 = 온보딩 완료 취급).
-      if (!active) return;
-      setOnboardingComplete(true);
-      setUpdateRequired(false);
-      setStartupReady(true);
+    let attempt = 0;
+    let settled = false;
+    function readStartup(): void {
+      const currentAttempt = ++attempt;
+      void Promise.all([
+        readOnboardingCompletionNative(),
+        loadMinimumAppVersionNative(),
+      ]).then(([completed, required]) => {
+        if (!active || currentAttempt !== attempt) return;
+        settled = true;
+        setOnboardingComplete(completed);
+        setUpdateRequired(required);
+        setStartupReady(true);
+      }).catch(() => {
+        // 두 읽기 모두 자체적으로 fail-open 이지만, 여기서 거부되면 스플래시가 영원히 남는다.
+        // 공개 사용자에게 무한 로딩보다는 로그인 화면이 낫다(저장소 장애 = 온보딩 완료 취급).
+        if (!active || currentAttempt !== attempt) return;
+        settled = true;
+        setOnboardingComplete(true);
+        setUpdateRequired(false);
+        setStartupReady(true);
+      });
+    }
+    readStartup();
+    // 화면이 꺼진 채 시작돼 멈춘 읽기는 복귀 시 다시 시도한다. 이전 응답은 새 판정을 덮지 못한다.
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && !settled) readStartup();
     });
-    return () => { active = false; };
+    return () => { active = false; subscription.remove(); };
   }, []);
 
   useEffect(() => {

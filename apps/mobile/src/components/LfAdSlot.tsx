@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
+import { useAdsConsentSnapshot } from '../lib/ads-consent-native.ts';
 
 import {
   destroyNativeAd,
@@ -13,14 +14,15 @@ export interface LfAdSlotProps {
 }
 
 export function LfAdSlot({ enabled }: LfAdSlotProps): React.JSX.Element | null {
+  const consent = useAdsConsentSnapshot();
+  if (!enabled || consent.suspended) return null;
+  return <ReadyAdSlot key={consent.revision} />;
+}
+
+function ReadyAdSlot(): React.JSX.Element | null {
   const [ad, setAd] = useState<LittlefingerNativeAd | null>(null);
 
   useEffect(() => {
-    if (!enabled) {
-      setAd(null);
-      return;
-    }
-
     let active = true;
     let loaded: LittlefingerNativeAd | null = null;
     void loadNativeAd()
@@ -38,9 +40,9 @@ export function LfAdSlot({ enabled }: LfAdSlotProps): React.JSX.Element | null {
       active = false;
       if (loaded !== null) destroyNativeAd(loaded);
     };
-  }, [enabled]);
+  }, []);
 
-  if (!enabled || ad === null) return null;
+  if (ad === null) return null;
 
   return (
     <View testID="lf-ad-slot">

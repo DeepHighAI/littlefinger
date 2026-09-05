@@ -49,12 +49,12 @@ afterEach(() => {
 });
 
 describe('SCR-W03 승인 완료', () => {
-  it('확정 영역도 동일한 브랜드 이미지 심볼을 쓴다', () => {
+  it('확정 영역도 동일한 컬러 손 루프를 쓴다', () => {
     renderWith(RESULT);
     const mark = screen.getByRole('img', { name: '새끼손가락 걸기' });
 
-    expect(mark.tagName).toBe('IMG');
-    expect(mark.getAttribute('src')).toContain('brand-symbol');
+    expect(mark.tagName).toBe('SPAN');
+    expect(mark.querySelectorAll('img[src*="hand-color.png"]')).toHaveLength(2);
   });
 
   it('확정 스탬프에 확정 시각을 KST 로 적는다', () => {

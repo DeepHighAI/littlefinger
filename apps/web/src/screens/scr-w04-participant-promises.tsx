@@ -411,11 +411,17 @@ function submissionsByRole(
 }
 
 function statusChipClass(status: PromiseFulfillmentDetailResponse['status']): string {
-  if (status === 'CHECKING') return 'lf-chip--urgent';
-  if (status === 'COMPLETED') return 'lf-chip--done';
+  if (status === 'CHECKING') return 'lf-chip--pink';
+  if (status === 'COMPLETED' || status === 'ACTIVE') return 'lf-chip--mint';
   if (status === 'BROKEN') return 'lf-chip--broken';
-  if (status === 'AMEND_PENDING') return 'lf-chip--pending';
+  if (status === 'AMEND_PENDING') return 'lf-chip--sky';
   return 'lf-chip--status';
+}
+
+function statusCardClass(status: PromiseFulfillmentDetailResponse['status']): string {
+  if (status === 'CHECKING') return 'lf-card--pink lf-card--flat';
+  if (status === 'AMEND_PENDING') return 'lf-card--sky lf-card--flat';
+  return '';
 }
 
 function deadlineCopy(L: Labels, deadline: string): string {
@@ -1037,9 +1043,7 @@ function PromiseCard({
   return (
     <li>
       <article
-        className={`lf-card lf-card--web lf-text-left ${
-          promiseNeedsResponse(view) ? 'lf-card--emphasis' : ''
-        }`}
+        className={`lf-card lf-card--web lf-text-left ${statusCardClass(detail.status)}`}
       >
         <div className="lf-card__header">
           <span className={`lf-chip ${statusChipClass(detail.status)}`}>

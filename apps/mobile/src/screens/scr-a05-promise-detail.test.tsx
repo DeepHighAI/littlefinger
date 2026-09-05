@@ -6,6 +6,11 @@ import { act, fireEvent, render, within } from '@testing-library/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Linking, Share, StyleSheet } from 'react-native';
 
+jest.mock('react-native-safe-area-context', () => ({
+  ...jest.requireActual<typeof import('react-native-safe-area-context')>('react-native-safe-area-context'),
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 24, left: 0 }),
+}));
+
 import PromiseDetailScreen from '../app/promise/[promise_id]';
 import {
   blockUserNative,
