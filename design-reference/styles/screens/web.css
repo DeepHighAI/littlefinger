@@ -8,40 +8,39 @@
    ------------------------------------------------------------- */
 
 /* 중립 아웃라인 버튼 — 로즈가 아닌 무채색 테두리 (거절 등 보조 액션) */
+/* 구 이름 — 이제 outlined 와 같은 종이 블록(2.5 잉크 + 3px) */
 .lf-btn--outlined-neutral {
-  background: transparent;
-  border: 1px solid var(--lf-color-outline-strong);
-  color: var(--lf-color-text-secondary);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-outline) solid var(--lf-color-text);
+  box-shadow: var(--lf-elevation-sm);
+  color: var(--lf-color-text);
 }
 
 /* 이행 확인 응답 버튼 — "지켰어요 / 안 지켜졌어요" (SCR-W04 CHECKING 카드)
    .lf-choice 와 달리 각지고(radius-md) 폭이 균등한 2택 버튼이라 별도 정의 */
 .lf-response-btn {
   flex: 1;
-  height: var(--lf-action-height);
+  height: 44px;
   min-height: var(--lf-touch-min);
-  border-radius: var(--lf-radius-md);
+  border-radius: var(--lf-radius-sm);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  background: var(--lf-color-surface);
+  color: var(--lf-color-text);
+  font-weight: var(--lf-weight-medium);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--lf-space-2);
   font-size: var(--lf-type-label-size);
-  font-weight: var(--lf-weight-bold);
 }
 
 .lf-response-btn .material-symbols-rounded { font-size: 16px; }
 
-.lf-response-btn--yes {
+/* 선택 = 옐로 800 + 3px, 미선택 = 종이 600 (블록 문법의 선택/미선택 규칙) */
+.lf-response-btn[aria-pressed='true'] {
   background: var(--lf-color-primary-container);
-  border: 2px solid var(--lf-color-primary);
-  color: var(--lf-color-on-primary-container);
-  font-weight: var(--lf-weight-heavy);
-}
-
-.lf-response-btn--no {
-  background: var(--lf-color-surface);
-  border: 1px solid var(--lf-color-outline-strong);
-  color: var(--lf-color-text-secondary);
+  font-weight: var(--lf-weight-bold);
+  box-shadow: var(--lf-elevation-sm);
 }
 
 /* -------------------------------------------------------------
@@ -153,7 +152,7 @@
   height: 48px;
   min-height: var(--lf-touch-min);
   flex: none;
-  border: 1.5px dashed var(--lf-color-outline-strong);
+  border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
   border-radius: var(--lf-radius-sm);
   display: flex;
   flex-direction: column;

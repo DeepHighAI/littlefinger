@@ -390,10 +390,14 @@
 
 .lf-icon-button .material-symbols-rounded { font-size: var(--lf-appbar-icon); }
 
-/* 아이콘 버튼(36)·메뉴·탭(34)은 시각 크기를 그대로 두되 터치 타깃은 48dp 를 보장한다 (요청서 §8) */
+/* 아이콘 버튼(36)·메뉴·탭(34)·세그먼트 항목(38)은 시각 크기를 그대로 두되 터치 타깃은 48dp 를 보장한다 (요청서 §8) */
 .lf-icon-button::after,
 .lf-appbar__menu::after,
-.lf-tab::after {
+.lf-tab::after,
+.lf-segmented__item::after,
+.lf-btn--tonal::after,
+.lf-proof__remove::after,
+.lf-switch::before { /* 스위치는 ::after 가 노브 */
   content: '';
   position: absolute;
   top: 50%;
@@ -546,8 +550,9 @@
 
 .lf-btn:has(> .lf-btn__trailing):not(.lf-btn--block) { align-self: flex-end; }
 
-/* 옐로 컴팩트 (슬롯 '추가') */
+/* 옐로 컴팩트 (슬롯 '추가') — 36 시각, ::after 로 48 터치 */
 .lf-btn--tonal {
+  position: relative;
   height: var(--lf-chip-select-height);
   min-height: var(--lf-chip-select-height);
   padding: 0 var(--lf-space-6);
@@ -2034,6 +2039,7 @@
 }
 
 .lf-segmented__item {
+  position: relative;
   flex: 1;
   min-height: 38px; /* README 세그먼트 38h — 토큰 없음, ADR 0020 예외 */
   padding: 0 var(--lf-space-5);
