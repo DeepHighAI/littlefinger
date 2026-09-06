@@ -119,7 +119,8 @@ describe('SCR-A03 3단계 약속 작성', () => {
     const view = await render(<PromiseEditorScreen />);
     await settle();
     // 고정 헤더에는 프로그레스 라벨만 남고, 같은 단계 제목·설명은 반복하지 않는다.
-    expect(view.getAllByText('내용')).toHaveLength(1);
+    // README 마법사 라벨은 "1/3 · 내용" 한 줄이다
+    expect(view.getAllByText('1/3 · 내용')).toHaveLength(1);
     expect(view.queryByText('함께 지킬 약속을 분명하게 적어주세요')).toBeNull();
     expect(view.getByLabelText('제목')).toBeTruthy();
     expect(view.getByLabelText('약속 내용')).toBeTruthy();
@@ -176,7 +177,7 @@ describe('SCR-A03 3단계 약속 작성', () => {
     await fireEvent.press(view.getByRole('button', { name: '내용 확인하기' }));
 
     expect(view.getByRole('progressbar').props.accessibilityValue).toMatchObject({ now: 3, text: '확인' });
-    expect(view.getAllByText('확인')).toHaveLength(1);
+    expect(view.getAllByText('3/3 · 확인')).toHaveLength(1);
     expect(view.getByText('상대가 승인하면 이 내용으로 확정돼요.')).toBeTruthy();
     expect(view.getByRole('button', { name: '약속 내용 수정' })).toBeTruthy();
     expect(view.getByRole('button', { name: '약속 조건 수정' })).toBeTruthy();

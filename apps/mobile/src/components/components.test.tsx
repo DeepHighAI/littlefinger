@@ -178,12 +178,24 @@ describe('LfDisclaimer', () => {
 });
 
 describe('LfNotice', () => {
-  test('정보 안내는 잉크 밑줄 스타일을 쓴다 (ADR 0012)', async () => {
-    const view = await render(<LfNotice label="초대가 곧 만료돼요" />);
-
-    expect(flatten(view.getByText('초대가 곧 만료돼요').props.style).color).toBe(
-      colors.textSecondary,
+  test('안내는 종이 r8 2px 잉크 블록이고 핑크 톤만 3px 그림자를 갖는다 (README)', async () => {
+    const view = await render(
+      <>
+        <LfNotice testID="paper" label="초대가 곧 만료돼요" />
+        <LfNotice testID="pink" tone="pink" label="응답이 필요해요" />
+      </>,
     );
+    expect(styleOf(view, 'paper')).toMatchObject({
+      borderRadius: radius.xs,
+      borderWidth: border.chip,
+      backgroundColor: colors.surface,
+    });
+    expect((styleOf(view, 'paper') as ViewStyle).boxShadow).toBeUndefined();
+    expect(flatten(view.getByText('초대가 곧 만료돼요').props.style).color).toBe(colors.text);
+    expect(styleOf(view, 'pink')).toMatchObject({
+      backgroundColor: colors.attentionContainer,
+      boxShadow: elevation.sm.boxShadow,
+    });
   });
 });
 
