@@ -5,7 +5,7 @@ Snapshot date: **2026-09-06 KST**.
 ## 잉크 & 블록 restyle (in progress, 2026-09-06)
 
 The PO delivered the fifth visual system, **잉크 & 블록 (시안 1a, 45° hard shadow)**, as
-`design-reference/redesign-2026-09-06/` (style guide, four screen boards, drop-in
+`design-reference/design_handoff_ink_block/` (README, style guide, four screen boards, drop-in
 `handoff/tokens.css`). It keeps every token name and swaps values: canvas `#FBF8F1`, the four
 accent colours saturated, blur-free ink shadows `5px 5px 0` / `3px 3px 0`, radius 14/10/8/20,
 borders 2/2.5, tilt 0, Pretendard 500/600/800/900. Component grammar: white pill app bar with a

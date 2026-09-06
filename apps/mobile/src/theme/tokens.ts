@@ -217,8 +217,6 @@ export const gutter = {
 export const size = {
   /** 접근성 하한. **줄이지 않는다**(디자인요청서 §8). */
   touchMin: 48,
-  /** 눌림 이동량 — 그림자 오프셋에서 같은 만큼 뺀다 (5→2, sm 3→0) */
-  pressOffset: 3,
   /** 사각 아이콘 버튼 36 r10 — hitSlop 으로 48 을 채운다 */
   iconButton: 36,
   appbarHeight: 52,
@@ -285,7 +283,7 @@ export const size = {
 /**
  * 잉크 & 블록의 하드 섀도(blur 0 · 잉크 100%)는 RN New Architecture 의 `boxShadow` 로 그린다 —
  * 안드로이드 `elevation` 은 흐린 회색 그림자라 45° 잉크 블록을 못 그린다.
- * 눌림은 소비자가 `size.pressOffset` 만큼 translate 하고 오프셋에서 같은 값을 뺀다(5→2, 3→0).
+ * 눌림(translate 3 + 그림자 5→2 · 3→0)은 번들 tokens.css 에 토큰이 없어 소비자가 리터럴로 쓴다 — ADR 0020 예외.
  */
 const inkShadow = (offset: number) =>
   ({
@@ -303,10 +301,6 @@ export const elevation = {
   sm: inkShadow(3),
   /** none — 시트는 테두리만 */
   sheet: { boxShadow: [] as const },
-  /** 눌린 카드·CTA — 5 에서 press-offset 만큼 줄어든 2 */
-  cardPressed: inkShadow(2),
-  /** 눌린 탭·outlined·피커 — 3 에서 press-offset 만큼 줄어들어 없음 */
-  smPressed: { boxShadow: [] as const },
 } as const;
 
 /**

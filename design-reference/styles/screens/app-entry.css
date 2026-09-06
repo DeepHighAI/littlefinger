@@ -356,8 +356,8 @@
 }
 
 .lf-home-menu__tile:active {
-  transform: translate(var(--lf-press-offset), var(--lf-press-offset));
-  box-shadow: var(--lf-elevation-card-pressed);
+  transform: translate(3px, 3px); /* README 눌림 리터럴 — ADR 0020 예외 */
+  box-shadow: 2px 2px 0 var(--lf-color-text);
 }
 
 .lf-home-menu__tile--yellow { background: var(--lf-color-primary-container); }

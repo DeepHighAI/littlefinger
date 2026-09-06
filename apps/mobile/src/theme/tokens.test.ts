@@ -110,9 +110,10 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 잉크 & 블록 전환 후 토큰 182개를 정의한다', () => {
-    // 2026-09-06: 파스텔 176 + 신설 6 (elevation-sm · type-appbar-size · status-tile · press-offset · elevation-*-pressed).
-    expect(cssTokens.size).toBe(182);
+  test('canonical tokens.css 는 잉크 & 블록 전환 후 토큰 179개를 정의한다', () => {
+    // 2026-09-06: 파스텔 176 + 신설 3 (elevation-sm · type-appbar-size · status-tile) = 번들 tokens.css 와 동일.
+    // 눌림 값은 PO 결정으로 토큰화하지 않는다(리터럴, ADR 0020 예외).
+    expect(cssTokens.size).toBe(179);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -442,9 +443,6 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
     expect(elevation.card.boxShadow[0]).toMatchObject({ offsetX: 5, offsetY: 5 });
     expect(elevation.sm.boxShadow[0]).toMatchObject({ offsetX: 3, offsetY: 3 });
     expect(elevation.sheet.boxShadow).toEqual([]);
-    // 눌림 = 오프셋에서 press-offset 만큼 뺀다 (5→2 · 3→0)
-    expect(elevation.cardPressed.boxShadow[0]?.offsetX).toBe(5 - size.pressOffset);
-    expect(elevation.smPressed.boxShadow).toEqual([]);
   });
 
   test('이징은 베지어 계수 배열이다', () => {
@@ -552,7 +550,6 @@ describe('접근성 하한', () => {
     expect(size.trustRing).toBe(unitless(cssTokens.get('trust-ring') ?? ''));
     expect(size.switchWidth).toBe(unitless(cssTokens.get('switch-width') ?? ''));
     expect(size.statusTile).toBe(unitless(cssTokens.get('status-tile') ?? ''));
-    expect(size.pressOffset).toBe(unitless(cssTokens.get('press-offset') ?? ''));
     expect(size.ddayCircle).toBe(unitless(cssTokens.get('dday-circle') ?? ''));
   });
 });

@@ -222,10 +222,7 @@
   --lf-elevation-fab:  5px 5px 0 #221C13;
   --lf-elevation-sm:   3px 3px 0 #221C13; /* 신설 — 선택 탭·outlined·kakao·피커 */
   --lf-elevation-sheet: none;
-  /* 눌림: translate(press-offset) + 그림자 오프셋에서 같은 만큼 뺀다 (5→2, sm 3→0) */
-  --lf-press-offset: 3px;
-  --lf-elevation-card-pressed: 2px 2px 0 #221C13; /* 눌린 카드·CTA (5 − press-offset) */
-  --lf-elevation-sm-pressed:   none; /* 눌린 탭·outlined·피커 (3 − press-offset) */
+  /* 눌림: transform translate(3px,3px) + box-shadow 2px 2px 0 #221C13 (sm은 0) */
 
   /* MOTION */
   --lf-easing-standard:              cubic-bezier(0, 0, 0, 1);

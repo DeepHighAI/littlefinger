@@ -2,7 +2,7 @@
 
 ## 1. Context
 
-PO가 `design-reference/redesign-2026-09-06/`(원래 이름 `resesigh-2026-0906`, 오타 정리)에 넣은 리디자인 핸드오프 —
+PO가 `design-reference/design_handoff_ink_block/`에 넣은 **개정 리디자인 핸드오프**(2026-09-06 저녁; 초판 `redesign-2026-09-06/`은 PO 결정으로 삭제, 이력만 남음) —
 스타일 가이드 1, 화면 보드 4(A02~A09 · A05 7상태 · A06 · 메뉴 시트 · MOD-01~05 · W01/W02/W03/W05/W06), `handoff/tokens.css`,
 비교 보드 1 — 를 제품 전체에 적용한다. 시안은 **"잉크 & 블록"(시안 1a, 45° 하드 섀도)**: 현재 기준선 파스텔 × 잉크 & 스티커(2026-09-03,
 P0~P8 적용, ADR 미기록) 위에 **토큰 이름은 그대로 두고 값만 바꾸고**, 컴포넌트 문법(필 헤더 · 메뉴 시트 · 상태 타일 · r14 블록 버튼 ·
@@ -21,6 +21,10 @@ P0~P8 적용, ADR 미기록) 위에 **토큰 이름은 그대로 두고 값만 �
 | E4 | 범위·순서 | **앱+웹 전체.** 토큰·컴포넌트 → 갤러리 배치 컨펌 → RN 화면 → 수락 웹 → ADR 0020/DESIGN.md. 9세션, 70% 규칙 핸드오프 |
 | E5 | `CANCELED` 톤(핸드오프 누락) | DECLINED/UNRESOLVED와 같은 **뮤트 + `remove`** |
 | E6 | 미포함 화면 9종 | 9/3 D1 절차: 규격으로 확장 설계 → 갤러리 프리뷰 → 컨펌 → 구현 |
+| E7 | 개정 번들(`design_handoff_ink_block`) vs 초판 — 헤더 r14 블록 · 옐로 CTA/FAB + 종이 사각 · 종이 히어로 화살표 · 불규칙 타원 마스코트 · A01 r14 잉크 그림자 | **"이전 번들은 무시, 새 번들이 확정"** (README PO 컨펌 6항목 = 컨펌됨) |
+| E8 | README 무게 700(스케일에 없음) | **미선택 탭·칩 600, 나머지 700 은 800** |
+| E9 | 눌림 토큰 3개(초판 세션이 추가) | **번들과 동일하게 179개** — 눌림은 리터럴, ADR 0020 예외 표에 기록 |
+| E10 | 초판 번들 처리 | **삭제**, 새 번들만 기준 |
 
 Routine 판단(통보 항목): 아이콘 서브셋 wght 400 → **500**(가이드 `@import`와 일치) · 눌림 3px를 리터럴로 두지 않으려 `--lf-press-offset: 3px`
 토큰 추가 + 눌림 그림자 2개(`--lf-elevation-card-pressed`·`--lf-elevation-sm-pressed`)(179 → **182**) · 포커스 링 `#2F6FB3`은 민트/핑크/스카이 위 3:1 미달(2.80/1.96/2.38) → 4색 위 포커스 표시는 잉크 3px 블록 섀도, outline은
@@ -28,7 +32,7 @@ Routine 판단(통보 항목): 아이콘 서브셋 wght 400 → **500**(가이�
 
 ## 3. 디자인 사양 (핸드오프 정본 요약)
 
-### 3-1. 토큰 값 변경 (64개 + 신설 4개)
+### 3-1. 토큰 값 변경 (64개 + 신설 3개 = 179, 번들 `tokens.css` 와 동일)
 - **색**: 캔버스/크롬 `#F3ECDC`→`#FBF8F1` · 뮤트 `#EAE1CB`→`#EFE9DC` · 옐로 `#FFE59A`→`#FFD43B`(primary-container, brand-symbol-on-action) ·
   민트 `#B7E1D1`→`#5FD3A5`(success-container) · 핑크 `#FFB5C1`→`#FF6F91`(attention/penalty-container) · 스카이 `#A9D3FF`→`#6CB4FF`
   (record/reward-container, primary-pale) · primary-soft `#FFF6CC` · text-muted/faint → `#6F6552` · outline `#EFE9DC`, outline-strong `#6F6552`,
@@ -37,25 +41,26 @@ Routine 판단(통보 항목): 아이콘 서브셋 wght 400 → **500**(가이�
 - **모서리**: xs 8(상태 칩) · sm 10(탭·입력·타일·사각 버튼) · md/lg/xl 14(카드·CTA·보상/벌칙) · 2xl 12(아이콘 타일) · hero 20(시트) · pill 999(헤더·아바타·마스코트 원).
 - **테두리**: chip/dashed/pending 2 · card/outline/sheet 2.5. **틸트 4종 0deg**(토큰·클래스 유지).
 - **타이포**: 무게 500/600/800/900 · wordmark 40/46 · display 36 · headline 30/36 · title 24/30 · card-title 22/28 · sheet-title 20 · **신설 appbar 16** ·
-  자간 tight -0.03em, wordmark -0.04em.
+  자간 tight -0.03em, wordmark -0.04em. 무게 700 은 스케일에 없다 → 미선택 탭·칩 600, 그 외 800 (E8).
 - **크기**: icon-button 36(사각 r10, hitSlop/::after로 48) · cta/fab 56 · tab 34 · chip-meta 28 · textarea 84 · card-padding 16 · trust-ring-stroke 12 ·
-  avatar-xl 56 · thumb 84 · progress 10 · fade 130 · mascot-sm 28, -lg 46 · eyes-blob 68 · **신설 status-tile 40** · **신설 press-offset 3**.
+  avatar-xl 56 · thumb 84 · progress 10 · fade 130 · mascot-sm 28, -lg 46 · eyes-blob 68 · **신설 status-tile 40**. 눌림(3px 이동 · 그림자 2/0)·세그먼트 38h·아바타 md 44·타원 radius 는 토큰 없이 리터럴(E9, ADR 0020 예외 표).
 
 ### 3-2. 컴포넌트 문법
-1. 앱바 = 흰 필(52h, margin 8 16 0, 2.5 잉크, 5px 그림자). 홈: 옐로 원 34(마스코트 28) + 워드마크 22/900/-0.04em + "메뉴 ☰"(미읽음 핑크 점 9).
+1. 앱바 = 종이 블록 **r14**(52h, margin 8 16 0, 2.5 잉크, 5px 그림자). 홈: 옐로 **불규칙 타원 36×34**(`62% 38% 55% 45% / 42% 60% 40% 58%`, 마스코트 28) + 워드마크 22/900/-0.04em + "메뉴 ☰"(미읽음 핑크 점 9).
    하위: 사각 뒤로 36 r10 + 제목 16/800 중앙 + 우측 액션. 종(알림)·아바타(마이)는 **메뉴 시트** 타일 4개(알림 배지 · 마이 · 지난 약속 · 슬롯 n/m)로 이동, 라우팅 동일.
-2. 버튼 r14: filled 56h 잉크 + 2.5 테두리 + 5px 그림자 + 우측 옐로 사각 40 r10 아이콘 · outlined 50h 종이 + 3px · kakao 54h `#FEE500` r14 + 3px ·
-   google 앱은 1px 회색 유지, 웹 W01만 잉크 2.5 + 3px · tonal 36h 옐로 · text 밑줄 · disabled opacity .3 그림자 없음. 홈 "약속 만들기" = 좌우 16 풀폭 56h.
+2. 버튼 r14: **검정 채움 없음** — filled 56h **옐로 + 잉크 글자** + 2.5 테두리 + 5px 그림자 + 우측 **종이** 사각 40 r10 아이콘 · outlined 50h 종이 + 3px · kakao 54h `#FEE500` r14 + 3px(로그인 A01·W01 은 5px) ·
+   google 은 앱·웹 모두 r14 잉크 2.5 + 3px(공식 색 유지) · tonal 36h 옐로 · text 밑줄 · disabled opacity .3 그림자 없음. 홈 "약속 만들기" = 좌우 16 풀폭 56h **옐로** + 종이 사각(add 26).
 3. 칩: 상태 28h r8 톤 배경 · 필터 탭 34h r10(선택 옐로 + 3px, 비선택 종이 + 잉크 700) · 선택 칩 36h r10. 필 모양 칩 없음.
 4. 카드 r14 · 2.5 · 5px. 리스트 행 padding 14 16 + **상태 타일 40 r10**(DRAFT edit/옐로 · PENDING hourglass_empty/종이 점선 · ACTIVE bolt/민트, 무기한 all_inclusive/스카이 ·
    CHECKING notification_important/핑크 · AMEND_PENDING sync_alt/스카이 · COMPLETED check/민트 · BROKEN close/핑크 · DISPUTED balance/뮤트 ·
    DECLINED/UNRESOLVED/CANCELED remove/뮤트) + 제목 15/800 + 메타 12/600 + D-Day 칩 28h r8. flat 카드 = 그림자 없음.
-5. 히어로(임박): 옐로 면 r14, 회전·블롭·눈 제거, 상단 -14px 핑크 배지("D-1 · 내일까지"), 잉크 사각 화살표 46 r12, margin-top 10.
+5. 히어로(임박): 옐로 면 r14, 회전·블롭·눈 제거, 상단 -14px 핑크 배지("D-1 · 내일까지"), **종이** 사각 화살표 46 r12 + 2px 잉크, margin-top 10.
 6. 시트 r20 상단 · 2.5 · 그림자 없음 · 핸들 40×5 잉크 불투명 · 제목 20/800 + 닫기 36 · 세그먼트 = 단일 2px 박스 r10 세로 2px 분할.
 7. 스탬프: 틸트·pop-in rotate 없음, r14 + 5px, 모서리 파스텔 블롭(테두리 없음, overflow hidden), 손 루프·스파크 유지. COMPLETED = 카드 전체 민트.
 8. 입력 48h r10 2px 그림자 없음 · 피커 3px · 포커스 3px(+웹 outline) · 스위치 52×32 r999 노브 항상 잉크, ON 옐로.
 9. D-Day 상세 56 r14 옐로 사각. 알림 미읽음 = 옐로 카드 + 5px + 잉크 도트, 읽음 = 종이 flat. 지킴율 링 88/12 민트 + 잉크 이중 링. 빈 상태 = 원 170 + 민트 원 56.
-10. 수락 웹 W01·W02·W03·W05·W06 동일 문법, 브라우저바 유지, 광고 없음, 주 CTA 1개, W02 거절 = 밑줄 텍스트 버튼.
+10. 수락 웹 W01·W02·W03·W05·W06 동일 문법, 브라우저바 유지, 광고 없음, 주 CTA 1개, W02 거절 = 밑줄 텍스트 버튼. 웹 hover = translate(-1,-1) + 6px.
+11. 마스코트 아트 = **불규칙 타원**(바깥 옐로 2.5 잉크 + 5px, 안쪽 흰 타원 테두리 없음): A09 130×104 + 눈 60 · MOD-03 170×136 + 손 루프 · W01 190×152 + 손 루프 + 스파크 · W03 60×56 · W06 190×152 뮤트 + 눈 80. **A02 빈 상태만** A00 SVG 블롭 240×211(옐로 `#FFD43B`, `drop-shadow(5px 5px 0)`, 손 scale .5). 정원(999) 아트는 없다.
 
 ### 3-3. 불변
 상태 라벨(`PROMISE_STATUS_LABEL`) · `LEGAL_DISCLAIMER` 5곳 · 에러/§5 검증/알림 문구 · 광고 비활성 시 무렌더(점선 플레이스홀더는 갤러리 전용) · DISPUTED 양측 종이 톤·동일 크기·순서 ·

@@ -4,7 +4,7 @@
    문법: 캔버스 위 잉크 테두리(2 / 2.5) + 45° 하드 섀도(5px 카드·CTA·헤더 / 3px 선택 탭·outlined·kakao·피커),
    4색 면(옐로=브랜드/선택 · 민트=진행·완료 · 핑크=마감·응답·벌칙 · 스카이=기록·보상·변경), 글자는 언제나 잉크,
    r14 블록 버튼 오른쪽에 옐로 사각 40, 필(999)은 헤더·아바타·마스코트 원만, 기울기 없음,
-   E-1 마스코트(손가락 눈)와 C-1 손 루프. 눌림 = press-offset 만큼 이동 + 그림자 축소.
+   E-1 마스코트(손가락 눈)와 C-1 손 루프. 눌림 = 3px 이동 + 그림자 축소(5→2 · 3→0) — README 리터럴, ADR 0020 예외.
    ============================================================= */
 
 /* -------------------------------------------------------------
@@ -421,7 +421,7 @@
 
 /* -------------------------------------------------------------
    BUTTON — r14 블록. 주 CTA 는 잉크 56 + 2.5 잉크 테두리 + 5px 섀도 + 오른쪽 옐로 사각 40 r10
-   눌림: press-offset 만큼 이동 + 그림자 5→2 / 3→0 (색은 바뀌지 않는다)
+   눌림: 3px 이동 + 그림자 5→2 / 3→0 (색은 바뀌지 않는다). 값은 README 리터럴 — 번들 tokens.css 에 눌림 토큰이 없다 (ADR 0020 예외)
    ------------------------------------------------------------- */
 .lf-btn {
   height: var(--lf-action-height);
@@ -440,11 +440,11 @@
               box-shadow var(--lf-duration-short) var(--lf-easing-standard);
 }
 
-.lf-btn:active { transform: translate(var(--lf-press-offset), var(--lf-press-offset)); }
-.lf-btn--filled:active { box-shadow: var(--lf-elevation-card-pressed); }
+.lf-btn:active { transform: translate(3px, 3px); }
+.lf-btn--filled:active { box-shadow: 2px 2px 0 var(--lf-color-text); }
 .lf-btn--outlined:active,
 .lf-btn--kakao:active,
-.lf-btn--google-web:active { box-shadow: var(--lf-elevation-sm-pressed); }
+.lf-btn--google-web:active { box-shadow: none; }
 
 .lf-btn:disabled,
 .lf-btn[aria-disabled='true'] {
@@ -502,7 +502,7 @@
   box-shadow: var(--lf-elevation-sm);
 }
 
-.lf-btn--tonal:active { box-shadow: var(--lf-elevation-sm-pressed); }
+.lf-btn--tonal:active { box-shadow: none; }
 
 /* 보조 버튼 — 종이 50 + 2.5 잉크 + 3px 섀도 */
 .lf-btn--outlined {
@@ -600,8 +600,8 @@
 }
 
 .lf-fab:active {
-  transform: translate(var(--lf-press-offset), var(--lf-press-offset));
-  box-shadow: var(--lf-elevation-card-pressed);
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 var(--lf-color-text);
 }
 
 /* 플로팅 CTA 뒤 크림 페이드 */
@@ -1321,7 +1321,7 @@
 .lf-picker--placeholder .lf-picker__value { font-weight: var(--lf-weight-regular); color: var(--lf-color-text-muted); }
 .lf-picker .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text); }
 .lf-picker .material-symbols-rounded.lf-picker__chevron { font-size: 20px; }
-.lf-picker:active { transform: translate(var(--lf-press-offset), var(--lf-press-offset)); box-shadow: var(--lf-elevation-sm-pressed); }
+.lf-picker:active { transform: translate(3px, 3px); box-shadow: none; }
 
 /* 선택 그룹 — 카테고리 / 지킬 사람. 36 r10. 선택=옐로 800, 비선택=종이 600 잉크 */
 .lf-choices {

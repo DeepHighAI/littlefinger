@@ -98,9 +98,9 @@
   color: var(--lf-color-text);
 }
 
-/* 마이 아바타만 옐로 오프셋 섀도 — 프로필 한 곳의 강조 */
+/* 마이 아바타만 옐로 3px 오프셋 섀도 — 프로필 한 곳의 강조 (README 리터럴, ADR 0020 예외) */
 .lf-profile__identity .lf-avatar--xl {
-  box-shadow: var(--lf-press-offset) var(--lf-press-offset) 0 var(--lf-color-primary-container);
+  box-shadow: 3px 3px 0 var(--lf-color-primary-container);
 }
 
 .lf-profile__meta {
