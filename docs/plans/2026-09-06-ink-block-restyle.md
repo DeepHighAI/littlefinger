@@ -23,7 +23,7 @@ P0~P8 적용, ADR 미기록) 위에 **토큰 이름은 그대로 두고 값만 �
 | E6 | 미포함 화면 9종 | 9/3 D1 절차: 규격으로 확장 설계 → 갤러리 프리뷰 → 컨펌 → 구현 |
 
 Routine 판단(통보 항목): 아이콘 서브셋 wght 400 → **500**(가이드 `@import`와 일치) · 눌림 3px를 리터럴로 두지 않으려 `--lf-press-offset: 3px`
-토큰 추가(179 → **180**) · 포커스 링 `#2F6FB3`은 민트/핑크/스카이 위 3:1 미달(2.80/1.96/2.38) → 4색 위 포커스 표시는 잉크 3px 블록 섀도, outline은
+토큰 추가 + 눌림 그림자 2개(`--lf-elevation-card-pressed`·`--lf-elevation-sm-pressed`)(179 → **182**) · 포커스 링 `#2F6FB3`은 민트/핑크/스카이 위 3:1 미달(2.80/1.96/2.38) → 4색 위 포커스 표시는 잉크 3px 블록 섀도, outline은
 캔버스/종이/뮤트 입력에만 · 보조 텍스트 `#6F6552`는 옐로 위 4.03이라 4색 위에는 잉크만 · Android 하드 섀도는 RN 0.86 New Architecture `boxShadow`.
 
 ## 3. 디자인 사양 (핸드오프 정본 요약)
@@ -95,7 +95,7 @@ Routine 판단(통보 항목): 아이콘 서브셋 wght 400 → **500**(가이�
 포커스 링은 캔버스/종이/뮤트/옐로만 + 4색은 `text` 3:1) · 핀 `recordContainer #6CB4FF`/`attentionContainer #FF6F91` · `typography.test.ts` 500/600/800/900 · `fonts.test.ts` 4종 ·
 `components.test.tsx` 2.2→`border.card`. 검증: 세 러너 + `build:web` + 갤러리 색 스왑 육안. PO 통보: A02·A05·W02 갤러리 캡처("색만 바뀐 상태").
 
-### P3 — 레퍼런스 CSS (S2)
+### P3 — 레퍼런스 CSS (S2) ✔
 `components.css` 재작성(§3-2 전부: `.lf-appbar` 필 + `__mascot/__wordmark/__menu`, `.lf-icon-button` 36 r10, `.lf-btn` r14/눌림/`:focus-visible`, `.lf-fab` 풀폭, `.lf-chip/.lf-tab` r8/r10 + `--quiet` 삭제,
 `.lf-card` 14/2.5, **`.lf-status-tile` 신설**(`.lf-status-dot` 삭제), `.lf-dday-circle` 사각, `.lf-stamp` 회전 제거, `.lf-sheet` r20 + `.lf-segmented`, 입력 r10 + 피커/포커스 sm, 스위치 노브 잉크,
 `.lf-outcome/.lf-list-item/.lf-settings` 14/2.5, `.lf-blob--circle`), `base.css`(캔버스 상태바, 프레임 잉크 8), `screens/*.css`(`.lf-hero-card` 옐로 + `__badge` + `__arrow`, 틸트·블롭 제거), `gallery.css`/`index.html` 마스트헤드.
