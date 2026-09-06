@@ -88,7 +88,7 @@ Routine 판단(통보 항목): 아이콘 서브셋 wght 400 → **500**(가이�
 `Pretendard-Medium/Black.ttf` 추가(6 무게 등록, 400/700은 P2에서 내림), `tools/subset-icon-font.js` ICONS += all_inclusive · balance · bolt · menu · remove, wght 500 →
 서브셋 재생성(52 아이콘: 웹 woff2 53.7 KB · 앱 TTF 10.5 KB). 이동한 테스트: `fonts.test.ts` 키·파일 표.
 
-### P2 — 토큰 (S1)
+### P2 — 토큰 (S1) ✔
 `design-reference/styles/tokens.css` ← 핸드오프 값 + `--lf-press-offset: 3px`(180개, `@import` wght 500) · 웹 사본 · `tokens.ts`(`type.appbar`, `size.statusTile`, `size.pressOffset`,
 `elevation` = `boxShadow` 배열 {offsetX, offsetY, blurRadius 0, spreadDistance 0, color 잉크}, `sheet` 빈 배열, `weight` 500/600/800/900, `tilt` '0deg') · 폰트 400/700 파일·등록 제거.
 이동하는 테스트: `tokens.test.ts` 개수 180 · 웹 핀(`#FFD43B`/`#5FD3A5`) · weight · elevation(CSS 파싱 패리티) · 대비(`textSecondary/primaryContainer` 삭제, `textSecondary/surfaceMuted` 추가,
