@@ -15,15 +15,17 @@ import { ICON_FONT_FAMILY, TEXT_FONT_FILES, TEXT_FONTS_LOADED, textFontFamily } 
 const FONT_DIR = join(__dirname, '../../assets/fonts');
 
 describe('TEXT_FONT_FILES', () => {
-  test('토큰이 쓰는 웨이트 4종을 모두 담는다', () => {
-    expect(Object.keys(TEXT_FONT_FILES).sort()).toEqual(['400', '600', '700', '800']);
+  test('토큰이 쓰는 웨이트를 모두 담는다 (잉크 & 블록 전환 중: 400·700 은 토큰 이동 뒤 내린다)', () => {
+    expect(Object.keys(TEXT_FONT_FILES).sort()).toEqual(['400', '500', '600', '700', '800', '900']);
   });
 
   test.each([
     ['400', 'Regular'],
+    ['500', 'Medium'],
     ['600', 'SemiBold'],
     ['700', 'Bold'],
     ['800', 'ExtraBold'],
+    ['900', 'Black'],
   ] as const)('weight %s 의 Pretendard-%s.ttf 가 실제로 있다', (_weight, suffix) => {
     expect(existsSync(join(FONT_DIR, `Pretendard-${suffix}.ttf`))).toBe(true);
   });

@@ -19,7 +19,7 @@
 //
 // 앱 TTF 는 **정적 인스턴스**로 굽는다. RN 안드로이드는 가변 축 선택이 불안정해서(04 §5-4,
 // Pretendard 를 정적 파일로 나눈 이유와 같다) 확정안 캔버스의 font-variation-settings
-// 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24 를 그대로 핀한다.
+// 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24 를 그대로 핀한다(2026-09-06 잉크 & 블록).
 //
 // 산출물 넷 다 커밋한다. 아이콘이 늘 때만 다시 돌린다:
 //   node tools/subset-icon-font.js
@@ -29,20 +29,20 @@ import { fileURLToPath } from 'node:url';
 import * as fontkit from 'fontkit';
 import subsetFont from 'subset-font';
 
-// 확정안(파스텔 스티커) 아트보드 + 수락 웹 + 앱 호출처의 합집합. 앱의 LfIconName 은 이 표로
+// 확정안(잉크 & 블록 2026-09-06: 상태 타일 bolt·all_inclusive·balance·remove, 메뉴 menu) + 수락 웹 + 앱 호출처의 합집합. 앱의 LfIconName 은 이 표로
 // 닫혀 있으므로, 새 아이콘은 여기 추가하고 다시 돌린 뒤에야 쓸 수 있다.
 export const ICONS = [
-  'add', 'ads_click', 'alarm', 'arrow_back', 'arrow_forward', 'block', 'bookmark', 'cancel',
-  'check', 'check_circle', 'close', 'description', 'draw', 'east', 'edit', 'event',
-  'expand_more', 'fingerprint', 'forum', 'history', 'home', 'hourglass_empty', 'image', 'info',
-  'inventory_2', 'link_off', 'mail', 'more_horiz', 'more_vert', 'notification_important',
-  'notifications', 'person', 'person_add', 'photo_camera', 'privacy_tip',
-  'radio_button_checked', 'radio_button_unchecked', 'redeem', 'refresh', 'schedule', 'sell',
+  'add', 'ads_click', 'alarm', 'all_inclusive', 'arrow_back', 'arrow_forward', 'balance', 'block',
+  'bolt', 'bookmark', 'cancel', 'check', 'check_circle', 'close', 'description', 'draw', 'east',
+  'edit', 'event', 'expand_more', 'fingerprint', 'forum', 'history', 'home', 'hourglass_empty',
+  'image', 'info', 'inventory_2', 'link_off', 'mail', 'menu', 'more_horiz', 'more_vert',
+  'notification_important', 'notifications', 'person', 'person_add', 'photo_camera', 'privacy_tip',
+  'radio_button_checked', 'radio_button_unchecked', 'redeem', 'refresh', 'remove', 'schedule', 'sell',
   'send', 'settings', 'share', 'sync_alt', 'trending_up', 'visibility',
 ];
 
-// 확정안 캔버스의 font-variation-settings 와 같다. 넷을 모두 핀하면 fvar 가 사라진 정적 폰트가 된다.
-export const STATIC_INSTANCE = { wght: 400, FILL: 0, GRAD: 0, opsz: 24 };
+// 잉크 & 블록 스타일 가이드의 font-variation-settings(wght 500)와 같다. 넷을 모두 핀하면 fvar 가 사라진 정적 폰트가 된다.
+export const STATIC_INSTANCE = { wght: 500, FILL: 0, GRAD: 0, opsz: 24 };
 
 const url = (p) => fileURLToPath(new URL(p, import.meta.url));
 
