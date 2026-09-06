@@ -425,3 +425,14 @@ not follow redirects — so that host could never verify, and links on it have a
 browser. Separately, a **debug-signed QA APK never verifies App Links at all**: its certificate
 (`FA:C6:17:45…`) is not among the three fingerprints in `apps/web/public/.well-known/assetlinks.json`.
 Invite links opening the browser instead of the app on a sideload build is expected, not a bug.
+
+## The agent's Bash tool cannot run a heredoc that contains a backtick (2026-09-07)
+
+A `python - <<'EOF' … EOF` block whose body contains a backtick — any TSX with a template literal,
+any Korean comment quoting a CSS class in code spans — dies before it starts with
+`unexpected EOF while looking for matching '`. The quoted heredoc delimiter does not protect it; the
+tool's shell wrapper re-parses the command. Nothing in the block executes, so the failure is safe but
+silent about which files it would have touched. The same block with no backtick runs fine, which is
+why it looks intermittent. Recipe: write the script to the session scratchpad with the Write tool and
+run `python <path>` (with `PYTHONIOENCODING=utf-8` for Korean output). A bash heredoc followed by a
+`\|` grep on the same line fails the same way.
