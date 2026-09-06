@@ -8,6 +8,8 @@ import { readAdsEnabled } from '../lib/ads-config-native.ts';
 import { deleteDraft, listHomePromises } from '../lib/home-promises-native.ts';
 import { deletePendingPromise } from '../lib/invite-native.ts';
 import { LocaleProvider } from '../lib/locale-native.tsx';
+import { listNotificationInbox } from '../lib/notification-inbox-native.ts';
+import { loadSlotStatus } from '../lib/slots-native.ts';
 import { loadTrustProfile } from '../lib/trust-profile-native.ts';
 import { colors, size } from '../theme/tokens.ts';
 
@@ -36,6 +38,8 @@ jest.mock('../lib/home-promises-native.ts', () => ({
 }));
 jest.mock('../lib/invite-native.ts', () => ({ deletePendingPromise: jest.fn() }));
 jest.mock('../lib/trust-profile-native.ts', () => ({ loadTrustProfile: jest.fn() }));
+jest.mock('../lib/notification-inbox-native.ts', () => ({ listNotificationInbox: jest.fn() }));
+jest.mock('../lib/slots-native.ts', () => ({ loadSlotStatus: jest.fn() }));
 jest.mock('../components/LfAdSlot', () => {
   const { View } = jest.requireActual('react-native') as typeof import('react-native');
   return { LfAdSlot: ({ enabled }: { enabled: boolean }) => enabled ? <View testID="lf-ad-slot" /> : null };
@@ -99,6 +103,8 @@ describe('SCR-A02 Soft Promise 홈', () => {
     jest.mocked(deletePendingPromise).mockReset().mockResolvedValue(undefined);
     jest.mocked(readAdsEnabled).mockReset().mockResolvedValue(false);
     jest.mocked(loadTrustProfile).mockReset().mockResolvedValue({ keep_rate: 87 } as never);
+    jest.mocked(listNotificationInbox).mockReset().mockResolvedValue({ items: [], unread_count: 2, next_cursor: null });
+    jest.mocked(loadSlotStatus).mockReset().mockResolvedValue({ used: 2, capacity: 5 });
   });
 
   afterEach(async () => {
@@ -268,11 +274,17 @@ describe('SCR-A02 Soft Promise 홈', () => {
     expect(view.queryByText(/\([월화수목금토일]\)/u)).toBeNull();
   });
 
-  test('히스토리·지킴율·앱바 프로필·플로팅 CTA는 각각 올바른 경로를 연다', async () => {
+  test('히스토리·지킴율·메뉴 시트의 마이·플로팅 CTA는 각각 올바른 경로를 연다', async () => {
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
     await fireEvent.press(view.getByRole('button', { name: '지난 약속' }));
     await fireEvent.press(view.getByRole('button', { name: '지금까지 약속의 87%를 지켰어요' }));
+    // 종·아바타 대신 "메뉴" — 읽지 않은 알림이 있으면 이름에 개수가 붙는다
+    await fireEvent.press(view.getByRole('button', { name: '메뉴 — 읽지 않은 알림 2개' }));
+    await settle();
+    expect(view.getByRole('button', { name: '알림 — 읽지 않은 알림 2개' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '슬롯 2 / 5' })).toBeTruthy();
+    expect(view.getByText('약속 지킴율 87%')).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '마이' }));
     await fireEvent.press(view.getByRole('button', { name: '약속 만들기' }));
     expect(push).toHaveBeenCalledWith('/history');

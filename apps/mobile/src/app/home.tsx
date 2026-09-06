@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LfAdSlot } from '../components/LfAdSlot';
 import { LfBannerAd } from '../components/LfBannerAd.tsx';
 import { LfAppBar } from '../components/LfAppBar';
-import { LfAvatarButton } from '../components/LfAvatarButton';
 import { LfBottomFade } from '../components/LfBottomFade';
 import { LfButton } from '../components/LfButton';
 import { LfChip } from '../components/LfChip';
@@ -21,7 +20,7 @@ import { LfEmpty } from '../components/LfEmpty';
 import { LfFab } from '../components/LfFab';
 import { LfHero } from '../components/LfHero';
 import { LfIcon } from '../components/LfIcon';
-import { LfIconButton } from '../components/LfIconButton';
+import { HomeMenuSheet, useHomeMenuData } from '../components/home-menu-sheet';
 import { PromiseListRow } from '../components/PromiseListRow';
 import { LfStack } from '../components/LfStack';
 import { LfText } from '../components/LfText';
@@ -85,7 +84,6 @@ const styles = StyleSheet.create({
   },
   footer: { gap: space[6], paddingHorizontal: gutter.app, paddingTop: space[8] },
   pageFooter: { paddingVertical: space[7] },
-  appBarActions: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
 });
 
 function partiesOf(item: PromiseHomeCard, partnerFallback: string): string {
@@ -105,6 +103,9 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
   const [adsEnabled, setAdsEnabled] = useState(false);
   const [trustRate, setTrustRate] = useState<number | null | undefined>(undefined);
   const [profileNickname, setProfileNickname] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menu = useHomeMenuData();
+  const unread = menu.unreadCount ?? 0;
   const stateRef = useRef(state);
   const nextRequestId = useRef(0);
   const loadingTabs = useRef(new Set<PromiseHomeTab>());
@@ -351,20 +352,24 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
       <LfAppBar
         title={LABEL.brand}
         brand
-        actions={(
-          <View style={styles.appBarActions}>
-            <LfIconButton
-              icon="notifications"
-              accessibilityLabel={LABEL.notifications}
-              onPress={() => router.push('/notifications')}
-            />
-            <LfAvatarButton
-              nickname={profileNickname ?? CHROME.profile}
-              accessibilityLabel={CHROME.profile}
-              onPress={() => router.push('/profile')}
-            />
-          </View>
-        )}
+        menu={{
+          label: LABEL.menu,
+          accessibilityLabel: unread > 0 ? LABEL.menuUnread(unread) : LABEL.menu,
+          badge: unread > 0,
+          onPress: () => {
+            menu.refresh();
+            setMenuOpen(true);
+          },
+        }}
+      />
+      <HomeMenuSheet
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onNavigate={(route) => router.push(route)}
+        nickname={profileNickname}
+        trustRate={trustRate}
+        unreadCount={menu.unreadCount}
+        slots={menu.slots}
       />
       <View style={styles.body}>
         {selected.loading || selected.items === null ? (

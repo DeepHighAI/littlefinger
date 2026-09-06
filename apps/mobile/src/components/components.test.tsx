@@ -19,7 +19,6 @@ import {
 } from '../theme/tokens';
 import { LfAppBar } from './LfAppBar';
 import { LfAvatar } from './LfAvatar';
-import { LfAvatarButton } from './LfAvatarButton';
 import { LfButton } from './LfButton';
 import { LfBlob } from './LfBlob';
 import { LfCard } from './LfCard';
@@ -536,40 +535,30 @@ describe('Soft Promise 공통 컴포넌트', () => {
     expect(onMenu).toHaveBeenCalledTimes(1);
   });
 
-  test('앱바는 뒤로 원과 아바타 액션을 각각 버튼으로 제공한다', async () => {
+  test('하위 앱바는 뒤로 사각과 우측 액션을 각각 버튼으로 제공한다', async () => {
     const onBack = jest.fn();
-    const onProfile = jest.fn();
+    const onMore = jest.fn();
     const view = await render(
       <LfAppBar
-        title="마이"
+        title="약속 상세"
         leading="back"
         leadingAccessibilityLabel="뒤로"
         onLeadingPress={onBack}
-        actions={(
-          <LfAvatarButton
-            nickname="지우"
-            accessibilityLabel="마이"
-            onPress={onProfile}
-          />
-        )}
+        actions={<LfIconButton icon="more_horiz" accessibilityLabel="더보기" onPress={onMore} />}
       />,
     );
     const back = view.getByRole('button', { name: '뒤로' });
-    const profile = view.getByRole('button', { name: '마이' });
+    const more = view.getByRole('button', { name: '더보기' });
     expect(flatten(back.props.style)).toMatchObject({
       width: size.iconButton,
       height: size.iconButton,
+      borderRadius: radius.sm,
       backgroundColor: colors.surface,
     });
-    expect(flatten(profile.props.style)).toMatchObject({
-      width: size.iconButton,
-      height: size.iconButton,
-      backgroundColor: colors.text,
-    });
     await userEvent.press(back);
-    await userEvent.press(profile);
+    await userEvent.press(more);
     expect(onBack).toHaveBeenCalledTimes(1);
-    expect(onProfile).toHaveBeenCalledTimes(1);
+    expect(onMore).toHaveBeenCalledTimes(1);
   });
 
   test('아이콘 버튼은 44dp 원과 hitSlop으로 48dp 터치 영역을 만든다', async () => {
