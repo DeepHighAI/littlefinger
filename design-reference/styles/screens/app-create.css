@@ -189,11 +189,10 @@ legend.lf-field__label { padding: 0; }
 
 .lf-answer__indicator { font-size: 22px; color: var(--lf-color-outline-strong); }
 
-/* 선택 = 옐로 스티커 + 기울기 (텍스트도 함께 진해져 색만으로 구분하지 않는다) */
+/* 선택 = 옐로 면 + 5px 섀도 (텍스트도 함께 진해져 색만으로 구분하지 않는다) */
 .lf-answer[aria-pressed='true'] {
   background: var(--lf-color-primary-container);
   box-shadow: var(--lf-elevation-card);
-  transform: rotate(var(--lf-tilt-sticker));
 }
 
 .lf-answer[aria-pressed='true'] .lf-answer__icon,

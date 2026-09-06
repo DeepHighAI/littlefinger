@@ -65,7 +65,7 @@
 .lf-notif-item__icon {
   width: var(--lf-icon-circle);
   height: var(--lf-icon-circle);
-  border-radius: var(--lf-radius-pill);
+  border-radius: var(--lf-radius-sm);
   background: var(--lf-color-surface);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   color: var(--lf-color-text);
@@ -104,12 +104,11 @@
   color: var(--lf-color-text-muted);
 }
 
-/* 신뢰 카드 — 기울인 종이 스티커, 왼쪽 링 · 오른쪽 수치 */
+/* 신뢰 카드 — 종이 블록 카드, 왼쪽 링 · 오른쪽 수치 */
 .lf-trust-card {
   display: flex;
   align-items: center;
   gap: var(--lf-space-7);
-  transform: rotate(var(--lf-tilt-sticker));
 }
 
 .lf-ring__chart { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -211,32 +210,7 @@
   color: var(--lf-color-text-secondary);
 }
 
-/* -------------------------------------------------------------
-   SEGMENTED CONTROL — 내용 변경 / 파기 요청 (MOD-01) — 선택 칩 36
-   ------------------------------------------------------------- */
-.lf-segmented {
-  display: flex;
-  gap: var(--lf-space-2);
-}
-
-.lf-segmented__item {
-  height: var(--lf-chip-select-height);
-  padding: 0 var(--lf-space-6);
-  border-radius: var(--lf-radius-pill);
-  border: var(--lf-border-chip) solid var(--lf-color-text);
-  background: var(--lf-color-background);
-  font-size: var(--lf-type-chip-size);
-  font-weight: var(--lf-weight-medium);
-  color: var(--lf-color-text-secondary);
-  display: flex;
-  align-items: center;
-}
-
-.lf-segmented__item[aria-selected='true'] {
-  background: var(--lf-color-primary-container);
-  color: var(--lf-color-text);
-  font-weight: var(--lf-weight-bold);
-}
+/* SEGMENTED CONTROL (MOD-01 · 마이 언어) — components.css 의 .lf-segmented 단일 박스 규칙을 쓴다 */
 
 /* -------------------------------------------------------------
    WITNESS ROW — 증인 슬롯 (MOD-02) — flat 카드 행
@@ -258,8 +232,8 @@
 .lf-witness--empty { background: var(--lf-color-background); }
 
 .lf-witness__avatar--empty {
-  width: var(--lf-icon-button);
-  height: var(--lf-icon-button);
+  width: var(--lf-avatar-lg);
+  height: var(--lf-avatar-lg);
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-surface-muted);
   border: var(--lf-border-pending) dashed var(--lf-color-outline-strong);
@@ -282,7 +256,7 @@
 .lf-chip--signed { background: var(--lf-color-success-container); }
 
 /* -------------------------------------------------------------
-   STAT CHANGE — 완료 축하 시트의 지킴율 변화 칩 (MOD-03) — 옐로 필, 살짝 기울임
+   STAT CHANGE — 완료 축하 시트의 지킴율 변화 칩 (MOD-03) — 옐로 r8 + 3px 섀도
    ------------------------------------------------------------- */
 .lf-stat-change {
   display: inline-flex;
@@ -290,13 +264,13 @@
   gap: var(--lf-space-2);
   height: var(--lf-tab-height);
   padding: 0 var(--lf-space-6);
-  border-radius: var(--lf-radius-pill);
+  border-radius: var(--lf-radius-xs);
   background: var(--lf-color-primary-container);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   color: var(--lf-color-text);
   font-size: var(--lf-type-caption-size);
   font-weight: var(--lf-weight-bold);
-  transform: rotate(var(--lf-tilt-hero));
+  box-shadow: var(--lf-elevation-sm);
 }
 
 .lf-stat-change .material-symbols-rounded { font-size: 16px; }
@@ -379,7 +353,6 @@
   border-radius: var(--lf-radius-xl);
   background: var(--lf-color-primary-container);
   box-shadow: var(--lf-elevation-card);
-  transform: rotate(var(--lf-tilt-sticker));
   display: flex;
   flex-direction: column;
   gap: var(--lf-space-1);

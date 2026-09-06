@@ -85,13 +85,13 @@
   align-items: center;
   justify-content: center;
   padding: 0 var(--lf-space-4);
-  border-radius: var(--lf-radius-pill);
-  border: 1px solid var(--lf-color-outline);
+  border-radius: var(--lf-radius-sm);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
   background: var(--lf-color-surface);
-  color: var(--lf-color-text-secondary);
+  color: var(--lf-color-text);
   font-size: var(--lf-type-caption-size);
   font-weight: var(--lf-weight-bold);
-  box-shadow: var(--lf-elevation-card);
+  box-shadow: var(--lf-elevation-sm);
 }
 
 /* -------------------------------------------------------------
@@ -341,25 +341,22 @@
   transform: translateX(-50%);
 }
 
-.lf-segmented {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: var(--lf-space-1);
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-surface-muted);
+/* 웹 세그먼트(button 자식 마크업, P7 전까지) — components.css 의 단일 2px 박스 문법과 같은 모양 */
+.lf-segmented button {
+  flex: 1;
+  min-height: var(--lf-touch-min);
+  border-radius: 0;
+  background: var(--lf-color-surface);
+  color: var(--lf-color-text);
+  font-weight: var(--lf-weight-medium);
 }
 
-.lf-segmented button {
-  min-height: var(--lf-touch-min);
-  border-radius: var(--lf-radius-pill);
-  background: transparent;
-  color: var(--lf-color-text-secondary);
-  font-weight: var(--lf-weight-bold);
-}
+.lf-segmented button + button { border-left: var(--lf-border-chip) solid var(--lf-color-text); }
 
 .lf-segmented button[aria-pressed='true'] {
-  background: var(--lf-color-surface);
-  color: var(--lf-color-primary);
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-text);
+  font-weight: var(--lf-weight-bold);
 }
 
 /* -------------------------------------------------------------
@@ -376,7 +373,7 @@
   max-width: calc(var(--lf-viewport-width) * 2);
   margin: 0 auto;
   padding: var(--lf-space-9);
-  border: 1px solid var(--lf-color-outline);
+  border: var(--lf-border-card) solid var(--lf-color-text);
   border-radius: var(--lf-radius-lg);
   background: var(--lf-color-surface);
   box-shadow: var(--lf-elevation-card);

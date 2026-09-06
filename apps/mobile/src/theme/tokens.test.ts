@@ -56,6 +56,8 @@ const REFERENCE_WEB_SCREEN_CSS = join(
   '../../../../design-reference/styles/screens/web.css',
 );
 const WEB_SCREEN_CSS = join(__dirname, '../../../web/src/styles/screens/web.css');
+const REFERENCE_BASE_CSS = join(__dirname, '../../../../design-reference/styles/base.css');
+const WEB_BASE_CSS = join(__dirname, '../../../web/src/styles/base.css');
 
 /** `--lf-foo-bar: value;` 를 전부 뽑아 { 'foo-bar': 'value' } 로 만든다. */
 function parseCssTokens(path: string): Map<string, string> {
@@ -108,9 +110,9 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 잉크 & 블록 전환 후 토큰 180개를 정의한다', () => {
-    // 2026-09-06: 파스텔 176 + 신설 4 (elevation-sm · type-appbar-size · status-tile · press-offset).
-    expect(cssTokens.size).toBe(180);
+  test('canonical tokens.css 는 잉크 & 블록 전환 후 토큰 182개를 정의한다', () => {
+    // 2026-09-06: 파스텔 176 + 신설 6 (elevation-sm · type-appbar-size · status-tile · press-offset · elevation-*-pressed).
+    expect(cssTokens.size).toBe(182);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -211,6 +213,14 @@ describe('잉크 & 블록 웹 토큰도 같은 계약을 쓴다', () => {
     expect(readFileSync(WEB_COMPONENTS_CSS, 'utf8')).toBe(
       readFileSync(REFERENCE_COMPONENTS_CSS, 'utf8'),
     );
+  });
+
+  test.each([
+    ['base.css', WEB_BASE_CSS, REFERENCE_BASE_CSS],
+    ['screens/web.css', WEB_SCREEN_CSS, REFERENCE_WEB_SCREEN_CSS],
+  ])('수락 웹의 %s 도 레퍼런스와 바이트 단위로 같다', (_name, web, reference) => {
+    // 2026-09-06 잉크 & 블록 P3: base.css 가 조용히 드리프트해 있었다 — 세 사본 모두 같은 커밋에서 복사한다.
+    expect(readFileSync(web, 'utf8')).toBe(readFileSync(reference, 'utf8'));
   });
 
   test.each([REFERENCE_COMPONENTS_CSS, WEB_COMPONENTS_CSS])(
@@ -428,6 +438,9 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
     expect(elevation.card.boxShadow[0]).toMatchObject({ offsetX: 5, offsetY: 5 });
     expect(elevation.sm.boxShadow[0]).toMatchObject({ offsetX: 3, offsetY: 3 });
     expect(elevation.sheet.boxShadow).toEqual([]);
+    // 눌림 = 오프셋에서 press-offset 만큼 뺀다 (5→2 · 3→0)
+    expect(elevation.cardPressed.boxShadow[0]?.offsetX).toBe(5 - size.pressOffset);
+    expect(elevation.smPressed.boxShadow).toEqual([]);
   });
 
   test('이징은 베지어 계수 배열이다', () => {

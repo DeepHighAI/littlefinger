@@ -137,7 +137,7 @@
 }
 
 /* -------------------------------------------------------------
-   SCR-A02 — 홈·약속 목록 (확정안 4b/4f: 옐로 블롭 임박 카드 · 파스텔 상태 도트 · 플로팅 필)
+   SCR-A02 — 홈·약속 목록 (잉크 & 블록: 옐로 히어로 + 핑크 배지 · 상태 타일 40 · 풀폭 CTA)
    ------------------------------------------------------------- */
 
 .lf-home__headline {
@@ -165,14 +165,35 @@
   gap: var(--lf-space-4);
 }
 
-/* 임박 약속 히어로 카드 — 기울인 종이 스티커, 우상단 옐로 블롭 + 눈, 잉크 원 화살표 */
+/* 임박 약속 히어로 카드 — 옐로 면, 상단 -14 에 겹치는 핑크 배지, 잉크 사각 화살표 46 r12 (블롭·눈·기울기 없음) */
 .lf-hero-card {
   display: flex;
   align-items: center;
   gap: var(--lf-space-5);
-  padding: var(--lf-card-padding) var(--lf-space-8);
-  overflow: hidden;
-  transform: rotate(var(--lf-tilt-hero));
+  margin-top: var(--lf-space-4);
+  padding: var(--lf-space-8) var(--lf-card-padding) var(--lf-card-padding);
+  background: var(--lf-color-primary-container);
+  overflow: visible;
+}
+
+/* 구 마크업의 옐로 블롭 + 눈 — 잉크 & 블록에서 제거 (P4 가 마크업을 걷어낼 때까지 숨긴다) */
+.lf-hero-card .lf-blob--card { display: none; }
+
+.lf-hero-card__badge {
+  position: absolute;
+  top: calc(-1 * var(--lf-space-6));
+  left: var(--lf-space-6);
+  height: 26px;
+  padding: 0 var(--lf-space-4);
+  border-radius: var(--lf-radius-xs);
+  background: var(--lf-color-attention-container);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
+  white-space: nowrap;
 }
 
 .lf-hero-card__main {
@@ -191,9 +212,9 @@
 
 .lf-hero-card__arrow {
   position: relative;
-  width: var(--lf-icon-button);
-  height: var(--lf-icon-button);
-  border-radius: var(--lf-radius-pill);
+  width: calc(var(--lf-icon-circle) + var(--lf-space-2));
+  height: calc(var(--lf-icon-circle) + var(--lf-space-2));
+  border-radius: var(--lf-radius-2xl);
   background: var(--lf-color-text);
   color: var(--lf-color-primary-container);
   display: flex;
@@ -202,7 +223,7 @@
   flex: none;
 }
 
-.lf-hero-card__arrow .material-symbols-rounded { font-size: 18px; }
+.lf-hero-card__arrow .material-symbols-rounded { font-size: 22px; }
 
 /* 약속 행 — .lf-card--list 위에 도트·제목·메타·메타 칩 */
 .lf-home__row-main { flex: 1; min-width: 0; }

@@ -174,7 +174,7 @@
   gap: 4px;
   height: var(--lf-chip-status-height);
   padding: 0 var(--lf-space-4);
-  border-radius: var(--lf-radius-pill);
+  border-radius: var(--lf-radius-xs);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   font-size: var(--lf-type-meta-size);
   font-weight: var(--lf-weight-bold);

@@ -1,7 +1,8 @@
 /* =============================================================
    Little Finger — Design Tokens ("잉크 & 블록", 시안 1a 확정 2026-09-06, PO 결정 E1~E6)
    파스텔 × 잉크 & 스티커(2026-09-03) 토큰 계약 위에 이름은 그대로 두고 값만 바꿨다.
-   신설 4개: --lf-elevation-sm · --lf-type-appbar-size · --lf-status-tile · --lf-press-offset (176 → 180).
+   신설 6개: --lf-elevation-sm · --lf-type-appbar-size · --lf-status-tile · --lf-press-offset ·
+   --lf-elevation-card-pressed · --lf-elevation-sm-pressed (176 → 182).
    apps/mobile/src/theme/tokens.ts · apps/web/src/styles/tokens.css 에 같은 변경을 반영하고
    apps/mobile/src/theme/tokens.test.ts 가 세 타깃을 기계적으로 대조한다.
    예외: SCR-A00 온보딩 · SCR-A01 로그인은 레이아웃을 그대로 두고 토큰 변경만 따라온다(PO E2).
@@ -219,6 +220,8 @@
   --lf-elevation-sheet: none;
   /* 눌림: translate(press-offset) + 그림자 오프셋에서 같은 만큼 뺀다 (5→2, sm 3→0) */
   --lf-press-offset: 3px;
+  --lf-elevation-card-pressed: 2px 2px 0 #221C13; /* 눌린 카드·CTA (5 − press-offset) */
+  --lf-elevation-sm-pressed:   none; /* 눌린 탭·outlined·피커 (3 − press-offset) */
 
   /* MOTION */
   --lf-easing-standard:              cubic-bezier(0, 0, 0, 1);

@@ -303,6 +303,10 @@ export const elevation = {
   sm: inkShadow(3),
   /** none — 시트는 테두리만 */
   sheet: { boxShadow: [] as const },
+  /** 눌린 카드·CTA — 5 에서 press-offset 만큼 줄어든 2 */
+  cardPressed: inkShadow(2),
+  /** 눌린 탭·outlined·피커 — 3 에서 press-offset 만큼 줄어들어 없음 */
+  smPressed: { boxShadow: [] as const },
 } as const;
 
 /**
