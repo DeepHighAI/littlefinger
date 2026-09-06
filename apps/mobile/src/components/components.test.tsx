@@ -2,6 +2,8 @@ import { render, userEvent } from '@testing-library/react-native';
 import type { TextStyle, ViewStyle } from 'react-native';
 import * as Reanimated from 'react-native-reanimated';
 
+import { statusTileOf } from '../screens/status-tone';
+import { textFontFamily } from '../theme/fonts';
 import {
   border,
   colors,
@@ -12,7 +14,6 @@ import {
   radius,
   size,
   space,
-  tilt,
   type,
   weight,
 } from '../theme/tokens';
@@ -39,7 +40,7 @@ import { LfPinkyLoop, pinkyLoopDuration } from './LfPinkyLoop';
 import { LfPromiseSeam, promiseSeamDuration } from './LfPromiseSeam';
 import { LfRow } from './LfRow';
 import { LfStack } from './LfStack';
-import { LfStatusDot } from './LfStatusDot';
+import { LfStatusTile } from './LfStatusTile';
 import { LfSwitch } from './LfSwitch';
 import { LfText } from './LfText';
 import { LfTrustRing, trustRingDuration } from './LfTrustRing';
@@ -436,43 +437,75 @@ describe('LfCard', () => {
   });
 });
 
-describe('LfChip / LfStatusDot', () => {
-  test('선택 필터도 글자는 잉크이고 배경만 옐로로 바뀐다', async () => {
+describe('LfChip / LfStatusTile', () => {
+  test('선택 필터 탭은 r10 옐로 + 3px, 글자는 잉크 800 — 미선택은 종이 600', async () => {
     const view = await render(
-      <LfChip testID="chip" label="전체" tone="paper" kind="filter" selected />,
+      <>
+        <LfChip testID="on" label="전체" tone="paper" kind="filter" selected />
+        <LfChip testID="off" label="진행 중" tone="paper" kind="filter" />
+      </>,
     );
-    expect(styleOf(view, 'chip')).toMatchObject({
+    expect(styleOf(view, 'on')).toMatchObject({
       height: size.tabHeight,
+      borderRadius: radius.sm,
       backgroundColor: colors.primaryContainer,
       borderColor: colors.text,
+      boxShadow: elevation.sm.boxShadow,
     });
-    expect(flatten(view.getByText('전체').props.style).color).toBe(colors.text);
+    expect(flatten(view.getByText('전체').props.style)).toMatchObject({
+      color: colors.text,
+      fontFamily: textFontFamily(weight.bold),
+    });
+    expect((styleOf(view, 'off') as ViewStyle).boxShadow).toBeUndefined();
+    expect(flatten(view.getByText('진행 중').props.style).fontFamily).toBe(textFontFamily(weight.medium));
   });
 
-  test('상태 점은 10dp 파스텔 면에 2dp 잉크 링을 쓴다', async () => {
-    const view = await render(<LfStatusDot testID="dot" tone="pink" />);
-    const dot = flatten(view.getByTestId('dot', { includeHiddenElements: true }).props.style);
-    expect(dot).toMatchObject({
-      width: size.statusDot,
-      height: size.statusDot,
-      backgroundColor: colors.attentionContainer,
+  test('상태 칩은 28h r8 · 12/800', async () => {
+    const view = await render(<LfChip testID="chip" label="진행 중" tone="mint" kind="status" />);
+    expect(styleOf(view, 'chip')).toMatchObject({ height: size.chipStatusHeight, borderRadius: radius.xs });
+    expect(flatten(view.getByText('진행 중').props.style).fontSize).toBe(type.meta);
+  });
+
+  test('상태 타일은 40 r10 톤 면 + 2dp 잉크, PENDING 만 점선이고 라벨과 함께 놓인다', async () => {
+    const view = await render(
+      <>
+        <LfStatusTile testID="tile" icon="bolt" tone="mint" />
+        <LfStatusTile testID="pending" icon="hourglass_empty" tone="paper" dashed />
+      </>,
+    );
+    expect(flatten(view.getByTestId('tile', { includeHiddenElements: true }).props.style)).toMatchObject({
+      width: size.statusTile,
+      height: size.statusTile,
+      borderRadius: radius.sm,
+      backgroundColor: colors.successContainer,
       borderColor: colors.text,
-      borderWidth: 2,
+      borderWidth: border.chip,
     });
+    expect(flatten(view.getByTestId('pending', { includeHiddenElements: true }).props.style).borderStyle).toBe('dashed');
+    expect(statusTileOf('ACTIVE', true)).toEqual({ icon: 'all_inclusive', tone: 'sky', dashed: false });
+    expect(statusTileOf('DISPUTED')).toEqual({ icon: 'balance', tone: 'muted', dashed: false });
   });
 });
 
 describe('Soft Promise 공통 컴포넌트', () => {
-  test('히어로는 카드 토큰(둥글기·테두리·기울기)과 칩 타이포 D-Day를 쓴다', async () => {
+  test('히어로는 옐로 r14 면에 기울기 없이 놓이고 D-Day 는 핑크 배지, 화살표는 종이 사각이다', async () => {
     const view = await render(
-      <LfHero testID="hero" eyebrow="가장 가까운 약속" title="함께 걷기" dday="D-3" />,
+      <LfHero testID="hero" eyebrow="가장 가까운 약속" title="함께 걷기" dday="D-3" meta="지우 · 민준" />,
     );
     const hero = styleOf(view, 'hero') as ViewStyle;
-    expect(hero.borderRadius).toBe(radius.xl);
-    expect(hero.borderWidth).toBe(border.card);
-    expect(hero.borderColor).toBe(colors.text);
-    expect(hero.transform).toEqual([{ rotate: tilt.hero }]);
-    expect(flatten(view.getByText('D-3').props.style).fontSize).toBe(type.meta);
+    expect(hero).toMatchObject({
+      borderRadius: radius.xl,
+      borderWidth: border.card,
+      borderColor: colors.text,
+      backgroundColor: colors.primaryContainer,
+      boxShadow: elevation.card.boxShadow,
+    });
+    expect(hero.transform).toBeUndefined();
+    const dday = view.getByText('D-3');
+    expect(flatten(dday.props.style)).toMatchObject({ fontSize: type.meta, color: colors.text });
+    expect(flatten(dday.parent?.props.style)).toMatchObject({ backgroundColor: colors.attentionContainer });
+    // 옐로 면 위 eyebrow·메타도 잉크
+    expect(flatten(view.getByText('가장 가까운 약속').props.style).color).toBe(colors.text);
   });
 
   test('앱바는 종이 r14 블록이고 브랜드 앱바의 메뉴는 버튼으로 읽힌다', async () => {

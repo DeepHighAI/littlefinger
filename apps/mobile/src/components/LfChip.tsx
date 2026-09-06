@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 
 import { textFontFamily } from '../theme/fonts';
-import { colors, border, radius, size, space, type, weight } from '../theme/tokens';
+import { colors, border, elevation, radius, size, space, type, weight } from '../theme/tokens';
 
 export type LfChipTone = 'paper' | 'yellow' | 'mint' | 'pink' | 'sky' | 'muted' | 'cream';
 export type LfChipKind = 'status' | 'meta' | 'filter' | 'select';
@@ -32,24 +32,27 @@ const kindHeight: Record<LfChipKind, number> = {
 };
 
 const styles = StyleSheet.create({
+  // 상태·메타 칩 28h r8 · 12/800
   base: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     gap: space[2],
-    paddingHorizontal: space[5],
-    borderRadius: radius.pill,
+    paddingHorizontal: space[4],
+    borderRadius: radius.xs,
     borderWidth: border.chip,
     borderColor: colors.text,
   },
-  wide: { paddingHorizontal: space[6] },
+  // 필터 탭 34h · 선택 칩 36h — r10 · 13, 미선택 600 · 선택 800 + 3px (PO E8)
+  large: { paddingHorizontal: space[6], borderRadius: radius.sm },
+  selected: { ...elevation.sm },
   text: {
     color: colors.text,
     fontSize: type.meta,
-    fontWeight: weight.bold,
     fontFamily: textFontFamily(weight.bold),
   },
-  largeText: { fontSize: type.chip },
+  largeText: { fontSize: type.chip, fontFamily: textFontFamily(weight.medium) },
+  selectedText: { fontFamily: textFontFamily(weight.bold) },
   dot: {
     width: size.statusDot - border.chip,
     height: size.statusDot - border.chip,
@@ -73,11 +76,12 @@ export function LfChip({
       style={[
         styles.base,
         { height: kindHeight[kind], backgroundColor: selected ? colors.primaryContainer : toneColor[tone] },
-        large && styles.wide,
+        large && styles.large,
+        large && selected && styles.selected,
       ]}
     >
       {dot ? <View testID={rest.testID === undefined ? undefined : `${rest.testID}-dot`} style={styles.dot} /> : null}
-      <Text style={[styles.text, large && styles.largeText]}>{label}</Text>
+      <Text style={[styles.text, large && styles.largeText, large && selected && styles.selectedText]}>{label}</Text>
     </View>
   );
 }

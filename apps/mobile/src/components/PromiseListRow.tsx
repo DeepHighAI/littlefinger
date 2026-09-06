@@ -9,13 +9,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { useLabels, useLocale } from '../lib/locale-native';
 import { SCR_A02_LABEL } from '../screens/scr-a02-labels.ts';
-import { statusToneOf } from '../screens/status-tone';
+import { statusTileOf } from '../screens/status-tone';
 import { gutter, space } from '../theme/tokens';
 import { LfButton } from './LfButton';
 import { LfCard } from './LfCard';
 import { LfChip } from './LfChip';
 import { LfRow } from './LfRow';
-import { LfStatusDot } from './LfStatusDot';
+import { LfStatusTile } from './LfStatusTile';
 import { LfText } from './LfText';
 
 export interface PromiseListRowProps {
@@ -36,10 +36,10 @@ export function PromiseListRow({
   const { locale } = useLocale();
   const partnerName = item.partner?.nickname ?? LABEL.partnerFallback;
   const needsResponse = item.status === 'CHECKING' && item.needs_response;
-  const tone = statusToneOf(item.status);
+  const tile = statusTileOf(item.status, item.end_date === null);
   const copy = (
     <View style={needsResponse ? styles.response : styles.row}>
-      <LfStatusDot tone={tone} />
+      <LfStatusTile icon={tile.icon} tone={tile.tone} dashed={tile.dashed} />
       <View style={styles.main}>
         <LfText variant="bodyStrong">{item.title}</LfText>
         <LfRow gap={2} wrap>
@@ -113,5 +113,5 @@ const styles = StyleSheet.create({
   container: { marginHorizontal: gutter.app, marginBottom: space[5] },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
   response: { gap: space[4] },
-  main: { flex: 1, gap: space[2] },
+  main: { flex: 1, gap: space[1] },
 });

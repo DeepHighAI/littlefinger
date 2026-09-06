@@ -10,6 +10,7 @@ export interface LfChoiceProps {
 }
 
 const styles = StyleSheet.create({
+  // 보이는 칩은 36h 지만 누르는 상자는 48 — 갤러리의 ::after 와 같은 역할
   target: {
     minHeight: size.touchMin,
     justifyContent: 'center',
@@ -17,7 +18,7 @@ const styles = StyleSheet.create({
   visual: {
     height: size.chipSelectHeight,
     paddingHorizontal: space[6],
-    borderRadius: radius.pill,
+    borderRadius: radius.sm,
     borderWidth: border.chip,
     borderColor: colors.text,
     backgroundColor: colors.surface,
@@ -30,10 +31,9 @@ const styles = StyleSheet.create({
   label: {
     color: colors.text,
     fontFamily: textFontFamily(weight.medium),
-    fontWeight: weight.medium,
-    fontSize: type.label,
+    fontSize: type.chip,
   },
-  selectedLabel: { color: colors.text, fontWeight: weight.bold },
+  selectedLabel: { fontFamily: textFontFamily(weight.bold) },
 });
 
 export function LfChoice({ label, selected, onPress }: LfChoiceProps): React.JSX.Element {
