@@ -3,7 +3,11 @@ import { Image, type ImageProps } from 'react-native';
 import { size as sizeToken } from '../theme/tokens';
 
 export type LfMascotFaceSize = 'sm' | 'md' | 'lg';
-export type LfEyesSize = 'row' | 'header' | 'card' | 'blob';
+export type LfEyesSize = 'row' | 'header' | 'card' | 'blob' | 'history' | 'web';
+
+/** README 타원 아트의 눈 폭 60(A09) · 80(W06·안내 화면) — 토큰 없음, ADR 0020 예외 */
+const EYES_HISTORY = 60;
+const EYES_WEB = 80;
 
 export interface LfMascotImageProps extends Omit<ImageProps, 'source' | 'style'> {
   accessibilityLabel?: string;
@@ -23,6 +27,8 @@ const EYES_WIDTH: Record<LfEyesSize, number> = {
   header: sizeToken.eyesHeader,
   card: sizeToken.eyesCard,
   blob: sizeToken.eyesBlob,
+  history: EYES_HISTORY,
+  web: EYES_WEB,
 };
 
 function accessibilityProps(accessibilityLabel: string | undefined): Pick<

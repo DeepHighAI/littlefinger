@@ -3,6 +3,7 @@ import { StyleSheet, TextInput, type TextInputProps } from 'react-native';
 import { textFontFamily } from '../theme/fonts';
 import { colors, border, line, radius, size, space, type, weight } from '../theme/tokens';
 
+/** 입력 48h r10 2px 잉크 · 그림자 없음 · 15/600 */
 const styles = StyleSheet.create({
   input: {
     height: size.inputHeight,
@@ -14,7 +15,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingHorizontal: space[6],
     paddingVertical: space[4],
-    fontFamily: textFontFamily(weight.regular),
+    fontFamily: textFontFamily(weight.medium),
     fontSize: type.body,
     lineHeight: line.body,
   },

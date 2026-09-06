@@ -9,6 +9,7 @@ export interface LfSwitchProps {
   disabled?: boolean;
 }
 
+/** 스위치 52×32 r999 2.5 잉크 — 노브는 켜짐·꺼짐 모두 잉크, ON 은 옐로 트랙. 누르는 상자는 48 */
 const styles = StyleSheet.create({
   target: {
     width: size.switchWidth,
@@ -32,9 +33,9 @@ const styles = StyleSheet.create({
     width: size.switchKnob,
     height: size.switchKnob,
     borderRadius: radius.pill,
-    backgroundColor: colors.outlineIcon,
+    backgroundColor: colors.text,
   },
-  checkedThumb: { alignSelf: 'flex-end', backgroundColor: colors.text },
+  checkedThumb: { alignSelf: 'flex-end' },
 });
 
 export function LfSwitch({

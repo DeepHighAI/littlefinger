@@ -38,7 +38,10 @@ import { LfNotice } from './LfNotice';
 import { LfPicker } from './LfPicker';
 import { LfPinkyLoop, pinkyLoopDuration } from './LfPinkyLoop';
 import { LfPromiseSeam, promiseSeamDuration } from './LfPromiseSeam';
+import { LfOval } from './LfOval';
 import { LfRow } from './LfRow';
+import { LfSegmented } from './LfSegmented';
+import { LfSheet } from './LfSheet';
 import { LfStack } from './LfStack';
 import { LfStatusTile } from './LfStatusTile';
 import { LfSwitch } from './LfSwitch';
@@ -666,9 +669,11 @@ describe('LfAvatar', () => {
         accessibilityLabel="지우 프로필 사진"
       />,
     );
-    expect(fallback.getByText('지', { includeHiddenElements: true })).toBeTruthy();
+    const glyph = fallback.getByText('지', { includeHiddenElements: true });
     expect(fallback.getByRole('image', { name: '지우 프로필 사진' })).toBeTruthy();
-    expect(styleOf(fallback, 'avatar').width).toBe(size.iconButton);
+    // README 아바타 md 44 — 잉크 원 + 옐로 글자
+    expect(styleOf(fallback, 'avatar')).toMatchObject({ width: 44, backgroundColor: colors.text });
+    expect(flatten(glyph.props.style).color).toBe(colors.primaryContainer);
 
     const photo = await render(
       <LfAvatar
@@ -794,8 +799,8 @@ describe('E-1 마스코트와 C-1 손 루프', () => {
   });
 });
 
-describe('LfBlob', () => {
-  test('승인된 블롭은 토큰 치수를 쓰고 장식으로 숨긴다', async () => {
+describe('LfBlob / LfOval', () => {
+  test('빈 상태 블롭은 README 240×211 이고 기울기 없이 장식으로 숨긴다', async () => {
     const view = await render(
       <LfBlob testID="blob" variant="empty" tilt="empty">
         <LfEyes size="blob" />
@@ -804,8 +809,63 @@ describe('LfBlob', () => {
     const blob = view.getByTestId('blob', { includeHiddenElements: true });
     const style = flatten(blob.props.style) as ViewStyle;
 
-    expect(style.width).toBe(size.loginBlobHeight);
-    expect(style.height).toBe(size.loginBlobHeight - size.appbarIcon - space[4]);
+    expect(style.width).toBe(240);
+    expect(style.height).toBe(211);
+    expect(style.transform).toBeUndefined();
     expect(blob.props.accessibilityElementsHidden).toBe(true);
+  });
+
+  test('A00 블롭만 -2° 를 유지한다 (PO E11)', async () => {
+    const view = await render(<LfBlob testID="blob" variant="login" />);
+    expect((flatten(view.getByTestId('blob', { includeHiddenElements: true }).props.style) as ViewStyle).transform)
+      .toEqual([{ rotate: '-2deg' }]);
+  });
+
+  test('타원 아트는 그림자 5 를 치수에 더하고 로그인 타원만 -2° 다', async () => {
+    const view = await render(
+      <>
+        <LfOval testID="tile" variant="tile" />
+        <LfOval testID="login" variant="login" />
+      </>,
+    );
+    expect(flatten(view.getByTestId('tile', { includeHiddenElements: true }).props.style)).toMatchObject({ width: 36, height: 34 });
+    const login = flatten(view.getByTestId('login', { includeHiddenElements: true }).props.style) as ViewStyle;
+    expect(login).toMatchObject({ width: 225, height: 205, transform: [{ rotate: '-2deg' }] });
+  });
+});
+
+describe('LfSheet / LfSegmented', () => {
+  test('시트는 r20 상단 · 2.5 잉크 · 그림자 없음 · 핸들은 불투명 잉크', async () => {
+    const view = await render(
+      <LfSheet visible title="변경 요청" closeLabel="닫기" onClose={() => undefined} sheetTestID="sheet">
+        <LfText>본문</LfText>
+      </LfSheet>,
+    );
+    expect(styleOf(view, 'sheet')).toMatchObject({
+      borderTopLeftRadius: radius.hero,
+      borderWidth: border.sheet,
+      borderBottomWidth: 0,
+      boxShadow: [],
+    });
+    expect(view.getByRole('button', { name: '닫기' })).toBeTruthy();
+  });
+
+  test('세그먼트는 탭으로 읽히고 선택 항목만 옐로, 38h 항목은 hitSlop 으로 48 을 채운다', async () => {
+    const onChange = jest.fn();
+    const view = await render(
+      <LfSegmented
+        accessibilityLabel="요청 종류"
+        items={[{ key: 'AMEND', label: '변경' }, { key: 'CANCEL', label: '파기' }]}
+        value="AMEND"
+        onChange={onChange}
+      />,
+    );
+    const selected = view.getByRole('tab', { name: '변경' });
+    const other = view.getByRole('tab', { name: '파기' });
+    expect(flatten(selected.props.style).backgroundColor).toBe(colors.primaryContainer);
+    expect(flatten(other.props.style).backgroundColor).toBeUndefined();
+    expect(38 + (other.props.hitSlop as number) * 2).toBe(size.touchMin);
+    await userEvent.press(other);
+    expect(onChange).toHaveBeenCalledWith('CANCEL');
   });
 });

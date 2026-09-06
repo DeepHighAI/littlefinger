@@ -15,6 +15,10 @@ export interface LfSheetProps extends Pick<ModalProps, 'onShow' | 'testID'> {
   centered?: boolean;
 }
 
+/** README 시트 좌우 18 — 토큰 없음, ADR 0020 예외 */
+const SIDE_PADDING = 18;
+
+/** 바텀시트 — 종이 · r20 상단 · 2.5 잉크(하단 없음) · 그림자 없음 · 핸들 40×5 잉크 */
 export function LfSheet({
   visible,
   title,
@@ -65,10 +69,9 @@ const styles = StyleSheet.create({
   scrim: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim },
   sheet: {
     maxHeight: '88%',
-    paddingTop: space[5],
-    paddingRight: space[9],
-    paddingBottom: space[3],
-    paddingLeft: space[9],
+    paddingTop: space[4],
+    paddingHorizontal: SIDE_PADDING,
+    paddingBottom: space[9],
     gap: space[6],
     backgroundColor: colors.surface,
     borderWidth: border.sheet,
@@ -84,7 +87,6 @@ const styles = StyleSheet.create({
     height: size.sheetHandleHeight,
     borderRadius: radius.pill,
     backgroundColor: colors.text,
-    opacity: 0.3,
     alignSelf: 'center',
   },
   header: {
