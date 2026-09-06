@@ -101,6 +101,13 @@ The Play-delivered code 24 rewarded retry created one new PENDING RETENTION_30D 
 fail-closed behavior, not successful rewarded/SSV verification. The web build succeeds with a
 non-fatal 614.70 kB chunk-size warning.
 
+The public app-ads endpoint is now reachable and consistent on both legacy and current domains:
+`https://littlefinger-app.web.app/app-ads.txt` and
+`https://littlefinger-app-philwoo.web.app/app-ads.txt`.
+Both currently return:
+`google.com, pub-9625042173735017, DIRECT, f08c47fec0942fa0` (checked at
+`2026-09-06 11:54:03 KST`).
+
 ## Blocked / PO-confirmation items
 
 No further PO action is needed for the European message or the refunded order; do not publish the
