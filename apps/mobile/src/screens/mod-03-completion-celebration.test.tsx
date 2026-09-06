@@ -47,7 +47,8 @@ describe('MOD-03 완료 축하', () => {
     expect(view.getByText(`${BASE.title} — 완주!`)).toBeTruthy();
     expect(view.getByText('민준님과 하이파이브 하세요')).toBeTruthy();
     expect(view.getByText(label)).toBeTruthy();
-    expect(view.getByTestId('completion-celebration-pinky')).toBeTruthy();
+    // 마스코트 타원은 아트보드처럼 접근성 트리에서 숨긴다(aria-hidden) — 손 루프는 그 안에 있다
+    expect(view.getByTestId('completion-celebration-pinky', { includeHiddenElements: true })).toBeTruthy();
   });
 
   test('닉네임이 없으면 상대방 문구를 사용한다', async () => {

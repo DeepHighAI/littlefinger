@@ -29,6 +29,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfAppBar } from '../../components/LfAppBar';
+import { LfAvatar } from '../../components/LfAvatar';
 import { LfButton } from '../../components/LfButton';
 import { LfCard } from '../../components/LfCard';
 import { LfChip } from '../../components/LfChip';
@@ -36,7 +37,8 @@ import { LfField } from '../../components/LfField';
 import { LfIcon } from '../../components/LfIcon';
 import { LfRow } from '../../components/LfRow';
 import { LfStack } from '../../components/LfStack';
-import { LfText } from '../../components/LfText';
+import { LfStatusTile } from '../../components/LfStatusTile';
+import { LfInkContext, LfText } from '../../components/LfText';
 import { LfTextarea } from '../../components/LfTextarea';
 import {
   createFulfillmentIdempotencyKey,
@@ -55,8 +57,11 @@ import {
 import { useLabels, useLocale } from '../../lib/locale-native';
 import { MobileApiError } from '../../lib/mobile-api.ts';
 import { SCR_A06_LABEL } from '../../screens/scr-a06-labels.ts';
+import { statusToneOf } from '../../screens/status-tone.ts';
 import {
+  border,
   colors,
+  elevation,
   gutter,
   radius,
   size,
@@ -67,94 +72,123 @@ const CLAIM_ROLES = ['CREATOR', 'PARTNER'] as const;
 
 type ScreenPhase = 'loading' | 'ready' | 'not-found' | 'error';
 
+/** README 본문 상단 22 · 라디오 24/12 · 썸네일 글리프 24 · 제거 버튼 22/14 · 대기 아이콘 20 — 토큰 없음, ADR 0020 예외 */
+const BODY_TOP = 22;
+const RADIO_SIZE = 24;
+const RADIO_DOT = 12;
+const PROOF_ICON = 24;
+const REMOVE_SIZE = 22;
+const REMOVE_ICON = 14;
+const REMOVE_HIT_SLOP = (size.touchMin - REMOVE_SIZE) / 2;
+const PARTNER_ICON = 20;
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  back: {
-    minWidth: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: gutter.app,
   },
+  // 본문 22 20 20 16 · 블록 간 14
   body: {
-    padding: gutter.app,
-    paddingBottom: space[9],
+    paddingTop: BODY_TOP,
+    paddingRight: space[8],
+    paddingBottom: space[8],
+    paddingLeft: gutter.app,
     gap: space[6],
   },
+  // 하단 액션 — 주 CTA 하나를 오른쪽에 (`.lf-screen__actions--end`)
   actions: {
-    paddingHorizontal: gutter.app,
-    paddingTop: space[4],
-    paddingBottom: space[6],
-    backgroundColor: colors.surfaceChrome,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.outline,
+    alignItems: 'flex-end',
+    paddingHorizontal: space[8],
+    paddingTop: space[5],
+    paddingBottom: space[7],
+    backgroundColor: colors.background,
   },
-  question: { alignItems: 'center' },
+  question: { paddingTop: space[3], paddingHorizontal: space[1], gap: space[2] },
+  // 선택 카드 — 종이 r14 2.5 잉크, 선택 = 옐로 + 5px (`.lf-answer`)
   answer: {
     minHeight: size.touchMin + space[9],
-    paddingHorizontal: space[8],
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outlineStrong,
+    paddingVertical: space[7],
+    paddingHorizontal: size.cardPadding,
+    borderRadius: radius.xl,
+    borderWidth: border.card,
+    borderColor: colors.text,
     backgroundColor: colors.surface,
     flexDirection: 'row',
     alignItems: 'center',
     gap: space[5],
   },
-  answerSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryContainer,
+  answerSelected: { backgroundColor: colors.primaryContainer, ...elevation.card },
+  answerText: { flex: 1, minWidth: 0 },
+  // 라디오 24 잉크 링, 선택되면 12 잉크 점
+  radio: {
+    width: RADIO_SIZE,
+    height: RADIO_SIZE,
+    borderRadius: radius.pill,
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  answerText: { flex: 1 },
+  radioDot: {
+    width: RADIO_DOT,
+    height: RADIO_DOT,
+    borderRadius: radius.pill,
+    backgroundColor: colors.text,
+  },
   counter: { alignItems: 'flex-end' },
   claim: { gap: space[4] },
   statusCard: { alignItems: 'center' },
   evidenceRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: space[3],
+    gap: space[4],
   },
+  // 증빙 타일 84 r12 2px 잉크 + 3px (`.lf-proof--thumb`). 그림자가 잘리지 않게 overflow 는 이미지가 맡는다
   evidenceTile: {
-    width: size.evidenceThumb,
-    height: size.evidenceThumb,
-    borderRadius: radius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outlineStrong,
-    backgroundColor: colors.surfaceMuted,
+    width: size.thumbLg,
+    height: size.thumbLg,
+    borderRadius: radius['2xl'],
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    gap: space[1],
+    ...elevation.sm,
   },
+  // 사진 추가 — 점선 2px, 면·그림자 없음 (`.lf-proof--dashed`)
   evidenceAdd: {
     borderStyle: 'dashed',
-    backgroundColor: colors.background,
-    gap: space[2],
+    borderColor: colors.outlineStrong,
+    backgroundColor: 'transparent',
+    boxShadow: [],
   },
-  evidenceFileName: { width: size.evidenceThumb, marginTop: space[1] },
+  evidenceFileName: { width: size.thumbLg, marginTop: space[1] },
   evidenceImage: {
     width: '100%',
     height: '100%',
+    borderRadius: radius['2xl'] - border.chip,
   },
+  // 타일 우상단 제거 버튼 22 잉크 원 — hitSlop 으로 48 (`.lf-proof__remove`)
   evidenceRemove: {
     position: 'absolute',
     top: -space[3],
     right: -space[3],
-    minWidth: size.touchMin,
-    minHeight: size.touchMin,
+    width: REMOVE_SIZE,
+    height: REMOVE_SIZE,
     borderRadius: radius.pill,
-    backgroundColor: colors.textSecondary,
+    backgroundColor: colors.text,
     alignItems: 'center',
     justifyContent: 'center',
   },
   // 제거 버튼과 좌우 대칭인 좌상단 자리. left/right 를 동시에 주면 버튼이 늘어나므로
   // 우측 기준 오프셋 하나로 계산한다.
   evidenceRetryOffset: {
-    right: size.evidenceThumb - size.touchMin + space[3],
+    right: size.thumbLg - REMOVE_SIZE + space[3],
   },
   evidenceStatus: {
     position: 'absolute',
@@ -163,11 +197,14 @@ const styles = StyleSheet.create({
     bottom: space[1],
     padding: space[1],
     borderRadius: radius.xs,
-    backgroundColor: colors.surfaceChrome,
+    backgroundColor: colors.surface,
   },
   evidencePlaceholder: {
     padding: space[2],
   },
+  // 상대 응답 대기 행 — flat 카드 (`.lf-partner-status`)
+  partnerRow: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
+  partnerText: { flex: 1, minWidth: 0 },
 });
 
 type UploadStatus = 'UPLOADING' | 'READY' | 'FAILED';
@@ -223,20 +260,18 @@ function AnswerChoice({
       onPress={onPress}
       style={[styles.answer, selected && styles.answerSelected]}
     >
-      <LfIcon
-        name={answer === 'KEPT' ? 'check_circle' : 'cancel'}
-        color={selected ? 'primary' : 'textMuted'}
-      />
-      <View style={styles.answerText}>
-        <LfText variant="subtitle">{LABEL.answer[answer]}</LfText>
-        <LfText variant="disclaimer">
-          {LABEL.answerSubtitle[answer]}
-        </LfText>
-      </View>
-      <LfIcon
-        name={selected ? 'radio_button_checked' : 'radio_button_unchecked'}
-        color={selected ? 'primary' : 'outlineIcon'}
-      />
+      {/* 선택(옐로 면)되면 부제도 잉크로 — 색만으로 구분하지 않고 라디오 점이 함께 말한다 */}
+      <LfInkContext.Provider value={selected}>
+        <LfStatusTile
+          icon={answer === 'KEPT' ? 'check' : 'close'}
+          tone={answer === 'KEPT' ? 'mint' : 'pink'}
+        />
+        <View style={styles.answerText}>
+          <LfText variant="stamp">{LABEL.answer[answer]}</LfText>
+          <LfText variant="disclaimer">{LABEL.answerSubtitle[answer]}</LfText>
+        </View>
+        <View style={styles.radio}>{selected ? <View style={styles.radioDot} /> : null}</View>
+      </LfInkContext.Provider>
     </Pressable>
   );
 }
@@ -306,7 +341,7 @@ function EvidenceViewTile({
         }}
       >
         {thumbnailUrl === null ? (
-          <LfIcon name="image" color="textMuted" />
+          <LfIcon name="image" size={PROOF_ICON} color="text" />
         ) : (
           <Image
             testID={`evidence-image-${evidence.evidence_id}`}
@@ -321,10 +356,11 @@ function EvidenceViewTile({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={LABEL.evidenceRemove(evidence.evidence_id)}
+          hitSlop={REMOVE_HIT_SLOP}
           onPress={onRemove}
           style={styles.evidenceRemove}
         >
-          <LfIcon name="close" color="onPrimary" />
+          <LfIcon name="close" size={REMOVE_ICON} color="onAction" />
         </Pressable>
       )}
     </View>
@@ -363,23 +399,25 @@ function LocalEvidenceTile({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={LABEL.evidenceRetry}
+          hitSlop={REMOVE_HIT_SLOP}
           onPress={onRetry}
           style={[styles.evidenceRemove, styles.evidenceRetryOffset]}
         >
-          <LfIcon name="refresh" color="onPrimary" />
+          <LfIcon name="refresh" size={REMOVE_ICON} color="onAction" />
         </Pressable>
       )}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={LABEL.evidenceRemove(upload.local_id)}
         disabled={upload.status === 'UPLOADING'}
+        hitSlop={REMOVE_HIT_SLOP}
         onPress={onRemove}
         style={styles.evidenceRemove}
       >
-        <LfIcon name="close" color="onPrimary" />
+        <LfIcon name="close" size={REMOVE_ICON} color="onAction" />
       </Pressable>
       <View style={styles.evidenceFileName}>
-        <LfText variant="disclaimer" align="center" numberOfLines={1}>
+        <LfText variant="eyebrow" align="center" numberOfLines={1}>
           {upload.asset.file_name}
         </LfText>
       </View>
@@ -400,7 +438,8 @@ function ClaimCard({ check }: { check: FulfillmentCheckView }): React.JSX.Elemen
           </View>
           <LfChip
             label={LABEL.answer[check.answer]}
-            tone="yellow"
+            tone="paper"
+            kind="status"
           />
         </LfRow>
         <LfText>
@@ -916,15 +955,15 @@ export default function FulfillmentScreen(): React.JSX.Element {
   return (
     <ScreenFrame onBack={() => router.back()}>
       <ScrollView contentContainerStyle={styles.body}>
-        <LfCard>
-          <LfStack gap={3}>
-            <LfText variant="subtitle">{detail.title}</LfText>
-            <LfText variant="caption">
+        <LfCard tone="muted" shadow={false}>
+          <LfStack gap={1}>
+            <LfText variant="bodyStrong">{detail.title}</LfText>
+            <LfText variant="meta">
               {detail.end_date === null
                 ? LABEL.noEndDate
                 : `${LABEL.endDate(formatKstDate(detail.end_date, locale))}${KST_MARK}`}
             </LfText>
-            <LfText variant="caption">
+            <LfText variant="meta">
               {LABEL.keeper(detail.keeper)}
             </LfText>
           </LfStack>
@@ -939,12 +978,8 @@ export default function FulfillmentScreen(): React.JSX.Element {
         {showForm && (
           <>
             <View style={styles.question}>
-              <LfText variant="headline" align="center">
-                {LABEL.question}
-              </LfText>
-              <LfText variant="caption" align="center">
-                {LABEL.sameQuestion}
-              </LfText>
+              <LfText variant="title">{LABEL.question}</LfText>
+              <LfText variant="bodySm" secondary>{LABEL.sameQuestion}</LfText>
             </View>
             <LfStack
               gap={4}
@@ -983,7 +1018,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
                 }}
               />
               <View style={styles.counter}>
-                <LfText variant="caption">
+                <LfText variant="meta">
                   {commentLength}/{FULFILLMENT_COMMENT_MAX}
                 </LfText>
               </View>
@@ -1018,14 +1053,14 @@ export default function FulfillmentScreen(): React.JSX.Element {
                     style={[styles.evidenceTile, styles.evidenceAdd]}
                     onPress={() => void addEvidence()}
                   >
-                    <LfIcon name="photo_camera" color="textMuted" />
-                    <LfText variant="caption">
+                    <LfIcon name="photo_camera" size={PROOF_ICON} color="textMuted" />
+                    <LfText variant="eyebrow">
                       {LABEL.evidenceAdd}
                     </LfText>
                   </Pressable>
                 )}
               </View>
-              <LfText variant="caption">{LABEL.evidenceHint}</LfText>
+              <LfText variant="meta" secondary>{LABEL.evidenceHint}</LfText>
               {evidenceMessages.map((message) => (
                 <LfText key={message} variant="caption">
                   {message}
@@ -1047,8 +1082,20 @@ export default function FulfillmentScreen(): React.JSX.Element {
 
         {isChecking && detail.my_check !== null && !editing && (
           <LfStack gap={5}>
-            <LfCard tone="yellow">
-              <LfText align="center">{LABEL.waiting}</LfText>
+            <LfCard shadow={false}>
+              <View style={styles.partnerRow}>
+                <LfAvatar
+                  size="sm"
+                  pending
+                  nickname="?"
+                  profileImageUrl={null}
+                  accessibilityLabel={LABEL.role(counterpartRole)}
+                />
+                <View style={styles.partnerText}>
+                  <LfText variant="note">{LABEL.waiting}</LfText>
+                </View>
+                <LfIcon name="hourglass_empty" size={PARTNER_ICON} color="textMuted" />
+              </View>
             </LfCard>
             <ClaimCard check={detail.my_check} />
             {detail.my_check.revised_at === null &&
@@ -1073,7 +1120,8 @@ export default function FulfillmentScreen(): React.JSX.Element {
             <View style={styles.statusCard}>
               <LfChip
                 label={LABEL.status(detail.status)}
-                tone="yellow"
+                tone={statusToneOf(detail.status)}
+                kind="status"
               />
             </View>
             {detail.status === 'DISPUTED' && (
@@ -1126,7 +1174,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
           <LfButton
             label={editing ? LABEL.reviseSubmit : LABEL.submit}
             size="cta"
-            block
+            trailing="check"
             disabled={
               answer === null || commentInvalid || evidenceUploading || busy
             }

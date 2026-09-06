@@ -236,7 +236,7 @@ describe('LfStack / LfRow', () => {
 });
 
 describe('LfButton — 접근성 하한이 최우선이다', () => {
-  const variants = ['filled', 'tonal', 'outlined', 'text', 'kakao', 'google', 'danger'] as const;
+  const variants = ['filled', 'tonal', 'outlined', 'text', 'kakao', 'kakaoLogin', 'google', 'danger'] as const;
 
   test('장식 아이콘은 버튼 이름에 섞이지 않고 명시한 접근성 이름은 유지한다', async () => {
     const view = await render(<>
@@ -315,9 +315,15 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
     expect((styleOf(view, 'b') as ViewStyle).boxShadow).toEqual([]);
   });
 
-  test('kakao 는 카카오 공식 버튼 색을 쓴다', async () => {
-    const view = await render(<LfButton testID="b" variant="kakao" label="카카오로 시작하기" />);
+  test('kakao 는 카카오 공식 버튼 색을 쓰고, 공유(3px)와 로그인(5px)은 그림자만 다르다', async () => {
+    const view = await render(<>
+      <LfButton testID="b" variant="kakao" label="초대 링크 공유하기" />
+      <LfButton testID="login" variant="kakaoLogin" label="카카오로 시작하기" />
+    </>);
     expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.kakao);
+    expect((styleOf(view, 'login') as ViewStyle).backgroundColor).toBe(colors.kakao);
+    expect(styleOf(view, 'b')).toMatchObject(elevation.sm);
+    expect(styleOf(view, 'login')).toMatchObject(elevation.card);
   });
 
   test('google 은 구글 공식 배경·글자색을 지키고 테두리만 2.5 잉크 블록이다', async () => {

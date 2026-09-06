@@ -264,7 +264,7 @@ export default function LoginScreen(): React.JSX.Element {
         <View style={styles.actions}>
           <LfStack gap={6}>
             <LfButton
-              variant="kakao"
+              variant="kakaoLogin"
               size="cta"
               block
               label={LABEL.kakaoCta}

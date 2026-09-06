@@ -6,7 +6,7 @@ import { LfIcon, type LfIconName } from './LfIcon';
 import { LfMascotFace } from './LfMascot';
 
 export type LfButtonVariant =
-  | 'filled' | 'tonal' | 'outlined' | 'text' | 'kakao' | 'google' | 'danger';
+  | 'filled' | 'tonal' | 'outlined' | 'text' | 'kakao' | 'kakaoLogin' | 'google' | 'danger';
 export type LfButtonSize = 'default' | 'cta' | 'compact';
 
 export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children' | 'hitSlop'> {
@@ -61,8 +61,15 @@ const container = StyleSheet.create({
     ...elevation.sm,
   },
   text: { minHeight: size.touchMin, paddingHorizontal: 0, backgroundColor: 'transparent' },
-  // 앱의 카카오 버튼은 A01 로그인뿐이라 README 의 로그인 5px 그림자를 쓴다
+  // 카카오 54h `#FEE500` r14 + 3px (A04 공유) · 로그인 A01 은 주 CTA 라 5px (`.lf-btn--kakao-login`)
   kakao: {
+    minHeight: size.kakaoHeight,
+    backgroundColor: colors.kakao,
+    borderWidth: border.sheet,
+    borderColor: colors.text,
+    ...elevation.sm,
+  },
+  kakaoLogin: {
     minHeight: size.kakaoHeight,
     backgroundColor: colors.kakao,
     borderWidth: border.sheet,
@@ -104,6 +111,7 @@ const minHeightOf: Record<LfButtonVariant, number> = {
   outlined: size.actionHeight,
   text: size.touchMin,
   kakao: size.kakaoHeight,
+  kakaoLogin: size.kakaoHeight,
   google: GOOGLE_HEIGHT,
   danger: size.actionHeight,
 };
@@ -114,7 +122,8 @@ const pressedShadow: Record<LfButtonVariant, typeof PRESSED_SHADOW | typeof NO_S
   tonal: NO_SHADOW,
   outlined: NO_SHADOW,
   text: NO_SHADOW,
-  kakao: PRESSED_SHADOW,
+  kakao: NO_SHADOW,
+  kakaoLogin: PRESSED_SHADOW,
   google: NO_SHADOW,
   danger: NO_SHADOW,
 };
@@ -125,6 +134,7 @@ const labelColor: Record<LfButtonVariant, string> = {
   outlined: colors.text,
   text: colors.text,
   kakao: colors.onKakao,
+  kakaoLogin: colors.onKakao,
   google: colors.onGoogle,
   danger: colors.error,
 };
@@ -135,6 +145,7 @@ const labelWeight: Record<LfButtonVariant, TextFontWeight> = {
   outlined: weight.bold,
   text: weight.bold,
   kakao: weight.bold,
+  kakaoLogin: weight.bold,
   google: weight.medium,
   danger: weight.bold,
 };
@@ -145,6 +156,7 @@ const labelSize: Record<LfButtonVariant, number> = {
   outlined: type.label,
   text: type.label,
   kakao: type.appbar,
+  kakaoLogin: type.appbar,
   google: type.bodyLg,
   danger: type.label,
 };

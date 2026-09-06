@@ -1,6 +1,7 @@
-import { StyleSheet, View, type ViewProps } from 'react-native';
+import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 
-import { colors, border, elevation, radius, size, space } from '../theme/tokens';
+import { textFontFamily } from '../theme/fonts';
+import { colors, border, elevation, line, radius, size, space, type, weight } from '../theme/tokens';
 import { LfBlob } from './LfBlob';
 import { LfChip } from './LfChip';
 import { LfPinkyLoop } from './LfPinkyLoop';
@@ -11,6 +12,8 @@ export type LfStampVariant = 'active' | 'completed' | 'pending';
 export interface LfStampProps extends Omit<ViewProps, 'style' | 'children'> {
   variant: LfStampVariant;
   headline: string;
+  /** 헤드라인 아래 한 줄 설명 — 초대 대기(A04) "카톡으로 초대장을 보내면…" */
+  body?: string;
   time?: string;
   participants?: readonly string[];
   fingerprint?: string;
@@ -24,6 +27,7 @@ const SIDE_PADDING = 18;
 export function LfStamp({
   variant,
   headline,
+  body,
   time,
   participants = [],
   fingerprint,
@@ -40,6 +44,7 @@ export function LfStamp({
           <LfPinkyLoop size="sm" spark />
         </View>
         <LfText variant="stamp" align="center">{headline}</LfText>
+        {body === undefined ? null : <Text style={styles.body}>{body}</Text>}
         {time === undefined ? null : (
           <LfText variant={completed ? 'chip' : 'meta'} align="center">{time}</LfText>
         )}
@@ -86,6 +91,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   completedPill: { backgroundColor: colors.surface },
+  // `.lf-stamp__body` 12.5/18/500 보조 — LfText 에 같은 조합이 없어 토큰으로 직접 짠다
+  body: {
+    fontSize: type.caption,
+    lineHeight: line.caption,
+    fontFamily: textFontFamily(weight.medium),
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
   participants: {
     flexDirection: 'row',
     flexWrap: 'wrap',

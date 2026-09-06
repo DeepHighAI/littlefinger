@@ -1,6 +1,6 @@
 import { SLOT_PRICE_KRW_DEFAULT, type SlotStatusResponse } from '@littlefinger/shared';
 import { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useLabels } from '../lib/locale-native';
 import {
@@ -11,10 +11,10 @@ import {
 } from '../lib/slot-purchase-native.ts';
 import { loadSlotStatus } from '../lib/slots-native.ts';
 import { SLOT_LABEL } from '../screens/slot-labels.ts';
-import { border, colors, elevation, gutter, radius, size, space } from '../theme/tokens.ts';
+import { border, colors, radius, size, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
+import { LfCard } from './LfCard.tsx';
 import { LfIcon } from './LfIcon.tsx';
-import { LfRow } from './LfRow.tsx';
 import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
 import { LfText } from './LfText.tsx';
@@ -31,61 +31,20 @@ export interface SlotPaywallSheetProps {
 type Phase = 'loading' | 'ready' | 'error';
 
 const styles = StyleSheet.create({
-  scrim: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.scrim,
-  },
-  dismissArea: { flex: 1 },
-  sheet: {
-    paddingHorizontal: gutter.app,
-    paddingTop: space[5],
-    paddingBottom: space[9],
-    borderTopLeftRadius: radius['2xl'],
-    borderTopRightRadius: radius['2xl'],
-    backgroundColor: colors.surface,
-    ...elevation.sheet,
-    // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: border.sheet,
-    borderBottomWidth: 0,
-    borderColor: colors.text,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: size.iconButton,
-    height: space[1],
-    marginBottom: space[7],
-    borderRadius: radius.pill,
-    backgroundColor: colors.outlineStrong,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: space[3],
-  },
-  close: {
-    width: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.pill,
-  },
-  content: { gap: space[6], paddingTop: space[5] },
+  content: { gap: space[6] },
+  // 막힌 이유 안내 — 핑크 r10 2px 잉크, 그림자 없음 (`.lf-slot-sheet__notice`)
   notice: {
-    padding: space[6],
-    borderRadius: radius.md,
+    paddingVertical: space[5],
+    paddingHorizontal: space[6],
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    borderRadius: radius.sm,
     backgroundColor: colors.attentionContainer,
   },
-  offer: {
-    padding: space[7],
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.outline,
-    gap: space[2],
-  },
+  usage: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
 });
 
+/** MOD-04 슬롯 결제 — 안내(핑크) · 현황 한 줄 · 구매 항목(옐로 카드) · 옐로 CTA. 재촉 문구 없음(§8) */
 export function SlotPaywallSheet({
   visible,
   reason,
@@ -153,61 +112,64 @@ export function SlotPaywallSheet({
 
   return (
     <LfSheet visible={visible} title={LABEL.sheetTitle} closeLabel={LABEL.close} onClose={onClose}>
-          <View style={styles.content}>
-            {phase === 'loading' && <LfText secondary>{LABEL.loading}</LfText>}
+      <View style={styles.content}>
+        {phase === 'loading' && <LfText secondary>{LABEL.loading}</LfText>}
 
-            {phase === 'error' && (
-              <LfStack gap={4}>
-                <LfText variant="error">{LABEL.loadError}</LfText>
-                <LfButton
-                  label={LABEL.retry}
-                  variant="outlined"
-                  block
-                  onPress={() => setLoadNonce((nonce) => nonce + 1)}
-                />
+        {phase === 'error' && (
+          <LfStack gap={4}>
+            <LfText variant="error">{LABEL.loadError}</LfText>
+            <LfButton
+              label={LABEL.retry}
+              variant="outlined"
+              block
+              onPress={() => setLoadNonce((nonce) => nonce + 1)}
+            />
+          </LfStack>
+        )}
+
+        {phase === 'ready' && status !== null && (
+          <>
+            {reason === 'limit' && !purchased && (
+              <View style={styles.notice}>
+                <LfText variant="note">{LABEL.fullNotice}</LfText>
+              </View>
+            )}
+
+            <View style={styles.usage}>
+              <LfIcon name="bookmark" size={size.appbarIcon} />
+              <LfText
+                variant="bodyStrong"
+                accessibilityLabel={LABEL.usageAccessibility(status.used, status.capacity)}
+              >
+                {LABEL.usage(status.used, status.capacity)}
+              </LfText>
+            </View>
+            <LfText variant="caption">{LABEL.explain}</LfText>
+
+            <LfCard tone="yellow">
+              <LfStack gap={1}>
+                <LfText variant="stamp">{LABEL.addTitle}</LfText>
+                <LfText variant="note">{LABEL.addDescription}</LfText>
               </LfStack>
+            </LfCard>
+
+            {purchased && <LfText align="center">{LABEL.purchased}</LfText>}
+            {purchaseFailed && (
+              <LfText variant="error" align="center">
+                {LABEL.purchaseError}
+              </LfText>
             )}
-
-            {phase === 'ready' && status !== null && (
-              <>
-                {reason === 'limit' && !purchased && (
-                  <View style={styles.notice}>
-                    <LfText>{LABEL.fullNotice}</LfText>
-                  </View>
-                )}
-
-                <LfRow gap={4}>
-                  <LfIcon name="bookmark" color="primary" />
-                  <LfText
-                    variant="subtitle"
-                    accessibilityLabel={LABEL.usageAccessibility(status.used, status.capacity)}
-                  >
-                    {LABEL.usage(status.used, status.capacity)}
-                  </LfText>
-                </LfRow>
-                <LfText secondary>{LABEL.explain}</LfText>
-
-                <View style={styles.offer}>
-                  <LfText variant="subtitle">{LABEL.addTitle}</LfText>
-                  <LfText variant="caption">{LABEL.addDescription}</LfText>
-                </View>
-
-                {purchased && <LfText align="center">{LABEL.purchased}</LfText>}
-                {purchaseFailed && (
-                  <LfText variant="error" align="center">
-                    {LABEL.purchaseError}
-                  </LfText>
-                )}
-                <LfButton
-                  label={busy ? LABEL.purchasing : LABEL.purchase(priceText)}
-                  size="cta"
-                  block
-                  disabled={busy}
-                  onPress={() => void buy()}
-                />
-              </>
-            )}
-          </View>
+            <LfButton
+              label={busy ? LABEL.purchasing : LABEL.purchase(priceText)}
+              size="cta"
+              block
+              trailing="arrow_forward"
+              disabled={busy}
+              onPress={() => void buy()}
+            />
+          </>
+        )}
+      </View>
     </LfSheet>
   );
 }

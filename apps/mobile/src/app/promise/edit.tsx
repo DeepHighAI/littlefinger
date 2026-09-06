@@ -15,7 +15,6 @@ import {
   Alert,
   BackHandler,
   Keyboard,
-  Pressable,
   ScrollView,
   StyleSheet,
   ToastAndroid,
@@ -33,7 +32,6 @@ import { LfChip } from '../../components/LfChip';
 import { LfChoice } from '../../components/LfChoice';
 import { LfField } from '../../components/LfField';
 import { LfHelper } from '../../components/LfHelper';
-import { LfIcon } from '../../components/LfIcon';
 import { LfInput } from '../../components/LfInput';
 import { LfPicker } from '../../components/LfPicker';
 import { LfRow } from '../../components/LfRow';
@@ -65,7 +63,7 @@ import {
   type PromiseDraftFields,
 } from '../../lib/promise-draft.ts';
 import { PROMISE_EDIT_LABEL } from '../../screens/promise-edit-labels.ts';
-import { colors, duration, gutter, size, space } from '../../theme/tokens';
+import { border, colors, duration, gutter, space } from '../../theme/tokens';
 
 const CATEGORIES = Object.keys(PROMISE_CATEGORY_LABEL) as PromiseCategory[];
 const KEEPERS = Object.keys(KEEPER_LABEL) as Keeper[];
@@ -81,39 +79,46 @@ export function editorStepForField(field: PromiseDraftField): 1 | 2 | 3 {
   return 3;
 }
 
+/** README 마법사 상단 18 · 작성 본문 상단 18 — 토큰 없음, ADR 0020 예외 */
+const WIZARD_TOP = 18;
+const BODY_TOP = 18;
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  close: {
-    minWidth: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progress: {
-    paddingHorizontal: gutter.app,
-    paddingTop: space[7],
-    paddingBottom: space[5],
-  },
+  // 마법사 막대 18 20 0 (`.lf-wizard`)
+  progress: { paddingTop: WIZARD_TOP, paddingHorizontal: space[8] },
   scroll: { flex: 1 },
-  body: { paddingHorizontal: gutter.app, paddingBottom: space[9], gap: space[6] },
-  stepCard: { gap: space[7] },
-  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space[3] },
+  // 작성 본문 18 20 24 16 · 카드 간 16 (`.lf-create__body`)
+  body: {
+    paddingTop: BODY_TOP,
+    paddingRight: space[8],
+    paddingBottom: space[9],
+    paddingLeft: gutter.app,
+    gap: space[7],
+  },
+  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
   cardText: { flex: 1 },
+  // 하단 액션 — 임시저장 밑줄 텍스트 왼쪽, 주 CTA 오른쪽 (`.lf-screen__actions--end`)
   actions: {
-    paddingHorizontal: gutter.app,
-    paddingTop: space[4],
-    paddingBottom: space[6],
+    paddingHorizontal: space[8],
+    paddingTop: space[5],
+    paddingBottom: space[7],
     gap: space[3],
-    backgroundColor: colors.surfaceChrome,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.outline,
+    backgroundColor: colors.background,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space[4],
   },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   reviewHeader: { flex: 1 },
   reviewRow: {
     paddingVertical: space[4],
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: border.dashed,
     borderBottomColor: colors.outline,
+    borderStyle: 'dashed',
     gap: space[2],
   },
 });
@@ -449,7 +454,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     : (direction === 1 ? FadeInRight : FadeInLeft).duration(duration.medium);
 
   const stepOne = (
-    <LfCard flat><LfStack gap={7}>
+    <LfCard><LfStack gap={7}>
       <LfField label={LABEL.titleField} required error={errorFor('title')}>
         <LfInput
           accessibilityLabel={LABEL.titleField}
@@ -485,76 +490,80 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   );
 
   const stepTwo = (
-    <LfCard flat><LfStack gap={7}>
-      <LfField label={LABEL.endDate} required error={errorFor('end_date')}>
-        <LfPicker
-          accessibilityLabel={LABEL.endDatePicker}
-          value={draft.end_date === '' ? undefined : draft.end_date === null ? LABEL.noEndDate : draft.end_date}
-          placeholder={LABEL.endDatePicker}
-          onPress={() => {
-            touch('end_date');
-            openEndDatePicker(draft.end_date, (value) => updateDraft('end_date', value));
-          }}
-        />
-        <LfText variant="caption">{LABEL.durationNotice(END_DATE_FREE_DAYS)}</LfText>
-      </LfField>
-      <LfField label={LABEL.keeper} required error={errorFor('keeper')}>
-        <View style={styles.choices}>
-          {KEEPERS.map((keeper) => (
-            <LfChoice
-              key={keeper}
-              label={KEEPER_LABEL_BY_LOCALE[locale][keeper]}
-              selected={draft.keeper === keeper}
-              onPress={() => updateDraft('keeper', keeper)}
-            />
-          ))}
-        </View>
-      </LfField>
-      <LfField label={LABEL.reward} optional error={errorFor('reward')}>
-        <View style={styles.choices}>
-          {rewardPresets(locale).map((preset) => (
-            <LfChoice
-              key={preset}
-              label={preset}
-              selected={draft.reward === preset}
-              onPress={() => updateDraft('reward', preset)}
-            />
-          ))}
-        </View>
-        <View ref={rewardInputAnchorRef} collapsable={false} testID="reward-input-anchor">
-          <LfInput
-            accessibilityLabel={LABEL.reward}
-            value={draft.reward}
-            maxLength={100}
-            onFocus={() => focusConditionInput('reward')}
-            onBlur={() => touch('reward')}
-            onChangeText={(value) => updateDraft('reward', value)}
+    <LfStack gap={7}>
+      <LfCard><LfStack gap={7}>
+        <LfField label={LABEL.endDate} required error={errorFor('end_date')}>
+          <LfPicker
+            accessibilityLabel={LABEL.endDatePicker}
+            value={draft.end_date === '' ? undefined : draft.end_date === null ? LABEL.noEndDate : draft.end_date}
+            placeholder={LABEL.endDatePicker}
+            onPress={() => {
+              touch('end_date');
+              openEndDatePicker(draft.end_date, (value) => updateDraft('end_date', value));
+            }}
           />
-        </View>
-      </LfField>
-      <LfField label={LABEL.penalty} optional error={errorFor('penalty')}>
-        <View style={styles.choices}>
-          {penaltyPresets(locale).map((preset) => (
-            <LfChoice
-              key={preset}
-              label={preset}
-              selected={draft.penalty === preset}
-              onPress={() => updateDraft('penalty', preset)}
+          <LfText variant="meta">{LABEL.durationNotice(END_DATE_FREE_DAYS)}</LfText>
+        </LfField>
+        <LfField label={LABEL.keeper} required error={errorFor('keeper')}>
+          <View style={styles.choices}>
+            {KEEPERS.map((keeper) => (
+              <LfChoice
+                key={keeper}
+                label={KEEPER_LABEL_BY_LOCALE[locale][keeper]}
+                selected={draft.keeper === keeper}
+                onPress={() => updateDraft('keeper', keeper)}
+              />
+            ))}
+          </View>
+        </LfField>
+      </LfStack></LfCard>
+      <LfCard><LfStack gap={7}>
+        <LfField label={LABEL.reward} optional error={errorFor('reward')}>
+          <View style={styles.choices}>
+            {rewardPresets(locale).map((preset) => (
+              <LfChoice
+                key={preset}
+                label={preset}
+                selected={draft.reward === preset}
+                onPress={() => updateDraft('reward', preset)}
+              />
+            ))}
+          </View>
+          <View ref={rewardInputAnchorRef} collapsable={false} testID="reward-input-anchor">
+            <LfInput
+              accessibilityLabel={LABEL.reward}
+              value={draft.reward}
+              maxLength={100}
+              onFocus={() => focusConditionInput('reward')}
+              onBlur={() => touch('reward')}
+              onChangeText={(value) => updateDraft('reward', value)}
             />
-          ))}
-        </View>
-        <View ref={penaltyInputAnchorRef} collapsable={false} testID="penalty-input-anchor">
-          <LfInput
-            accessibilityLabel={LABEL.penalty}
-            value={draft.penalty}
-            maxLength={100}
-            onFocus={() => focusConditionInput('penalty')}
-            onBlur={() => touch('penalty')}
-            onChangeText={(value) => updateDraft('penalty', value)}
-          />
-        </View>
-      </LfField>
-    </LfStack></LfCard>
+          </View>
+        </LfField>
+        <LfField label={LABEL.penalty} optional error={errorFor('penalty')}>
+          <View style={styles.choices}>
+            {penaltyPresets(locale).map((preset) => (
+              <LfChoice
+                key={preset}
+                label={preset}
+                selected={draft.penalty === preset}
+                onPress={() => updateDraft('penalty', preset)}
+              />
+            ))}
+          </View>
+          <View ref={penaltyInputAnchorRef} collapsable={false} testID="penalty-input-anchor">
+            <LfInput
+              accessibilityLabel={LABEL.penalty}
+              value={draft.penalty}
+              maxLength={100}
+              onFocus={() => focusConditionInput('penalty')}
+              onBlur={() => touch('penalty')}
+              onChangeText={(value) => updateDraft('penalty', value)}
+            />
+          </View>
+        </LfField>
+      </LfStack></LfCard>
+    </LfStack>
   );
 
   const stepThree = (
@@ -623,7 +632,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         leading={step === 1 ? 'close' : 'back'}
         leadingAccessibilityLabel={step === 1 ? LABEL.close : LABEL.previous}
         onLeadingPress={previousStep}
-        actions={<LfChip label={LABEL.stepCount(step)} tone="paper" kind="status" />}
+        actions={<LfChip label={LABEL.editing} tone="yellow" kind="status" />}
       />
       <View style={styles.progress}><LfWizardProgress step={step} labels={steps} /></View>
       <ScrollView
@@ -654,30 +663,31 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       <View style={styles.actions}>
         {formNotice !== null && <LfText variant="error" align="center">{formNotice}</LfText>}
         {submitError !== null && <LfText variant="error" align="center">{submitError}</LfText>}
-        <LfButton
-          label={LABEL.save}
-          variant="text"
-          block
-          disabled={submitting}
-          onPress={() => submit(false)}
-        />
-        {step < 3 ? (
+        <View style={styles.actionRow}>
           <LfButton
-            label={step === 1 ? LABEL.nextConditions : LABEL.nextReview}
-            size="cta"
-            block
+            label={LABEL.save}
+            variant="text"
             disabled={submitting}
-            onPress={nextStep}
+            onPress={() => submit(false)}
           />
-        ) : (
-          <LfButton
-            label={LABEL.send}
-            size="cta"
-            block
-            disabled={submitting}
-            onPress={() => submit(true)}
-          />
-        )}
+          {step < 3 ? (
+            <LfButton
+              label={step === 1 ? LABEL.nextConditions : LABEL.nextReview}
+              size="cta"
+              trailing="arrow_forward"
+              disabled={submitting}
+              onPress={nextStep}
+            />
+          ) : (
+            <LfButton
+              label={LABEL.send}
+              size="cta"
+              trailing="send"
+              disabled={submitting}
+              onPress={() => submit(true)}
+            />
+          )}
+        </View>
       </View>
       <SlotPaywallSheet
         visible={slotSheetOpen}

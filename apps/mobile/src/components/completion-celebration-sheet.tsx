@@ -2,26 +2,14 @@ import {
   completionKeepRateLabel,
   type CompletionCelebrationView,
 } from '@littlefinger/shared';
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useLabels, useLocale } from '../lib/locale-native';
 import { MOD_03_LABEL } from '../screens/mod-03-completion-celebration-labels.ts';
-import {
-  border,
-  colors,
-  elevation,
-  gutter,
-  radius,
-  size,
-  space,
-} from '../theme/tokens.ts';
+import { border, colors, elevation, radius, size, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
 import { LfIcon } from './LfIcon.tsx';
+import { LfOval } from './LfOval.tsx';
 import { LfPinkyLoop } from './LfPinkyLoop.tsx';
 import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
@@ -36,61 +24,27 @@ export interface CompletionCelebrationSheetProps {
   onShare(): void;
 }
 
+/** README 지킴율 변화 칩 아이콘 16 — 토큰 없음, ADR 0020 예외 */
+const STAT_ICON = 16;
+
 const styles = StyleSheet.create({
-  scrim: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.scrim,
-  },
-  dismissArea: { flex: 1 },
-  sheet: {
-    alignItems: 'center',
-    paddingHorizontal: gutter.app,
-    paddingTop: space[5],
-    paddingBottom: space[9],
-    borderTopLeftRadius: radius['2xl'],
-    borderTopRightRadius: radius['2xl'],
-    backgroundColor: colors.primaryContainer,
-    ...elevation.sheet,
-    // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: border.sheet,
-    borderBottomWidth: 0,
-    borderColor: colors.text,
-  },
-  handle: {
-    width: size.iconButton,
-    height: space[1],
-    borderRadius: radius.pill,
-    backgroundColor: colors.outlineStrong,
-  },
-  close: {
-    position: 'absolute',
-    top: space[5],
-    right: gutter.app,
-    width: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.pill,
-  },
-  content: {
-    width: '100%',
-    alignItems: 'center',
-    paddingTop: space[7],
-  },
+  // 지킴율 변화 칩 34h r8 옐로 2px 잉크 + 3px (`.lf-stat-change`)
   rate: {
-    minHeight: size.touchMin,
+    height: size.tabHeight,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: space[3],
-    paddingHorizontal: space[7],
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
+    gap: space[2],
+    paddingHorizontal: space[6],
+    borderRadius: radius.xs,
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    backgroundColor: colors.primaryContainer,
+    ...elevation.sm,
   },
   actions: { width: '100%' },
 });
 
+/** MOD-03 완료 축하 — 가운데 정렬 종이 시트, 옐로 타원 마스코트 + 손 루프, 24/900 제목 */
 export function CompletionCelebrationSheet({
   visible,
   celebration,
@@ -113,52 +67,57 @@ export function CompletionCelebrationSheet({
       scrimTestID="completion-celebration-scrim"
       sheetTestID="completion-celebration-sheet"
       centered
+      art={
+        <LfOval variant="celebrate">
+          <LfPinkyLoop
+            size="eyes"
+            variant="solid"
+            spark
+            accessibilityLabel={LABEL.pinky}
+            testID="completion-celebration-pinky"
+          />
+        </LfOval>
+      }
     >
-        {celebration !== null ? (
-            <View style={styles.content}>
-              <LfStack gap={5} center>
-                <LfPinkyLoop
-                  size="lg"
-                  accessibilityLabel={LABEL.pinky}
-                  testID="completion-celebration-pinky"
-                />
-                <LfStack gap={2} center>
-                  <LfText secondary align="center">
-                    {LABEL.complete(celebration.title)}
-                  </LfText>
-                  <LfText secondary align="center">
-                    {LABEL.highFive(celebration.counterpart_nickname)}
-                  </LfText>
-                </LfStack>
-                <View style={styles.rate}>
-                  <LfIcon name="trending_up" color="primary" />
-                  <LfText>
-                    {completionKeepRateLabel(
-                      celebration.keep_rate_before,
-                      celebration.keep_rate_after,
-                      locale,
-                    )}
-                  </LfText>
-                </View>
-                <View style={styles.actions}>
-                  <LfStack gap={2}>
-                    <LfButton
-                      label={LABEL.newPromise}
-                      size="cta"
-                      block
-                      onPress={onNewPromise}
-                    />
-                    <LfButton
-                      label={LABEL.share}
-                      variant="text"
-                      block
-                      onPress={onShare}
-                    />
-                  </LfStack>
-                </View>
-              </LfStack>
-            </View>
-        ) : null}
+      {celebration !== null ? (
+        <>
+          <LfStack gap={1} center>
+            <LfText variant="bodySm" secondary align="center">
+              {LABEL.complete(celebration.title)}
+            </LfText>
+            <LfText variant="bodySm" secondary align="center">
+              {LABEL.highFive(celebration.counterpart_nickname)}
+            </LfText>
+          </LfStack>
+          <View style={styles.rate}>
+            <LfIcon name="trending_up" size={STAT_ICON} />
+            <LfText variant="note">
+              {completionKeepRateLabel(
+                celebration.keep_rate_before,
+                celebration.keep_rate_after,
+                locale,
+              )}
+            </LfText>
+          </View>
+          <View style={styles.actions}>
+            <LfStack gap={2}>
+              <LfButton
+                label={LABEL.newPromise}
+                size="cta"
+                block
+                trailing="add"
+                onPress={onNewPromise}
+              />
+              <LfButton
+                label={LABEL.share}
+                variant="text"
+                block
+                onPress={onShare}
+              />
+            </LfStack>
+          </View>
+        </>
+      ) : null}
     </LfSheet>
   );
 }

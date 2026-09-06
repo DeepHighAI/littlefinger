@@ -4,18 +4,18 @@ import {
 } from '@littlefinger/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfAppBar } from '../components/LfAppBar';
 import { LfButton } from '../components/LfButton';
 import { LfCard } from '../components/LfCard';
 import { LfChip } from '../components/LfChip';
-import { LfIcon } from '../components/LfIcon';
-import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
 import { LfStamp } from '../components/LfStamp';
+import { LfStatusTile } from '../components/LfStatusTile';
 import { LfText } from '../components/LfText';
+import { KakaoMark } from '../components/KakaoMark';
 import { SlotPaywallSheet } from '../components/slot-paywall-sheet.tsx';
 import { WitnessInviteSheet } from '../components/witness-invite-sheet.tsx';
 import {
@@ -35,49 +35,60 @@ import {
 import { useLabels } from '../lib/locale-native';
 import { MobileApiError } from '../lib/mobile-api.ts';
 import { INVITE_LABEL } from '../screens/invite-labels.ts';
-import { colors, gutter, radius, size, space } from '../theme/tokens';
+import { border, colors, gutter, radius, size, space } from '../theme/tokens';
 
 const COUNTDOWN_REFRESH_MS = 60 * 1_000;
 const COPY_FEEDBACK_MS = 2_500;
 
 type InvitePhase = 'loading' | 'ready' | 'missing' | 'revoked' | 'error';
 
+/** README 본문 상단 22 — 토큰 없음, ADR 0020 예외 */
+const BODY_TOP = 22;
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  back: {
-    minWidth: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  // 본문 22 20 20 16 · 블록 간 14
   body: {
-    padding: gutter.app,
-    paddingBottom: space[9],
+    paddingTop: BODY_TOP,
+    paddingRight: space[8],
+    paddingBottom: space[8],
+    paddingLeft: gutter.app,
     gap: space[6],
   },
-  preview: {
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
-    padding: space[5],
-  },
+  eyebrow: { paddingHorizontal: space[1] },
+  // 카톡 말풍선 — 왼쪽 위만 각지고 나머지는 둥근 채팅 말풍선, 2px 잉크 (`.lf-kakao-bubble`)
   bubble: {
-    flex: 1,
-    borderRadius: radius.md,
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    borderTopLeftRadius: space[1],
+    borderTopRightRadius: radius.md,
+    borderBottomRightRadius: radius.md,
+    borderBottomLeftRadius: radius.md,
     backgroundColor: colors.surface,
-    padding: space[5],
+    paddingVertical: space[5],
+    paddingHorizontal: space[6],
+    gap: space[1],
   },
-  countdown: { flex: 1 },
+  // 말풍선 마지막 줄 "약속 확인하기" — 점선으로 나뉜 텍스트일 뿐 버튼이 아니다
+  bubbleCta: {
+    marginTop: space[2],
+    paddingTop: space[3],
+    borderTopWidth: border.dashed,
+    borderTopColor: colors.outline,
+    borderStyle: 'dashed',
+  },
+  countdownRow: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
+  countdown: { flex: 1, minWidth: 0 },
+  // 유효 시간 진행 막대 10h 필 · 2px 잉크 · 스카이 채움 (`.lf-progress`)
   progress: {
-    height: space[1],
+    height: size.progressHeight,
     borderRadius: radius.pill,
+    borderWidth: border.chip,
+    borderColor: colors.text,
     backgroundColor: colors.surfaceMuted,
     overflow: 'hidden',
   },
-  progressFill: {
-    height: '100%',
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-  },
+  progressFill: { height: '100%', backgroundColor: colors.recordContainer },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });
 
@@ -300,60 +311,60 @@ export default function InviteScreen(): React.JSX.Element {
         leading="back"
         leadingAccessibilityLabel={LABEL.back}
         onLeadingPress={() => router.push('/home')}
-        actions={<LfChip label={LABEL.waiting} tone="yellow" kind="status" />}
+        actions={<LfChip label={LABEL.waiting} tone="paper" kind="status" />}
       />
 
       <ScrollView contentContainerStyle={styles.body}>
-        <LfStamp variant="pending" headline={LABEL.headline} />
-        <LfText variant="caption" align="center">{LABEL.description}</LfText>
+        <LfStamp variant="pending" headline={LABEL.headline} body={LABEL.description} />
 
         {!needsIssue && invite !== null && (
           <>
-            <LfStack gap={3}>
-              <LfButton
-                label={shared ? LABEL.shareAgain : LABEL.share}
-                variant="filled"
-                size="cta"
-                block
-                disabled={busy}
-                onPress={() => void shareCurrent()}
-              />
-              <LfButton
-                label={copied ? LABEL.copied : LABEL.copy}
-                variant="tonal"
-                block
-                disabled={busy}
-                onPress={() => void copyCurrent()}
-              />
-            </LfStack>
+            <LfButton
+              label={shared ? LABEL.shareAgain : LABEL.share}
+              variant="kakao"
+              block
+              leading={<KakaoMark />}
+              disabled={busy}
+              onPress={() => void shareCurrent()}
+            />
+            <LfButton
+              label={copied ? LABEL.copied : LABEL.copy}
+              variant="outlined"
+              block
+              disabled={busy}
+              onPress={() => void copyCurrent()}
+            />
 
             <LfStack gap={3}>
-              <LfText variant="eyebrow">{LABEL.preview}</LfText>
-              <View style={styles.preview}>
-                <View style={styles.bubble}>
-                  <LfStack gap={3}>
-                    <LfText variant="subtitle">{LABEL.previewTitle(invite.title)}</LfText>
-                    <LfText variant="caption">{LABEL.linkCta}</LfText>
-                  </LfStack>
+              <View style={styles.eyebrow}><LfText variant="eyebrow">{LABEL.preview}</LfText></View>
+              <View style={styles.bubble}>
+                <LfText variant="label">{LABEL.previewTitle(invite.title)}</LfText>
+                <View style={styles.bubbleCta}>
+                  <LfText variant="note" align="center">{LABEL.linkCta}</LfText>
                 </View>
               </View>
             </LfStack>
 
             <LfCard>
               <LfStack gap={4}>
-                <LfRow gap={4}>
-                  <LfIcon name="schedule" color="primary" />
+                <View style={styles.countdownRow}>
+                  <LfStatusTile icon="schedule" tone="yellow" />
                   <View style={styles.countdown}>
-                    <LfText variant="caption">{LABEL.validTime}</LfText>
-                    <LfText variant="headline">
+                    <LfText variant="eyebrow">{LABEL.validTime}</LfText>
+                    <LfText variant="countdown">
                       {formatInviteCountdown(invite.expires_at, now)}
                     </LfText>
                   </View>
-                </LfRow>
-                <View style={styles.progress}>
+                </View>
+                <View
+                  accessibilityRole="progressbar"
+                  accessibilityLabel={LABEL.validTime}
+                  accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
+                  style={styles.progress}
+                >
                   <View style={[styles.progressFill, { width: `${progress}%` }]} />
                 </View>
-                <LfText variant="caption">{LABEL.linkNotice}</LfText>
+                <LfText variant="meta">{LABEL.linkNotice}</LfText>
               </LfStack>
             </LfCard>
 
@@ -370,7 +381,7 @@ export default function InviteScreen(): React.JSX.Element {
         {needsIssue && (
           <LfCard tone="yellow">
             <LfStack gap={5} center>
-              <LfIcon name="link_off" color="primary" />
+              <LfStatusTile icon="link_off" tone="paper" />
               <LfText variant="subtitle" align="center">
                 {phase === 'missing'
                   ? LABEL.missing
@@ -403,7 +414,7 @@ export default function InviteScreen(): React.JSX.Element {
         {witnessEnabled && promiseId !== null && (
           <LfButton
             label={LABEL.witnessInvite}
-            variant="tonal"
+            variant="outlined"
             block
             onPress={() => setWitnessSheetOpen(true)}
           />

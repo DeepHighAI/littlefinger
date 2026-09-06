@@ -10,6 +10,7 @@ export type LfTextVariant =
   | 'display'
   | 'headline'
   | 'title'
+  | 'titleHeavy'
   | 'sheetTitle'
   | 'cardTitle'
   | 'stamp'
@@ -25,6 +26,7 @@ export type LfTextVariant =
   | 'meta'
   | 'eyebrow'
   | 'chip'
+  | 'note'
   | 'countdown'
   | 'micro'
   | 'error'
@@ -76,6 +78,14 @@ const styles = StyleSheet.create<Record<LfTextVariant, TextStyle>>({
     fontSize: type.title,
     lineHeight: line.title,
     fontWeight: weight.bold,
+    letterSpacing: tracking(type.title, letterSpacing.tight),
+    color: colors.text,
+  },
+  // README 가 900 을 명시한 제목 — MOD-03 축하 (`.lf-title--heavy`)
+  titleHeavy: {
+    fontSize: type.title,
+    lineHeight: line.title,
+    fontWeight: weight.heavy,
     letterSpacing: tracking(type.title, letterSpacing.tight),
     color: colors.text,
   },
@@ -169,6 +179,13 @@ const styles = StyleSheet.create<Record<LfTextVariant, TextStyle>>({
   chip: {
     fontSize: type.meta,
     lineHeight: line.caption,
+    fontWeight: weight.bold,
+    color: colors.text,
+  },
+  // 13/19/800 잉크 — 안내 상자 · 말풍선 마지막 줄 · 응답 대기 행 · 구매 항목 메타
+  note: {
+    fontSize: type.chip,
+    lineHeight: CAPTION_LINE,
     fontWeight: weight.bold,
     color: colors.text,
   },

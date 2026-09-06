@@ -12,7 +12,10 @@ export interface LfSheetProps extends Pick<ModalProps, 'onShow' | 'testID'> {
   children: React.ReactNode;
   scrimTestID?: string;
   sheetTestID?: string;
+  /** 축하 시트(MOD-03) — 가운데 정렬, 제목 24/900 이 아트 아래에 오고 닫기는 우상단에 뜬다 */
   centered?: boolean;
+  /** centered 시트의 마스코트 아트 — 핸들과 제목 사이 */
+  art?: React.ReactNode;
 }
 
 /** README 시트 좌우 18 — 토큰 없음, ADR 0020 예외 */
@@ -30,6 +33,7 @@ export function LfSheet({
   scrimTestID,
   sheetTestID,
   centered = false,
+  art,
 }: LfSheetProps): React.JSX.Element {
   return (
     <Modal
@@ -54,10 +58,20 @@ export function LfSheet({
           accessibilityViewIsModal
         >
           <View style={styles.handle} />
-          <View style={styles.header}>
-            <View style={styles.title}><LfText variant="sheetTitle">{title}</LfText></View>
-            <LfIconButton icon="close" accessibilityLabel={closeLabel} onPress={onClose} />
-          </View>
+          {centered ? (
+            <>
+              <View style={styles.floatingClose}>
+                <LfIconButton icon="close" accessibilityLabel={closeLabel} onPress={onClose} />
+              </View>
+              {art}
+              <LfText variant="titleHeavy" align="center">{title}</LfText>
+            </>
+          ) : (
+            <View style={styles.header}>
+              <View style={styles.title}><LfText variant="sheetTitle">{title}</LfText></View>
+              <LfIconButton icon="close" accessibilityLabel={closeLabel} onPress={onClose} />
+            </View>
+          )}
           {children}
         </View>
       </View>
@@ -97,4 +111,6 @@ const styles = StyleSheet.create({
     gap: space[3],
   },
   title: { flex: 1 },
+  // 아트보드에는 닫기가 없지만 접근성 닫기 경로는 남긴다 — 핸들 줄 오른쪽에 띄운다
+  floatingClose: { position: 'absolute', top: space[4], right: SIDE_PADDING },
 });
