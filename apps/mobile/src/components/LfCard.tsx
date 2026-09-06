@@ -33,8 +33,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: 'transparent',
     padding: 0,
-    shadowOpacity: 0,
-    elevation: 0,
+    boxShadow: [],
   },
 });
 

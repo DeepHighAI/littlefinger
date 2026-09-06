@@ -33,11 +33,11 @@ describe('Pretendard 단일 서체 계약', () => {
     expect(sources).not.toMatch(/@fontsource\/(?:gaegu|roboto-mono)|@expo-google-fonts\/gaegu/u);
   });
 
-  it('굵기 토큰은 Pretendard 400·600·700·800과 일치한다', () => {
+  it('굵기 토큰은 Pretendard 500·600·800·900과 일치한다 (잉크 & 블록, 2026-09-06)', () => {
     const css = read('design-reference/styles/tokens.css');
-    expect(css).toMatch(/--lf-weight-regular:\s*400;/u);
+    expect(css).toMatch(/--lf-weight-regular:\s*500;/u);
     expect(css).toMatch(/--lf-weight-medium:\s*600;/u);
-    expect(css).toMatch(/--lf-weight-bold:\s*700;/u);
-    expect(css).toMatch(/--lf-weight-heavy:\s*800;/u);
+    expect(css).toMatch(/--lf-weight-bold:\s*800;/u);
+    expect(css).toMatch(/--lf-weight-heavy:\s*900;/u);
   });
 });

@@ -1,8 +1,8 @@
 /**
  * 폰트 패밀리 해석 — Android 가변 폰트 축의 불안정성을 피하는 04 §5-4 정적 파일 원칙.
  *
- * 모든 사용자 텍스트는 Pretendard 한 패밀리를 쓰되 정적 파일을 굵기별로 등록한다
- * (잉크 & 블록 2026-09-06: 500/600/800/900 — 400/700 은 토큰이 옮겨 가면 내린다). 스플래시가 로딩 완료까지 화면을 가리므로 시스템 폰트가 먼저
+ * 모든 사용자 텍스트는 Pretendard 한 패밀리를 쓰되 500/600/800/900 정적 파일을
+ * 굵기별로 등록한다(잉크 & 블록, 2026-09-06). 스플래시가 로딩 완료까지 화면을 가리므로 시스템 폰트가 먼저
  * 비치는 구간은 없다.
  *
  * 없는 패밀리 이름을 style 에 넣으면 안드로이드에서 렌더가 깨질 수 있으므로,
@@ -11,10 +11,8 @@
 
 /** `expo-font` 에 등록되는 패밀리 이름들. `FONT_ASSETS` 의 키와 1:1 이다. */
 export const TEXT_FONT_FILES = {
-  '400': 'Pretendard-Regular',
   '500': 'Pretendard-Medium',
   '600': 'Pretendard-SemiBold',
-  '700': 'Pretendard-Bold',
   '800': 'Pretendard-ExtraBold',
   '900': 'Pretendard-Black',
 } as const;

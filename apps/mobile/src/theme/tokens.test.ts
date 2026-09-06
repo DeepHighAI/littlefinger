@@ -108,9 +108,9 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 P7 소비자 정리 후 토큰 176개를 정의한다', () => {
-    // 2026-09-03: 117 + 타이포 13 + 자간 4 + 테두리 5 + 기울기 4 + 치수 40 + 모션 2.
-    expect(cssTokens.size).toBe(176);
+  test('canonical tokens.css 는 잉크 & 블록 전환 후 토큰 180개를 정의한다', () => {
+    // 2026-09-06: 파스텔 176 + 신설 4 (elevation-sm · type-appbar-size · status-tile · press-offset).
+    expect(cssTokens.size).toBe(180);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -175,7 +175,7 @@ describe('색상은 문자열 그대로 옮긴다', () => {
   });
 });
 
-describe('잉크&스티커 웹 토큰도 같은 계약을 쓴다', () => {
+describe('잉크 & 블록 웹 토큰도 같은 계약을 쓴다', () => {
   test('수락 웹의 모든 토큰 값이 확정안과 일치한다', () => {
     for (const [name, expected] of cssTokens) {
       expect(webCssTokens.get(name)).toBe(expected);
@@ -186,8 +186,8 @@ describe('잉크&스티커 웹 토큰도 같은 계약을 쓴다', () => {
     // 파스텔 위 글자는 잉크 — 색 글자는 폐지됐다 (PO 2026-09-03, D7).
     expect(webCssTokens.get('color-record')).toBe('#221C13');
     expect(webCssTokens.get('color-attention')).toBe('#221C13');
-    expect(webCssTokens.get('color-primary-container')).toBe('#FFE59A');
-    expect(webCssTokens.get('color-success-container')).toBe('#B7E1D1');
+    expect(webCssTokens.get('color-primary-container')).toBe('#FFD43B');
+    expect(webCssTokens.get('color-success-container')).toBe('#5FD3A5');
   });
 
   test('안내·응답·안읽음 상태가 역할 기반 색을 쓴다', () => {
@@ -394,7 +394,7 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
   });
 
   test('웨이트는 문자열이다 — RN fontWeight 가 문자열을 받는다', () => {
-    expect(weight).toEqual({ regular: '400', medium: '600', bold: '700', heavy: '800' });
+    expect(weight).toEqual({ regular: '500', medium: '600', bold: '800', heavy: '900' });
     for (const value of Object.values(weight)) {
       expect(typeof value).toBe('string');
     }
@@ -404,22 +404,30 @@ describe('RN 에서 모양이 달라지는 토큰', () => {
     expect(radius.pill).toBe(9999);
   });
 
-  test('그림자는 box-shadow 대신 객체다', () => {
-    // 스티커식 오프셋 섀도(블러 0) — 안드로이드는 elevation 근사로 그린다 (ADR 0012).
-    expect(elevation.card).toEqual({
-      shadowColor: '#221C13',
-      shadowOffset: { width: 3, height: 4 },
-      shadowOpacity: 0.14,
-      shadowRadius: 0,
-      elevation: 1,
-    });
-    expect(elevation.fab.shadowOffset).toEqual({ width: 3, height: 4 });
-    expect(elevation.fab.shadowRadius).toBe(0);
-    expect(elevation.fab.shadowOpacity).toBe(0.22);
-    expect(elevation.sheet.shadowColor).toBe('#221C13');
-    expect(elevation.sheet.shadowOffset).toEqual({ width: 0, height: -6 });
-    expect(elevation.sheet.shadowRadius).toBe(24);
-    expect(elevation.sheet.shadowOpacity).toBe(0.12);
+  test('그림자는 CSS box-shadow 를 RN boxShadow 배열로 옮긴다 (blur 0 · 잉크 100%)', () => {
+    // 잉크 & 블록의 하드 섀도는 안드로이드 elevation(흐린 회색)으로는 못 그린다 — New Architecture boxShadow 를 쓴다.
+    const shadows = [...cssTokens.entries()].filter(([n]) => n.startsWith('elevation-'));
+    expect(shadows.length).toBeGreaterThan(0);
+    for (const [name, cssValue] of shadows) {
+      const key = camel(name.replace('elevation-', '')) as keyof typeof elevation;
+      const parsed = cssValue.match(/^(\d+)px (\d+)px 0 (#[0-9A-Fa-f]{6})$/u);
+      expect(cssValue === 'none' || parsed !== null).toBe(true);
+      const expected = parsed
+        ? [
+            {
+              offsetX: Number(parsed[1]),
+              offsetY: Number(parsed[2]),
+              blurRadius: 0,
+              spreadDistance: 0,
+              color: parsed[3],
+            },
+          ]
+        : [];
+      expect(elevation[key].boxShadow).toEqual(expected);
+    }
+    expect(elevation.card.boxShadow[0]).toMatchObject({ offsetX: 5, offsetY: 5 });
+    expect(elevation.sm.boxShadow[0]).toMatchObject({ offsetX: 3, offsetY: 3 });
+    expect(elevation.sheet.boxShadow).toEqual([]);
   });
 
   test('이징은 베지어 계수 배열이다', () => {
@@ -449,26 +457,35 @@ describe('접근성 하한', () => {
     ['희미문/종이 표면', colors.textFaint, colors.surface],
     ['증빙문/뮤트 표면', colors.text, colors.surfaceMuted],
     ['지킴율 설명/옐로 카드', colors.primaryInk, colors.primaryContainer],
-    // 파스텔 4면 위 글자는 언제나 잉크 — 스티커 톤이 늘어도 이 쌍은 그대로 통과해야 한다.
+    // 4색 면 위 글자는 언제나 잉크 — 보조색은 4색 위에 쓰지 않는다(옐로 위 4.03, 잉크 & 블록 §2).
     ['잉크/옐로 스티커', colors.text, colors.primaryContainer],
     ['잉크/민트 스티커', colors.text, colors.successContainer],
     ['잉크/핑크 스티커', colors.text, colors.attentionContainer],
     ['잉크/스카이 스티커', colors.text, colors.recordContainer],
-    ['보조문/옐로 스티커 (읽지 않음 알림 부제)', colors.textSecondary, colors.primaryContainer],
+    ['보조문/뮤트 표면 (설정 묶음·읽기 전용 카드)', colors.textSecondary, colors.surfaceMuted],
   ] as const)('%s 텍스트 대비는 WCAG AA 4.5:1 이상이다', (_, foreground, background) => {
     expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
   });
 
   test.each([
-    ['크림 바탕', colors.background],
+    ['캔버스', colors.background],
     ['종이 표면', colors.surface],
-    ['옐로 스티커', colors.primaryContainer],
-    ['민트 스티커', colors.successContainer],
-    ['핑크 스티커', colors.attentionContainer],
-    ['스카이 스티커', colors.recordContainer],
-  ] as const)('포커스 링/%s 대비는 WCAG 비텍스트 기준 3:1 이상이다', (_, background) => {
+    ['뮤트 표면', colors.surfaceMuted],
+    ['옐로 면', colors.primaryContainer],
+  ] as const)('포커스 outline/%s 대비는 WCAG 비텍스트 기준 3:1 이상이다', (_, background) => {
+    // 입력·버튼이 놓이는 면 — 웹 outline 이 단독으로 포커스를 표시하는 곳.
     expect(contrastRatio(colors.focusRing, background)).toBeGreaterThanOrEqual(3);
     expect(colors.focusRing).not.toBe(colors.text);
+  });
+
+  test.each([
+    ['민트 면', colors.successContainer],
+    ['핑크 면', colors.attentionContainer],
+    ['스카이 면', colors.recordContainer],
+  ] as const)('채도 높은 %s 위의 포커스는 잉크 블록 섀도(elevation-sm)가 진다', (_, background) => {
+    // 파랑 outline 은 민트 2.80 · 핑크 1.96 · 스카이 2.38 로 3:1 미달 — 잉크 3px 3px 0 섀도가 포커스 표시다 (ADR 0020 편차).
+    expect(contrastRatio(colors.text, background)).toBeGreaterThanOrEqual(3);
+    expect(elevation.sm.boxShadow[0]?.color).toBe(colors.text);
   });
 
   test.each([
@@ -491,8 +508,8 @@ describe('접근성 하한', () => {
     expect(
       new Set([colors.recordContainer, colors.attentionContainer, colors.errorContainer]).size,
     ).toBe(3);
-    expect(colors.recordContainer).toBe('#A9D3FF');
-    expect(colors.attentionContainer).toBe('#FFB5C1');
+    expect(colors.recordContainer).toBe('#6CB4FF');
+    expect(colors.attentionContainer).toBe('#FF6F91');
     expect(colors.errorContainer).toBe('#F8DFDB');
     // 진행·완료(민트)는 브랜드(옐로)와도 구분된다 — 상태 도트가 색+텍스트로 읽히는 전제.
     expect(colors.successContainer).not.toBe(colors.primaryContainer);
@@ -517,5 +534,8 @@ describe('접근성 하한', () => {
     expect(size.kakaoHeight).toBe(unitless(cssTokens.get('kakao-height') ?? ''));
     expect(size.trustRing).toBe(unitless(cssTokens.get('trust-ring') ?? ''));
     expect(size.switchWidth).toBe(unitless(cssTokens.get('switch-width') ?? ''));
+    expect(size.statusTile).toBe(unitless(cssTokens.get('status-tile') ?? ''));
+    expect(size.pressOffset).toBe(unitless(cssTokens.get('press-offset') ?? ''));
+    expect(size.ddayCircle).toBe(unitless(cssTokens.get('dday-circle') ?? ''));
   });
 });

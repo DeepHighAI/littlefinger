@@ -10,10 +10,8 @@
 import { ICON_FONT_FAMILY } from './fonts';
 
 export const FONT_ASSETS = {
-  'Pretendard-Regular': require('../../assets/fonts/Pretendard-Regular.ttf') as number,
   'Pretendard-Medium': require('../../assets/fonts/Pretendard-Medium.ttf') as number,
   'Pretendard-SemiBold': require('../../assets/fonts/Pretendard-SemiBold.ttf') as number,
-  'Pretendard-Bold': require('../../assets/fonts/Pretendard-Bold.ttf') as number,
   'Pretendard-ExtraBold': require('../../assets/fonts/Pretendard-ExtraBold.ttf') as number,
   'Pretendard-Black': require('../../assets/fonts/Pretendard-Black.ttf') as number,
   [ICON_FONT_FAMILY]: require('../../assets/fonts/MaterialSymbolsRounded-subset.ttf') as number,

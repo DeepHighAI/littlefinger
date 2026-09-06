@@ -2,7 +2,8 @@ import type { NotificationInboxItem } from '@littlefinger/shared';
 import { act, cleanup, fireEvent, render, within } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
-import { colors } from '../theme/tokens.ts';
+import { textFontFamily } from '../theme/fonts.ts';
+import { colors, weight } from '../theme/tokens.ts';
 import {
   createNotificationReadIdempotencyKey,
   listNotificationInbox,
@@ -234,7 +235,7 @@ describe('SCR-A07 알림함', () => {
 
     const unreadLabel = view.getByTestId(`notification-unread-${FIRST_ID}`);
     expect(unreadLabel).toBeTruthy();
-    expect(StyleSheet.flatten(unreadLabel.props.style).fontFamily).toBe('Pretendard-Bold');
+    expect(StyleSheet.flatten(unreadLabel.props.style).fontFamily).toBe(textFontFamily(weight.bold));
     expect(view.getByTestId(`notification-dot-${FIRST_ID}`)).toBeTruthy();
     expect(view.queryByTestId(`notification-dot-${SECOND_ID}`)).toBeNull();
     expect(

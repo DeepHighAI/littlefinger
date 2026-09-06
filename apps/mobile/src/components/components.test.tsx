@@ -2,7 +2,18 @@ import { render, userEvent } from '@testing-library/react-native';
 import type { TextStyle, ViewStyle } from 'react-native';
 import * as Reanimated from 'react-native-reanimated';
 
-import { colors, letterSpacing, line, size, space, type, weight } from '../theme/tokens';
+import {
+  border,
+  colors,
+  letterSpacing,
+  line,
+  radius,
+  size,
+  space,
+  tilt,
+  type,
+  weight,
+} from '../theme/tokens';
 import { LfAppBar } from './LfAppBar';
 import { LfAvatar } from './LfAvatar';
 import { LfAvatarButton } from './LfAvatarButton';
@@ -367,7 +378,7 @@ describe('LfCard', () => {
     expect(styleOf(view, 'c')).toMatchObject({
       backgroundColor,
       borderColor: colors.text,
-      borderWidth: 2.2,
+      borderWidth: border.card,
       padding: size.cardPadding,
     });
   });
@@ -383,8 +394,8 @@ describe('LfCard', () => {
   test('list 모양과 hero 기울기를 함께 적용한다', async () => {
     const view = await render(<LfCard testID="c" shape="list" tilt="hero" />);
     expect(styleOf(view, 'c')).toMatchObject({
-      borderRadius: 20,
-      transform: [{ rotate: '-1.2deg' }],
+      borderRadius: radius.lg,
+      transform: [{ rotate: tilt.hero }],
     });
   });
 });
@@ -416,15 +427,15 @@ describe('LfChip / LfStatusDot', () => {
 });
 
 describe('Soft Promise 공통 컴포넌트', () => {
-  test('히어로는 r22 기울임 카드와 칩 타이포 D-Day를 쓴다', async () => {
+  test('히어로는 카드 토큰(둥글기·테두리·기울기)과 칩 타이포 D-Day를 쓴다', async () => {
     const view = await render(
       <LfHero testID="hero" eyebrow="가장 가까운 약속" title="함께 걷기" dday="D-3" />,
     );
     const hero = styleOf(view, 'hero') as ViewStyle;
-    expect(hero.borderRadius).toBe(22);
-    expect(hero.borderWidth).toBe(2.2);
+    expect(hero.borderRadius).toBe(radius.xl);
+    expect(hero.borderWidth).toBe(border.card);
     expect(hero.borderColor).toBe(colors.text);
-    expect(hero.transform).toEqual([{ rotate: '-1.2deg' }]);
+    expect(hero.transform).toEqual([{ rotate: tilt.hero }]);
     expect(flatten(view.getByText('D-3').props.style).fontSize).toBe(type.chip);
   });
 
