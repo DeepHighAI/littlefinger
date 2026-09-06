@@ -35,7 +35,10 @@ import {
   unreadNotificationIds,
 } from '../screens/scr-a07-notification-state.ts';
 import { textFontFamily } from '../theme/fonts';
-import { colors, gutter, radius, size, space, type, weight } from '../theme/tokens';
+import { colors, border, elevation, gutter, line, radius, size, space, type, weight } from '../theme/tokens';
+
+/** README 본문 위 22 — 토큰 없음, ADR 0020 예외 */
+const BODY_TOP = 22;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -59,32 +62,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   readAllText: {
-    color: colors.primary,
+    color: colors.text,
     fontSize: type.label,
-    fontWeight: weight.bold,
     fontFamily: textFontFamily(weight.bold),
   },
-  body: { padding: gutter.app, paddingBottom: space[9], gap: space[7] },
-  section: { gap: space[3] },
-  list: { gap: space[3] },
+  // 본문 22 20 20 16 · 섹션 간 20 · 섹션 안 12
+  body: {
+    paddingTop: BODY_TOP,
+    paddingRight: space[8],
+    paddingBottom: space[8],
+    paddingLeft: gutter.app,
+    gap: space[8],
+  },
+  section: { gap: space[5] },
+  list: { gap: space[5] },
+  // 리스트 행 — 종이 r14 2.5 잉크, 미읽음은 옐로 + 5px (README §9)
   item: {
     minHeight: size.touchMin,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: space[5],
-    borderRadius: radius.lg,
-    paddingVertical: space[5],
-    paddingHorizontal: space[6],
+    borderRadius: radius.xl,
+    paddingVertical: space[6],
+    paddingHorizontal: space[7],
     backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outline,
+    borderWidth: border.card,
+    borderColor: colors.text,
   },
-  unreadItem: { backgroundColor: colors.recordContainer, borderColor: colors.recordContainer },
+  unreadItem: { backgroundColor: colors.primaryContainer, ...elevation.card },
   icon: {
-    width: size.tabHeight,
-    height: size.tabHeight,
+    width: size.iconCircle,
+    height: size.iconCircle,
     borderRadius: radius.sm,
-    backgroundColor: colors.surfaceMuted,
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -95,29 +107,25 @@ const styles = StyleSheet.create({
   mutedIcon: { backgroundColor: colors.surfaceMuted },
   itemBody: { flex: 1, minWidth: 0 },
   headline: {
-    color: colors.textSecondary,
+    color: colors.text,
     fontSize: type.label,
-    fontWeight: weight.medium,
-    fontFamily: textFontFamily(weight.medium),
-  },
-  unreadHeadline: {
-    color: colors.record,
-    fontWeight: weight.bold,
+    lineHeight: line.bodyStrong,
     fontFamily: textFontFamily(weight.bold),
   },
   meta: {
     marginTop: space[1],
-    color: colors.textMuted,
-    fontSize: type.caption,
-    fontWeight: weight.regular,
-    fontFamily: textFontFamily(weight.regular),
+    color: colors.textSecondary,
+    fontSize: type.meta,
+    lineHeight: line.caption,
+    fontFamily: textFontFamily(weight.medium),
   },
+  // 옐로 면 위 보조 글자는 잉크
+  unreadMeta: { color: colors.text },
   unreadDot: {
-    width: space[3],
-    height: space[3],
-    marginTop: space[1],
+    width: size.statusDot,
+    height: size.statusDot,
     borderRadius: radius.pill,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.text,
   },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[5] },
   pageAction: { gap: space[3] },
@@ -343,12 +351,12 @@ export default function NotificationInboxScreen(): React.JSX.Element {
                     >
                       {iconFor(item)}
                       <View style={styles.itemBody}>
-                        <Text style={[styles.headline, unread && styles.unreadHeadline]}>{item.title}</Text>
+                        <Text style={styles.headline}>{item.title}</Text>
                         <Text
                           testID={`notification-body-${item.notification_id}`}
                           numberOfLines={1}
                           ellipsizeMode="tail"
-                          style={styles.meta}
+                          style={[styles.meta, unread && styles.unreadMeta]}
                         >
                           {`${item.body} · ${timeLabel}`}
                         </Text>

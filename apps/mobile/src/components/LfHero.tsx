@@ -6,11 +6,12 @@ import { LfStack } from './LfStack';
 import { LfInkContext, LfText } from './LfText';
 
 export interface LfHeroProps extends Omit<PressableProps, 'children' | 'style'> {
-  eyebrow: string;
   title: string;
+  /** 상단에 걸치는 핑크 배지 — "D-1" 또는 "이행 확인 필요" */
+  badge?: string;
+  eyebrow?: string;
   description?: string;
-  /** 상단에 걸치는 핑크 배지 — "D-1 · 내일까지" */
-  dday?: string;
+  /** 당사자 줄 "지우 — 민준" */
   meta?: string;
 }
 
@@ -22,12 +23,12 @@ const BADGE_HEIGHT = 26;
 const SIDE_PADDING = 18;
 const ARROW = size.iconCircle + space[2];
 
-/** 임박 약속 히어로 — 옐로 면 r14, 회전·블롭·눈 없음 (README §5) */
+/** 임박 약속 히어로 — 옐로 면 r14, 회전·블롭·눈 없음 (README §5). 홈 본문의 좌 16 · 우 20 안에 놓인다 */
 export function LfHero({
-  eyebrow,
   title,
+  badge,
+  eyebrow,
   description,
-  dday,
   meta,
   accessibilityLabel,
   ...rest
@@ -43,17 +44,17 @@ export function LfHero({
           pressed && { transform: [{ translateX: PRESS_OFFSET }, { translateY: PRESS_OFFSET }], ...PRESSED_SHADOW },
         ]}
       >
-        {dday === undefined ? null : (
-          <View style={styles.badge}><LfText variant="chip">{dday}</LfText></View>
+        {badge === undefined ? null : (
+          <View style={styles.badge}><LfText variant="chip">{badge}</LfText></View>
         )}
         <LfStack grow gap={1}>
-          <LfText variant="eyebrow">{eyebrow}</LfText>
+          {eyebrow === undefined ? null : <LfText variant="eyebrow">{eyebrow}</LfText>}
           <LfText variant="cardTitle">{title}</LfText>
           {description === undefined ? null : <LfText variant="bodySm">{description}</LfText>}
           {meta === undefined ? null : <LfText variant="chip">{meta}</LfText>}
         </LfStack>
         <View style={styles.arrow}>
-          <LfIcon name="east" size={size.appbarIcon} />
+          <LfIcon name="arrow_forward" size={size.appbarIcon} />
         </View>
       </Pressable>
     </LfInkContext.Provider>
@@ -62,7 +63,8 @@ export function LfHero({
 
 const styles = StyleSheet.create({
   hero: {
-    marginHorizontal: gutter.app,
+    marginLeft: gutter.app,
+    marginRight: space[8],
     marginTop: space[4],
     paddingTop: space[8],
     paddingHorizontal: SIDE_PADDING,

@@ -38,6 +38,9 @@ import { colors, gutter, radius, size, space } from '../theme/tokens';
 
 // 홈은 진행·대기 두 탭만 가진다(PO 2026-08-26, ADR 0011). 종결은 SCR-A09 히스토리의 몫이다.
 const HOME_TABS: readonly PromiseHomeTab[] = ['ACTIVE', 'WAITING'];
+const HEADLINE_TOP = 22;
+const TABS_TOP = 18;
+const BODY_TOP = 22;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
@@ -45,19 +48,19 @@ const styles = StyleSheet.create({
   list: { backgroundColor: colors.background },
   // 큰 글꼴에서도 마지막 행을 고정 FAB 위까지 올릴 수 있어야 한다.
   content: { flexGrow: 1, paddingBottom: size.fadeHeight },
+  // README 홈 간격 — 헤드라인 위 22 · 탭 위 18 · 본문 위 22. 토큰 없음, ADR 0020 예외
   greeting: {
-    paddingHorizontal: gutter.app,
-    paddingTop: space[7],
-    paddingBottom: space[7],
-    gap: space[2],
+    paddingHorizontal: space[8],
+    paddingTop: HEADLINE_TOP,
     backgroundColor: colors.background,
   },
   tabs: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: space[3],
-    paddingHorizontal: gutter.app,
-    paddingBottom: space[6],
+    gap: space[2],
+    paddingHorizontal: space[8],
+    paddingTop: TABS_TOP,
+    paddingBottom: BODY_TOP,
     backgroundColor: colors.background,
   },
   tab: {
@@ -65,15 +68,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroArea: { paddingBottom: space[8], backgroundColor: colors.background },
-  sectionHeader: {
-    minHeight: size.touchMin,
-    paddingHorizontal: gutter.app,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-  },
-  sectionTitle: { flex: 1 },
+  heroArea: { paddingBottom: space[6], backgroundColor: colors.background },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: gutter.app },
   empty: { minHeight: size.heroBlobHeight, paddingVertical: space[9] },
   iconButton: {
@@ -313,27 +308,22 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
         <View style={styles.heroArea}>
           <LfHero
             testID="home-hero"
-            eyebrow={hero.needs_response ? LABEL.needsResponse : LABEL.closestPromise}
             title={hero.title}
-            description={partiesOf(hero, LABEL.partnerFallback)}
-            {...(hero.end_date === null
-              ? {}
-              : { dday: formatDday(ddayFrom(hero.end_date, now)) })}
-            meta={hero.end_date === null
+            // 핑크 배지는 응답 필요가 D-Day 보다 앞선다 — 둘 다 마감 계열이라 같은 자리다
+            {...(hero.needs_response
+              ? { badge: LABEL.needsResponse }
+              : hero.end_date === null
+                ? {}
+                : { badge: formatDday(ddayFrom(hero.end_date, now)) })}
+            description={hero.end_date === null
               ? LABEL.noEndDate
               : LABEL.endDate(formatKstDate(hero.end_date, locale))}
+            meta={partiesOf(hero, LABEL.partnerFallback)}
             accessibilityLabel={hero.needs_response ? LABEL.answerFulfillment : LABEL.viewPromise}
             onPress={() => openPromise(hero)}
           />
         </View>
       )}
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitle}>
-          <LfText variant="subtitle">
-            {isActiveTab ? LABEL.activeSection : LABEL.waitingSection}
-          </LfText>
-        </View>
-      </View>
     </>
   );
 

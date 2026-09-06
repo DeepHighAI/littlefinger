@@ -220,7 +220,7 @@ export default function HistoryScreen({ now = new Date() }: HistoryScreenProps):
             contentContainerStyle={styles.content}
             ListEmptyComponent={(
               <View style={styles.empty}>
-                <LfEmpty title={LABEL.empty} description={LABEL.emptyDescription} />
+                <LfEmpty art="history" title={LABEL.empty} description={LABEL.emptyDescription} />
               </View>
             )}
             ListFooterComponent={pageFooter}

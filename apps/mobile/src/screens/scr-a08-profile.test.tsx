@@ -439,17 +439,20 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     await settle();
 
     // 기본 기기는 한국어(jest-setup) — 선택 상태가 색이 아니라 라벨로 드러난다.
-    const korean = view.getByRole('button', { name: '한국어 · 선택됨' });
-    const english = view.getByRole('button', { name: 'English(으)로 보기' });
-    expect(StyleSheet.flatten(korean.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
-    expect(StyleSheet.flatten(english.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
+    // README 세그먼트 38h 항목 — hitSlop 으로 48 을 채운다
+    const korean = view.getByRole('tab', { name: '한국어 · 선택됨' });
+    const english = view.getByRole('tab', { name: 'English(으)로 보기' });
+    for (const item of [korean, english]) {
+      expect(StyleSheet.flatten(item.props.style).minHeight + item.props.hitSlop * 2)
+        .toBeGreaterThanOrEqual(size.touchMin);
+    }
 
     await fireEvent.press(english);
     await settle();
 
     // 전환 뒤에는 화면 전체가 영어다 — 언어 행 자신도 영어 규칙을 따른다.
-    expect(view.getByRole('button', { name: 'English · Selected' })).toBeTruthy();
-    expect(view.getByRole('button', { name: 'View in 한국어' })).toBeTruthy();
+    expect(view.getByRole('tab', { name: 'English · Selected' })).toBeTruthy();
+    expect(view.getByRole('tab', { name: 'View in 한국어' })).toBeTruthy();
     expect(view.getByText(SCR_A08_LABEL.en.legalTitle)).toBeTruthy();
   });
 

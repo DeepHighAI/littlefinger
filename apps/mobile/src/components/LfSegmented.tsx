@@ -6,6 +6,8 @@ import { colors, border, radius, size, space, type, weight } from '../theme/toke
 export interface LfSegmentedItem<K extends string> {
   key: K;
   label: string;
+  /** 보이는 라벨과 스크린리더 이름이 다를 때 — "English" 를 "English(으)로 보기" 로 읽는다 */
+  accessibilityLabel?: string;
 }
 
 export interface LfSegmentedProps<K extends string> extends Omit<ViewProps, 'style' | 'children'> {
@@ -34,7 +36,7 @@ export function LfSegmented<K extends string>({
           <Pressable
             key={item.key}
             accessibilityRole="tab"
-            accessibilityLabel={item.label}
+            accessibilityLabel={item.accessibilityLabel ?? item.label}
             accessibilityState={{ selected }}
             hitSlop={HIT_SLOP}
             onPress={() => onChange(item.key)}

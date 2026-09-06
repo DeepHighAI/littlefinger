@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { LfBlob } from '../components/LfBlob';
+import { LfOval } from '../components/LfOval';
 import { LfButton } from '../components/LfButton';
 import { LfEyes } from '../components/LfMascot';
 import { LfText } from '../components/LfText';
@@ -25,9 +25,9 @@ export default function NotFoundScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen}>
       <View style={styles.body}>
         <View accessible accessibilityRole="image" accessibilityLabel={LABEL.badge}>
-          <LfBlob variant="empty" tilt="empty">
-            <LfEyes size="blob" />
-          </LfBlob>
+          <LfOval variant="web" tone="muted">
+            <LfEyes size="web" />
+          </LfOval>
         </View>
         <View style={styles.copy}>
           <LfText variant="title" align="center">{LABEL.title}</LfText>

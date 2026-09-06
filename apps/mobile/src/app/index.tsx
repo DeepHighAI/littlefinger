@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LEGAL_DOCUMENT_LABELS_BY_LOCALE, type LegalDocumentKind } from '@littlefinger/shared';
 
 import { GoogleMark } from '../components/GoogleMark';
-import { LfBlob } from '../components/LfBlob';
+import { LfOval } from '../components/LfOval';
 import { LfButton } from '../components/LfButton';
 import { LfIcon } from '../components/LfIcon';
 import { LfInput } from '../components/LfInput';
@@ -64,6 +64,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // README 로그인 타원 안 손 루프 scale .7 — 토큰 없음, ADR 0020 예외
+  loop: { transform: [{ scale: 0.7 }] },
   wordmark: {
     marginTop: 22,
     // letterSpacing 은 마지막 글자 뒤에도 붙는다. 내용 크기 상자에서는 그 여백까지
@@ -246,9 +248,9 @@ export default function LoginScreen(): React.JSX.Element {
             accessibilityRole="image"
             accessibilityLabel={LABEL.logo}
           >
-            <LfBlob variant="login" tilt="blob">
-              <LfPinkyLoop size="eyes" variant="solid" spark />
-            </LfBlob>
+            <LfOval variant="login">
+              <View style={styles.loop}><LfPinkyLoop size="eyes" variant="solid" spark /></View>
+            </LfOval>
           </View>
 
           <Text style={styles.wordmark}>{LABEL.wordmark}</Text>

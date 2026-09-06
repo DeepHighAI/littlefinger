@@ -20,6 +20,8 @@ import { LfIcon } from '../components/LfIcon';
 import { LfPicker } from '../components/LfPicker';
 import { LfRow } from '../components/LfRow';
 import { LfStack } from '../components/LfStack';
+import { LfSegmented } from '../components/LfSegmented';
+import { LfStatusTile } from '../components/LfStatusTile';
 import { LfSwitch } from '../components/LfSwitch';
 import { LfText } from '../components/LfText';
 import { LfTrustRing } from '../components/LfTrustRing';
@@ -43,49 +45,63 @@ import {
   createInitialProfileState,
   profileReducer,
 } from '../screens/scr-a08-profile-state.ts';
-import { colors, gutter, radius, size, space } from '../theme/tokens';
+import { colors, border, gutter, radius, size, space } from '../theme/tokens';
+
+/** README 본문 위 22 · 설정 행 아이콘 18 · 아바타 옐로 그림자 3 — 토큰 없음, ADR 0020 예외 */
+const BODY_TOP = 22;
+const SETTINGS_ICON = 18;
+const AVATAR_SHADOW = 3;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   body: { flex: 1 },
-  content: { padding: gutter.app, paddingBottom: space[9], gap: space[7] },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: gutter.app },
-  profileText: { flex: 1 },
-  trustCard: {
-    backgroundColor: colors.primaryContainer,
-    borderRadius: radius.xl,
-    padding: space[7],
+  // 본문 22 20 20 16 · 블록 간 14
+  content: {
+    paddingTop: BODY_TOP,
+    paddingRight: space[8],
+    paddingBottom: space[8],
+    paddingLeft: gutter.app,
+    gap: space[6],
   },
-  stats: { flex: 1 },
-  settingText: { flex: 1 },
-  legalButton: {
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: gutter.app },
+  profileText: { flex: 1, minWidth: 0 },
+  avatarShadow: {
+    borderRadius: radius.pill,
+    boxShadow: [{ offsetX: AVATAR_SHADOW, offsetY: AVATAR_SHADOW, blurRadius: 0, spreadDistance: 0, color: colors.primaryContainer }],
+  },
+  stats: { flex: 1, minWidth: 0 },
+  settingText: { flex: 1, minWidth: 0 },
+  // 설정 행 48h · 행 사이 점선
+  settingsRow: {
     minHeight: size.touchMin,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space[4],
+    gap: space[3],
   },
-  legalLabel: { flex: 1 },
+  divided: { borderTopWidth: border.dashed, borderTopColor: colors.outline, borderStyle: 'dashed' },
+  legalLabel: { flex: 1, minWidth: 0 },
 });
 
 interface ReminderRowProps {
   label: string;
   value: boolean;
   disabled: boolean;
+  divided?: boolean;
   onChange(value: boolean): void;
 }
 
-function ReminderRow({ label, value, disabled, onChange }: ReminderRowProps): React.JSX.Element {
+function ReminderRow({ label, value, disabled, divided = false, onChange }: ReminderRowProps): React.JSX.Element {
   return (
-    <LfRow gap={4}>
-      <LfIcon name="notifications" color="record" />
-      <View style={styles.settingText}><LfText>{label}</LfText></View>
+    <View style={[styles.settingsRow, divided && styles.divided]}>
+      <LfIcon name="notifications" size={SETTINGS_ICON} />
+      <View style={styles.settingText}><LfText variant="label">{label}</LfText></View>
       <LfSwitch
         accessibilityLabel={label}
         value={value}
         disabled={disabled}
         onValueChange={onChange}
       />
-    </LfRow>
+    </View>
   );
 }
 
@@ -101,24 +117,21 @@ function LanguageRow(): React.JSX.Element {
   const LABEL = useLabels(SCR_A08_LABEL);
   const { locale, setLocale } = useLocale();
   return (
-    <LfRow gap={3}>
-      {LOCALES.map((candidate) => {
+    <LfSegmented
+      accessibilityLabel={LABEL.languageTitle}
+      // 선택 상태를 색이 아니라 문구로도 말한다. 스크린리더에는 selected 로도 전한다.
+      items={LOCALES.map((candidate) => {
         const selected = candidate === locale;
         const name = LOCALE_NAME[candidate];
-        return (
-          <LfButton
-            key={candidate}
-            grow
-            // 선택 상태를 색이 아니라 문구로도 말한다. 스크린리더에는 selected 로도 전한다.
-            label={selected ? LABEL.languageSelected(name) : name}
-            accessibilityLabel={selected ? LABEL.languageSelected(name) : LABEL.languageSelect(name)}
-            accessibilityState={{ selected }}
-            variant={selected ? 'filled' : 'outlined'}
-            onPress={() => setLocale(candidate)}
-          />
-        );
+        return {
+          key: candidate,
+          label: selected ? LABEL.languageSelected(name) : name,
+          accessibilityLabel: selected ? LABEL.languageSelected(name) : LABEL.languageSelect(name),
+        };
       })}
-    </LfRow>
+      value={locale}
+      onChange={setLocale}
+    />
   );
 }
 
@@ -301,14 +314,17 @@ export default function ProfileScreen(): React.JSX.Element {
   ) : (
     <ScrollView contentContainerStyle={styles.content}>
       <LfRow gap={5}>
-        <LfAvatar
-          nickname={state.profile.nickname}
-          profileImageUrl={state.profile.profile_image_url}
-          accessibilityLabel={LABEL.profileImage(state.profile.nickname)}
-        />
+        <View style={styles.avatarShadow}>
+          <LfAvatar
+            nickname={state.profile.nickname}
+            profileImageUrl={state.profile.profile_image_url}
+            accessibilityLabel={LABEL.profileImage(state.profile.nickname)}
+            size="xl"
+          />
+        </View>
         <View style={styles.profileText}>
-          <LfText variant="subtitle">{state.profile.nickname}</LfText>
-          <LfText variant="caption">{LABEL.connected}</LfText>
+          <LfText variant="cardTitle">{state.profile.nickname}</LfText>
+          <LfText variant="meta">{LABEL.connected}</LfText>
           {/^사용자(?:[0-9a-f]{4})?$/iu.test(state.profile.nickname) && (
             <LfButton
               label={LABEL.nicknameSetup}
@@ -320,36 +336,35 @@ export default function ProfileScreen(): React.JSX.Element {
         </View>
       </LfRow>
 
-      <View style={styles.trustCard}>
+      <LfCard>
         <LfRow gap={7}>
           <LfTrustRing rate={state.profile.keep_rate} />
           <View style={styles.stats}>
             <LfText variant="eyebrow">{LABEL.keepRate}</LfText>
-            <LfText>{`${LABEL.completed(state.profile.completed_count)} · ${LABEL.broken(state.profile.broken_count)}`}</LfText>
-            <LfText variant="caption">{`${LABEL.disputed(state.profile.disputed_count)} · ${LABEL.unresolved(state.profile.unresolved_count)}`}</LfText>
-            <LfText variant="caption">{LABEL.active(state.profile.active_count)}</LfText>
-            <LfText variant="caption">{LABEL.excluded}</LfText>
+            <LfText variant="bodyStrong">{`${LABEL.completed(state.profile.completed_count)} · ${LABEL.broken(state.profile.broken_count)}`}</LfText>
+            <LfText variant="micro">{`${LABEL.disputed(state.profile.disputed_count)} · ${LABEL.unresolved(state.profile.unresolved_count)}`}</LfText>
+            <LfText variant="micro">{LABEL.active(state.profile.active_count)}</LfText>
+            <LfText variant="micro">{LABEL.excluded}</LfText>
           </View>
         </LfRow>
-      </View>
+      </LfCard>
 
       {slot !== null && (
         <>
           <LfText variant="eyebrow">{SLOT.profileTitle}</LfText>
-          <LfCard>
-            <LfRow gap={4}>
-              <LfIcon name="bookmark" color="record" />
+          <LfCard shadow={false}>
+            <LfRow gap={5}>
+              <LfStatusTile icon="bookmark" tone="sky" />
               <View style={styles.settingText}>
-                <LfText accessibilityLabel={SLOT.usageAccessibility(slot.used, slot.capacity)}>
+                <LfText variant="label" accessibilityLabel={SLOT.usageAccessibility(slot.used, slot.capacity)}>
                   {SLOT.usage(slot.used, slot.capacity)}
                 </LfText>
-                <LfText variant="caption">{SLOT.profileExplain}</LfText>
+                <LfText variant="meta">{SLOT.profileExplain}</LfText>
               </View>
               <LfButton
                 label={SLOT.profileAdd}
                 accessibilityLabel={SLOT.profileAddAccessibility}
                 variant="tonal"
-                size="compact"
                 onPress={() => setSlotSheetOpen(true)}
               />
             </LfRow>
@@ -358,14 +373,14 @@ export default function ProfileScreen(): React.JSX.Element {
       )}
 
       <LfText variant="eyebrow">{LABEL.reminderTitle}</LfText>
-      <LfCard>
-        <LfStack gap={4}>
+      <LfCard shadow={false}>
+        <LfStack gap={2}>
           {state.displayedReminders !== null && (
             <>
               <ReminderRow label={LABEL.remindD7} value={state.displayedReminders.remind_d7} disabled={state.saving} onChange={(value) => void save({ ...state.displayedReminders!, remind_d7: value })} />
-              <ReminderRow label={LABEL.remindD3} value={state.displayedReminders.remind_d3} disabled={state.saving} onChange={(value) => void save({ ...state.displayedReminders!, remind_d3: value })} />
-              <ReminderRow label={LABEL.remindD1} value={state.displayedReminders.remind_d1} disabled={state.saving} onChange={(value) => void save({ ...state.displayedReminders!, remind_d1: value })} />
-              <ReminderRow label={LABEL.remindDday} value={state.displayedReminders.remind_dday} disabled={state.saving} onChange={(value) => void save({ ...state.displayedReminders!, remind_dday: value })} />
+              <ReminderRow label={LABEL.remindD3} value={state.displayedReminders.remind_d3} disabled={state.saving} divided onChange={(value) => void save({ ...state.displayedReminders!, remind_d3: value })} />
+              <ReminderRow label={LABEL.remindD1} value={state.displayedReminders.remind_d1} disabled={state.saving} divided onChange={(value) => void save({ ...state.displayedReminders!, remind_d1: value })} />
+              <ReminderRow label={LABEL.remindDday} value={state.displayedReminders.remind_dday} disabled={state.saving} divided onChange={(value) => void save({ ...state.displayedReminders!, remind_dday: value })} />
               <LfPicker
                 accessibilityLabel={LABEL.reminderHour(state.displayedReminders.remind_hour)}
                 value={LABEL.reminderHourValue(state.displayedReminders.remind_hour)}
@@ -380,35 +395,33 @@ export default function ProfileScreen(): React.JSX.Element {
       </LfCard>
 
       <LfText variant="eyebrow">{LABEL.languageTitle}</LfText>
-      <LfCard>
-        <LanguageRow />
-      </LfCard>
+      <LanguageRow />
 
-      <LfCard flat>
+      <LfCard shadow={false}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={CHROME.history}
-          style={styles.legalButton}
+          style={styles.settingsRow}
           onPress={() => router.push('/history')}
         >
-          <LfIcon name="history" color="record" />
-          <View style={styles.legalLabel}><LfText>{CHROME.history}</LfText></View>
-          <LfIcon name="arrow_forward" color="textMuted" />
+          <LfIcon name="history" size={SETTINGS_ICON} />
+          <View style={styles.legalLabel}><LfText variant="label">{CHROME.history}</LfText></View>
+          <LfIcon name="arrow_forward" size={SETTINGS_ICON} />
         </Pressable>
       </LfCard>
 
       <LfText variant="eyebrow">{LABEL.legalTitle}</LfText>
-      <LfCard>
-        <LfStack gap={2}>
-          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.termsAccessibility} style={styles.legalButton} onPress={() => void handleLegalDocument('TERMS')}>
-            <LfIcon name="description" color="record" />
-            <View style={styles.legalLabel}><LfText>{LABEL.terms}</LfText></View>
-            <LfIcon name="arrow_forward" color="textMuted" />
+      <LfCard shadow={false}>
+        <LfStack>
+          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.termsAccessibility} style={styles.settingsRow} onPress={() => void handleLegalDocument('TERMS')}>
+            <LfIcon name="description" size={SETTINGS_ICON} />
+            <View style={styles.legalLabel}><LfText variant="label">{LABEL.terms}</LfText></View>
+            <LfIcon name="arrow_forward" size={SETTINGS_ICON} />
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.privacyAccessibility} style={styles.legalButton} onPress={() => void handleLegalDocument('PRIVACY')}>
-            <LfIcon name="privacy_tip" color="record" />
-            <View style={styles.legalLabel}><LfText>{LABEL.privacy}</LfText></View>
-            <LfIcon name="arrow_forward" color="textMuted" />
+          <Pressable accessibilityRole="button" accessibilityLabel={LABEL.privacyAccessibility} style={[styles.settingsRow, styles.divided]} onPress={() => void handleLegalDocument('PRIVACY')}>
+            <LfIcon name="privacy_tip" size={SETTINGS_ICON} />
+            <View style={styles.legalLabel}><LfText variant="label">{LABEL.privacy}</LfText></View>
+            <LfIcon name="arrow_forward" size={SETTINGS_ICON} />
           </Pressable>
           {legalDocumentFailed && <LfText variant="error">{LABEL.legalDocumentError}</LfText>}
           {privacyRequired && (
@@ -417,28 +430,28 @@ export default function ProfileScreen(): React.JSX.Element {
               accessibilityLabel={LABEL.adsPrivacy}
               accessibilityState={{ disabled: privacyBusy, busy: privacyBusy }}
               disabled={privacyBusy}
-              style={styles.legalButton}
+              style={[styles.settingsRow, styles.divided]}
               onPress={() => void handleAdsPrivacy()}
             >
-              <LfIcon name="privacy_tip" color="record" />
-              <View style={styles.legalLabel}><LfText>{LABEL.adsPrivacy}</LfText></View>
-              <LfIcon name="arrow_forward" color="textMuted" />
+              <LfIcon name="privacy_tip" size={SETTINGS_ICON} />
+              <View style={styles.legalLabel}><LfText variant="label">{LABEL.adsPrivacy}</LfText></View>
+              <LfIcon name="arrow_forward" size={SETTINGS_ICON} />
             </Pressable>
           )}
           {privacyFailed && <LfText variant="error">{LABEL.adsPrivacyError}</LfText>}
         </LfStack>
       </LfCard>
       <LfDisclaimer />
-      <LfCard>
+      <LfCard shadow={false}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={LABEL.blockedUsers}
-          style={styles.legalButton}
+          style={styles.settingsRow}
           onPress={() => router.push('/blocked-users')}
         >
-          <LfIcon name="block" color="record" />
-          <View style={styles.legalLabel}><LfText>{LABEL.blockedUsers}</LfText></View>
-          <LfIcon name="arrow_forward" color="textMuted" />
+          <LfIcon name="block" size={SETTINGS_ICON} />
+          <View style={styles.legalLabel}><LfText variant="label">{LABEL.blockedUsers}</LfText></View>
+          <LfIcon name="arrow_forward" size={SETTINGS_ICON} />
         </Pressable>
       </LfCard>
       <LfButton label={LABEL.logout} variant="danger" disabled={state.loggingOut} onPress={confirmLogout} />

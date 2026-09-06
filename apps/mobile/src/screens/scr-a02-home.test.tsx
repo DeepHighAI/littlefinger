@@ -146,7 +146,8 @@ describe('SCR-A02 Soft Promise 홈', () => {
 
     expect(listHomePromises).toHaveBeenCalledWith({ tab: 'WAITING' });
     expect(view.queryByTestId('home-hero')).toBeNull();
-    expect(view.getByText('대기 중 약속')).toBeTruthy();
+    // README 홈에는 섹션 제목이 없다 — 선택된 탭이 목록의 이름이다
+    expect(view.getByRole('tab', { name: '대기 2' }).props.accessibilityState.selected).toBe(true);
     expect(view.getByText('초안 약속')).toBeTruthy();
     expect(view.getByRole('button', { name: '초안 약속 초안 삭제' })).toBeTruthy();
     expect(view.getByRole('button', { name: '대기 약속 대기 중 약속 삭제' })).toBeTruthy();

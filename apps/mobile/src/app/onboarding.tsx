@@ -60,7 +60,7 @@ export default function OnboardingScreen(): React.JSX.Element {
       </View>
       <View style={styles.body}>
         <View style={styles.badge} accessible accessibilityRole="image" accessibilityLabel={LABEL.badge}>
-          <LfBlob variant="login" tilt="blob">
+          <LfBlob variant="login">
             <LfPinkyLoop size="eyes" variant="solid" spark />
           </LfBlob>
         </View>

@@ -4,12 +4,9 @@ import Svg, { G, Path } from 'react-native-svg';
 import { colors, border, elevation, size, space } from '../theme/tokens';
 
 export type LfBlobVariant = 'login' | 'empty' | 'cornerMint' | 'cornerYellow';
-/** 기울기는 폐지됐다(README). 라우트 파일이 넘기던 값은 P6 에서 걷어내며, 그때까지 무시된다. */
-export type LfBlobTilt = 'none' | 'blob' | 'empty';
 
 export interface LfBlobProps extends Omit<ViewProps, 'style'> {
   variant: LfBlobVariant;
-  tilt?: LfBlobTilt;
 }
 
 const LOGIN_WIDTH = size.loginBlobHeight + space[8];
@@ -69,7 +66,6 @@ function BlobArtwork({ variant }: { variant: LfBlobVariant }): React.JSX.Element
 /** 화면마다 SVG를 다시 만들지 않도록 승인된 블롭을 고정한다. A01 의 타원은 LfOval 이 맡는다. */
 export function LfBlob({
   variant,
-  tilt: _tilt,
   children,
   testID,
   ...rest

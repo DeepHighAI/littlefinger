@@ -110,7 +110,8 @@ export function PromiseListRow({
 }
 
 const styles = StyleSheet.create({
-  container: { marginHorizontal: gutter.app, marginBottom: space[5] },
+  // 홈 본문 좌 16 · 우 20(5px 그림자 자리) · 행 간격 14
+  container: { marginLeft: gutter.app, marginRight: space[8], marginBottom: space[6] },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
   response: { gap: space[4] },
   main: { flex: 1, gap: space[1] },

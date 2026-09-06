@@ -250,7 +250,7 @@ describe('SCR-A07 알림함', () => {
     const unreadHeadline = within(view.getByTestId(`notification-${FIRST_ID}`)).getByText(
       item().title,
     );
-    expect(StyleSheet.flatten(unreadHeadline.props.style).color).toBe(colors.record);
+    expect(StyleSheet.flatten(unreadHeadline.props.style).color).toBe(colors.text);
   });
 
   test('항목 탭은 즉시 읽음으로 보이고 한 번만 서버에 기록한 뒤 허용된 목적지로 이동한다', async () => {

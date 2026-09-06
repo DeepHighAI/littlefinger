@@ -504,7 +504,7 @@ describe('LfChip / LfStatusTile', () => {
 describe('Soft Promise 공통 컴포넌트', () => {
   test('히어로는 옐로 r14 면에 기울기 없이 놓이고 D-Day 는 핑크 배지, 화살표는 종이 사각이다', async () => {
     const view = await render(
-      <LfHero testID="hero" eyebrow="가장 가까운 약속" title="함께 걷기" dday="D-3" meta="지우 · 민준" />,
+      <LfHero testID="hero" title="함께 걷기" badge="D-3" meta="지우 — 민준" />,
     );
     const hero = styleOf(view, 'hero') as ViewStyle;
     expect(hero).toMatchObject({
@@ -518,8 +518,8 @@ describe('Soft Promise 공통 컴포넌트', () => {
     const dday = view.getByText('D-3');
     expect(flatten(dday.props.style)).toMatchObject({ fontSize: type.meta, color: colors.text });
     expect(flatten(dday.parent?.props.style)).toMatchObject({ backgroundColor: colors.attentionContainer });
-    // 옐로 면 위 eyebrow·메타도 잉크
-    expect(flatten(view.getByText('가장 가까운 약속').props.style).color).toBe(colors.text);
+    // 옐로 면 위 메타도 잉크
+    expect(flatten(view.getByText('지우 — 민준').props.style).color).toBe(colors.text);
   });
 
   test('앱바는 종이 r14 블록이고 브랜드 앱바의 메뉴는 버튼으로 읽힌다', async () => {
@@ -803,7 +803,7 @@ describe('E-1 마스코트와 C-1 손 루프', () => {
 describe('LfBlob / LfOval', () => {
   test('빈 상태 블롭은 README 240×211 이고 기울기 없이 장식으로 숨긴다', async () => {
     const view = await render(
-      <LfBlob testID="blob" variant="empty" tilt="empty">
+      <LfBlob testID="blob" variant="empty">
         <LfEyes size="blob" />
       </LfBlob>,
     );
