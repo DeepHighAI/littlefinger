@@ -443,3 +443,18 @@
   outline: 2px solid var(--lf-color-primary);
   outline-offset: var(--lf-space-1);
 }
+
+/* -------------------------------------------------------------
+   HOVER — 웹(포인터)에서만. 블록이 살짝 떠오르며 그림자가 6px 로 늘어난다 (README, 리터럴 · ADR 0020 예외)
+   ------------------------------------------------------------- */
+@media (hover: hover) {
+  .lf-btn--filled:hover,
+  .lf-btn--outlined:hover,
+  .lf-btn--kakao:hover,
+  .lf-btn--google:hover,
+  .lf-btn--tonal:hover,
+  a.lf-card:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 6px 6px 0 var(--lf-color-text);
+  }
+}

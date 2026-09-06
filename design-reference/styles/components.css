@@ -3,7 +3,8 @@
    화면은 이 클래스들만 조합해서 만든다. 인라인 스타일 금지.
    문법: 캔버스 위 잉크 테두리(2 / 2.5) + 45° 하드 섀도(5px 카드·CTA·헤더 / 3px 선택 탭·outlined·kakao·피커),
    4색 면(옐로=브랜드/선택 · 민트=진행·완료 · 핑크=마감·응답·벌칙 · 스카이=기록·보상·변경), 글자는 언제나 잉크,
-   r14 블록 버튼 오른쪽에 옐로 사각 40, 필(999)은 헤더·아바타·마스코트 원만, 기울기 없음,
+   검정 채움 버튼은 없다 — 주 CTA 는 옐로 r14 블록 오른쪽에 종이 사각 40, 헤더도 r14 블록, 필(999)은 아바타·스위치·진행바만,
+   마스코트는 불규칙 타원(노란 바깥 + 흰 안쪽), 기울기 없음,
    E-1 마스코트(손가락 눈)와 C-1 손 루프. 눌림 = 3px 이동 + 그림자 축소(5→2 · 3→0) — README 리터럴, ADR 0020 예외.
    ============================================================= */
 
@@ -154,8 +155,19 @@
 .lf-blob--hero .lf-blob__eyes    { left: 90px; top: 96px; width: 110px; height: 52px; }
 .lf-blob--login   { width: 220px; height: var(--lf-login-blob-height); }
 .lf-blob--login .lf-blob__eyes   { left: 55px; top: 70px; width: 110px; height: 52px; }
-.lf-blob--empty   { width: 200px; height: 170px; }
-.lf-blob--empty .lf-blob__eyes   { left: 45px; top: 58px; width: 110px; height: 52px; }
+/* 홈 빈 상태 — A00 블롭 SVG 그대로(옐로는 토큰), 240×211 안에 drop-shadow 5px, 손 루프는 절반 크기 (README) */
+.lf-blob--empty {
+  width: 240px;
+  height: 211px;
+  padding-right: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lf-blob--empty .lf-blob__svg  { filter: drop-shadow(var(--lf-elevation-card)); }
+.lf-blob--empty .lf-blob__eyes { position: relative; }
+.lf-pinky-loop--half { transform: scale(0.5); }
 .lf-blob--celebrate { width: 170px; height: 120px; margin-top: var(--lf-space-1); }
 .lf-blob--celebrate .lf-blob__eyes { left: 30px; top: 34px; width: 110px; height: 52px; }
 .lf-blob--history { width: 120px; height: 100px; }
@@ -184,7 +196,43 @@
   pointer-events: none;
 }
 
-/* 원형 히어로/빈 상태 아트 — 유기적 블롭 대신 정원(999) + 2.5 잉크 + 5px 섀도 (잉크 & 블록 §1-04) */
+/* 불규칙 타원 아트 ("계란 후라이") — 바깥 옐로 타원 2.5 잉크 + 5px, 안쪽 흰 타원은 테두리 없음.
+   두 radius 는 README 리터럴 (번들 tokens.css 에 없음, ADR 0020 예외). 치수는 화면별 변형이 정한다 */
+.lf-oval {
+  position: relative;
+  border-radius: 62% 38% 55% 45% / 42% 60% 40% 58%;
+  background: var(--lf-color-primary-container);
+  border: var(--lf-border-card) solid var(--lf-color-text);
+  box-shadow: var(--lf-elevation-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.lf-oval__inner {
+  position: absolute;
+  background: var(--lf-color-surface);
+  border-radius: 40% 60% 48% 52% / 58% 42% 62% 38%;
+}
+
+.lf-oval > :not(.lf-oval__inner) { position: relative; }
+
+.lf-oval--history   { width: 130px; height: 104px; }
+.lf-oval--history   .lf-oval__inner { inset: 16px 22px 16px 18px; }
+.lf-oval--celebrate { width: 170px; height: 136px; margin-top: var(--lf-space-2); }
+.lf-oval--celebrate .lf-oval__inner { inset: 20px 30px 22px 24px; }
+.lf-oval--web       { width: 190px; height: 152px; }
+.lf-oval--web       .lf-oval__inner { inset: 22px 32px 24px 26px; }
+.lf-oval--muted     { background: var(--lf-color-surface-muted); }
+/* W03 앱 안내 카드의 마스코트 자리 — 종이 60×56, 2px 잉크, 그림자 없음 */
+.lf-oval--hint      { width: 60px; height: var(--lf-avatar-xl); background: var(--lf-color-surface); border-width: var(--lf-border-chip); box-shadow: none; }
+
+/* 타원 안 눈 — A09 60 · W06 80 (README 리터럴) */
+.lf-eyes--history { width: 60px; }
+.lf-eyes--web     { width: 80px; }
+
+/* 정원 아트 — 초판 번들 문법. 소비자(A02 빈 상태·A09·MOD-03·W01·W06)가 타원으로 바뀌면 지운다 */
 .lf-blob--circle {
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-surface);
@@ -216,7 +264,7 @@
 .lf-blob__accent--yellow { background: var(--lf-color-primary-container); }
 
 /* -------------------------------------------------------------
-   APP BAR — 흰 필 헤더 52 (margin 8 16 0 · 2.5 잉크 · 5px 섀도) · 사각 아이콘 버튼 36 r10
+   APP BAR — 종이 블록 헤더 52 r14 (margin 8 16 0 · 2.5 잉크 · 5px 섀도) · 사각 아이콘 버튼 36 r10
    홈: 옐로 원 마스코트 + 워드마크 + "메뉴 ☰"(종·아바타는 메뉴 시트로, PO E1). 하위: 뒤로 + 제목 16/800 + 액션
    ------------------------------------------------------------- */
 .lf-appbar {
@@ -229,7 +277,7 @@
   padding: 0 var(--lf-space-3);
   background: var(--lf-color-surface);
   border: var(--lf-border-card) solid var(--lf-color-text);
-  border-radius: var(--lf-radius-pill);
+  border-radius: var(--lf-radius-md);
   box-shadow: var(--lf-elevation-card);
 }
 
@@ -248,7 +296,7 @@
 /* 앱바 양끝 균형용 빈 자리 (아이콘 버튼 폭) */
 .lf-appbar__spacer { width: var(--lf-icon-button); flex: none; }
 
-/* 홈 전용 — 옐로 원 마스코트 34 + 워드마크 22/900 + 메뉴 */
+/* 홈 전용 — 옐로 타원 마스코트 타일 36×34 + 워드마크 22/900 + 메뉴 */
 .lf-appbar--brand {
   padding: 0 var(--lf-space-3) 0 var(--lf-space-4);
 }
@@ -258,9 +306,9 @@
 }
 
 .lf-appbar__mascot {
-  width: var(--lf-mascot-md);
+  width: 36px; /* README 마스코트 타일 36×34 — 폭 토큰 없음, ADR 0020 예외 */
   height: var(--lf-mascot-md);
-  border-radius: var(--lf-radius-pill);
+  border-radius: 62% 38% 55% 45% / 42% 60% 40% 58%;
   background: var(--lf-color-primary-container);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   display: flex;
@@ -420,7 +468,7 @@
 }
 
 /* -------------------------------------------------------------
-   BUTTON — r14 블록. 주 CTA 는 잉크 56 + 2.5 잉크 테두리 + 5px 섀도 + 오른쪽 옐로 사각 40 r10
+   BUTTON — r14 블록. 검정 채움은 없다: 주 CTA 는 옐로 56 + 잉크 글자 + 2.5 잉크 테두리 + 5px 섀도 + 오른쪽 종이 사각 40 r10
    눌림: 3px 이동 + 그림자 5→2 / 3→0 (색은 바뀌지 않는다). 값은 README 리터럴 — 번들 tokens.css 에 눌림 토큰이 없다 (ADR 0020 예외)
    ------------------------------------------------------------- */
 .lf-btn {
@@ -444,7 +492,9 @@
 .lf-btn--filled:active { box-shadow: 2px 2px 0 var(--lf-color-text); }
 .lf-btn--outlined:active,
 .lf-btn--kakao:active,
+.lf-btn--google:active,
 .lf-btn--google-web:active { box-shadow: none; }
+.lf-btn--kakao-login:active { box-shadow: 2px 2px 0 var(--lf-color-text); }
 
 .lf-btn:disabled,
 .lf-btn[aria-disabled='true'] {
@@ -453,22 +503,22 @@
   pointer-events: none;
 }
 
-/* 주 CTA — 화면당 1개 (요청서 §8). 잉크 블록 + 2.5 잉크 테두리 + 5px 섀도, 라벨 16/800 */
+/* 주 CTA — 화면당 1개 (요청서 §8). 옐로 블록 + 잉크 글자 + 2.5 잉크 테두리 + 5px 섀도, 라벨 16/800 */
 .lf-btn--filled {
-  background: var(--lf-color-action-fill);
-  color: var(--lf-color-on-action);
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-text);
   font-size: var(--lf-type-appbar-size);
   font-weight: var(--lf-weight-bold);
   border: var(--lf-border-card) solid var(--lf-color-text);
   box-shadow: var(--lf-elevation-card);
 }
 
-/* 오른쪽 옐로 사각 40 r10 — 있으면 오른쪽 여백이 8 로 줄고 라벨이 왼쪽으로 붙는다 */
+/* 오른쪽 종이 사각 40 r10 (2px 잉크) — 있으면 오른쪽 여백이 8 로 줄고 라벨이 왼쪽으로 붙는다 */
 .lf-btn__trailing {
   width: var(--lf-icon-circle);
   height: var(--lf-icon-circle);
   border-radius: var(--lf-radius-sm);
-  background: var(--lf-color-brand-symbol-on-action);
+  background: var(--lf-color-surface);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   color: var(--lf-color-text);
   display: flex;
@@ -534,20 +584,22 @@
   box-shadow: var(--lf-elevation-sm);
 }
 
-/* Google 로그인 — 가이드가 흰 배경 + 1px 고정 테두리를 요구한다 (앱) */
+/* 로그인 화면(A01 · W01)의 카카오는 주 CTA 이므로 5px */
+.lf-btn--kakao-login { box-shadow: var(--lf-elevation-card); }
+
+/* Google 로그인 — 공식 흰 배경·글자색은 그대로, 형태만 블록(r14 · 2.5 잉크 · 3px). 앱·웹 공통 (README) */
 .lf-btn--google {
+  height: 52px; /* README Google 52h — 토큰 없음, ADR 0020 예외 */
   background: var(--lf-color-google);
   color: var(--lf-color-on-google);
-  border: 1px solid var(--lf-color-google-border);
+  border: var(--lf-border-card) solid var(--lf-color-text);
+  box-shadow: var(--lf-elevation-sm);
   font-weight: var(--lf-weight-medium);
   font-size: var(--lf-type-body-lg-size);
 }
 
-/* 수락 웹 W01 의 Google — 블록 문법(잉크 2.5 + 3px 섀도), 색은 공식 흰 배경 그대로 */
-.lf-btn--google-web {
-  border: var(--lf-border-card) solid var(--lf-color-text);
-  box-shadow: var(--lf-elevation-sm);
-}
+/* 초판 번들의 웹 전용 변형 — W01 마크업이 --google 로 돌아오면 지운다 */
+.lf-btn--google-web { }
 
 /* 파괴적 액션 (파기 요청 등) — 빨강은 여기와 오류에만 */
 .lf-btn--danger {
@@ -575,7 +627,7 @@
   text-underline-offset: 3px;
 }
 
-/* 하단 풀폭 CTA — 좌우 16 · 56 · r14 '약속 만들기' + 옐로 사각 add (중앙 플로팅 필 폐지, PO E1) */
+/* 하단 풀폭 CTA — 좌우 16 · 56 · r14 옐로 '약속 만들기' + 종이 사각 add 26 (중앙 플로팅 필 폐지, PO E1) */
 .lf-fab {
   position: absolute;
   left: var(--lf-gutter-app);
@@ -584,8 +636,8 @@
   height: var(--lf-fab-height);
   padding: 0 var(--lf-space-3) 0 22px;
   border-radius: var(--lf-radius-md);
-  background: var(--lf-color-action-fill);
-  color: var(--lf-color-on-action);
+  background: var(--lf-color-primary-container);
+  color: var(--lf-color-text);
   border: var(--lf-border-card) solid var(--lf-color-text);
   display: flex;
   align-items: center;
@@ -603,6 +655,8 @@
   transform: translate(3px, 3px);
   box-shadow: 2px 2px 0 var(--lf-color-text);
 }
+
+.lf-fab .lf-btn__trailing .material-symbols-rounded { font-size: 26px; }
 
 /* 플로팅 CTA 뒤 크림 페이드 */
 .lf-fade {
@@ -1593,7 +1647,10 @@
 
 .lf-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.lf-avatar--sm { width: var(--lf-avatar-sm); height: var(--lf-avatar-sm); font-size: var(--lf-type-chip-size); }
+.lf-avatar--sm  { width: var(--lf-avatar-sm); height: var(--lf-avatar-sm); font-size: var(--lf-type-chip-size); }
+/* README md 44 — 토큰 없음(ADR 0020 예외). row 36 은 CHECKING·BROKEN·AMEND 응답 행의 아트보드 값(사각 아이콘 버튼과 같은 36) */
+.lf-avatar--md  { width: 44px; height: 44px; font-size: var(--lf-type-appbar-size); }
+.lf-avatar--row { width: var(--lf-icon-button); height: var(--lf-icon-button); font-size: var(--lf-type-label-size); }
 .lf-avatar--lg { width: var(--lf-avatar-lg); height: var(--lf-avatar-lg); font-size: var(--lf-type-stamp-size); }
 .lf-avatar--xl { width: var(--lf-avatar-xl); height: var(--lf-avatar-xl); font-size: var(--lf-type-subtitle-size); font-weight: var(--lf-weight-heavy); }
 
@@ -1943,7 +2000,7 @@
 
 .lf-segmented__item {
   flex: 1;
-  min-height: var(--lf-icon-circle);
+  min-height: 38px; /* README 세그먼트 38h — 토큰 없음, ADR 0020 예외 */
   padding: 0 var(--lf-space-5);
   display: flex;
   align-items: center;

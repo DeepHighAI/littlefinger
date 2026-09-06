@@ -54,7 +54,6 @@
 .lf-avatar--a,
 .lf-avatar--b { background: var(--lf-color-text); color: var(--lf-color-primary-container); }
 .lf-avatar--muted { background: var(--lf-color-surface-muted); color: var(--lf-color-text-secondary); }
-.lf-avatar--md { width: var(--lf-icon-button); height: var(--lf-icon-button); font-size: var(--lf-type-body-lg-size); }
 
 /* -------------------------------------------------------------
    NOTE — 안내 문구 카드 (스카이 flat). AMEND_PENDING 배너, CHECKING/DISPUTED/UNRESOLVED 하단 안내
