@@ -275,8 +275,9 @@
 
 .lf-home__checking-cta .material-symbols-rounded { font-size: 18px; }
 
-/* 인피드 배너는 리스트 안에서 카드와 같은 폭 */
+/* 인피드 배너는 리스트 안에서 카드와 같은 폭. "광고" 칩은 24h · eyebrow 11 (아트보드) */
 .lf-home__list .lf-home__ad { margin: 0; }
+.lf-home__ad .lf-chip { height: 24px; font-size: var(--lf-type-eyebrow-size); }
 
 /* 빈 상태 — 정원 170 + 민트 원 + 안내 */
 .lf-home__empty {
@@ -312,13 +313,15 @@
   padding: var(--lf-space-4) var(--lf-gutter-app) var(--lf-space-9);
 }
 
-/* 아바타 48 + 이름 18/900 + 지킴율 + 닫기 36 */
+/* 아바타 48(글자 18/900) + 이름 18/900 + 지킴율 + 닫기 36 */
 .lf-home-menu__identity {
   display: flex;
   align-items: center;
   gap: var(--lf-space-5);
   padding: var(--lf-space-1) var(--lf-space-1) 0;
 }
+
+.lf-home-menu__identity .lf-avatar { font-size: var(--lf-type-subtitle-size); font-weight: var(--lf-weight-heavy); }
 
 .lf-home-menu__name {
   font-size: var(--lf-type-subtitle-size);
@@ -385,8 +388,9 @@
   color: var(--lf-color-text);
 }
 
-/* 온보딩 CTA 는 확정안대로 왼쪽에 붙는다 (다른 화면의 필 CTA 는 오른쪽) */
-.lf-onboarding__bottom .lf-btn { align-self: flex-start; }
+/* 온보딩 CTA 는 기존 레이아웃대로 왼쪽에 붙는다 (E2 — 다른 화면의 종이 사각 CTA 는 오른쪽) */
+.lf-onboarding__bottom .lf-btn,
+.lf-onboarding__bottom .lf-btn:has(> .lf-btn__trailing) { align-self: flex-start; }
 
 /* 링크로 만든 행 카드 — 밑줄 없이, 제목·메타는 span 이라도 두 줄로 쌓인다 */
 a.lf-card { text-decoration: none; color: var(--lf-color-text); }

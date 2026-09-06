@@ -53,7 +53,7 @@
    ------------------------------------------------------------- */
 .lf-avatar--a,
 .lf-avatar--b { background: var(--lf-color-text); color: var(--lf-color-primary-container); }
-.lf-avatar--muted { background: var(--lf-color-surface-muted); color: var(--lf-color-text-secondary); }
+.lf-avatar--muted { background: var(--lf-color-surface-muted); color: var(--lf-color-text); border: var(--lf-border-chip) solid var(--lf-color-text); }
 
 /* -------------------------------------------------------------
    NOTE — 안내 문구 카드 (스카이 flat). AMEND_PENDING 배너, CHECKING/DISPUTED/UNRESOLVED 하단 안내
@@ -74,7 +74,7 @@
 }
 
 .lf-note .material-symbols-rounded {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--lf-color-text);
   flex: none;
 }
@@ -106,7 +106,7 @@
 
 /* 아이콘 유틸리티 — 카드 안에서 홀로 쓰이는 아이콘 (전부 잉크) */
 .lf-icon-primary { font-size: 22px; color: var(--lf-color-text); flex: none; }
-.lf-icon-muted   { font-size: 18px; color: var(--lf-color-text-muted); flex: none; }
+.lf-icon-muted   { font-size: 20px; color: var(--lf-color-text-muted); flex: none; }
 .lf-icon-error   { font-size: 16px; color: var(--lf-color-error); flex: none; }
 .lf-icon-reward  { font-size: 16px; color: var(--lf-color-text); flex: none; }
 
@@ -129,17 +129,15 @@
 .lf-retention-row__body { flex: 1; min-width: 0; }
 
 .lf-retention-row__label {
-  font-size: var(--lf-type-eyebrow-size);
-  font-weight: var(--lf-weight-bold);
-  letter-spacing: var(--lf-letter-spacing-wide);
-  color: var(--lf-color-text-muted);
-}
-
-.lf-retention-row__value {
-  margin-top: 2px;
   font-size: var(--lf-type-chip-size);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
+}
+
+.lf-retention-row__value {
+  font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-muted);
 }
 
 .lf-retention-row .lf-btn--text {
@@ -167,6 +165,9 @@
   color: var(--lf-color-text);
 }
 
+/* 응답 기한 카드(핑크) 마지막 줄 — 13/800 잉크 */
+.lf-response-note { font-size: var(--lf-type-chip-size); font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }
+
 /* -------------------------------------------------------------
    RESULT PILL — "지켰어요" / "안 지켜졌어요" (CHECKING 내 응답, DISPUTED 양측 주장)
    민트=지킴 · 핑크=안 지킴. DISPUTED 에서는 두 주장을 같은 크기·순서로 둔다 (P1)
@@ -185,7 +186,7 @@
   white-space: nowrap;
 }
 
-.lf-result .material-symbols-rounded { font-size: 13px; }
+.lf-result .material-symbols-rounded { font-size: 14px; }
 .lf-result--kept   { background: var(--lf-color-success-container); }
 .lf-result--broken { background: var(--lf-color-attention-container); }
 
@@ -209,10 +210,21 @@
   border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
 }
 
+/* 증인 서명 행 — 12.5/18/600 보조, "(참고용 · 판정 아님)" 만 잉크 800 */
+.lf-witness-line {
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-secondary);
+}
+
 .lf-witness-caveat {
-  color: var(--lf-color-text-muted);
+  color: var(--lf-color-text);
   font-weight: var(--lf-weight-bold);
 }
+
+/* DISPUTED 안내 카드 제목 15/900 */
+.lf-dispute__title { font-size: var(--lf-type-body-size); font-weight: var(--lf-weight-heavy); color: var(--lf-color-text); }
 
 /* -------------------------------------------------------------
    PHOTO THUMB — 이행 증빙 사진 썸네일 (76×76, 종이 + 2px 잉크). 첨부 전(add)은 점선
@@ -268,7 +280,8 @@
 
 .lf-response-row + .lf-response-row { border-top: var(--lf-border-dashed) dashed var(--lf-color-outline); }
 
-/* 상세 하단 — 아웃라인 + 잉크 CTA 쌍. .lf-screen__actions 안에 중첩될 수도 있으므로 display 를 직접 갖는다 */
+/* 상세 하단 — 보조(outlined, 내용 폭 · 14/800) + 주 CTA(옐로, 남는 폭 · 16/800). 둘 다 56h (아트보드).
+   .lf-screen__actions 안에 중첩될 수도 있으므로 display 를 직접 갖는다 */
 .lf-detail__actions {
   display: flex;
   flex-direction: row;
@@ -276,9 +289,6 @@
   gap: var(--lf-space-5);
 }
 
-.lf-detail__actions .lf-btn { flex: 1; height: var(--lf-cta-height); }
-.lf-detail__actions .lf-btn:has(> .lf-btn__trailing) { align-self: stretch; }
-
-/* 쌍 버튼은 360 폭에서 두 줄로 꺾이지 않도록 14px · 왼쪽 여백 16 · 간격 8 (확정안 4i 는 370 폭) */
-.lf-detail__actions .lf-btn { font-size: var(--lf-type-label-size); white-space: nowrap; }
-.lf-detail__actions .lf-btn:has(> .lf-btn__trailing) { padding-left: var(--lf-space-7); gap: var(--lf-space-3); }
+.lf-detail__actions .lf-btn { height: var(--lf-cta-height); white-space: nowrap; }
+.lf-detail__actions .lf-btn--outlined { flex: none; padding: 0 var(--lf-space-8); font-size: var(--lf-type-label-size); }
+.lf-detail__actions .lf-btn--filled { flex: 1; align-self: stretch; }

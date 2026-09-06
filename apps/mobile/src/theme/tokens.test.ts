@@ -196,9 +196,13 @@ describe('잉크 & 블록 웹 토큰도 같은 계약을 쓴다', () => {
   test('안내·응답·안읽음 상태가 역할 기반 색을 쓴다', () => {
     const css = readFileSync(WEB_COMPONENTS_CSS, 'utf8');
 
-    // 잉크&블록: notice 는 32 r8 블록 배지 — 4색 면 위에 얹히므로 글자는 잉크다 (2026-09-06)
+    // 잉크&블록: notice 는 32 r8 블록 배지 — 기본은 종이·그림자 없음(W06), 마감 배지만 핑크 + 3px(W01). 글자는 잉크 (2026-09-06)
     expect(css).toMatch(
-      /\.lf-notice\s*\{[^}]*border:\s*var\(--lf-border-chip\)[^}]*box-shadow:\s*var\(--lf-elevation-sm\)[^}]*color:\s*var\(--lf-color-text\)/su,
+      /\.lf-notice\s*\{[^}]*border:\s*var\(--lf-border-chip\)[^}]*background:\s*var\(--lf-color-surface\)[^}]*color:\s*var\(--lf-color-text\)/su,
+    );
+    expect(/\.lf-notice\s*\{[^}]*\}/su.exec(css)?.[0]).not.toContain('box-shadow');
+    expect(css).toMatch(
+      /\.lf-notice--pink\s*\{[^}]*background:\s*var\(--lf-color-attention-container\)[^}]*box-shadow:\s*var\(--lf-elevation-sm\)/su,
     );
     expect(css).toMatch(
       /\.lf-card--container\s+\.lf-dday\s*\{[^}]*color:\s*var\(--lf-color-success\)/su,
@@ -249,18 +253,28 @@ describe('잉크 & 블록 웹 토큰도 같은 계약을 쓴다', () => {
   );
 
   test.each([REFERENCE_COMPONENTS_CSS, WEB_COMPONENTS_CSS])(
-    '보조 본문은 14/22 보조색, 메타는 12 뮤트, 필드 라벨은 eyebrow 다 (파스텔 스티커 계층): %s',
+    '보조 본문은 14/22, 캡션은 13/19 보조색, 메타는 12 뮤트, 필드 라벨은 eyebrow 다: %s',
     (path) => {
       const css = readFileSync(path, 'utf8');
       const bodyOf = (selector: string) =>
         new RegExp(`\\.${selector}\\s*\\{(?<body>[^}]*)\\}`, 'su').exec(css)?.groups?.body;
 
-      for (const selector of ['lf-body--secondary', 'lf-caption']) {
-        const body = bodyOf(selector);
-        expect(body).toContain('font-size: var(--lf-type-label-size)');
-        expect(body).toContain('line-height: var(--lf-line-body)');
-        expect(body).toContain('color: var(--lf-color-text-secondary)');
-      }
+      const secondary = bodyOf('lf-body--secondary');
+      expect(secondary).toContain('font-size: var(--lf-type-label-size)');
+      expect(secondary).toContain('line-height: var(--lf-line-body)');
+      expect(secondary).toContain('font-weight: var(--lf-weight-medium)');
+      expect(secondary).toContain('color: var(--lf-color-text-secondary)');
+      // 잉크&블록: 한 줄 캡션은 13/19/600 보조색, 강조 캡션은 12.5/18/800 보조색 (아트보드 · E8, 2026-09-06)
+      const caption = bodyOf('lf-caption');
+      expect(caption).toContain('font-size: var(--lf-type-chip-size)');
+      expect(caption).toContain('line-height: 19px');
+      expect(caption).toContain('font-weight: var(--lf-weight-medium)');
+      expect(caption).toContain('color: var(--lf-color-text-secondary)');
+      const strong = bodyOf('lf-caption--strong');
+      expect(strong).toContain('font-size: var(--lf-type-caption-size)');
+      expect(strong).toContain('line-height: var(--lf-line-caption)');
+      expect(strong).toContain('font-weight: var(--lf-weight-bold)');
+      expect(strong).toContain('color: var(--lf-color-text-secondary)');
       for (const selector of ['lf-list-item__supporting', 'lf-card__meta']) {
         const body = bodyOf(selector);
         expect(body).toContain('font-size: var(--lf-type-meta-size)');

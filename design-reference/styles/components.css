@@ -124,9 +124,6 @@
   flex: none;
 }
 
-.lf-blob--tilt       { transform: rotate(var(--lf-tilt-blob)); }
-.lf-blob--tilt-empty { transform: rotate(var(--lf-tilt-empty)); }
-
 .lf-blob__svg {
   position: absolute;
   inset: 0;
@@ -150,11 +147,17 @@
   justify-content: center;
 }
 
-/* 변형별 치수·눈 자리 (확정안 아트보드 좌표 그대로) */
-.lf-blob--hero    { height: var(--lf-hero-blob-height); margin: var(--lf-space-3) var(--lf-space-8) 0; }
+/* A00 온보딩 블롭 — 기존 SVG 유지. PO 결정(2026-09-06): 옐로는 옛 연한 #FFE59A, 기울기 -2° 를 이 화면만 리터럴로 (ADR 0020 예외) */
+.lf-blob--hero    { height: var(--lf-hero-blob-height); margin: var(--lf-space-3) var(--lf-space-8) 0; transform: rotate(-2deg); }
 .lf-blob--hero .lf-blob__eyes    { left: 90px; top: 96px; width: 110px; height: 52px; }
-.lf-blob--login   { width: 220px; height: var(--lf-login-blob-height); }
-.lf-blob--login .lf-blob__eyes   { left: 55px; top: 70px; width: 110px; height: 52px; }
+.lf-blob--hero .lf-blob__yellow  { fill: #FFE59A; }
+
+/* A01 로그인 마스코트 — 아트보드의 2겹 타원(바깥 연한 옐로 #FFE59A 2.5 잉크, 안쪽 흰), 손 루프 .7, 기울기 -2° (PO 결정, ADR 0020 예외) */
+.lf-blob--login   { width: 220px; height: var(--lf-login-blob-height); transform: rotate(-2deg); }
+.lf-blob--login .lf-oval__outer  { position: absolute; inset: 0; background: #FFE59A; border: var(--lf-border-card) solid var(--lf-color-text); border-radius: 62% 38% 55% 45% / 42% 60% 40% 58%; }
+.lf-blob--login .lf-oval__inner  { inset: 30px 40px 34px 32px; }
+.lf-blob--login .lf-blob__eyes   { left: 52px; top: 74px; width: 110px; height: 52px; }
+.lf-pinky-loop--login { transform: scale(0.7); }
 /* 홈 빈 상태 — A00 블롭 SVG 그대로(옐로는 토큰), 240×211 안에 drop-shadow 5px, 손 루프는 절반 크기 (README) */
 .lf-blob--empty {
   width: 240px;
@@ -316,6 +319,9 @@
   justify-content: center;
   flex: none;
 }
+
+/* 초대 검토(SCR-I) 앱바의 마스코트 타일은 38×36 (아트보드) */
+.lf-appbar__mascot--lg { width: 38px; height: var(--lf-icon-button); }
 
 .lf-appbar__wordmark {
   flex: 1;
@@ -513,6 +519,9 @@
   box-shadow: var(--lf-elevation-card);
 }
 
+/* 라벨 옆 단독 아이콘은 18 (사각 안 아이콘 22 와 구분) */
+.lf-btn > .material-symbols-rounded { font-size: 18px; }
+
 /* 오른쪽 종이 사각 40 r10 (2px 잉크) — 있으면 오른쪽 여백이 8 로 줄고 라벨이 왼쪽으로 붙는다 */
 .lf-btn__trailing {
   width: var(--lf-icon-circle);
@@ -528,7 +537,6 @@
 }
 
 .lf-btn__trailing .material-symbols-rounded { font-size: 22px; }
-.lf-btn__trailing--plain { border: none; }
 
 .lf-btn:has(> .lf-btn__trailing) {
   padding: 0 var(--lf-space-3) 0 22px;
@@ -579,7 +587,7 @@
   background: var(--lf-color-kakao);
   color: var(--lf-color-on-kakao);
   font-weight: var(--lf-weight-bold);
-  font-size: var(--lf-type-body-lg-size);
+  font-size: var(--lf-type-appbar-size); /* README CTA label 16 */
   border: var(--lf-border-sheet) solid var(--lf-color-text);
   box-shadow: var(--lf-elevation-sm);
 }
@@ -732,12 +740,14 @@
   border-radius: var(--lf-radius-xs);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   background: var(--lf-color-surface);
-  box-shadow: var(--lf-elevation-sm);
   color: var(--lf-color-text);
   font-size: var(--lf-type-caption-size);
   font-weight: var(--lf-weight-bold);
   white-space: nowrap;
 }
+
+/* 마감 카운트다운 배지 — 핑크 + 3px (W01) */
+.lf-notice--pink { background: var(--lf-color-attention-container); box-shadow: var(--lf-elevation-sm); }
 
 .lf-notice .material-symbols-rounded { font-size: 16px; }
 .lf-notice__timer { font-family: var(--lf-font-mono); }
@@ -794,7 +804,7 @@
   color: var(--lf-color-text);
 }
 
-/* 리스트 행 카드 — r14 · padding 14 16 · 가로 배치 (상태 타일 40 + 제목 + 메타 + D-Day 칩) */
+/* 리스트 행 카드 — r14 · padding 14 16 · 가로 배치 (상태 타일 40 + 제목 + 메타 + D-Day 칩). 행 끝 화살표는 18 */
 .lf-card--list {
   border-radius: var(--lf-radius-lg);
   padding: var(--lf-space-6) var(--lf-space-7);
@@ -802,6 +812,8 @@
   align-items: center;
   gap: var(--lf-space-5);
 }
+
+.lf-card--list .lf-chevron { font-size: 18px; color: var(--lf-color-text); }
 
 /* 톤 — 파스텔 스티커. 글자는 잉크 그대로 */
 .lf-card--yellow { background: var(--lf-color-primary-container); }
@@ -842,9 +854,8 @@
 /* 그림자 없는 카드 (읽은 알림 · 설정 묶음 · 보관 행) */
 .lf-card--flat { box-shadow: none; }
 
-/* 기울기 — 잉크 & 블록에서 폐지(토큰 0deg). 클래스는 P4 가 마크업에서 걷어낼 때까지 남긴다 */
-.lf-card--tilt      { transform: rotate(var(--lf-tilt-sticker)); }
-.lf-card--tilt-hero { transform: rotate(var(--lf-tilt-hero)); }
+/* 가운데 정렬 본문 안에서도 폭을 다 쓰는 카드 (W01 미리보기) */
+.lf-card--fill { width: 100%; }
 
 /* 넘치는 장식(모서리 블롭)을 잘라낸다 */
 .lf-card--clip { overflow: hidden; }
@@ -868,7 +879,7 @@
   margin-top: var(--lf-space-1);
   font-size: var(--lf-type-meta-size);
   line-height: var(--lf-line-caption);
-  font-weight: var(--lf-weight-regular);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
@@ -885,6 +896,7 @@
 .lf-preview__hint {
   margin-top: var(--lf-space-1);
   font-size: var(--lf-type-caption-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
@@ -993,11 +1005,11 @@
   border: var(--lf-border-card) solid var(--lf-color-text);
   border-radius: var(--lf-radius-xl);
   box-shadow: var(--lf-elevation-card);
-  padding: var(--lf-space-8) var(--lf-card-padding);
+  padding: 22px 18px var(--lf-card-padding);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--lf-space-3);
+  gap: var(--lf-space-2);
   text-align: center;
   overflow: hidden;
   animation: lf-pop-in var(--lf-duration-long) var(--lf-easing-emphasized-decelerate);
@@ -1015,7 +1027,8 @@
 
 .lf-stamp--completed { background: var(--lf-color-success-container); }
 .lf-stamp--pending   { gap: var(--lf-space-4); overflow: visible; }
-.lf-stamp--compact   { padding: var(--lf-space-7) var(--lf-card-padding); gap: 7px; }
+.lf-stamp--compact   { padding: var(--lf-space-7) 18px; gap: var(--lf-space-1); }
+.lf-stamp--compact .lf-stamp__headline { margin-top: 0; }
 .lf-stamp > * { position: relative; }
 
 /* 종이 필 안 손 루프 */
@@ -1043,14 +1056,19 @@
 
 .lf-stamp__time {
   font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
-.lf-stamp--completed .lf-stamp__time { font-size: var(--lf-type-caption-size); color: var(--lf-color-text); }
+.lf-stamp--completed .lf-stamp__time { font-size: var(--lf-type-caption-size); font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }
+.lf-stamp--completed .lf-approval { background: var(--lf-color-surface); }
+/* W03 스탬프 제목 20 (아트보드) */
+.lf-stamp__headline--lg { font-size: var(--lf-type-sheet-title-size); }
 
 .lf-stamp__body {
   font-size: var(--lf-type-caption-size);
   line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-secondary);
 }
 
@@ -1141,7 +1159,7 @@
 .lf-headline {
   font-size: var(--lf-type-headline-size);
   line-height: var(--lf-line-headline);
-  font-weight: var(--lf-weight-heavy);
+  font-weight: var(--lf-weight-bold);
   letter-spacing: var(--lf-letter-spacing-tight);
   color: var(--lf-color-text);
 }
@@ -1149,12 +1167,14 @@
 .lf-title {
   font-size: var(--lf-type-title-size);
   line-height: var(--lf-line-title);
-  font-weight: var(--lf-weight-heavy);
+  font-weight: var(--lf-weight-bold);
   letter-spacing: var(--lf-letter-spacing-tight);
   color: var(--lf-color-text);
 }
 
-.lf-title--web { font-size: var(--lf-type-card-title-size); line-height: var(--lf-line-card-title); }
+.lf-title--web { font-size: var(--lf-type-card-title-size); line-height: var(--lf-line-card-title); font-weight: var(--lf-weight-heavy); }
+/* 900 제목 — README 가 900 을 명시한 곳(MOD-03 축하 · W01 랜딩)만 */
+.lf-title--heavy { font-weight: var(--lf-weight-heavy); }
 
 .lf-subtitle {
   font-size: var(--lf-type-subtitle-size);
@@ -1188,9 +1208,17 @@
 }
 
 .lf-caption {
-  font-size: var(--lf-type-label-size);
-  line-height: var(--lf-line-body);
-  font-weight: var(--lf-weight-regular);
+  font-size: var(--lf-type-chip-size);
+  line-height: 19px;
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-secondary);
+}
+
+/* 12.5/18/800 보조 캡션 — README caption 700 → 800 (E8) */
+.lf-caption--strong {
+  font-size: var(--lf-type-caption-size);
+  line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text-secondary);
 }
 
@@ -1237,14 +1265,15 @@
 }
 
 .lf-meta__label {
-  font-size: var(--lf-type-caption-size);
+  font-size: var(--lf-type-chip-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
   width: 56px;
   flex: none;
 }
 
 .lf-meta__value {
-  font-size: var(--lf-type-label-size);
+  font-size: var(--lf-type-chip-size);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
@@ -1557,7 +1586,7 @@
   margin-top: 2px;
   font-size: var(--lf-type-meta-size);
   line-height: var(--lf-line-caption);
-  font-weight: var(--lf-weight-regular);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-secondary);
 }
 
@@ -1652,7 +1681,7 @@
 .lf-avatar--md  { width: 44px; height: 44px; font-size: var(--lf-type-appbar-size); }
 .lf-avatar--row { width: var(--lf-icon-button); height: var(--lf-icon-button); font-size: var(--lf-type-label-size); }
 .lf-avatar--lg { width: var(--lf-avatar-lg); height: var(--lf-avatar-lg); font-size: var(--lf-type-stamp-size); }
-.lf-avatar--xl { width: var(--lf-avatar-xl); height: var(--lf-avatar-xl); font-size: var(--lf-type-subtitle-size); font-weight: var(--lf-weight-heavy); }
+.lf-avatar--xl { width: var(--lf-avatar-xl); height: var(--lf-avatar-xl); font-size: var(--lf-type-sheet-title-size); font-weight: var(--lf-weight-heavy); }
 
 .lf-avatar--pending {
   background: var(--lf-color-surface-muted);
@@ -1749,7 +1778,7 @@
 }
 
 .lf-empty__hint {
-  font-size: var(--lf-type-meta-size);
+  font-size: var(--lf-type-chip-size);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text-muted);
 }
@@ -1831,9 +1860,13 @@
 
 .lf-compare__label {
   font-size: var(--lf-type-eyebrow-size);
-  font-weight: var(--lf-weight-medium);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text-muted);
 }
+
+/* 칸 안 행 텍스트(원본 v1 안내) 13/800 · 아이콘 18 잉크 */
+.lf-compare__note { font-size: var(--lf-type-chip-size); font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }
+.lf-compare__item .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text); }
 
 .lf-compare__value {
   margin-top: var(--lf-space-1);
@@ -1858,15 +1891,15 @@
   border: var(--lf-border-card) solid var(--lf-color-text);
   border-radius: var(--lf-radius-lg);
   background: var(--lf-color-surface);
-  padding: var(--lf-space-6);
+  box-shadow: var(--lf-elevation-card);
+  padding: var(--lf-card-padding) var(--lf-space-5);
   text-align: center;
 }
 
 .lf-claim__who {
-  font-size: var(--lf-type-eyebrow-size);
+  font-size: var(--lf-type-label-size);
   font-weight: var(--lf-weight-bold);
-  letter-spacing: var(--lf-letter-spacing-wide);
-  color: var(--lf-color-text-muted);
+  color: var(--lf-color-text);
 }
 
 .lf-claim__answer {
@@ -1878,7 +1911,8 @@
 
 .lf-claim__time {
   margin-top: var(--lf-space-1);
-  font-size: var(--lf-type-meta-size);
+  font-size: var(--lf-type-eyebrow-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
@@ -1978,7 +2012,8 @@
 .lf-sheet__title {
   flex: 1;
   font-size: var(--lf-type-sheet-title-size);
-  font-weight: var(--lf-weight-heavy);
+  line-height: 26px;
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
 

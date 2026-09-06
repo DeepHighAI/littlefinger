@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="../../styles/screens/app-entry.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
-<!-- 잉크 & 블록 (2026-09-06): 정원 170 + 민트 원 56 안에서 C-1 손 루프가 첫 약속을 유도. 크롬은 홈과 같다. -->
+<!-- 잉크 & 블록 (2026-09-06): A00 과 같은 흰+옐로 블롭(240×211, 잉크 5px 드롭섀도) 안에서 C-1 손 루프가 첫 약속을 유도. 크롬은 홈과 같다. -->
 <body class="lf-page" data-screen-id="SCR-A02" data-screen-name="홈 · 빈 상태">
 <div class="lf-device">
   <div class="lf-device__viewport">
@@ -37,12 +37,18 @@
 
       <div class="lf-screen__body lf-screen__body--centered lf-empty lf-home__empty">
 
-        <div class="lf-blob lf-blob--circle lf-blob--circle-empty" aria-hidden="true">
-          <span class="lf-blob__accent"></span>
-          <span class="lf-pinky-loop lf-pinky-loop--md">
-            <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
-            <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
-          </span>
+        <div class="lf-blob lf-blob--empty" aria-hidden="true">
+          <svg class="lf-blob__svg" viewBox="0 0 330 290">
+            <path class="lf-blob__paper" d="M120 40c60-30 130 10 140 70s-20 120-90 120S30 210 30 150 60 70 120 40Z"/>
+            <path class="lf-blob__yellow" d="M200 160c40-20 100 0 110 40s-10 80-60 80-70-20-90-50 0-50 40-70Z"/>
+          </svg>
+          <div class="lf-blob__eyes">
+            <span class="lf-pinky-loop lf-pinky-loop--eyes lf-pinky-loop--half">
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
+              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
+              <span class="lf-pinky-loop__spark"></span>
+            </span>
+          </div>
         </div>
 
         <p class="lf-home__empty-copy">소중한 사람과 새끼손가락 걸고<br>지킬 약속을 만들어보세요.</p>

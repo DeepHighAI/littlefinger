@@ -14,11 +14,6 @@
   color: var(--lf-color-text-secondary);
 }
 
-/* 버튼 안에 들어가는 아이콘 기본 크기 (예: SCR-W05 서명 CTA) */
-.lf-btn .material-symbols-rounded {
-  font-size: 19px;
-}
-
 /* 이행 확인 응답 버튼 — "지켰어요 / 안 지켜졌어요" (SCR-W04 CHECKING 카드)
    .lf-choice 와 달리 각지고(radius-md) 폭이 균등한 2택 버튼이라 별도 정의 */
 .lf-response-btn {
@@ -103,19 +98,6 @@
   gap: var(--lf-space-6);
 }
 
-/* 마스코트를 담는 종이 원 56 */
-.lf-app-hint__mascot {
-  width: var(--lf-avatar-xl);
-  height: var(--lf-avatar-xl);
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-surface);
-  border: var(--lf-border-chip) solid var(--lf-color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-}
-
 .lf-app-hint__text {
   flex: 1;
   font-size: var(--lf-type-body-size);
@@ -153,24 +135,14 @@
 }
 
 /* -------------------------------------------------------------
-   AVATAR — 소형 + 색상 배리언트 (SCR-W05 증인 확인, 참여자 구분)
+   AVATAR — 참여자 구분 (SCR-W05). 첫 번째 = 잉크 원 + 옐로 글자(기본), 두 번째 = 종이 + 2px 잉크
    ------------------------------------------------------------- */
-.lf-avatar--sm {
-  width: 22px;
-  height: 22px;
-  font-size: var(--lf-type-micro-size);
-}
+.lf-avatar--solid { }
 
-/* 진한 로즈 톤 — 첫 번째 참여자 */
-.lf-avatar--solid {
-  background: var(--lf-color-primary);
-  color: var(--lf-color-on-primary);
-}
-
-/* 연한 로즈 톤 — 두 번째 참여자 (기본 .lf-avatar 와 구분) */
 .lf-avatar--alt {
-  background: var(--lf-color-primary-pale);
-  color: var(--lf-color-on-primary);
+  background: var(--lf-color-surface);
+  color: var(--lf-color-text);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
 }
 
 /* -------------------------------------------------------------
@@ -443,6 +415,9 @@
   outline: 2px solid var(--lf-color-primary);
   outline-offset: var(--lf-space-1);
 }
+
+/* 한 줄 안내 12/800 보조 (W01 하단) */
+.lf-web-note { font-size: var(--lf-type-meta-size); font-weight: var(--lf-weight-bold); color: var(--lf-color-text-muted); text-align: center; }
 
 /* -------------------------------------------------------------
    HOVER — 웹(포인터)에서만. 블록이 살짝 떠오르며 그림자가 6px 로 늘어난다 (README, 리터럴 · ADR 0020 예외)

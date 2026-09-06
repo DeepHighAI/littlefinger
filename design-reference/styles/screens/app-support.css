@@ -137,7 +137,7 @@
 .lf-trust-card__value {
   margin-top: var(--lf-space-1);
   font-size: var(--lf-type-body-size);
-  font-weight: var(--lf-weight-heavy);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
 
@@ -155,7 +155,7 @@
   display: flex;
   align-items: center;
   gap: var(--lf-space-5);
-  padding: var(--lf-space-6) var(--lf-card-padding);
+  padding: var(--lf-space-5) var(--lf-card-padding);
 }
 
 .lf-slot-row__body { flex: 1; min-width: 0; }
@@ -262,8 +262,7 @@
   border-radius: var(--lf-radius-xl);
   box-shadow: none;
 }
-.lf-witness-slot--locked .lf-witness__empty-label,
-.lf-witness-slot--locked .lf-witness__meta { color: var(--lf-color-text); }
+.lf-witness-slot--locked .lf-witness__empty-label { color: var(--lf-color-text); }
 .lf-witness-slot--locked .lf-witness__empty-label { font-size: var(--lf-type-chip-size); line-height: 19px; }
 .lf-witness-slot--locked .lf-btn { height: 46px; }
 
@@ -282,12 +281,13 @@
   background: var(--lf-color-primary-container);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   color: var(--lf-color-text);
-  font-size: var(--lf-type-caption-size);
+  font-size: var(--lf-type-chip-size);
   font-weight: var(--lf-weight-bold);
   box-shadow: var(--lf-elevation-sm);
 }
 
 .lf-stat-change .material-symbols-rounded { font-size: 16px; }
+
 
 .lf-celebrate__copy {
   font-size: var(--lf-type-label-size);
@@ -348,9 +348,12 @@
   align-items: center;
   gap: var(--lf-space-3);
   font-size: var(--lf-type-body-size);
-  font-weight: var(--lf-weight-heavy);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
+
+/* MOD-05 의 상한 행은 14 (아트보드) */
+.lf-slot-sheet__usage--sm { font-size: var(--lf-type-label-size); }
 
 .lf-slot-sheet__usage .material-symbols-rounded { font-size: 20px; color: var(--lf-color-text); }
 .lf-slot-sheet__usage > span { white-space: nowrap; }
@@ -374,8 +377,10 @@
   gap: var(--lf-space-1);
 }
 
-/* 영구 보관은 기록(스카이) 톤 — 슬롯 구매(옐로)와 성격이 다르다 */
+/* 영구 보관은 기록(스카이) 톤 — 슬롯 구매(옐로)와 성격이 다르다. 카드 안 CTA 는 3px (README) */
 .lf-slot-sheet__offer--sky { background: var(--lf-color-record-container); gap: var(--lf-space-4); }
+.lf-slot-sheet__offer .lf-btn--filled { box-shadow: var(--lf-elevation-sm); }
+.lf-slot-sheet__offer .lf-btn--filled:active { box-shadow: none; }
 
 .lf-slot-sheet__offer-title { font-size: var(--lf-type-stamp-size); font-weight: var(--lf-weight-heavy); color: var(--lf-color-text); }
 .lf-slot-sheet__offer-meta  { font-size: var(--lf-type-chip-size); line-height: 19px; font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }

@@ -118,7 +118,7 @@ legend.lf-field__label { padding: 0; }
 }
 
 .lf-kakao-bubble__body {
-  font-size: var(--lf-type-chip-size);
+  font-size: var(--lf-type-caption-size);
   color: var(--lf-color-text-secondary);
 }
 
@@ -209,6 +209,12 @@ legend.lf-field__label { padding: 0; }
 
 .lf-answer[aria-pressed='true'] .lf-answer__subtitle { color: var(--lf-color-text); }
 
+/* 선택 카드 안 아이콘 타일의 글리프는 22 */
+.lf-answer .lf-list-item__icon .material-symbols-rounded { font-size: 22px; }
+
+/* 상단 약속 요약(뮤트 카드) — padding 14 16 */
+.lf-fulfillment__promise { padding: var(--lf-space-6) var(--lf-card-padding); }
+
 /* 질문 헤드라인 블록 */
 .lf-fulfillment__question {
   padding: var(--lf-space-3) var(--lf-space-1) 0;
@@ -251,8 +257,11 @@ legend.lf-field__label { padding: 0; }
 .lf-proof--dashed {
   background: transparent;
   border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
+  box-shadow: none;
   color: var(--lf-color-text-muted);
 }
+
+.lf-proof--dashed .material-symbols-rounded { color: var(--lf-color-text-muted); }
 
 .lf-proof-hint {
   padding: 0 var(--lf-space-1);
@@ -280,7 +289,7 @@ legend.lf-field__label { padding: 0; }
 }
 
 .lf-partner-status__icon {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--lf-color-text-muted);
 }
 
