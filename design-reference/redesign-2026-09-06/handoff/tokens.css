@@ -1,0 +1,229 @@
+/* =============================================================
+   Little Finger — Design Tokens ("잉크 & 블록", 시안 1a 확정 2026-09-06)
+   기존 tokens.css(파스텔 × 잉크 & 스티커)와 토큰 이름은 같고 값만 바꿨다.
+   신설 2개: --lf-elevation-sm, --lf-type-appbar-size (tokens.test.ts 카운트 +2).
+   apps/mobile/src/theme/tokens.ts · apps/web/src/styles/tokens.css 에 같은 변경을 반영한다.
+   예외: SCR-A00 온보딩 · SCR-A01 로그인은 기존 기준선 화면을 그대로 둔다.
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0&display=swap');
+
+@font-face {
+  font-family: 'Pretendard';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/PretendardVariable.woff2') format('woff2-variations'),
+       url('../assets/fonts/PretendardVariable.woff2') format('woff2');
+}
+
+:root {
+  /* COLOR — 잉크 #221C13 · 종이 #FFFDF4 · 캔버스 #FBF8F1 · 4색(옐로/민트/핑크/스카이) 채도 상향 */
+  --lf-color-primary:              #221C13;
+  --lf-color-primary-hover:        #16120C;
+  --lf-color-primary-pressed:      #0B0906;
+  --lf-color-on-primary:           #FFFDF4;
+  --lf-color-primary-container:    #FFD43B; /* 옐로 — 브랜드·선택·임박·CTA 원 */
+  --lf-color-on-primary-container: #221C13;
+  --lf-color-primary-soft:         #FFF6CC;
+  --lf-color-primary-pale:         #6CB4FF; /* 스카이 — 진행바 */
+  --lf-color-primary-ink:          #221C13;
+  --lf-color-action-fill:          #221C13;
+  --lf-color-action-fill-pressed:  #000000;
+  --lf-color-on-action:            #FFFDF4;
+  --lf-color-brand-symbol-on-action: #FFD43B;
+  --lf-color-brand-symbol:         #221C13;
+
+  --lf-color-record:           #221C13;
+  --lf-color-on-record:        #FFFDF4;
+  --lf-color-record-container: #6CB4FF; /* 스카이 — 기록·변경 협의·보상 */
+
+  --lf-color-attention:           #221C13;
+  --lf-color-attention-container: #FF6F91; /* 핑크 — 마감·응답 필요·불이행·벌칙 */
+
+  --lf-color-background:      #FBF8F1;
+  --lf-color-surface:         #FFFDF4;
+  --lf-color-surface-chrome:  #FBF8F1;
+  --lf-color-surface-muted:   #EFE9DC;
+
+  --lf-color-outline:        #EFE9DC; /* 점선 구분선 */
+  --lf-color-outline-strong: #6F6552; /* 점선 플레이스홀더·비활성 */
+  --lf-color-outline-icon:   #221C13;
+  --lf-color-focus-ring:     #2F6FB3;
+
+  --lf-color-text:           #221C13;
+  --lf-color-text-secondary: #6F6552;
+  --lf-color-text-muted:     #6F6552;
+  --lf-color-text-faint:     #6F6552;
+
+  --lf-color-reward-container:     #6CB4FF;
+  --lf-color-on-reward-container:  #221C13;
+  --lf-color-reward-label:         #221C13;
+  --lf-color-penalty-container:    #FF6F91;
+  --lf-color-on-penalty-container: #221C13;
+  --lf-color-penalty-label:        #221C13;
+
+  --lf-color-error:           #C4433B;
+  --lf-color-error-container: #F8DFDB;
+
+  --lf-color-success:           #221C13;
+  --lf-color-success-container: #5FD3A5; /* 민트 — 진행·완료·확정 */
+
+  --lf-color-kakao:    #FEE500; /* 변경 금지 */
+  --lf-color-on-kakao: #191919;
+  --lf-color-google:        #FFFFFF; /* 변경 금지 */
+  --lf-color-on-google:     #1F1F1F;
+  --lf-color-google-border: #747775;
+
+  --lf-color-frame-border: #221C13;
+  --lf-color-scrim:        rgba(34, 28, 19, 0.42);
+
+  /* TYPE — Pretendard 단일 서체 · 무게 500/600/800/900 */
+  --lf-font-brand: 'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
+  --lf-font-mono:  'Pretendard', 'Pretendard Fallback', Roboto, system-ui, sans-serif;
+
+  --lf-type-wordmark-size:    40px; /* A01 큰 워드마크 (헤더 워드마크는 22) */
+  --lf-type-display-size:     36px;
+  --lf-type-headline-size:    30px;
+  --lf-type-title-size:       24px;
+  --lf-type-sheet-title-size: 20px;
+  --lf-type-heading-size:     20px;
+  --lf-type-card-title-size:  22px;
+  --lf-type-subtitle-size:    18px;
+  --lf-type-stamp-size:       17px;
+  --lf-type-appbar-size:      16px; /* 신설 — 앱바 제목 */
+  --lf-type-body-lg-size:     17px;
+  --lf-type-body-size:        15px;
+  --lf-type-label-size:       14px;
+  --lf-type-chip-size:        13px;
+  --lf-type-caption-size:     12.5px;
+  --lf-type-meta-size:        12px;
+  --lf-type-micro-size:       11.5px;
+  --lf-type-eyebrow-size:     11px;
+
+  --lf-line-wordmark:   46px;
+  --lf-line-display:    42px;
+  --lf-line-headline:   36px;
+  --lf-line-title:      30px;
+  --lf-line-card-title: 28px;
+  --lf-line-body-strong: 20px;
+  --lf-line-body:       22px;
+  --lf-line-caption:    18px;
+  --lf-line-micro:      16px;
+
+  --lf-weight-regular: 500;
+  --lf-weight-medium:  600;
+  --lf-weight-bold:    800;
+  --lf-weight-heavy:   900;
+
+  --lf-letter-spacing-tight:    -0.03em;
+  --lf-letter-spacing-wide:     0.12em;
+  --lf-letter-spacing-wider:    0.16em;
+  --lf-letter-spacing-wordmark: -0.04em;
+
+  /* SHAPE — 카드 14 · 탭/입력/타일 10 · 상태 칩 8 · 시트 20 · 필은 헤더·아바타만 */
+  --lf-radius-xs:    8px;
+  --lf-radius-sm:   10px;
+  --lf-radius-md:   14px;
+  --lf-radius-lg:   14px;
+  --lf-radius-xl:   14px;
+  --lf-radius-2xl:  12px;
+  --lf-radius-hero: 20px;
+  --lf-radius-pill: 9999px;
+
+  /* BORDER — 2(칩·입력·타일) / 2.5(카드·버튼·시트) */
+  --lf-border-chip:    2px;
+  --lf-border-card:    2.5px;
+  --lf-border-outline: 2.5px;
+  --lf-border-sheet:   2.5px;
+  --lf-border-dashed:  2px;
+  --lf-border-pending: 2px;
+
+  /* TILT — 폐지 (클래스는 유지, 값만 0) */
+  --lf-tilt-sticker: 0deg;
+  --lf-tilt-hero:    0deg;
+  --lf-tilt-blob:    0deg;
+  --lf-tilt-empty:   0deg;
+
+  /* SPACING (변경 없음) */
+  --lf-space-1:  4px;  --lf-space-2:  6px;  --lf-space-3:  8px;
+  --lf-space-4: 10px;  --lf-space-5: 12px;  --lf-space-6: 14px;
+  --lf-space-7: 16px;  --lf-space-8: 20px;  --lf-space-9: 24px;
+  --lf-gutter-app: 16px;
+  --lf-gutter-web: 20px;
+
+  /* SIZE */
+  --lf-touch-min:     48px;
+  --lf-icon-button:   36px; /* 사각 r10 · ::after 로 48 터치 보장 */
+  --lf-appbar-height: 52px; /* + margin 8 16 0 (components.css) */
+  --lf-browserbar-height: 44px;
+  --lf-cta-height:    56px;
+  --lf-icon-circle:   40px; /* CTA 안 옐로 사각 r10 */
+  --lf-kakao-height:  54px;
+  --lf-action-height: 50px;
+  --lf-fab-height:    56px; /* 좌우 16 풀폭 */
+  --lf-tab-height:    34px;
+  --lf-chip-select-height: 36px;
+  --lf-chip-meta-height:   28px;
+  --lf-chip-status-height: 28px;
+  --lf-input-height:  48px;
+  --lf-textarea-min-height: 84px;
+  --lf-card-padding:  16px;
+  --lf-appbar-icon: 20px;
+  --lf-status-tile: 40px; /* 상태 도트(10) → 상태 타일(40 r10) */
+
+  --lf-switch-width:  52px;
+  --lf-switch-height: 32px;
+  --lf-switch-knob:   20px;
+  --lf-trust-ring:        88px;
+  --lf-trust-ring-stroke: 12px;
+  --lf-dday-circle: 56px; /* r14 사각 */
+  --lf-avatar-sm: 34px;
+  --lf-avatar-lg: 48px;
+  --lf-avatar-xl: 56px;
+  --lf-thumb:     84px;
+  --lf-thumb-lg:  84px;
+  --lf-status-dot: 10px;
+  --lf-progress-height: 10px;
+  --lf-sheet-handle-width:  40px;
+  --lf-sheet-handle-height: 5px;
+  --lf-fade-height:    130px;
+  --lf-fade-height-sm: 110px;
+
+  --lf-mascot-sm: 28px; /* 헤더 옐로 원(34) 안 */
+  --lf-mascot-md: 34px;
+  --lf-mascot-lg: 46px;
+  --lf-pinky-sm:   28px;
+  --lf-pinky-md:   40px;
+  --lf-pinky-lg:   72px;
+  --lf-pinky-eyes: 44px;
+  --lf-eyes-row:    26px;
+  --lf-eyes-header: 44px;
+  --lf-eyes-card:   56px;
+  --lf-eyes-blob:   68px;
+  --lf-hero-blob-height:  290px; /* A00 기존 유지 */
+  --lf-login-blob-height: 200px; /* A01 기존 유지 */
+  --lf-stamp-pill-width:  100px;
+  --lf-stamp-pill-height: 60px;
+
+  --lf-viewport-width:  360px;
+  --lf-viewport-height: 800px;
+  --lf-statusbar-height: 40px;
+  --lf-navbar-height:    24px;
+
+  /* ELEVATION — 45° 하드 섀도, blur 0, 잉크 100% */
+  --lf-elevation-card: 5px 5px 0 #221C13;
+  --lf-elevation-fab:  5px 5px 0 #221C13;
+  --lf-elevation-sm:   3px 3px 0 #221C13; /* 신설 — 선택 탭·outlined·kakao·피커 */
+  --lf-elevation-sheet: none;
+  /* 눌림: transform translate(3px,3px) + box-shadow 2px 2px 0 #221C13 (sm은 0) */
+
+  /* MOTION */
+  --lf-easing-standard:              cubic-bezier(0, 0, 0, 1);
+  --lf-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --lf-easing-pinky:                 cubic-bezier(0.32, 0.72, 0, 1);
+  --lf-duration-short:  120ms;
+  --lf-duration-medium: 240ms;
+  --lf-duration-long:   400ms;
+  --lf-duration-pinky: 2600ms;
+}

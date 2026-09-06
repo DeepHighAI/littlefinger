@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400..500,0,0&display=swap" rel="stylesheet">
+<style>
+@font-face { font-family: 'Pretendard'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('assets/PretendardVariable.woff2') format('woff2-variations'), url('assets/PretendardVariable.woff2') format('woff2'); }
+body { margin: 0; background: #EDE8DD; font-family: 'Pretendard', system-ui, sans-serif; color: #221C13; -webkit-font-smoothing: antialiased; word-break: keep-all; }
+a { color: #221C13; } a:hover { color: #221C13; opacity: .7; }
+button { font-family: inherit; cursor: pointer; }
+p, h1, h2, h3 { margin: 0; }
+.material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24; user-select: none; flex: none; }
+.ms-400 { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+@keyframes lf-pinky-l { 0%, 15% { transform: translate(4px, 0) rotate(8deg); } 45%, 60% { transform: translate(-3px, -2px) rotate(-6deg); } 75% { transform: translate(-2px, -1px) rotate(-3deg); } 100% { transform: translate(4px, 0) rotate(8deg); } }
+@keyframes lf-pinky-spark { 0%, 40% { opacity: 0; transform: scale(0.4); } 52% { opacity: 1; transform: scale(1.1); } 70% { opacity: 0; transform: scale(1.3); } 100% { opacity: 0; } }
+</style>
+</helmet>
+
+<section id="t2" style="padding: 48px; display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <span style="font-size: 13px; font-weight: 800; letter-spacing: .14em; color: #706652;">리디자인 01 · 잉크 &amp; 블록 (1a 확정)</span>
+    <span style="font-size: 22px; font-weight: 800;">진입 · 홈 · 약속 작성 · 초대</span>
+    <span style="font-size: 13px; color: #6F6552;">SCR-A00 · A01은 기존 기준선(파스텔 × 잉크 &amp; 스티커) 그대로 유지 · A02 ~ A04, SCR-I 리디자인 · 규격은 <a href="리틀핑거 스타일 가이드.dc.html">스타일 가이드</a> 참조</span>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 56px; align-items: flex-start;">
+
+    <!-- ============ SCR-A00 온보딩 — 기존 유지 (design-reference/screens/app/scr-a00-onboarding.html) ============ -->
+    <div data-screen-label="SCR-A00" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: #221C13; color: #FFFDF4; font-size: 12px; font-weight: 800;">SCR-A00</span><span style="font-size: 13px; color: #6F6552;">온보딩 1/3 · 기존 유지</span></div>
+      <div style="width: 376px; height: 880px; border: 8px solid rgba(34,28,19,.22); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; background: #F3ECDC; box-shadow: 0 30px 80px rgba(0,0,0,.25);">
+        <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; position: relative;"><span style="font-size: 15px; letter-spacing: .25px;">9:30</span><span style="position: absolute; left: 50%; top: 8px; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 999px; background: #2e2e2e;"></span><span style="display: flex; align-items: center; gap: 2px;"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><rect x="3.75" y="2" width="8.5" height="13" rx="1.5" fill="currentColor"/><rect x="5.5" y="0.9" width="5" height="2" rx="0.5" fill="currentColor"/></svg></span></div>
+        <div style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column; background: #F3ECDC;">
+          <div style="flex: none; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 20px;">
+            <span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;"><img src="assets/mascot-face-e1.png" alt="" style="width: 28px; height: 28px; object-fit: contain;"><span>리틀핑거</span></span>
+            <button style="height: 44px; padding: 0 12px; border: none; background: transparent; color: #6F6552; font-size: 14px; font-weight: 600;">건너뛰기</button>
+          </div>
+          <div style="flex: none; position: relative; height: 290px; margin: 8px 20px 0; transform: rotate(-2deg);">
+            <svg viewBox="0 0 330 290" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;"><path d="M120 40c60-30 130 10 140 70s-20 120-90 120S30 210 30 150 60 70 120 40Z" fill="#FFFDF4" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"/><path d="M200 160c40-20 100 0 110 40s-10 80-60 80-70-20-90-50 0-50 40-70Z" fill="#FFE59A" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"/></svg>
+            <div style="position: absolute; left: 90px; top: 96px; width: 110px; height: 52px; display: flex; align-items: center; justify-content: center;">
+              <span style="position: relative; display: block; width: 115px; height: 44px;">
+                <span style="position: absolute; top: 0; left: 0; width: 46.4px; height: 44px; transform: scaleX(-1);"><img src="assets/hand-solid.png" alt="" style="width: 46.4px; height: 44px; display: block; transform-origin: 50% 90%; animation: lf-pinky-l 2600ms cubic-bezier(.32,.72,0,1) infinite;"></span>
+                <span style="position: absolute; top: 0; right: 0; width: 46.4px; height: 44px;"><img src="assets/hand-solid.png" alt="" style="width: 46.4px; height: 44px; display: block; transform-origin: 50% 90%; animation: lf-pinky-l 2600ms cubic-bezier(.32,.72,0,1) infinite;"></span>
+                <span style="position: absolute; left: 50%; top: 18%; width: 9.7px; height: 9.7px; margin-left: -4.8px; border-radius: 999px; background: #FFE59A; animation: lf-pinky-spark 2600ms ease-out infinite;"></span>
+              </span>
+            </div>
+          </div>
+          <div style="padding: 24px 28px 0; display: flex; flex-direction: column; gap: 14px;">
+            <h1 style="font-size: 34px; line-height: 42px; font-weight: 800; letter-spacing: -0.02em;">약속하고,<br>걸고,<br>지키는 재미.</h1>
+            <p style="font-size: 14px; line-height: 24px; color: #6F6552;">둘이 정한 약속을 기록하고 잊지 않게 챙겨드려요.<br>작성 → 카톡 초대 → 새끼손가락 걸기, 세 단계면 끝.</p>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="padding: 0 28px 8px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 20px; height: 6px; border-radius: 999px; background: #221C13;"></span><span style="width: 6px; height: 6px; border-radius: 999px; background: #B8AB92;"></span><span style="width: 6px; height: 6px; border-radius: 999px; background: #B8AB92;"></span></div>
+            <button style="align-self: flex-start; height: 52px; padding: 6px 6px 6px 22px; border-radius: 999px; background: #221C13; color: #FFFDF4; border: none; box-shadow: 3px 4px 0 rgba(34,28,19,.22); display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 700;"><span>시작하기</span><span style="width: 40px; height: 40px; border-radius: 999px; background: #FFE59A; border: 2px solid #221C13; color: #221C13; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded ms-400" style="font-size: 18px;">arrow_forward</span></span></button>
+          </div>
+        </div>
+        <div style="height: 24px; flex: none; display: flex; align-items: center; justify-content: center;"><span style="width: 108px; height: 4px; border-radius: 2px; background: #221C13; opacity: .4;"></span></div>
+      </div>
+    </div>
+
+    <!-- ============ SCR-A01 로그인 — 기존 유지 (design-reference/screens/app/scr-a01-login.html) ============ -->
+    <div data-screen-label="SCR-A01" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: #221C13; color: #FFFDF4; font-size: 12px; font-weight: 800;">SCR-A01</span><span style="font-size: 13px; color: #6F6552;">로그인 · 기존 유지</span></div>
+      <div style="width: 376px; height: 880px; border: 8px solid rgba(34,28,19,.22); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; background: #F3ECDC; box-shadow: 0 30px 80px rgba(0,0,0,.25);">
+        <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; position: relative;"><span style="font-size: 15px; letter-spacing: .25px;">9:30</span><span style="position: absolute; left: 50%; top: 8px; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 999px; background: #2e2e2e;"></span><span style="display: flex; align-items: center; gap: 2px;"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><rect x="3.75" y="2" width="8.5" height="13" rx="1.5" fill="currentColor"/><rect x="5.5" y="0.9" width="5" height="2" rx="0.5" fill="currentColor"/></svg></span></div>
+        <div style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column; background: #F3ECDC;">
+          <div style="flex: none; height: 44px;"></div>
+          <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; padding: 8px 28px 12px;">
+            <div style="position: relative; width: 220px; height: 200px; transform: rotate(-2deg); flex: none;">
+              <svg viewBox="0 0 220 200" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;"><path d="M110 12c70-10 106 40 100 90s-50 92-104 88S6 150 10 100 50 20 110 12Z" fill="#FFFDF4" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"/><path d="M150 120c34-14 66 8 62 40s-30 44-62 38-40-26-34-48 14-24 34-30Z" fill="#FFE59A" stroke="#221C13" stroke-width="2.5" stroke-linejoin="round"/></svg>
+              <div style="position: absolute; left: 55px; top: 70px; width: 110px; height: 52px; display: flex; align-items: center; justify-content: center;">
+                <span style="position: relative; display: block; width: 115px; height: 44px;">
+                  <span style="position: absolute; top: 0; left: 0; width: 46.4px; height: 44px; transform: scaleX(-1);"><img src="assets/hand-solid.png" alt="" style="width: 46.4px; height: 44px; display: block; transform-origin: 50% 90%; animation: lf-pinky-l 2600ms cubic-bezier(.32,.72,0,1) infinite;"></span>
+                  <span style="position: absolute; top: 0; right: 0; width: 46.4px; height: 44px;"><img src="assets/hand-solid.png" alt="" style="width: 46.4px; height: 44px; display: block; transform-origin: 50% 90%; animation: lf-pinky-l 2600ms cubic-bezier(.32,.72,0,1) infinite;"></span>
+                  <span style="position: absolute; left: 50%; top: 18%; width: 9.7px; height: 9.7px; margin-left: -4.8px; border-radius: 999px; background: #FFE59A; animation: lf-pinky-spark 2600ms ease-out infinite;"></span>
+                </span>
+              </div>
+            </div>
+            <div>
+              <h1 style="font-size: 38px; line-height: 44px; font-weight: 800; letter-spacing: .04em;">리틀핑거</h1>
+              <p style="margin-top: 8px; font-size: 15px; color: #6F6552;">새끼손가락 걸고, 약속!</p>
+            </div>
+            <p style="height: 34px; padding: 0 14px; border-radius: 999px; background: #FFFDF4; border: 2px solid #221C13; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; transform: rotate(-1.2deg); box-shadow: 3px 4px 0 rgba(34,28,19,.14);">오늘도 새끼손가락 걸어볼까요?</p>
+          </div>
+          <div style="flex: none; display: flex; flex-direction: column; gap: 14px; padding: 0 24px 8px;">
+            <button style="height: 54px; border-radius: 999px; background: #FEE500; color: #191919; border: 2.5px solid #221C13; box-shadow: 3px 4px 0 rgba(34,28,19,.14); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 17px; font-weight: 700;"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7L5.6 21c-.1.4.3.7.6.5l4.1-2.7c.5.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="currentColor"/></svg><span>카카오로 시작하기</span></button>
+            <button style="height: 52px; border-radius: 999px; background: #FFFFFF; color: #1F1F1F; border: 1px solid #747775; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 17px; font-weight: 600;"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2.1 5.1-4.4 6.7v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.2z"/><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.7-3.9-12.4-9.2H4.3v5.7C7.9 40.9 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.6 28c-.5-1.3-.7-2.6-.7-4s.3-2.7.7-4v-5.7H4.3A22 22 0 0 0 2 24c0 3.6.9 6.9 2.3 9.7L11.6 28z"/><path fill="#EA4335" d="M24 10.8c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.3 30 2 24 2 15.4 2 7.9 7.1 4.3 14.3l7.3 5.7c1.7-5.3 6.6-9.2 12.4-9.2z"/></svg><span>Google로 시작하기</span></button>
+            <p style="font-size: 12px; line-height: 16px; color: #706652; text-align: center;">시작하면 <a href="#" style="color: inherit; text-decoration: underline;">이용약관</a>과 <a href="#" style="color: inherit; text-decoration: underline;">개인정보 처리방침</a>에 동의하게 돼요</p>
+          </div>
+        </div>
+        <div style="height: 24px; flex: none; display: flex; align-items: center; justify-content: center;"><span style="width: 108px; height: 4px; border-radius: 2px; background: #221C13; opacity: .4;"></span></div>
+      </div>
+    </div>
+
+    <!-- ============ SCR-A02 홈 ============ -->
+    <div data-screen-label="SCR-A02" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 12px; font-weight: 800;">SCR-A02</span><span style="font-size: 13px; color: #6F6552;">홈 · 약속 목록</span></div>
+      <div style="width: 376px; height: 880px; border: 8px solid #221C13; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; background: #FBF8F1; box-shadow: 12px 12px 0 #221C13;">
+        <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;"><span style="font-size: 15px; font-weight: 700;">9:30</span><span style="display: flex; align-items: center; gap: 4px;"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill="currentColor"/></svg><span style="height: 14px; padding: 0 4px; border: 1.5px solid #221C13; border-radius: 4px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; background: #FFD43B;">87</span></span></div>
+        <div style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+          <header style="flex: none; margin: 8px 16px 0; height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+            <span style="width: 34px; height: 34px; border-radius: 999px; background: #FFD43B; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center; flex: none;"><img src="assets/mascot-face-e1.png" alt="" style="width: 28px; height: 28px; object-fit: contain;"></span>
+            <h1 style="flex: 1; min-width: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.04em; white-space: nowrap; line-height: 1;">리틀핑거</h1>
+            <button style="height: 40px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 8px; border-radius: 999px; background: transparent; border: none; color: #221C13; font-size: 14px; font-weight: 800; position: relative;"><span>메뉴</span><svg width="18" height="14" viewBox="0 0 18 14"><rect width="18" height="3" rx="1.5" fill="currentColor"/><rect y="5.5" width="18" height="3" rx="1.5" fill="currentColor"/><rect y="11" width="18" height="3" rx="1.5" fill="currentColor"/></svg><span style="position: absolute; top: 4px; right: 6px; width: 9px; height: 9px; border-radius: 999px; background: #FF6F91; border: 2px solid #221C13;"></span></button>
+          </header>
+          <div style="flex: none; padding: 22px 20px 0;"><h2 style="font-size: 30px; line-height: 36px; font-weight: 800; letter-spacing: -0.03em;">지우님, 이번 주<br>약속 6개 순항 중.</h2></div>
+          <div style="flex: none; display: flex; gap: 8px; padding: 18px 20px 0;">
+            <button style="height: 34px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 800; background: #FFD43B; border: 2px solid #221C13; color: #221C13; box-shadow: 3px 3px 0 #221C13; white-space: nowrap;">진행 중 6</button>
+            <button style="height: 34px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 700; background: #FFFDF4; border: 2px solid #221C13; color: #221C13; white-space: nowrap;">대기 1</button>
+            <button style="height: 34px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 700; background: #FFFDF4; border: 2px solid #221C13; color: #221C13; white-space: nowrap;">지난 약속</button>
+          </div>
+          <div style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 120px 16px;">
+            <a href="#" style="flex: none; position: relative; text-decoration: none; margin-top: 10px; background: #FFD43B; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; display: flex; align-items: center; gap: 12px; padding: 20px 18px 18px;">
+              <span style="position: absolute; top: -14px; left: 14px; height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 8px; background: #FF6F91; border: 2px solid #221C13; font-size: 12px; font-weight: 800;">D-1 · 내일까지</span>
+              <div style="flex: 1; min-width: 0;"><p style="margin-top: 4px; font-size: 22px; line-height: 28px; font-weight: 900; letter-spacing: -0.02em;">월말까지<br>야식 끊기</p><p style="margin-top: 8px; font-size: 12px; font-weight: 700;">지우 — 민준</p></div>
+              <span style="width: 46px; height: 46px; border-radius: 12px; background: #221C13; color: #FFD43B; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 22px;">arrow_forward</span></span>
+            </a>
+            <div style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+              <span style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #221C13; background: #5FD3A5; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">bolt</span></span>
+              <div style="flex: 1; min-width: 0;"><p style="font-size: 15px; line-height: 20px; font-weight: 800;">매주 화·목 아침 러닝 같이 하기</p><p style="margin-top: 3px; font-size: 12px; font-weight: 600; color: #6F6552;">진행 중 · 8/11 (화) · 지우 — 민준</p></div>
+              <span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; white-space: nowrap;">D-17</span>
+            </div>
+            <div style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #221C13; background: #FF6F91; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">notification_important</span></span>
+                <div style="flex: 1; min-width: 0;"><p style="font-size: 15px; line-height: 20px; font-weight: 800;">월급날까지 배달앱 금지</p><p style="margin-top: 3px; font-size: 12px; font-weight: 600; color: #6F6552;">이행 확인 필요 · 응답 기한 6일</p></div>
+              </div>
+              <button style="height: 44px; width: 100%; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 800; color: #221C13; border: 2px solid #221C13; background: #FBF8F1; box-shadow: 3px 3px 0 #221C13;"><span>지켜졌나요? 답하기</span><span class="material-symbols-rounded" style="font-size: 18px;">arrow_forward</span></button>
+            </div>
+            <div style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+              <span style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #221C13; background: #5FD3A5; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">bolt</span></span>
+              <div style="flex: 1; min-width: 0;"><p style="font-size: 15px; line-height: 20px; font-weight: 800;">주 3회 홈트 인증하기</p><p style="margin-top: 3px; font-size: 12px; font-weight: 600; color: #6F6552;">진행 중 · 8/20 (목) · 지우 — 하영</p></div>
+              <span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; white-space: nowrap;">D-26</span>
+            </div>
+            <div style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+              <span style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #221C13; background: #6CB4FF; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">all_inclusive</span></span>
+              <div style="flex: 1; min-width: 0;"><p style="font-size: 15px; line-height: 20px; font-weight: 800;">매주 일요일 부모님께 안부 전화하기</p><p style="margin-top: 3px; font-size: 12px; font-weight: 600; color: #6F6552;">진행 중 · 종료일 없음 · 지우 — 민준</p></div>
+              <span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">∞</span>
+            </div>
+            <div style="flex: none; border: 2px dashed #6F6552; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; font-weight: 700; color: #6F6552;"><span style="height: 24px; padding: 0 8px; border-radius: 8px; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 11px; font-weight: 800; color: #221C13; background: #FFFDF4;">광고</span><span>인피드 배너 자리 · 비활성 시 공간 없음</span></div>
+            <div style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+              <span style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #221C13; background: #5FD3A5; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">bolt</span></span>
+              <div style="flex: 1; min-width: 0;"><p style="font-size: 15px; line-height: 20px; font-weight: 800;">이번 달 책 한 권 같이 읽기</p><p style="margin-top: 3px; font-size: 12px; font-weight: 600; color: #6F6552;">진행 중 · 8/31 (월) · 지우 — 민준</p></div>
+              <span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; white-space: nowrap;">D-37</span>
+            </div>
+          </div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 130px; background: linear-gradient(to bottom, transparent, #FBF8F1 65%); pointer-events: none;"></div>
+          <button style="position: absolute; left: 16px; right: 16px; bottom: 20px; height: 56px; padding: 0 8px 0 22px; border-radius: 14px; background: #221C13; color: #FFFDF4; display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 800; border: 2.5px solid #221C13; box-shadow: 5px 5px 0 #221C13;"><span>약속 만들기</span><span style="width: 40px; height: 40px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; color: #221C13; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 26px;">add</span></span></button>
+        </div>
+        <div style="height: 24px; flex: none; display: flex; align-items: center; justify-content: center;"><span style="width: 108px; height: 4px; border-radius: 2px; background: #221C13;"></span></div>
+      </div>
+    </div>
+
+    <!-- ============ SCR-A02 홈 · 빈 상태 ============ -->
+    <div data-screen-label="SCR-A02 empty" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 12px; font-weight: 800;">SCR-A02</span><span style="font-size: 13px; color: #6F6552;">홈 · 빈 상태</span></div>
+      <div style="width: 376px; height: 880px; border: 8px solid #221C13; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; background: #FBF8F1; box-shadow: 12px 12px 0 #221C13;">
+        <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;"><span style="font-size: 15px; font-weight: 700;">9:30</span><span style="display: flex; align-items: center; gap: 4px;"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill="currentColor"/></svg><span style="height: 14px; padding: 0 4px; border: 1.5px solid #221C13; border-radius: 4px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; background: #FFD43B;">87</span></span></div>
+        <div style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+          <header style="flex: none; margin: 8px 16px 0; height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+            <span style="width: 34px; height: 34px; border-radius: 999px; background: #FFD43B; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center; flex: none;"><img src="assets/mascot-face-e1.png" alt="" style="width: 28px; height: 28px; object-fit: contain;"></span>
+            <h1 style="flex: 1; font-size: 22px; font-weight: 900; letter-spacing: -0.04em; line-height: 1;">리틀핑거</h1>
+            <button style="height: 40px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 8px; background: transparent; border: none; color: #221C13; font-size: 14px; font-weight: 800;"><span>메뉴</span><svg width="18" height="14" viewBox="0 0 18 14"><rect width="18" height="3" rx="1.5" fill="currentColor"/><rect y="5.5" width="18" height="3" rx="1.5" fill="currentColor"/><rect y="11" width="18" height="3" rx="1.5" fill="currentColor"/></svg></button>
+          </header>
+          <div style="flex: none; padding: 22px 20px 0;"><h2 style="font-size: 30px; line-height: 36px; font-weight: 800; letter-spacing: -0.03em;">아직 건 약속이<br>없어요.</h2></div>
+          <div style="flex: none; display: flex; gap: 8px; padding: 18px 20px 0;">
+            <button style="height: 34px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 800; background: #FFD43B; border: 2px solid #221C13; color: #221C13; box-shadow: 3px 3px 0 #221C13;">진행 중 0</button>
+            <button style="height: 34px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 700; background: #FFFDF4; border: 2px solid #221C13; color: #221C13;">대기 0</button>
+            <button style="height: 34px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 700; background: #FFFDF4; border: 2px solid #221C13; color: #221C13;">지난 약속</button>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 22px; padding: 0 32px 80px;">
+            <div style="position: relative; width: 170px; height: 170px; border-radius: 999px; background: #FFFDF4; border: 2.5px solid #221C13; box-shadow: 5px 5px 0 #221C13; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span style="position: absolute; right: -14px; bottom: -6px; width: 56px; height: 56px; border-radius: 999px; background: #5FD3A5; border: 2.5px solid #221C13;"></span>
+              <img src="assets/hand-solid.png" alt="" style="width: 44px; height: 42px; transform: scaleX(-1); animation: lf-pinky-l 2600ms cubic-bezier(.32,.72,0,1) infinite; transform-origin: 50% 90%;">
+              <img src="assets/hand-solid.png" alt="" style="width: 44px; height: 42px; animation: lf-pinky-l 2600ms cubic-bezier(.32,.72,0,1) infinite; transform-origin: 50% 90%;">
+            </div>
+            <p style="font-size: 15px; line-height: 23px; font-weight: 600; color: #6F6552;">소중한 사람과 새끼손가락 걸고<br>지킬 약속을 만들어보세요.</p>
+            <p style="font-size: 13px; font-weight: 800;">아래 <span style="background: #FFD43B; border: 2px solid #221C13; border-radius: 6px; padding: 2px 8px;">약속 만들기</span>를 눌러 시작해요</p>
+          </div>
+          <button style="position: absolute; left: 16px; right: 16px; bottom: 20px; height: 56px; padding: 0 8px 0 22px; border-radius: 14px; background: #221C13; color: #FFFDF4; display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 800; border: 2.5px solid #221C13; box-shadow: 5px 5px 0 #221C13;"><span>약속 만들기</span><span style="width: 40px; height: 40px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; color: #221C13; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 26px;">add</span></span></button>
+        </div>
+        <div style="height: 24px; flex: none; display: flex; align-items: center; justify-content: center;"><span style="width: 108px; height: 4px; border-radius: 2px; background: #221C13;"></span></div>
+      </div>
+    </div>
+
+    <!-- ============ SCR-A03 약속 작성 ============ -->
+    <div data-screen-label="SCR-A03" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 12px; font-weight: 800;">SCR-A03</span><span style="font-size: 13px; color: #6F6552;">약속 작성</span></div>
+      <div style="width: 376px; height: 880px; border: 8px solid #221C13; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; background: #FBF8F1; box-shadow: 12px 12px 0 #221C13;">
+        <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;"><span style="font-size: 15px; font-weight: 700;">9:30</span><span style="display: flex; align-items: center; gap: 4px;"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill="currentColor"/></svg><span style="height: 14px; padding: 0 4px; border: 1.5px solid #221C13; border-radius: 4px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; background: #FFD43B;">87</span></span></div>
+        <div style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+          <header style="flex: none; margin: 8px 16px 0; height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+            <button style="width: 36px; height: 36px; border-radius: 10px; border: 2px solid #221C13; background: #FFFDF4; display: flex; align-items: center; justify-content: center; flex: none; padding: 0; color: #221C13;"><span class="material-symbols-rounded" style="font-size: 20px;">close</span></button>
+            <h1 style="flex: 1; text-align: center; font-size: 16px; font-weight: 800;">약속 만들기</h1>
+            <span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FFD43B; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">작성 중</span>
+          </header>
+          <div style="flex: none; display: flex; align-items: center; gap: 6px; padding: 18px 20px 0;">
+            <span style="flex: 1; height: 8px; border-radius: 4px; background: #221C13;"></span><span style="flex: 1; height: 8px; border-radius: 4px; border: 2px solid #221C13; background: #FFFDF4;"></span><span style="flex: 1; height: 8px; border-radius: 4px; border: 2px solid #221C13; background: #FFFDF4;"></span>
+            <span style="margin-left: 8px; font-size: 12px; font-weight: 800;">1/3 · 내용</span>
+          </div>
+          <div style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 18px 20px 24px 16px;">
+            <section style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+              <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">TITLE · 제목</span><div style="height: 48px; padding: 0 14px; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; display: flex; align-items: center; font-size: 15px; font-weight: 600;">매주 화·목 아침 러닝 같이 하기</div></div>
+              <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">CONTENT · 내용</span><div style="min-height: 84px; padding: 12px 14px; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; font-size: 14px; line-height: 22px; font-weight: 500;">8월 11일까지 매주 화·목 아침 7시, 반포한강공원에서 함께 러닝한다. 우천 시 다음 날로 순연.</div></div>
+              <div style="display: flex; flex-direction: column; gap: 8px;"><span style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">CATEGORY · 카테고리 <span style="letter-spacing: 0; font-weight: 700;">선택</span></span>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;"><span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 800;">습관</span><span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">내기</span><span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">금전</span><span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">기타</span></div>
+              </div>
+            </section>
+            <section style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+              <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">END DATE · 종료일 <span style="color: #221C13; letter-spacing: 0;">필수</span></span>
+                <div style="height: 48px; padding: 0 14px; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; box-shadow: 3px 3px 0 #221C13; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600;"><span class="material-symbols-rounded" style="font-size: 18px;">event</span><span style="flex: 1;">2026-08-11 (화)</span><span class="material-symbols-rounded" style="font-size: 20px;">expand_more</span></div>
+                <p style="margin-top: 4px; font-size: 12px; line-height: 18px; font-weight: 600; color: #6F6552;">새 약속은 만든 날부터 30일까지 무료예요. 더 긴 기간은 보상형 광고 또는 영구 보관으로 열 수 있어요.</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;"><span style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">WHO · 지킬 사람</span>
+                <div style="display: flex; gap: 6px;"><span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">나</span><span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">상대</span><span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 800;">둘 다</span></div>
+              </div>
+            </section>
+            <div style="flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px;">
+              <div style="background: #6CB4FF; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px;"><p style="font-size: 11px; font-weight: 800; letter-spacing: .12em;">REWARD · 보상</p><p style="margin-top: 6px; font-size: 14px; line-height: 20px; font-weight: 800;">성공하면 오마카세 사주기</p></div>
+              <div style="background: #FF6F91; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px;"><p style="font-size: 11px; font-weight: 800; letter-spacing: .12em;">PENALTY · 벌칙</p><p style="margin-top: 6px; font-size: 14px; line-height: 20px; font-weight: 800;">커피 셔틀</p></div>
+            </div>
+          </div>
+          <div style="flex: none; display: flex; justify-content: flex-end; padding: 12px 20px 16px; background: linear-gradient(to bottom, transparent, #FBF8F1 40%);">
+            <button style="height: 56px; padding: 0 8px 0 22px; border-radius: 14px; background: #221C13; color: #FFFDF4; border: 2.5px solid #221C13; box-shadow: 5px 5px 0 #221C13; display: flex; align-items: center; gap: 16px; font-size: 16px; font-weight: 800;"><span>상대에게 보내기</span><span style="width: 40px; height: 40px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; color: #221C13; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 22px;">send</span></span></button>
+          </div>
+        </div>
+        <div style="height: 24px; flex: none; display: flex; align-items: center; justify-content: center;"><span style="width: 108px; height: 4px; border-radius: 2px; background: #221C13;"></span></div>
+      </div>
+    </div>
+
+    <!-- ============ SCR-A04 초대 전송·대기 ============ -->
+    <div data-screen-label="SCR-A04" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 12px; font-weight: 800;">SCR-A04</span><span style="font-size: 13px; color: #6F6552;">초대 전송 · 대기</span></div>
+      <div style="width: 376px; height: 880px; border: 8px solid #221C13; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; background: #FBF8F1; box-shadow: 12px 12px 0 #221C13;">
+        <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;"><span style="font-size: 15px; font-weight: 700;">9:30</span><span style="display: flex; align-items: center; gap: 4px;"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill="currentColor"/></svg><span style="height: 14px; padding: 0 4px; border: 1.5px solid #221C13; border-radius: 4px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; background: #FFD43B;">87</span></span></div>
+        <div style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+          <header style="flex: none; margin: 8px 16px 0; height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+            <button style="width: 36px; height: 36px; border-radius: 10px; border: 2px solid #221C13; background: #FFFDF4; display: flex; align-items: center; justify-content: center; flex: none; padding: 0; color: #221C13;"><span class="material-symbols-rounded" style="font-size: 20px;">arrow_back</span></button>
+            <h1 style="flex: 1; text-align: center; font-size: 16px; font-weight: 800;">초대 보내기</h1>
+            <span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">승인 대기</span>
+          </header>
+          <div style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 20px 16px;">
+            <div style="flex: none; position: relative; overflow: hidden; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 22px 18px 18px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+              <span style="position: absolute; top: -12px; right: -16px; width: 96px; height: 76px; background: #FFD43B; border-radius: 45px 40px 50px 35px;"></span>
+              <span style="position: relative; width: 100px; height: 60px; border-radius: 999px; background: #FBF8F1; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center; gap: 4px;"><img src="assets/hand-color.png" alt="" style="width: 30px; height: 28px; transform: scaleX(-1);"><img src="assets/hand-color.png" alt="" style="width: 30px; height: 28px;"></span>
+              <p style="position: relative; margin-top: 6px; font-size: 17px; line-height: 22px; font-weight: 900;">상대방에게 손가락을<br>내밀어 볼까요?</p>
+              <p style="position: relative; font-size: 12.5px; line-height: 18px; font-weight: 600; color: #6F6552;">카톡으로 초대장을 보내면, 상대방이 걸어야 성립돼요</p>
+            </div>
+            <button style="flex: none; height: 54px; border-radius: 14px; background: #FEE500; color: #191919; border: 2.5px solid #221C13; box-shadow: 3px 3px 0 #221C13; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 800;"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7L5.6 21c-.1.4.3.7.6.5l4.1-2.7c.5.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="currentColor"/></svg><span>초대 링크 공유하기</span></button>
+            <button style="flex: none; height: 50px; border-radius: 14px; background: #FFFDF4; border: 2.5px solid #221C13; box-shadow: 3px 3px 0 #221C13; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #221C13;">링크 복사하기</button>
+            <div style="flex: none; display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+              <p style="padding-left: 4px; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">PREVIEW · 상대방에게는 이렇게 보여요</p>
+              <div style="display: flex; align-items: flex-start; gap: 8px;">
+                <span style="width: 34px; height: 34px; border-radius: 999px; background: #221C13; color: #FFD43B; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex: none;">지</span>
+                <div style="flex: 1; background: #FFFDF4; border: 2px solid #221C13; border-radius: 4px 14px 14px 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;"><p style="font-size: 14px; font-weight: 800;">지우님이 새끼손가락을 내밀었어요!</p><p style="font-size: 12.5px; color: #6F6552;">약속: 매주 화·목 아침 러닝 같이 하기</p><p style="margin-top: 6px; padding-top: 8px; border-top: 2px dashed #EFE9DC; font-size: 13px; font-weight: 800; text-align: center;">약속 확인하기</p></div>
+              </div>
+            </div>
+            <div style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #221C13; background: #FFD43B; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 20px;">schedule</span></span><div style="flex: 1;"><p style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">초대 링크 유효 시간</p><p style="font-size: 22px; font-weight: 900; letter-spacing: .02em;">71:59:32</p></div></div>
+              <div style="height: 10px; border-radius: 999px; border: 2px solid #221C13; background: #EFE9DC; overflow: hidden;"><span style="display: block; width: 99%; height: 100%; background: #6CB4FF;"></span></div>
+              <p style="font-size: 12px; line-height: 18px; font-weight: 600; color: #6F6552;">링크는 1회용이에요 · 만료되면 아래에서 재발송할 수 있어요</p>
+            </div>
+          </div>
+          <div style="flex: none; padding: 12px 16px 16px; background: linear-gradient(to bottom, transparent, #FBF8F1 40%);">
+            <button style="width: 100%; height: 50px; border-radius: 14px; background: #FFFDF4; border: 2.5px solid #221C13; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 800; color: #221C13; opacity: .3;"><span class="material-symbols-rounded" style="font-size: 18px;">refresh</span><span>재발송 — 만료 후 가능</span></button>
+          </div>
+        </div>
+        <div style="height: 24px; flex: none; display: flex; align-items: center; justify-content: center;"><span style="width: 108px; height: 4px; border-radius: 2px; background: #221C13;"></span></div>
+      </div>
+    </div>
+
+    <!-- ============ SCR-I 앱 안 초대 검토 ============ -->
+    <div data-screen-label="SCR-I" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px;"><span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 12px; font-weight: 800;">SCR-I</span><span style="font-size: 13px; color: #6F6552;">앱 안 초대 검토</span></div>
+      <div style="width: 376px; height: 880px; border: 8px solid #221C13; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; background: #FBF8F1; box-shadow: 12px 12px 0 #221C13;">
+        <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;"><span style="font-size: 15px; font-weight: 700;">9:30</span><span style="display: flex; align-items: center; gap: 4px;"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 13.3L.67 5.97a10.37 10.37 0 0114.66 0L8 13.3z" fill="currentColor"/></svg><svg width="16" height="16" viewBox="0 0 16 16"><path d="M14.67 14.67V1.33L1.33 14.67h13.34z" fill="currentColor"/></svg><span style="height: 14px; padding: 0 4px; border: 1.5px solid #221C13; border-radius: 4px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; background: #FFD43B;">87</span></span></div>
+        <div style="flex: 1; min-height: 0; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+          <header style="flex: none; margin: 8px 16px 0; height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+            <button style="width: 36px; height: 36px; border-radius: 10px; border: 2px solid #221C13; background: #FFFDF4; display: flex; align-items: center; justify-content: center; flex: none; padding: 0; color: #221C13;"><span class="material-symbols-rounded" style="font-size: 20px;">arrow_back</span></button>
+            <h1 style="flex: 1; text-align: center; font-size: 16px; font-weight: 800;">초대받은 약속</h1>
+            <span style="width: 36px; height: 36px; border-radius: 999px; background: #FFD43B; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center; flex: none;"><img src="assets/mascot-face-e1.png" alt="" style="width: 28px; height: 28px; object-fit: contain;"></span>
+          </header>
+          <div style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 22px 20px 20px 16px;">
+            <div style="flex: none; display: flex; align-items: flex-start; gap: 12px; padding: 0 4px;">
+              <div style="flex: 1; min-width: 0;"><p style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">PROMISE · 약속 검토</p><h2 style="margin-top: 8px; font-size: 24px; line-height: 30px; font-weight: 800; letter-spacing: -0.02em;">매주 화·목 아침<br>러닝 같이 하기</h2></div>
+              <span style="width: 56px; height: 56px; border-radius: 14px; background: #FFD43B; border: 2px solid #221C13; box-shadow: 3px 3px 0 #221C13; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; flex: none;">D-17</span>
+            </div>
+            <div style="flex: none; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+              <p style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">CONTENT · 내용</p>
+              <p style="font-size: 14px; line-height: 22px; font-weight: 600;">8월 11일까지 매주 화·목 아침 7시, 반포한강공원에서 함께 러닝한다. 우천 시 다음 날로 순연.</p>
+              <div style="display: flex; gap: 6px;"><span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 2px solid #221C13; background: #EFE9DC; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">습관</span><span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 2px solid #221C13; background: #EFE9DC; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">둘 다</span></div>
+            </div>
+            <div style="flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px;">
+              <div style="background: #6CB4FF; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px;"><p style="font-size: 11px; font-weight: 800; letter-spacing: .12em;">REWARD · 보상</p><p style="margin-top: 6px; font-size: 14px; line-height: 20px; font-weight: 800;">성공하면 오마카세 사주기</p></div>
+              <div style="background: #FF6F91; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px;"><p style="font-size: 11px; font-weight: 800; letter-spacing: .12em;">PENALTY · 벌칙</p><p style="margin-top: 6px; font-size: 14px; line-height: 20px; font-weight: 800;">한 달 커피 셔틀</p></div>
+            </div>
+            <p style="flex: none; padding: 0 4px; font-size: 12.5px; line-height: 18px; font-weight: 700; color: #6F6552;">리틀핑거의 약속 기록은 공증이나 전자계약 서비스가 아니며, 법적 효력을 보증하지 않습니다. 다만 양측의 승인 이력과 시각 정보는 분쟁 시 참고 자료로 활용될 수 있습니다.</p>
+          </div>
+          <div style="flex: none; display: flex; align-items: center; gap: 12px; padding: 12px 20px 16px 16px; background: linear-gradient(to bottom, transparent, #FBF8F1 40%);">
+            <button style="height: 56px; padding: 0 22px; border-radius: 14px; background: #FFFDF4; border: 2.5px solid #221C13; box-shadow: 3px 3px 0 #221C13; font-size: 14px; font-weight: 800; color: #221C13;">거절</button>
+            <button style="flex: 1; height: 56px; padding: 0 8px 0 22px; border-radius: 14px; background: #221C13; color: #FFFDF4; border: 2.5px solid #221C13; box-shadow: 5px 5px 0 #221C13; display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 800;"><span>승인하기</span><span style="width: 40px; height: 40px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; color: #221C13; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 22px;">check</span></span></button>
+          </div>
+        </div>
+        <div style="height: 24px; flex: none; display: flex; align-items: center; justify-content: center;"><span style="width: 108px; height: 4px; border-radius: 2px; background: #221C13;"></span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

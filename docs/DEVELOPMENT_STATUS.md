@@ -2,6 +2,31 @@
 
 Snapshot date: **2026-09-06 KST**.
 
+## 잉크 & 블록 restyle (in progress, 2026-09-06)
+
+The PO delivered the fifth visual system, **잉크 & 블록 (시안 1a, 45° hard shadow)**, as
+`design-reference/redesign-2026-09-06/` (style guide, four screen boards, drop-in
+`handoff/tokens.css`). It keeps every token name and swaps values: canvas `#FBF8F1`, the four
+accent colours saturated, blur-free ink shadows `5px 5px 0` / `3px 3px 0`, radius 14/10/8/20,
+borders 2/2.5, tilt 0, Pretendard 500/600/800/900. Component grammar: white pill app bar with a
+메뉴 sheet replacing the bell and avatar, 40 dp status tiles, r14 block buttons, a full-width home
+CTA, badge-on-card heroes, shadow-less sheets. PO decisions E1–E6 and the nine-session plan live in
+`docs/plans/2026-09-06-ink-block-restyle.md`; ADR 0020 will record both this baseline and the
+2026-09-03 pastel baseline, which shipped without an ADR.
+
+Session 1 landed the bundle, Pretendard Medium/Black, the Material Symbols subset at weight 500
+with the status-tile and menu glyphs, and the token swap across the three targets. **Web deployment
+is on hold from the reference CSS rewrite (P3) until the acceptance web is re-marked-up (P7).**
+
+Carried from the retired production-readiness handoff, unchanged and still open: recheck the
+AdMob app and its app-ads.txt table after crawler propagation (first meaningful check after
+2026-09-06 23:15 KST; investigate if still absent after 2026-09-12 23:15 KST). Once verification is
+ready, use the Play code 24 test installation with forced-EEA debug geography to record an actual
+UMP choice plus privacy-options re-open, then complete one real rewarded ad and prove exactly one
+`ADMOB_SSV` grant for its intent, including duplicate-callback idempotence. Production-track
+promotion stays prohibited until both pieces of evidence pass. Do not refund another purchase or
+republish the European message.
+
 ## Production readiness closure pass (2026-09-06)
 
 The scoped Play refund path is now verified end to end. The operator-triggered normal

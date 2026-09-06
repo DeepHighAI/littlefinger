@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+<style>
+@font-face { font-family: 'Pretendard'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('assets/PretendardVariable.woff2') format('woff2-variations'), url('assets/PretendardVariable.woff2') format('woff2'); }
+body { margin: 0; background: #FBF8F1; font-family: 'Pretendard', system-ui, sans-serif; color: #221C13; -webkit-font-smoothing: antialiased; word-break: keep-all; }
+a { color: #221C13; } a:hover { color: #221C13; opacity: .7; }
+.material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24; user-select: none; flex: none; }
+code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; background: #EFE9DC; padding: 1px 6px; border-radius: 6px; }
+</style>
+</helmet>
+
+<div style="max-width: 920px; margin: 0 auto; padding: 56px 24px 120px; display: flex; flex-direction: column; gap: 56px;">
+
+  <!-- 헤더 -->
+  <header style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; height: 52px; padding: 0 16px 0 10px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+      <span style="width: 34px; height: 34px; border-radius: 999px; background: #FFD43B; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center;"><img src="assets/mascot-face-e1.png" alt="" style="width: 28px; height: 28px; object-fit: contain;"></span>
+      <span style="font-size: 22px; font-weight: 900; letter-spacing: -0.04em; line-height: 1;">리틀핑거</span>
+      <span style="margin-left: 8px; height: 24px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 11px; font-weight: 800; letter-spacing: .08em;">STYLE GUIDE</span>
+    </div>
+    <h1 style="margin: 0; font-size: 40px; line-height: 46px; font-weight: 900; letter-spacing: -0.03em;">잉크 &amp; 블록<br>리디자인 스타일 가이드</h1>
+    <p style="margin: 0; max-width: 640px; font-size: 16px; line-height: 26px; font-weight: 500; color: #6F6552;">2026-09-06 확정 시안 1a(45° 하드 섀도) 기준. 기존 "파스텔 × 잉크 &amp; 스티커" 토큰 계약(<code>design-reference/styles/tokens.css</code>) 위에 값을 바꿔 얹는다. 토큰 이름은 유지하고 값만 교체하므로 <code>apps/mobile/src/theme/tokens.ts</code>와 <code>apps/web/src/styles/tokens.css</code>에 동시에 반영한다.</p>
+    <nav style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <a href="#principles" style="height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; font-size: 13px; font-weight: 800; text-decoration: none;">1 원칙</a>
+      <a href="#color" style="height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; font-size: 13px; font-weight: 800; text-decoration: none;">2 색</a>
+      <a href="#type" style="height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; font-size: 13px; font-weight: 800; text-decoration: none;">3 타이포</a>
+      <a href="#shape" style="height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; font-size: 13px; font-weight: 800; text-decoration: none;">4 선·모서리·그림자</a>
+      <a href="#components" style="height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; font-size: 13px; font-weight: 800; text-decoration: none;">5 컴포넌트</a>
+      <a href="#status" style="height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; font-size: 13px; font-weight: 800; text-decoration: none;">6 상태 매핑</a>
+      <a href="#motion" style="height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; font-size: 13px; font-weight: 800; text-decoration: none;">7 모션·상태</a>
+      <a href="#dev" style="height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border: 2px solid #221C13; border-radius: 10px; background: #FFD43B; font-size: 13px; font-weight: 800; text-decoration: none; box-shadow: 3px 3px 0 #221C13;">8 개발 반영표</a>
+    </nav>
+  </header>
+
+  <!-- 1 원칙 -->
+  <section id="principles" style="display: flex; flex-direction: column; gap: 20px;">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">1 · 원칙</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 20px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">01 · 잉크 한 획</p>
+        <p style="margin: 8px 0 0; font-size: 17px; font-weight: 800;">모든 면은 잉크 테두리로 닫는다</p>
+        <p style="margin: 8px 0 0; font-size: 14px; line-height: 22px; color: #6F6552;">카드·버튼·칩·입력·시트 모두 2 / 2.5px 잉크 선. 헤어라인이나 연한 회색 테두리는 쓰지 않는다. 글자는 항상 잉크, 색은 배경에만.</p>
+      </div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 20px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">02 · 45° 블록 그림자</p>
+        <p style="margin: 8px 0 0; font-size: 17px; font-weight: 800;">그림자는 흐림 없는 잉크 블록</p>
+        <p style="margin: 8px 0 0; font-size: 14px; line-height: 22px; color: #6F6552;">오른쪽 아래 45°로 5px(카드·CTA) 또는 3px(칩·작은 버튼). blur 0, 색은 잉크 100%. 누르면 그림자 방향으로 3px 이동해 "눌린" 느낌을 낸다.</p>
+      </div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 20px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">03 · 4색은 역할</p>
+        <p style="margin: 8px 0 0; font-size: 17px; font-weight: 800;">옐로·민트·핑크·스카이만</p>
+        <p style="margin: 8px 0 0; font-size: 14px; line-height: 22px; color: #6F6552;">옐로=브랜드·선택 / 민트=진행·완료 / 핑크=마감·응답 필요·벌칙 / 스카이=기록·보상·변경. 채도를 올렸을 뿐 역할은 기존 D7 규칙 그대로. 빨강은 오류 전용.</p>
+      </div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 20px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">04 · 기울기 폐지</p>
+        <p style="margin: 8px 0 0; font-size: 17px; font-weight: 800;">스티커 틸트는 쓰지 않는다</p>
+        <p style="margin: 8px 0 0; font-size: 14px; line-height: 22px; color: #6F6552;">-0.8° / -1.2° 회전 대신 카드 밖으로 살짝 겹치는 태그(배지)로 "붙인" 느낌을 낸다. 마스코트는 기존 E-1 그대로 — 동그란 얼굴 + 두 새끼손가락이 맞닿는 C-1 루프. 유기적 블롭은 정원(999)으로 바꾸고 2.5 잉크 + 5px 그림자.</p>
+      </div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 20px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">05 · 불변 규칙</p>
+        <p style="margin: 8px 0 0; font-size: 17px; font-weight: 800;">DESIGN.md §8은 그대로</p>
+        <p style="margin: 8px 0 0; font-size: 14px; line-height: 22px; color: #6F6552;">48dp 터치 타깃, 상태는 색+텍스트 병기, 의견 불일치는 판정 암시 금지(양측 동일 무게·종이 톤), 디스클레이머 문구 불변, 광고 슬롯 비활성 시 공간 없음, 카카오·Google 공식 버튼 색.</p>
+      </div>
+      <div style="background: #221C13; color: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #FFD43B; padding: 20px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #FFD43B;">06 · 헤더</p>
+        <p style="margin: 8px 0 0; font-size: 17px; font-weight: 800;">화면 상단은 항상 "필 헤더"</p>
+        <p style="margin: 8px 0 0; font-size: 14px; line-height: 22px; color: rgba(255,253,244,.72);">홈은 마스코트 + 워드마크 + 메뉴, 하위 화면은 사각 뒤로 버튼 + 제목 + 액션. 흰 필, 2.5 잉크, 5px 블록 그림자. 종·아바타는 메뉴 안으로 들어간다. 예외: 온보딩(A00)·로그인(A01)은 기존 기준선 그대로 유지한다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 색 -->
+  <section id="color" style="display: flex; flex-direction: column; gap: 20px;">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">2 · 색</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px;">
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #221C13;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">잉크</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#221C13 · text · primary · action-fill · 테두리 · 그림자</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #FFFDF4;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">종이</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#FFFDF4 · surface · on-primary</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #FBF8F1;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">캔버스</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#FBF8F1 · background · surface-chrome (기존 크림 #F3ECDC 대체)</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #EFE9DC;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">뮤트</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#EFE9DC · surface-muted · 읽기 전용·비활성 면</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #FFD43B;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">옐로</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#FFD43B · primary-container · 브랜드·선택·임박 히어로·CTA 원</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #5FD3A5;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">민트</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#5FD3A5 · success-container · 진행 중·완료·확정</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #FF6F91;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">핑크</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#FF6F91 · attention/penalty-container · 마감·응답 필요·불이행·벌칙</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #6CB4FF;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">스카이</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#6CB4FF · record/reward-container · 기록·보상·변경 협의</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #6F6552;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">보조 텍스트</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#6F6552 · text-secondary · text-muted (통합)</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #C4433B;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">오류</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#C4433B · error · 실제 오류에만. 컨테이너 #F8DFDB</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: #FEE500;"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">카카오</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">#FEE500 / #191919 · 공식 가이드 · 변경 금지</p></div></div>
+      <div style="border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; background: #FFFDF4;"><div style="height: 88px; background: rgba(34,28,19,.42);"></div><div style="padding: 12px 14px;"><p style="margin: 0; font-size: 14px; font-weight: 800;">스크림</p><p style="margin: 2px 0 0; font-size: 12px; color: #6F6552;">rgba(34,28,19,.42) · 시트 뒤</p></div></div>
+    </div>
+    <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 20px; font-size: 14px; line-height: 22px; color: #6F6552;">
+      <strong style="color: #221C13;">대비.</strong> 4색 위 잉크 글자는 모두 4.5:1 이상(옐로 12.9 · 민트 8.9 · 핑크 6.4 · 스카이 7.9). 보조 텍스트 #6F6552는 종이 위 5.6:1. 4색 위에는 보조 텍스트를 쓰지 않는다 — 잉크만.
+    </div>
+  </section>
+
+  <!-- 3 타이포 -->
+  <section id="type" style="display: flex; flex-direction: column; gap: 20px;">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">3 · 타이포그래피</h2>
+    <p style="margin: 0; font-size: 14px; line-height: 22px; color: #6F6552;">Pretendard 단일 서체(ADR 0014). 무게는 500 / 600 / 800 / 900 네 단계로 줄였다 — 700은 800으로 올린다. 큰 제목은 자간을 더 조인다. 한국어는 <code>word-break: keep-all</code>.</p>
+    <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 8px 24px; display: flex; flex-direction: column;">
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 22px; font-weight: 900; letter-spacing: -0.04em;">리틀핑거</span><span style="font-size: 12px; color: #6F6552; text-align: right;">wordmark(헤더) · 22 / 900 / -0.04em<br><code>--lf-type-wordmark-size</code> 22 (A01 큰 워드마크는 40)</span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 36px; line-height: 42px; font-weight: 900; letter-spacing: -0.03em;">약속하고, 걸고, 지키는 재미.</span><span style="font-size: 12px; color: #6F6552; text-align: right;">display · 36/42 / 900<br><code>--lf-type-display-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 30px; line-height: 36px; font-weight: 800; letter-spacing: -0.03em;">지우님, 이번 주 약속 6개 순항 중.</span><span style="font-size: 12px; color: #6F6552; text-align: right;">headline · 30/36 / 800<br><code>--lf-type-headline-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 24px; line-height: 30px; font-weight: 800; letter-spacing: -0.02em;">매주 화·목 아침 러닝 같이 하기</span><span style="font-size: 12px; color: #6F6552; text-align: right;">title · 24/30 / 800<br><code>--lf-type-title-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 22px; line-height: 28px; font-weight: 900; letter-spacing: -0.02em;">월말까지 야식 끊기</span><span style="font-size: 12px; color: #6F6552; text-align: right;">card-title(히어로) · 22/28 / 900<br><code>--lf-type-card-title-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 20px; line-height: 26px; font-weight: 800;">변경·파기 요청</span><span style="font-size: 12px; color: #6F6552; text-align: right;">sheet-title · 20/26 / 800<br><code>--lf-type-sheet-title-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 17px; line-height: 22px; font-weight: 900;">두 사람이 손가락 걸었어요!</span><span style="font-size: 12px; color: #6F6552; text-align: right;">stamp · 17/22 / 900<br><code>--lf-type-stamp-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 16px; font-weight: 800;">약속 상세 · 약속 만들기</span><span style="font-size: 12px; color: #6F6552; text-align: right;">appbar-title · 16 / 800 (기존 15/700)<br><code>--lf-type-body-lg-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 15px; line-height: 22px; font-weight: 600;">8월 11일까지 매주 화·목 아침 7시, 반포한강공원에서 함께 러닝한다.</span><span style="font-size: 12px; color: #6F6552; text-align: right;">body · 15/22 / 600 (기존 400→600)<br><code>--lf-type-body-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 15px; line-height: 20px; font-weight: 800;">주 3회 홈트 인증하기</span><span style="font-size: 12px; color: #6F6552; text-align: right;">row-title · 15/20 / 800</span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 14px; font-weight: 800;">상대에게 보내기 · 지켜졌나요? 답하기</span><span style="font-size: 12px; color: #6F6552; text-align: right;">label / button · 14 / 800 (CTA는 16)<br><code>--lf-type-label-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 13px; font-weight: 800;">진행 중 6 · D-17</span><span style="font-size: 12px; color: #6F6552; text-align: right;">chip · 13 / 800<br><code>--lf-type-chip-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 2px dashed #EFE9DC;"><span style="font-size: 12px; font-weight: 600; color: #6F6552;">진행 중 · 8/11 (화) · 지우 — 민준</span><span style="font-size: 12px; color: #6F6552; text-align: right;">meta · 12/18 / 600 · 보조색<br><code>--lf-type-meta-size</code></span></div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; padding: 18px 0;"><span style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">CONTENT · 내용</span><span style="font-size: 12px; color: #6F6552; text-align: right;">eyebrow · 11 / 800 / .12em<br><code>--lf-type-eyebrow-size</code></span></div>
+    </div>
+  </section>
+
+  <!-- 4 선·모서리·그림자 -->
+  <section id="shape" style="display: flex; flex-direction: column; gap: 20px;">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">4 · 선 · 모서리 · 그림자</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">BORDER · 테두리</p>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 2px solid #221C13; border-radius: 8px; flex: none;"></span><span style="font-size: 13px;"><strong>2px</strong> 칩 · 입력 · 아이콘 타일 · 아바타 · 스위치 <code>--lf-border-chip</code></span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 2.5px solid #221C13; border-radius: 8px; flex: none;"></span><span style="font-size: 13px;"><strong>2.5px</strong> 카드 · 버튼 · 헤더 필 · 시트 <code>--lf-border-card / outline / sheet</code> 통일</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 2px dashed #6F6552; border-radius: 8px; flex: none;"></span><span style="font-size: 13px;"><strong>2px dashed #6F6552</strong> 광고 자리 · 사진 추가 · 구분선 <code>--lf-border-dashed</code></span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 8px solid #221C13; border-radius: 8px; flex: none;"></span><span style="font-size: 13px;"><strong>8px</strong> 디바이스 프레임(갤러리 전용)</span></div>
+      </div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">RADIUS · 모서리</p>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 2px solid #221C13; border-radius: 8px; flex: none; background: #FF6F91;"></span><span style="font-size: 13px;"><strong>8</strong> 상태 칩 · 배지 <code>--lf-radius-xs</code></span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 2px solid #221C13; border-radius: 10px; flex: none; background: #FFD43B;"></span><span style="font-size: 13px;"><strong>10</strong> 탭 · 입력 · 아이콘 타일 · 사각 버튼 <code>--lf-radius-sm</code></span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 2.5px solid #221C13; border-radius: 14px; flex: none;"></span><span style="font-size: 13px;"><strong>14</strong> 카드 · CTA · 보상/벌칙 <code>--lf-radius-md / lg / xl</code> 통일</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 2.5px solid #221C13; border-radius: 20px 20px 0 0; flex: none;"></span><span style="font-size: 13px;"><strong>20</strong> 바텀시트 상단 <code>--lf-radius-hero</code></span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 28px; border: 2.5px solid #221C13; border-radius: 999px; flex: none;"></span><span style="font-size: 13px;"><strong>999</strong> 헤더 필 · 아바타 · 마스코트 원 <code>--lf-radius-pill</code></span></div>
+      </div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 18px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">SHADOW · 그림자 (blur 0 · 잉크 100%)</p>
+        <div style="display: flex; align-items: center; gap: 20px;"><span style="width: 64px; height: 44px; border: 2.5px solid #221C13; border-radius: 14px; background: #FFFDF4; box-shadow: 5px 5px 0 #221C13; flex: none;"></span><span style="font-size: 13px;"><strong>5px 5px 0</strong> 카드 · CTA · 헤더 필 · 히어로 <code>--lf-elevation-card / fab</code></span></div>
+        <div style="display: flex; align-items: center; gap: 20px;"><span style="width: 64px; height: 44px; border: 2px solid #221C13; border-radius: 10px; background: #FFD43B; box-shadow: 3px 3px 0 #221C13; flex: none;"></span><span style="font-size: 13px;"><strong>3px 3px 0</strong> 선택된 탭 · 보조 버튼 · 카카오 <code>--lf-elevation-sm</code> (신설)</span></div>
+        <div style="display: flex; align-items: center; gap: 20px;"><span style="width: 64px; height: 44px; border: 2.5px solid #221C13; border-radius: 14px; background: #FFFDF4; flex: none;"></span><span style="font-size: 13px;"><strong>없음</strong> flat 카드(읽은 알림·설정 묶음·읽기 전용) · 시트 · 입력</span></div>
+        <div style="display: flex; align-items: center; gap: 20px;"><span style="width: 64px; height: 44px; border: 2.5px solid #221C13; border-radius: 14px; background: #FFFDF4; box-shadow: 2px 2px 0 #221C13; transform: translate(3px, 3px); flex: none;"></span><span style="font-size: 13px;"><strong>눌림</strong> translate(3px,3px) + 2px 2px 0 · 120ms</span></div>
+        <div style="display: flex; align-items: center; gap: 20px;"><span style="width: 64px; height: 44px; border: 2.5px solid #221C13; border-radius: 14px; background: #221C13; box-shadow: 5px 5px 0 #FFD43B; flex: none;"></span><span style="font-size: 13px;"><strong>5px 5px 0 옐로</strong> 잉크 면 위 강조 카드 한정(디바이스 · 축하)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 컴포넌트 -->
+  <section id="components" style="display: flex; flex-direction: column; gap: 24px;">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">5 · 컴포넌트</h2>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; align-items: start;">
+
+      <!-- 헤더 -->
+      <div style="background: #EFE9DC; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">APP BAR · 필 헤더 <code>.lf-appbar</code></p>
+        <header style="height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+          <span style="width: 34px; height: 34px; border-radius: 999px; background: #FFD43B; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center; flex: none;"><img src="assets/mascot-face-e1.png" alt="" style="width: 28px; height: 28px; object-fit: contain;"></span>
+          <span style="flex: 1; font-size: 22px; font-weight: 900; letter-spacing: -0.04em; line-height: 1;">리틀핑거</span>
+          <span style="height: 40px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; position: relative;">메뉴 <svg width="18" height="14" viewBox="0 0 18 14"><rect width="18" height="3" rx="1.5" fill="currentColor"/><rect y="5.5" width="18" height="3" rx="1.5" fill="currentColor"/><rect y="11" width="18" height="3" rx="1.5" fill="currentColor"/></svg><span style="position: absolute; top: 4px; right: 6px; width: 9px; height: 9px; border-radius: 999px; background: #FF6F91; border: 2px solid #221C13;"></span></span>
+        </header>
+        <header style="height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+          <span style="width: 36px; height: 36px; border-radius: 10px; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">arrow_back</span></span>
+          <span style="flex: 1; text-align: center; font-size: 16px; font-weight: 800;">약속 상세</span>
+          <span style="width: 36px; height: 36px; border-radius: 10px; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">share</span></span>
+          <span style="width: 36px; height: 36px; border-radius: 10px; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">more_horiz</span></span>
+        </header>
+        <p style="margin: 0; font-size: 12px; line-height: 18px; color: #6F6552;">margin 8 16 0 · 52h · 2.5 잉크 · 5px 그림자. 홈: 마스코트 원 34(옐로) + 워드마크 22/900 + "메뉴 ☰"(미읽음 핑크 점). 하위: 사각 아이콘 버튼 36 r10(터치 48 보장) + 제목 16/800 중앙 + 우측 액션(버튼 또는 상태 칩). 웹(카톡 인앱)은 브라우저바 유지, 아래 콘텐츠만 적용.</p>
+      </div>
+
+      <!-- 버튼 -->
+      <div style="background: #EFE9DC; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">BUTTON <code>.lf-btn</code></p>
+        <div style="height: 56px; padding: 0 8px 0 22px; border-radius: 14px; background: #221C13; color: #FFFDF4; border: 2.5px solid #221C13; box-shadow: 5px 5px 0 #221C13; display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 800;"><span>상대에게 보내기</span><span style="width: 40px; height: 40px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; color: #221C13; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 22px;">send</span></span></div>
+        <div style="height: 50px; border-radius: 14px; background: #FFFDF4; border: 2.5px solid #221C13; box-shadow: 3px 3px 0 #221C13; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;">변경·파기 요청</div>
+        <div style="height: 54px; border-radius: 14px; background: #FEE500; color: #191919; border: 2.5px solid #221C13; box-shadow: 3px 3px 0 #221C13; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 800;"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7L5.6 21c-.1.4.3.7.6.5l4.1-2.7c.5.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="currentColor"/></svg>카카오로 시작하기</div>
+        <div style="height: 52px; border-radius: 14px; background: #FFFFFF; color: #1F1F1F; border: 1px solid #747775; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 600;">Google로 시작하기</div>
+        <div style="display: flex; gap: 10px; align-items: center;"><span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 800;">추가</span><span style="font-size: 14px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px;">기간 늘리기</span><span style="height: 50px; padding: 0 20px; border-radius: 14px; background: #FFFDF4; border: 2.5px solid #221C13; display: inline-flex; align-items: center; font-size: 14px; font-weight: 800; opacity: .3;">비활성</span></div>
+        <p style="margin: 0; font-size: 12px; line-height: 18px; color: #6F6552;">filled: 잉크 56h r14 + 옐로 사각 40 r10(아이콘 22). outlined: 종이 50h 2.5 + 3px 그림자. kakao/google: 공식 색 유지, 형태만 r14. tonal: 옐로 36h. text: 밑줄. disabled: opacity .3, 그림자 없음. 필(pill) 버튼은 폐지 → 모두 r14.</p>
+      </div>
+
+      <!-- 칩·탭 -->
+      <div style="background: #EFE9DC; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">CHIP · TAB <code>.lf-chip .lf-tab .lf-choice</code></p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <span style="height: 34px; padding: 0 14px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; box-shadow: 3px 3px 0 #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 800;">진행 중 6</span>
+          <span style="height: 34px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">대기 1</span>
+          <span style="height: 34px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">지난 약속</span>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #5FD3A5; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">진행 중</span>
+          <span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FF6F91; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">이행 확인 중</span>
+          <span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #6CB4FF; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">변경 협의 중</span>
+          <span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FFD43B; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">작성 중</span>
+          <span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">승인 대기</span>
+          <span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #EFE9DC; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">D-17</span>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFD43B; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 800;">습관</span>
+          <span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">내기</span>
+          <span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">금전</span>
+          <span style="height: 36px; padding: 0 14px; border-radius: 10px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;">기타</span>
+        </div>
+        <p style="margin: 0; font-size: 12px; line-height: 18px; color: #6F6552;">필터 탭 34h r10, 선택=옐로+3px 그림자·800, 비선택=종이·700 잉크(보조색 폐지). 상태 칩 28h r8 톤 배경·글자 잉크. 선택 칩(카테고리·지킬 사람) 36h r10. 필 모양 칩은 없다.</p>
+      </div>
+
+      <!-- 카드·행 -->
+      <div style="background: #EFE9DC; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">CARD · ROW <code>.lf-card .lf-card--list .lf-hero-card</code></p>
+        <div style="position: relative; margin-top: 10px; background: #FFD43B; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; display: flex; align-items: center; gap: 12px; padding: 20px 18px 18px;">
+          <span style="position: absolute; top: -14px; left: 14px; height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 8px; background: #FF6F91; border: 2px solid #221C13; font-size: 12px; font-weight: 800;">D-1 · 내일까지</span>
+          <div style="flex: 1;"><p style="margin: 4px 0 0; font-size: 22px; line-height: 28px; font-weight: 900; letter-spacing: -0.02em;">월말까지<br>야식 끊기</p><p style="margin: 8px 0 0; font-size: 12px; font-weight: 700;">지우 — 민준</p></div>
+          <span style="width: 46px; height: 46px; border-radius: 12px; background: #221C13; color: #FFD43B; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 22px;">arrow_forward</span></span>
+        </div>
+        <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+          <span style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #221C13; background: #5FD3A5; display: flex; align-items: center; justify-content: center; flex: none;"><span class="material-symbols-rounded" style="font-size: 20px;">directions_run</span></span>
+          <div style="flex: 1; min-width: 0;"><p style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 800;">매주 화·목 아침 러닝 같이 하기</p><p style="margin: 3px 0 0; font-size: 12px; font-weight: 600; color: #6F6552;">진행 중 · 8/11 (화) · 지우 — 민준</p></div>
+          <span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800;">D-17</span>
+        </div>
+        <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;"><p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">CONTENT · 내용</p><p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600;">flat 카드 — 그림자 없음. 읽기 전용·설정 묶음·읽은 알림.</p></div>
+        <p style="margin: 0; font-size: 12px; line-height: 18px; color: #6F6552;">히어로: 옐로 면, 상단 -14px에 겹치는 핑크 배지, 잉크 사각 화살표 46 r12. 행 카드: 40 r10 상태 타일(민트 진행·핑크 응답 필요·스카이 종료일 없음·뮤트 종결) + 제목 15/800 + 메타 12/600. 아이콘은 Material Symbols Rounded wght 500 유지 — RN에서는 <code>LfIcon</code>.</p>
+      </div>
+
+      <!-- 입력 -->
+      <div style="background: #EFE9DC; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">FORM <code>.lf-field .lf-input .lf-picker .lf-switch</code></p>
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">TITLE · 제목</span><div style="height: 48px; padding: 0 14px; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; display: flex; align-items: center; font-size: 15px; font-weight: 600;">매주 화·목 아침 러닝 같이 하기</div></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">END DATE · 종료일 <span style="color: #221C13; letter-spacing: 0;">필수</span></span><div style="height: 48px; padding: 0 14px; border: 2px solid #221C13; border-radius: 10px; background: #FFFDF4; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; box-shadow: 3px 3px 0 #221C13;"><span class="material-symbols-rounded" style="font-size: 18px;">event</span><span style="flex: 1;">2026-08-11 (화)</span><span class="material-symbols-rounded" style="font-size: 20px;">expand_more</span></div></div>
+        <div style="display: flex; align-items: center; gap: 14px;"><span style="width: 52px; height: 32px; border-radius: 999px; background: #FFD43B; border: 2.5px solid #221C13; position: relative; flex: none;"><span style="position: absolute; top: 50%; left: 24px; width: 20px; height: 20px; border-radius: 999px; background: #221C13; transform: translateY(-50%);"></span></span><span style="width: 52px; height: 32px; border-radius: 999px; background: #FFFDF4; border: 2.5px solid #221C13; position: relative; flex: none;"><span style="position: absolute; top: 50%; left: 4px; width: 20px; height: 20px; border-radius: 999px; background: #221C13; transform: translateY(-50%);"></span></span><span style="font-size: 13px; font-weight: 800;">스위치 ON / OFF</span></div>
+        <p style="margin: 0; font-size: 12px; line-height: 18px; color: #6F6552;">입력 48h r10 2px 종이, 그림자 없음. 포커스: 3px 3px 0 잉크(포커스 링 대체, 웹은 outline 2px #2F6FB3 병행). 피커(값 고르기 행)는 기본 3px 그림자로 "누를 수 있음"을 표시. 스위치 노브는 항상 잉크, ON은 옐로 트랙.</p>
+      </div>
+
+      <!-- 시트·스탬프 -->
+      <div style="background: #EFE9DC; border: 2.5px solid #221C13; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: #6F6552;">SHEET · STAMP <code>.lf-sheet .lf-stamp</code></p>
+        <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 20px 20px 0 0; padding: 10px 18px 18px; display: flex; flex-direction: column; gap: 12px;">
+          <span style="width: 40px; height: 5px; border-radius: 3px; background: #221C13; align-self: center;"></span>
+          <div style="display: flex; align-items: center; gap: 8px;"><span style="flex: 1; font-size: 20px; font-weight: 800;">변경·파기 요청</span><span style="width: 36px; height: 36px; border-radius: 10px; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 20px;">close</span></span></div>
+          <div style="display: flex; border: 2px solid #221C13; border-radius: 10px; overflow: hidden;"><span style="flex: 1; height: 36px; display: flex; align-items: center; justify-content: center; background: #FFD43B; font-size: 13px; font-weight: 800; border-right: 2px solid #221C13;">내용 변경</span><span style="flex: 1; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">파기 요청</span></div>
+        </div>
+        <div style="position: relative; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13; padding: 20px 18px 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; overflow: hidden;">
+          <span style="position: absolute; top: -10px; right: -14px; width: 90px; height: 70px; background: #5FD3A5; border-radius: 45px 40px 50px 35px;"></span>
+          <span style="position: relative; width: 100px; height: 60px; border-radius: 999px; background: #FBF8F1; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center;"><img src="assets/hand-color.png" alt="" style="width: 30px; height: 28px; transform: scaleX(-1);"><img src="assets/hand-color.png" alt="" style="width: 30px; height: 28px; margin-left: 4px;"></span>
+          <p style="margin: 6px 0 0; position: relative; font-size: 17px; font-weight: 900;">두 사람이 손가락 걸었어요!</p>
+          <p style="margin: 0; position: relative; font-size: 12px; color: #6F6552;">2026-07-12 21:04 확정</p>
+          <p style="margin: 4px 0 0; position: relative; font-size: 11px; font-weight: 800; letter-spacing: .1em; color: #6F6552;">RECORD · A3F9-77C2-01</p>
+        </div>
+        <p style="margin: 0; font-size: 12px; line-height: 18px; color: #6F6552;">시트: 종이, 2.5 잉크(하단 열림), r20, 그림자 없음, 핸들 40×5 잉크. 세그먼트는 하나의 2px 박스를 세로선으로 나눈다. 스탬프: 틸트 없이 5px 그림자 + 모서리 파스텔 블롭(테두리 없음, overflow hidden). 손 루프(C-1) 애니메이션은 그대로.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 상태 매핑 -->
+  <section id="status" style="display: flex; flex-direction: column; gap: 20px;">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">6 · 약속 상태 ↔ 색 · 아이콘</h2>
+    <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden;">
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; background: #221C13; color: #FFFDF4; font-size: 11px; font-weight: 800; letter-spacing: .12em;"><span>STATUS</span><span>칩</span><span>행 타일</span><span>비고</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>DRAFT 작성 중</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FFD43B; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">작성 중</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid #221C13; background: #FFD43B; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">edit</span></span><span style="color: #6F6552;">옐로 = 내 손에 있는 것</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>PENDING 승인 대기</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">승인 대기</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px dashed #221C13; background: #FFFDF4; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">hourglass_empty</span></span><span style="color: #6F6552;">종이 + 점선 = 아직 성립 전</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>ACTIVE 진행 중</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #5FD3A5; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">진행 중</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid #221C13; background: #5FD3A5; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">bolt</span></span><span style="color: #6F6552;">종료일 없음은 스카이 타일 + ∞ 칩</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>CHECKING 이행 확인</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FF6F91; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">이행 확인 중</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid #221C13; background: #FF6F91; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">notification_important</span></span><span style="color: #6F6552;">응답 필요 = 핑크. 행 안에 답하기 버튼</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>AMEND 변경 협의</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #6CB4FF; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">변경 협의 중</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid #221C13; background: #6CB4FF; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">sync_alt</span></span><span style="color: #6F6552;">기록·변경 = 스카이</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>COMPLETED 완료</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #5FD3A5; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">완료</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid #221C13; background: #5FD3A5; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">check</span></span><span style="color: #6F6552;">보상 카드 = 스카이</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>BROKEN 불이행</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FF6F91; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">불이행</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid #221C13; background: #FF6F91; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">close</span></span><span style="color: #6F6552;">벌칙 스티커는 기본 크기 — 강조 금지(§8-3)</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>DISPUTED 의견 불일치</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #FFFDF4; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">의견 불일치</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid #221C13; background: #EFE9DC; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">balance</span></span><span style="color: #6F6552;">P1: 색·순서·아이콘 어디에도 판정 암시 없음. 양측 종이 톤</span></div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr 1.4fr; gap: 12px; padding: 12px 18px; align-items: center; border-top: 2px dashed #EFE9DC; font-size: 13px;"><strong>DECLINED / UNRESOLVED</strong><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #EFE9DC; border: 2px solid #221C13; display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; justify-self: start;">거절 · 미확정 종결</span><span style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid #221C13; background: #EFE9DC; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-rounded" style="font-size: 16px;">remove</span></span><span style="color: #6F6552;">뮤트 = 지난 약속·종결</span></div>
+    </div>
+  </section>
+
+  <!-- 7 모션·상태 -->
+  <section id="motion" style="display: flex; flex-direction: column; gap: 20px;">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">7 · 모션 · 인터랙션 상태</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px; font-size: 13px; line-height: 20px;"><strong>Press</strong><br>translate(3px,3px) + 그림자 5→2 (3→0). 120ms <code>--lf-easing-standard</code>. 색은 바뀌지 않는다. RN: <code>Pressable</code> style 함수로 transform·shadowOffset 교체.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px; font-size: 13px; line-height: 20px;"><strong>Hover (웹만)</strong><br>translate(-1px,-1px) + 그림자 6px. 반전 없음.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px; font-size: 13px; line-height: 20px;"><strong>Focus</strong><br>3px 3px 0 잉크 + (웹) outline 2px #2F6FB3 offset 3.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px; font-size: 13px; line-height: 20px;"><strong>Disabled</strong><br>opacity .3, 그림자 제거. 문구는 이유를 말한다("재발송 — 만료 후 가능").</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px; font-size: 13px; line-height: 20px;"><strong>Sheet present</strong><br>240ms <code>--lf-easing-emphasized-decelerate</code>, 아래→위. 스크림 .42 페이드 동시.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px; font-size: 13px; line-height: 20px;"><strong>Stamp pop</strong><br>scale .92→1 + opacity, 400ms. 회전 없음(기존 lf-pop-in에서 rotate 제거). 손 루프 2600ms 유지.</div>
+    </div>
+  </section>
+
+  <!-- 8 개발 반영표 -->
+  <section id="dev" style="display: flex; flex-direction: column; gap: 20px;">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">8 · 개발 반영표 — tokens.css 값 교체</h2>
+    <p style="margin: 0; font-size: 14px; line-height: 22px; color: #6F6552;">토큰 이름은 유지, 값만 바꾼다. 세 타깃(<code>design-reference/styles/tokens.css</code> · <code>apps/mobile/src/theme/tokens.ts</code> · <code>apps/web/src/styles/tokens.css</code>)에 같은 변경 세트로 반영하고 <code>tokens.test.ts</code>의 토큰 수·바이트 동일성·대비 검사를 의도적으로 갱신한다. 신설 토큰 2개(<code>--lf-elevation-sm</code>, <code>--lf-type-appbar-size</code>)는 카운트도 +2.</p>
+    <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; overflow: hidden; font-size: 13px;">
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 12px 18px; background: #221C13; color: #FFFDF4; font-size: 11px; font-weight: 800; letter-spacing: .12em;"><span>TOKEN</span><span>기존</span><span>변경</span><span>비고</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-background</code><span>#F3ECDC</span><strong>#FBF8F1</strong><span style="color: #6F6552;">surface-chrome 동일</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-surface-muted</code><span>#EAE1CB</span><strong>#EFE9DC</strong><span style="color: #6F6552;"></span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-primary-container</code><span>#FFE59A</span><strong>#FFD43B</strong><span style="color: #6F6552;">brand-symbol-on-action 동일</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-success-container</code><span>#B7E1D1</span><strong>#5FD3A5</strong><span style="color: #6F6552;"></span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-attention-container</code><br><code>--lf-color-penalty-container</code><span>#FFB5C1</span><strong>#FF6F91</strong><span style="color: #6F6552;"></span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-record-container</code><br><code>--lf-color-reward-container</code><br><code>--lf-color-primary-pale</code><span>#A9D3FF</span><strong>#6CB4FF</strong><span style="color: #6F6552;"></span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-text-muted / -faint</code><span>#706652 / #716653</span><strong>#6F6552</strong><span style="color: #6F6552;">secondary와 통합</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-outline / -strong</code><span>#E0D5BA / #B8AB92</span><strong>#EFE9DC / #6F6552</strong><span style="color: #6F6552;">점선 구분·비활성 전용</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-color-frame-border</code><span>rgba(34,28,19,.22)</span><strong>#221C13</strong><span style="color: #6F6552;">갤러리 프레임</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-elevation-card</code><span>3px 4px 0 rgba(…,.14)</span><strong>5px 5px 0 #221C13</strong><span style="color: #6F6552;">RN: offset {5,5}, opacity 1, radius 0</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-elevation-fab</code><span>3px 4px 0 rgba(…,.22)</span><strong>5px 5px 0 #221C13</strong><span style="color: #6F6552;">card와 동일</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC; background: #FFF6CC;"><code>--lf-elevation-sm</code> <em>신설</em><span>—</span><strong>3px 3px 0 #221C13</strong><span style="color: #6F6552;">탭 선택·outlined·kakao·피커</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-elevation-sheet</code><span>0 -6px 24px …</span><strong>none</strong><span style="color: #6F6552;">시트는 테두리만</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-radius-xs / sm</code><span>8 / 12</span><strong>8 / 10</strong><span style="color: #6F6552;"></span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-radius-md / lg / xl / 2xl</code><span>16 / 20 / 22 / 24</span><strong>14 / 14 / 14 / 12</strong><span style="color: #6F6552;">카드는 전부 14, 아이콘 타일 12</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-radius-hero</code><span>28</span><strong>20</strong><span style="color: #6F6552;">시트 상단</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-border-card / outline / sheet</code><span>2.2 / 2.4 / 2.5</span><strong>2.5</strong><span style="color: #6F6552;">chip 2 · dashed 2 · pending 2 dashed 유지</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-tilt-*</code> (4종)<span>-0.8 / -1.2 / -2 / 3deg</span><strong>0deg</strong><span style="color: #6F6552;">값만 0으로 — 클래스는 유지</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-weight-medium / bold</code><span>600 / 700</span><strong>600 / 800</strong><span style="color: #6F6552;">heavy 900 (기존 800)</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-type-wordmark / display / headline / title</code><span>38 / 34 / 26 / 24</span><strong>40 / 36 / 30 / 24</strong><span style="color: #6F6552;">line 46 / 42 / 36 / 30</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-type-card-title / sheet-title</code><span>19 / 22</span><strong>22 / 20</strong><span style="color: #6F6552;"></span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC; background: #FFF6CC;"><code>--lf-type-appbar-size</code> <em>신설</em><span>—</span><strong>16px</strong><span style="color: #6F6552;">앱바 제목(기존 body 15)</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-letter-spacing-tight / wordmark</code><span>-0.02em / 0.04em</span><strong>-0.03em / -0.04em</strong><span style="color: #6F6552;"></span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-cta-height / fab-height</code><span>52 / 52</span><strong>56 / 56</strong><span style="color: #6F6552;">action-height 50 유지</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-tab-height / chip-status-height</code><span>32 / 28</span><strong>34 / 28</strong><span style="color: #6F6552;"></span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-icon-button</code><span>44</span><strong>36</strong><span style="color: #6F6552;">사각 r10 · ::after 로 48 터치 보장(기존 규칙)</span></div>
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 12px; padding: 10px 18px; border-top: 2px dashed #EFE9DC;"><code>--lf-appbar-height</code><span>52</span><strong>52</strong><span style="color: #6F6552;">+ margin 8 16 0, 필 배경·테두리·그림자는 components.css</span></div>
+    </div>
+
+    <h3 style="margin: 12px 0 0; font-size: 20px; font-weight: 900;">components.css / Lf* 변경 요점</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; font-size: 13px; line-height: 20px;">
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-appbar</code> / <code>LfAppBar</code><br>margin 8px 16px 0 · 종이 배경 · 2.5 잉크 · r999 · elevation-card. <code>--brand</code>: 마스코트 34 옐로 원 + 워드마크 22/900 + 메뉴 버튼(종·아바타 액션을 메뉴 시트로 이동 — 라우팅은 유지, 진입점만 변경. PO 컨펌 항목).</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-icon-button</code> / <code>LfIconButton</code><br>36×36 r10 2px 종이. <code>--strong</code> 없음. 앱바 밖(히어로 화살표)은 46 r12 잉크 채움 + 옐로 아이콘.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-btn</code> / <code>LfButton</code><br>r pill → 14. <code>--filled</code> 56h 2.5 잉크 테두리 + elevation-card, trailing 40 r10 옐로. <code>--outlined</code> 2.5 + elevation-sm. <code>--kakao</code> r14 + elevation-sm. <code>.lf-fab</code>은 좌우 16 풀폭 56h(중앙 필 폐지).</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-chip .lf-tab .lf-choice</code> / <code>LfChip LfChoice</code><br>r → 8(상태) · 10(탭·선택). 선택 탭 elevation-sm. 비선택 글자 잉크 700(<code>--quiet</code> 보조색 폐지). <code>--cream</code>은 뮤트 배경으로.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-card .lf-card--list</code> / <code>LfCard PromiseListRow</code><br>r14 · 2.5 · elevation-card. 리스트 행 padding 14 16, 상태 도트 10 → 상태 타일 40 r10(<code>LfStatusDot</code> → <code>LfStatusTile</code>, 아이콘은 status 매핑 §6). <code>--tilt*</code> no-op.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-hero-card</code> / <code>LfHero</code><br>옐로 배경, 회전 제거, 블롭+눈 제거 → 상단 -14 핑크 배지(eyebrow 텍스트), 잉크 사각 화살표 46. margin-top 10 (배지 공간).</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-sheet</code> / <code>LfSheet</code><br>r 28→20, 2.5 잉크, elevation 없음. 핸들 40×5 잉크. <code>.lf-segmented</code>: 단일 2px 박스 r10, 선택 옐로, 세로 2px 구분선.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-stamp</code> / <code>LfStamp</code><br>회전·pop-in rotate 제거, r14, elevation-card. 모서리 블롭은 테두리 없는 파스텔 면. 손 루프·스파크 유지.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-input .lf-picker .lf-switch</code> / <code>LfInput LfPicker LfSwitch</code><br>r12→10. 피커 elevation-sm. 포커스 elevation-sm(+웹 outline). 스위치 노브 잉크 고정, OFF 노브도 잉크.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-outcome .lf-list-item .lf-settings</code><br>r14 · 2.5. <code>--reward</code> 스카이 / <code>--penalty</code> 핑크 채도 상향(토큰). 설정 묶음은 flat, 행 구분 2px dashed #EFE9DC.</div>
+      <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><code>.lf-blob__*</code> / <code>LfBlob</code><br>stroke-width 2.5 유지, 파스텔 fill은 토큰 따라 채도 상향. <code>--tilt</code> 0.</div>
+      <div style="background: #FFF6CC; border: 2.5px solid #221C13; border-radius: 14px; padding: 16px 18px;"><strong>검증 체크리스트</strong><br>① <code>tokens.test.ts</code> 카운트 +2, 바이트 동일성 재고정 ② 대비 검사: 4색 위 잉크 ≥ 4.5 ③ jest 롤·라벨 스냅샷 변경 없음 ④ 48dp 터치 (아이콘 버튼 36 + ::after) ⑤ DISPUTED 양측 동일 톤 ⑥ 광고 비활성 시 공간 0 ⑦ 디스클레이머 문구 diff 없음.</div>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+</body>
+</html>

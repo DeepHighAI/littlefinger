@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face { font-family: 'Pretendard'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('assets/PretendardVariable.woff2') format('woff2-variations'), url('assets/PretendardVariable.woff2') format('woff2'); }
+body { margin: 0; background: #FBF8F1; font-family: 'Pretendard', system-ui, sans-serif; color: #221C13; -webkit-font-smoothing: antialiased; word-break: keep-all; }
+a { color: #221C13; text-decoration: none; } a:hover { color: #221C13; opacity: .85; }
+</style>
+</helmet>
+
+<div style="max-width: 880px; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 36px;">
+  <header style="display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; height: 52px; padding: 0 18px 0 10px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 999px; box-shadow: 5px 5px 0 #221C13;">
+      <span style="width: 34px; height: 34px; border-radius: 999px; background: #FFD43B; border: 2px solid #221C13; display: flex; align-items: center; justify-content: center;"><img src="assets/mascot-face-e1.png" alt="" style="width: 28px; height: 28px; object-fit: contain;"></span>
+      <span style="font-size: 22px; font-weight: 900; letter-spacing: -0.04em; line-height: 1;">리틀핑거</span>
+    </div>
+    <h1 style="margin: 0; font-size: 36px; line-height: 42px; font-weight: 900; letter-spacing: -0.03em;">잉크 &amp; 블록 리디자인<br>전체 화면 · 스타일 가이드</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 24px; font-weight: 500; color: #6F6552;">2026-09-06 · 시안 1a(45° 하드 섀도) 확정. 아래 순서로 보면 개발 반영에 필요한 내용이 모두 이어집니다.</p>
+  </header>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+    <a href="리틀핑거 스타일 가이드.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #FFD43B; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13;">
+      <span style="height: 24px; padding: 0 8px; align-self: flex-start; display: inline-flex; align-items: center; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 11px; font-weight: 800; letter-spacing: .08em;">GUIDE</span>
+      <span style="font-size: 20px; font-weight: 900;">스타일 가이드</span>
+      <span style="font-size: 13px; line-height: 19px; font-weight: 600;">원칙 · 색 · 타이포 · 선/모서리/그림자 · 컴포넌트 · 상태 매핑 · 모션 · tokens.css 값 교체표</span>
+    </a>
+    <a href="리디자인 01 · 진입·홈·작성·초대.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13;">
+      <span style="height: 24px; padding: 0 8px; align-self: flex-start; display: inline-flex; align-items: center; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 11px; font-weight: 800; letter-spacing: .08em;">01</span>
+      <span style="font-size: 20px; font-weight: 900;">진입 · 홈 · 작성 · 초대</span>
+      <span style="font-size: 13px; line-height: 19px; font-weight: 600; color: #6F6552;">SCR-A00 온보딩 · A01 로그인 (기존 유지) · A02 홈 / 빈 상태 · A03 약속 작성 · A04 초대 전송 · SCR-I 초대 검토</span>
+    </a>
+    <a href="리디자인 02 · 약속 상세.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13;">
+      <span style="height: 24px; padding: 0 8px; align-self: flex-start; display: inline-flex; align-items: center; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 11px; font-weight: 800; letter-spacing: .08em;">02</span>
+      <span style="font-size: 20px; font-weight: 900;">약속 상세 · 이행 확인</span>
+      <span style="font-size: 13px; line-height: 19px; font-weight: 600; color: #6F6552;">SCR-A05 ACTIVE · PENDING · CHECKING · AMEND · COMPLETED · BROKEN · DISPUTED · SCR-A06 이행 확인 입력</span>
+    </a>
+    <a href="리디자인 03 · 알림·마이·모달.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13;">
+      <span style="height: 24px; padding: 0 8px; align-self: flex-start; display: inline-flex; align-items: center; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 11px; font-weight: 800; letter-spacing: .08em;">03</span>
+      <span style="font-size: 20px; font-weight: 900;">알림 · 마이 · 지난 약속 · 시트</span>
+      <span style="font-size: 13px; line-height: 19px; font-weight: 600; color: #6F6552;">SCR-A07 · A08 · A09 · 메뉴 시트(신규) · MOD-01 변경 요청 · 02 증인 · 03 축하 · 04 슬롯 · 05 혜택</span>
+    </a>
+    <a href="리디자인 04 · 수락 웹.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; box-shadow: 5px 5px 0 #221C13;">
+      <span style="height: 24px; padding: 0 8px; align-self: flex-start; display: inline-flex; align-items: center; border-radius: 8px; background: #221C13; color: #FFD43B; font-size: 11px; font-weight: 800; letter-spacing: .08em;">04</span>
+      <span style="font-size: 20px; font-weight: 900;">수락 웹</span>
+      <span style="font-size: 13px; line-height: 19px; font-weight: 600; color: #6F6552;">SCR-W01 랜딩 · W02 검토 · W03 승인 완료 · W05 증인 서명 · W06 만료</span>
+    </a>
+    <a href="리틀핑거 홈 리디자인.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #EFE9DC; border: 2.5px solid #221C13; border-radius: 14px;">
+      <span style="height: 24px; padding: 0 8px; align-self: flex-start; display: inline-flex; align-items: center; border-radius: 8px; border: 2px solid #221C13; font-size: 11px; font-weight: 800; letter-spacing: .08em;">ARCHIVE</span>
+      <span style="font-size: 20px; font-weight: 900;">시안 비교 (현재 · 1a · 1b)</span>
+      <span style="font-size: 13px; line-height: 19px; font-weight: 600; color: #6F6552;">1a 확정 전 비교 보드 — 기존 기준선 재현 포함</span>
+    </a>
+  </div>
+
+  <div style="background: #FFFDF4; border: 2.5px solid #221C13; border-radius: 14px; padding: 18px 20px; font-size: 13px; line-height: 20px; color: #6F6552;">
+    <strong style="color: #221C13;">이번 시안에서 PO 컨펌이 필요한 변경.</strong> ① 홈 앱바의 종·아바타 → "메뉴" 시트로 통합(진입점만 이동, 라우팅 동일) ② 리스트 행의 상태 도트 → 40px 상태 타일 ③ 스티커 틸트 폐지 ④ 파스텔 4색 채도 상향(역할 동일) ⑤ 필 버튼 → r14 블록 버튼. 커버하지 않은 화면: A05 no-end · declined · finish-pending · unresolved, blocked-users, profile-nickname, not-found, update-required, W04 — 같은 규격으로 조합 가능.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
