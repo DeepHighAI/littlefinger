@@ -9,7 +9,7 @@ export type LfButtonVariant =
   | 'filled' | 'tonal' | 'outlined' | 'text' | 'kakao' | 'google' | 'danger';
 export type LfButtonSize = 'default' | 'cta' | 'compact';
 
-export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children'> {
+export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children' | 'hitSlop'> {
   label: string;
   variant?: LfButtonVariant;
   size?: LfButtonSize;
@@ -17,47 +17,64 @@ export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children'
   grow?: boolean;
   leading?: React.JSX.Element;
   trailing?: LfIconName | 'mascot';
-  trailingBorder?: boolean;
 }
 
 const DISABLED_OPACITY = 0.3;
-const PRESSED_OPACITY = 0.94;
+/** README 눌림 — translate 3 · 그림자 5→2, 3→없음. 번들 토큰 없음, ADR 0020 예외 */
+const PRESS_OFFSET = 3;
+const PRESSED_SHADOW = { boxShadow: [{ offsetX: 2, offsetY: 2, blurRadius: 0, spreadDistance: 0, color: colors.text }] };
+const NO_SHADOW = { boxShadow: [] };
+/** README Google 52h · compact 44h · 트레일링 아이콘 22 — 토큰 없음, ADR 0020 예외 */
+const GOOGLE_HEIGHT = 52;
+const COMPACT_HEIGHT = 44;
+const TRAILING_ICON = 22;
 
 const container = StyleSheet.create({
   base: {
     minHeight: size.actionHeight,
     paddingHorizontal: space[9],
-    paddingVertical: space[2],
-    borderRadius: radius.pill,
+    borderRadius: radius.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: space[3],
   },
-  filled: { backgroundColor: colors.actionFill, ...elevation.fab },
+  filled: {
+    backgroundColor: colors.primaryContainer,
+    borderWidth: border.card,
+    borderColor: colors.text,
+    ...elevation.card,
+  },
   tonal: {
-    minHeight: size.touchMin,
+    minHeight: size.chipSelectHeight,
+    paddingHorizontal: space[6],
+    borderRadius: radius.sm,
     backgroundColor: colors.primaryContainer,
     borderWidth: border.chip,
     borderColor: colors.text,
+    ...elevation.sm,
   },
   outlined: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surface,
     borderWidth: border.outline,
     borderColor: colors.text,
+    ...elevation.sm,
   },
-  text: { backgroundColor: 'transparent' },
+  text: { minHeight: size.touchMin, paddingHorizontal: 0, backgroundColor: 'transparent' },
+  // 앱의 카카오 버튼은 A01 로그인뿐이라 README 의 로그인 5px 그림자를 쓴다
   kakao: {
     minHeight: size.kakaoHeight,
     backgroundColor: colors.kakao,
     borderWidth: border.sheet,
     borderColor: colors.text,
+    ...elevation.card,
   },
   google: {
-    minHeight: size.kakaoHeight,
+    minHeight: GOOGLE_HEIGHT,
     backgroundColor: colors.google,
-    borderWidth: border.chip / 2,
-    borderColor: colors.googleBorder,
+    borderWidth: border.card,
+    borderColor: colors.text,
+    ...elevation.sm,
   },
   danger: {
     backgroundColor: 'transparent',
@@ -65,28 +82,48 @@ const container = StyleSheet.create({
     borderColor: colors.error,
   },
   trailingLayout: {
-    paddingTop: space[2],
-    paddingRight: space[2],
-    paddingBottom: space[2],
+    paddingRight: space[3],
     paddingLeft: space[8] + border.chip,
     gap: space[6],
   },
   trailing: {
     width: size.iconCircle,
     height: size.iconCircle,
-    borderRadius: radius.pill,
-    backgroundColor: colors.brandSymbolOnAction,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    borderWidth: border.chip,
+    borderColor: colors.text,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  trailingBorder: { borderWidth: border.chip, borderColor: colors.text },
 });
 
+const minHeightOf: Record<LfButtonVariant, number> = {
+  filled: size.actionHeight,
+  tonal: size.chipSelectHeight,
+  outlined: size.actionHeight,
+  text: size.touchMin,
+  kakao: size.kakaoHeight,
+  google: GOOGLE_HEIGHT,
+  danger: size.actionHeight,
+};
+
+/** 눌림 뒤 남는 그림자 — 5px 면은 2px, 3px 면은 없음 */
+const pressedShadow: Record<LfButtonVariant, typeof PRESSED_SHADOW | typeof NO_SHADOW> = {
+  filled: PRESSED_SHADOW,
+  tonal: NO_SHADOW,
+  outlined: NO_SHADOW,
+  text: NO_SHADOW,
+  kakao: PRESSED_SHADOW,
+  google: NO_SHADOW,
+  danger: NO_SHADOW,
+};
+
 const labelColor: Record<LfButtonVariant, string> = {
-  filled: colors.onAction,
+  filled: colors.text,
   tonal: colors.text,
   outlined: colors.text,
-  text: colors.textMuted,
+  text: colors.text,
   kakao: colors.onKakao,
   google: colors.onGoogle,
   danger: colors.error,
@@ -96,16 +133,20 @@ const labelWeight: Record<LfButtonVariant, TextFontWeight> = {
   filled: weight.bold,
   tonal: weight.bold,
   outlined: weight.bold,
-  text: weight.medium,
+  text: weight.bold,
   kakao: weight.bold,
   google: weight.medium,
   danger: weight.bold,
 };
 
-const labelSize: Record<LfButtonSize, number> = {
-  default: type.label,
-  cta: type.body,
-  compact: type.label,
+const labelSize: Record<LfButtonVariant, number> = {
+  filled: type.appbar,
+  tonal: type.chip,
+  outlined: type.label,
+  text: type.label,
+  kakao: type.appbar,
+  google: type.bodyLg,
+  danger: type.label,
 };
 
 export function LfButton({
@@ -116,16 +157,17 @@ export function LfButton({
   grow = false,
   leading,
   trailing,
-  trailingBorder = true,
   disabled,
   accessibilityState,
   ...rest
 }: LfButtonProps): React.JSX.Element {
   const isDisabled = disabled ?? false;
-  const fontSize =
-    buttonSize === 'default' && (variant === 'kakao' || variant === 'google')
-      ? type.bodyLg
-      : labelSize[buttonSize];
+  const minHeight = buttonSize === 'cta'
+    ? size.ctaHeight
+    : buttonSize === 'compact' ? COMPACT_HEIGHT : minHeightOf[variant];
+  // 36h tonal · 44h compact 는 갤러리의 ::after 처럼 hitSlop 으로 48 을 채운다 (§8-7)
+  const hitSlop = Math.max(0, (size.touchMin - minHeight) / 2);
+  const fontSize = buttonSize === 'compact' ? type.chip : labelSize[variant];
 
   return (
     <Pressable
@@ -133,22 +175,22 @@ export function LfButton({
       accessibilityLabel={label}
       accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
       disabled={isDisabled}
+      hitSlop={hitSlop}
       {...rest}
       style={({ pressed }) => [
         container.base,
         container[variant],
-        buttonSize === 'cta' && { minHeight: size.ctaHeight },
-        buttonSize === 'compact' && { minHeight: size.touchMin, paddingHorizontal: space[7] },
+        { minHeight },
+        buttonSize === 'compact' && { paddingHorizontal: space[7] },
         leading !== undefined && { paddingHorizontal: space[7] },
         trailing !== undefined && container.trailingLayout,
         block && { width: '100%' },
         grow && { flex: 1 },
-        pressed && (
-          variant === 'filled'
-            ? { backgroundColor: colors.actionFillPressed }
-            : { opacity: PRESSED_OPACITY }
-        ),
-        isDisabled && { opacity: DISABLED_OPACITY },
+        pressed && {
+          transform: [{ translateX: PRESS_OFFSET }, { translateY: PRESS_OFFSET }],
+          ...pressedShadow[variant],
+        },
+        isDisabled && { opacity: DISABLED_OPACITY, ...NO_SHADOW },
       ]}
     >
       {leading}
@@ -174,11 +216,11 @@ export function LfButton({
       {trailing !== undefined ? (
         <View
           testID={rest.testID === undefined ? undefined : `${rest.testID}-trailing`}
-          style={[container.trailing, trailingBorder && container.trailingBorder]}
+          style={container.trailing}
         >
           {trailing === 'mascot'
             ? <LfMascotFace size="md" />
-            : <LfIcon name={trailing} size={type.subtitle} />}
+            : <LfIcon name={trailing} size={TRAILING_ICON} />}
         </View>
       ) : null}
     </Pressable>

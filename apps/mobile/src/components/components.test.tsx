@@ -5,6 +5,8 @@ import * as Reanimated from 'react-native-reanimated';
 import {
   border,
   colors,
+  elevation,
+  gutter,
   letterSpacing,
   line,
   radius,
@@ -85,17 +87,20 @@ describe('LfText', () => {
   test.each([
     ['wordmark', type.wordmark, weight.heavy],
     ['display', type.display, weight.heavy],
-    ['headline', type.headline, weight.heavy],
-    ['title', type.title, weight.heavy],
-    ['sheetTitle', type.sheetTitle, weight.heavy],
+    ['headline', type.headline, weight.bold],
+    ['title', type.title, weight.bold],
+    ['sheetTitle', type.sheetTitle, weight.bold],
     ['cardTitle', type.cardTitle, weight.heavy],
     ['heading', type.heading, weight.bold],
     ['subtitle', type.subtitle, weight.heavy],
+    ['appbar', type.appbar, weight.bold],
+    ['appbarBrand', type.cardTitle, weight.heavy],
     ['bodyStrong', type.body, weight.bold],
-    ['body', type.body, weight.regular],
-    ['caption', type.label, weight.regular],
-    ['meta', type.meta, weight.regular],
+    ['body', type.body, weight.medium],
+    ['caption', type.chip, weight.medium],
+    ['meta', type.meta, weight.medium],
     ['eyebrow', type.eyebrow, weight.bold],
+    ['chip', type.meta, weight.bold],
   ] as const)('%s 는 원본 CSS 와 같은 크기·굵기를 쓴다', async (variant, expectedSize, expectedWeight) => {
     const view = await render(<LfText testID="t" variant={variant} />);
     const s = styleOf(view, 't') as TextStyle;
@@ -107,18 +112,29 @@ describe('LfText', () => {
     const view = await render(<LfText testID="t" secondary />);
     expect(styleOf(view, 't') as TextStyle).toMatchObject({
       color: colors.textSecondary,
-      fontWeight: weight.regular,
+      fontWeight: weight.medium,
     });
   });
 
-  test('caption 은 14/22 보조문으로 읽힌다', async () => {
+  test('caption 은 13/19 보조문으로 읽힌다 (README 캡션)', async () => {
     const view = await render(<LfText testID="t" variant="caption" />);
     expect(styleOf(view, 't') as TextStyle).toMatchObject({
       color: colors.textSecondary,
-      fontSize: type.label,
-      lineHeight: line.body,
-      fontWeight: weight.regular,
+      fontSize: type.chip,
+      lineHeight: 19,
+      fontWeight: weight.medium,
     });
+  });
+
+  test('4색 면 안에서는 보조 글자도 잉크다 — 종이 면에서는 보조색 그대로', async () => {
+    const view = await render(
+      <>
+        <LfCard tone="yellow"><LfText testID="on-face" secondary /></LfCard>
+        <LfCard tone="paper"><LfText testID="on-paper" secondary /></LfCard>
+      </>,
+    );
+    expect((styleOf(view, 'on-face') as TextStyle).color).toBe(colors.text);
+    expect((styleOf(view, 'on-paper') as TextStyle).color).toBe(colors.textSecondary);
   });
 
   test('eyebrow 자간은 토큰의 em 값을 RN dp로 환산한다', async () => {
@@ -217,15 +233,18 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
   });
 
   test.each(variants)('%s 변형도 터치 타깃 48dp 를 지킨다', async (variant) => {
-    // 04 §12-7 절대제약: 터치 타깃 최소 48dp. 어떤 변형에서도 줄지 않는다.
+    // 04 §12-7 절대제약: 터치 타깃 최소 48dp. 36h tonal 은 갤러리의 ::after 처럼 hitSlop 으로 채운다.
     const view = await render(<LfButton testID="b" variant={variant} label="확인" />);
-    expect((styleOf(view, 'b') as ViewStyle).minHeight).toBeGreaterThanOrEqual(size.touchMin);
+    const button = view.getByTestId('b');
+    const minHeight = (styleOf(view, 'b') as ViewStyle).minHeight as number;
+    expect(minHeight + (button.props.hitSlop as number) * 2).toBeGreaterThanOrEqual(size.touchMin);
   });
 
-  test('compact 크기에서도 48dp 아래로 내려가지 않는다', async () => {
-    // 원본 CSS 의 .lf-btn--compact 는 height 44px 지만 .lf-btn 의 min-height 48px 가 이긴다.
+  test('compact 는 README 44h 를 지키고 hitSlop 으로 48dp 를 채운다', async () => {
     const view = await render(<LfButton testID="b" size="compact" label="확인" />);
-    expect((styleOf(view, 'b') as ViewStyle).minHeight).toBeGreaterThanOrEqual(size.touchMin);
+    const button = view.getByTestId('b');
+    expect((styleOf(view, 'b') as ViewStyle).minHeight).toBe(44);
+    expect(44 + (button.props.hitSlop as number) * 2).toBe(size.touchMin);
   });
 
   test('cta 크기는 더 크다', async () => {
@@ -258,14 +277,27 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
     expect(style.fontWeight).toBeUndefined();
   });
 
-  test('filled 는 소프트 액션 색을 쓴다', async () => {
+  test('filled 는 옐로 면에 잉크 글자 · 2.5 잉크 테두리 · 5px 그림자다 (검정 채움 없음)', async () => {
     const view = await render(<LfButton testID="b" variant="filled" label="확인" />);
-    expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.actionFill);
+    expect(styleOf(view, 'b')).toMatchObject({
+      backgroundColor: colors.primaryContainer,
+      borderColor: colors.text,
+      borderWidth: border.card,
+      boxShadow: elevation.card.boxShadow,
+    });
+    expect(flatten(view.getByText('확인').props.style).color).toBe(colors.text);
   });
 
-  test('filled 를 누르는 동안 소프트 액션 pressed 색을 쓴다', async () => {
-    const button = LfButton({ variant: 'filled', label: '확인' });
-    expect(pressedStyleOf(button).backgroundColor).toBe(colors.actionFillPressed);
+  test('누르는 동안 3dp 밀리고 그림자는 2px 만 남는다 (README 눌림)', async () => {
+    const pressed = pressedStyleOf(LfButton({ variant: 'filled', label: '확인' }));
+    expect(pressed.transform).toEqual([{ translateX: 3 }, { translateY: 3 }]);
+    expect(pressed.boxShadow).toEqual([{ offsetX: 2, offsetY: 2, blurRadius: 0, spreadDistance: 0, color: colors.text }]);
+    expect(pressedStyleOf(LfButton({ variant: 'outlined', label: '확인' })).boxShadow).toEqual([]);
+  });
+
+  test('비활성이면 그림자도 없다', async () => {
+    const view = await render(<LfButton testID="b" label="확인" disabled />);
+    expect((styleOf(view, 'b') as ViewStyle).boxShadow).toEqual([]);
   });
 
   test('kakao 는 카카오 공식 버튼 색을 쓴다', async () => {
@@ -273,17 +305,18 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
     expect((styleOf(view, 'b') as ViewStyle).backgroundColor).toBe(colors.kakao);
   });
 
-  test('google 은 구글 공식 버튼 색과 1px 테두리를 쓴다', async () => {
+  test('google 은 구글 공식 배경·글자색을 지키고 테두리만 2.5 잉크 블록이다', async () => {
     const view = await render(<LfButton testID="b" variant="google" label="Google로 시작하기" />);
     const style = styleOf(view, 'b') as ViewStyle;
     expect(style.backgroundColor).toBe(colors.google);
-    expect(style.borderColor).toBe(colors.googleBorder);
-    expect(style.borderWidth).toBe(1);
+    expect(style.borderColor).toBe(colors.text);
+    expect(style.borderWidth).toBe(border.card);
+    expect(flatten(view.getByText('Google로 시작하기').props.style).color).toBe(colors.onGoogle);
   });
 
-  test('모서리는 알약 모양이다', async () => {
+  test('모서리는 r14 블록이다', async () => {
     const view = await render(<LfButton testID="b" label="확인" />);
-    expect((styleOf(view, 'b') as ViewStyle).borderRadius).toBe(9999);
+    expect((styleOf(view, 'b') as ViewStyle).borderRadius).toBe(radius.md);
   });
 
   test('block 은 가로를 꽉 채운다', async () => {
@@ -330,38 +363,42 @@ describe('LfButton — 접근성 하한이 최우선이다', () => {
     });
   });
 
-  test('trailing 아이콘은 40dp 옐로 원 안에 놓이고 테두리를 끌 수 있다', async () => {
-    const view = await render(
-      <LfButton testID="b" label="보내기" trailing="send" trailingBorder={false} />,
-    );
+  test('trailing 아이콘은 40dp 종이 사각 r10 안에 2dp 잉크 테두리로 놓인다', async () => {
+    const view = await render(<LfButton testID="b" label="보내기" trailing="send" />);
     expect(styleOf(view, 'b-trailing')).toMatchObject({
       width: size.iconCircle,
       height: size.iconCircle,
-      backgroundColor: colors.brandSymbolOnAction,
+      borderRadius: radius.sm,
+      backgroundColor: colors.surface,
+      borderWidth: border.chip,
+      borderColor: colors.text,
     });
-    expect(styleOf(view, 'b-trailing').borderWidth).toBeUndefined();
   });
 });
 
 describe('LfFab', () => {
-  test('누르는 동안 소프트 액션 pressed 색을 쓴다', async () => {
-    const button = LfFab({ label: '약속 만들기' });
-    expect(pressedStyleOf(button).backgroundColor).toBe(colors.actionFillPressed);
+  test('옐로 풀폭 CTA — 좌우 16 · 잉크 글자 · 5px 그림자 · 눌림은 3dp 이동', async () => {
+    const view = await render(<LfFab testID="fab" label="약속 만들기" />);
+    expect(styleOf(view, 'fab')).toMatchObject({
+      left: gutter.app,
+      right: gutter.app,
+      backgroundColor: colors.primaryContainer,
+      borderRadius: radius.md,
+      boxShadow: elevation.fab.boxShadow,
+    });
+    expect(flatten(view.getByText('약속 만들기').props.style).color).toBe(colors.text);
+    expect(pressedStyleOf(LfFab({ label: '약속 만들기' })).transform).toEqual([{ translateX: 3 }, { translateY: 3 }]);
   });
 
-  test('트레일링 옐로 원 안에 E-1 얼굴을 표시한다', async () => {
+  test('트레일링 종이 사각 안에 add 아이콘을 표시한다', async () => {
     const view = await render(<LfFab testID="fab" label="약속 만들기" />);
     expect(styleOf(view, 'fab-trailing')).toMatchObject({
       width: size.iconCircle,
       height: size.iconCircle,
-      backgroundColor: colors.brandSymbolOnAction,
+      backgroundColor: colors.surface,
+      borderWidth: border.chip,
     });
-    const mascot = view.getByTestId('fab-mascot', { includeHiddenElements: true });
-    expect(mascot.type).toBe('Image');
-    expect(flatten(mascot.props.style)).toMatchObject({
-      width: size.mascotMd,
-      height: size.mascotMd,
-    });
+    expect(view.getByTestId('fab-icon', { includeHiddenElements: true })).toBeTruthy();
   });
 });
 
@@ -391,12 +428,11 @@ describe('LfCard', () => {
     expect(s.padding).toBe(0);
   });
 
-  test('list 모양과 hero 기울기를 함께 적용한다', async () => {
-    const view = await render(<LfCard testID="c" shape="list" tilt="hero" />);
-    expect(styleOf(view, 'c')).toMatchObject({
-      borderRadius: radius.lg,
-      transform: [{ rotate: tilt.hero }],
-    });
+  test('shadow={false} 는 테두리를 두고 그림자만 뺀다 — 기울기는 없다', async () => {
+    const view = await render(<LfCard testID="c" shape="list" shadow={false} />);
+    const s = styleOf(view, 'c') as ViewStyle;
+    expect(s).toMatchObject({ borderRadius: radius.lg, borderWidth: border.card, boxShadow: [] });
+    expect(s.transform).toBeUndefined();
   });
 });
 
@@ -436,7 +472,32 @@ describe('Soft Promise 공통 컴포넌트', () => {
     expect(hero.borderWidth).toBe(border.card);
     expect(hero.borderColor).toBe(colors.text);
     expect(hero.transform).toEqual([{ rotate: tilt.hero }]);
-    expect(flatten(view.getByText('D-3').props.style).fontSize).toBe(type.chip);
+    expect(flatten(view.getByText('D-3').props.style).fontSize).toBe(type.meta);
+  });
+
+  test('앱바는 종이 r14 블록이고 브랜드 앱바의 메뉴는 버튼으로 읽힌다', async () => {
+    const onMenu = jest.fn();
+    const view = await render(
+      <LfAppBar
+        testID="bar"
+        brand
+        title="리틀핑거"
+        menu={{ label: '메뉴', onPress: onMenu, badge: true, accessibilityLabel: '메뉴 — 읽지 않은 알림 있음' }}
+      />,
+    );
+    expect(styleOf(view, 'bar')).toMatchObject({
+      height: size.appbarHeight,
+      marginHorizontal: gutter.app,
+      borderRadius: radius.md,
+      borderWidth: border.card,
+      backgroundColor: colors.surface,
+      boxShadow: elevation.card.boxShadow,
+    });
+    expect(view.getByRole('header', { name: '리틀핑거' })).toBeTruthy();
+    const menu = view.getByRole('button', { name: '메뉴 — 읽지 않은 알림 있음' });
+    expect(size.iconCircle + (menu.props.hitSlop as number) * 2).toBe(size.touchMin);
+    await userEvent.press(menu);
+    expect(onMenu).toHaveBeenCalledTimes(1);
   });
 
   test('앱바는 뒤로 원과 아바타 액션을 각각 버튼으로 제공한다', async () => {

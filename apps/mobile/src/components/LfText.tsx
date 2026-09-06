@@ -1,3 +1,4 @@
+import { createContext, useContext } from 'react';
 import { StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
 
 import { textFontFamily, type TextFontWeight } from '../theme/fonts';
@@ -14,6 +15,8 @@ export type LfTextVariant =
   | 'stamp'
   | 'heading'
   | 'subtitle'
+  | 'appbar'
+  | 'appbarBrand'
   | 'bodyStrong'
   | 'body'
   | 'label'
@@ -33,6 +36,15 @@ export interface LfTextProps extends Omit<TextProps, 'style'> {
   secondary?: boolean;
   align?: 'left' | 'center' | 'right';
 }
+
+/**
+ * 4색 면(옐로·민트·핑크·스카이) 안에서는 보조·메타 글자도 잉크로 그린다 —
+ * 보조색은 옐로 위에서 4.03:1 로 떨어진다(ADR 0020). 면을 그리는 컴포넌트가 true 를 공급한다.
+ */
+export const LfInkContext = createContext(false);
+
+/** README 캡션 줄높이 19 — 줄높이 토큰 없음, ADR 0020 예외 */
+const CAPTION_LINE = 19;
 
 function tracking(fontSize: number, em: number): number {
   return fontSize * em;
@@ -56,21 +68,21 @@ const styles = StyleSheet.create<Record<LfTextVariant, TextStyle>>({
   headline: {
     fontSize: type.headline,
     lineHeight: line.headline,
-    fontWeight: weight.heavy,
+    fontWeight: weight.bold,
     letterSpacing: tracking(type.headline, letterSpacing.tight),
     color: colors.text,
   },
   title: {
     fontSize: type.title,
     lineHeight: line.title,
-    fontWeight: weight.heavy,
+    fontWeight: weight.bold,
     letterSpacing: tracking(type.title, letterSpacing.tight),
     color: colors.text,
   },
   sheetTitle: {
     fontSize: type.sheetTitle,
     lineHeight: line.title,
-    fontWeight: weight.heavy,
+    fontWeight: weight.bold,
     color: colors.text,
   },
   cardTitle: {
@@ -97,6 +109,20 @@ const styles = StyleSheet.create<Record<LfTextVariant, TextStyle>>({
     fontWeight: weight.heavy,
     color: colors.text,
   },
+  appbar: {
+    fontSize: type.appbar,
+    lineHeight: line.bodyStrong,
+    fontWeight: weight.bold,
+    color: colors.text,
+  },
+  // 홈 워드마크 — 22/900, 자간 -0.04em, 줄높이 1
+  appbarBrand: {
+    fontSize: type.cardTitle,
+    lineHeight: type.cardTitle,
+    fontWeight: weight.heavy,
+    letterSpacing: tracking(type.cardTitle, letterSpacing.wordmark),
+    color: colors.text,
+  },
   bodyStrong: {
     fontSize: type.body,
     lineHeight: line.bodyStrong,
@@ -106,7 +132,7 @@ const styles = StyleSheet.create<Record<LfTextVariant, TextStyle>>({
   body: {
     fontSize: type.body,
     lineHeight: line.body,
-    fontWeight: weight.regular,
+    fontWeight: weight.medium,
     color: colors.text,
   },
   label: {
@@ -118,19 +144,19 @@ const styles = StyleSheet.create<Record<LfTextVariant, TextStyle>>({
   bodySm: {
     fontSize: type.label,
     lineHeight: line.body,
-    fontWeight: weight.regular,
+    fontWeight: weight.medium,
     color: colors.text,
   },
   caption: {
-    fontSize: type.label,
-    lineHeight: line.body,
-    fontWeight: weight.regular,
+    fontSize: type.chip,
+    lineHeight: CAPTION_LINE,
+    fontWeight: weight.medium,
     color: colors.textSecondary,
   },
   meta: {
     fontSize: type.meta,
     lineHeight: line.caption,
-    fontWeight: weight.regular,
+    fontWeight: weight.medium,
     color: colors.textMuted,
   },
   eyebrow: {
@@ -141,21 +167,21 @@ const styles = StyleSheet.create<Record<LfTextVariant, TextStyle>>({
     color: colors.textMuted,
   },
   chip: {
-    fontSize: type.chip,
+    fontSize: type.meta,
     lineHeight: line.caption,
     fontWeight: weight.bold,
     color: colors.text,
   },
   countdown: {
-    fontSize: type.sheetTitle,
-    lineHeight: line.title,
+    fontSize: type.cardTitle,
+    lineHeight: line.cardTitle,
     fontWeight: weight.heavy,
     color: colors.text,
   },
   micro: {
     fontSize: type.micro,
     lineHeight: line.micro,
-    fontWeight: weight.regular,
+    fontWeight: weight.medium,
     color: colors.textMuted,
   },
   error: {
@@ -180,6 +206,7 @@ export function LfText({
 }: LfTextProps): React.JSX.Element {
   const base = styles[variant];
   const fontWeight = base.fontWeight as TextFontWeight;
+  const onFace = useContext(LfInkContext);
 
   return (
     <Text
@@ -188,6 +215,7 @@ export function LfText({
         base,
         { fontFamily: textFontFamily(fontWeight) },
         secondary && { color: colors.textSecondary },
+        onFace && { color: colors.text },
         align !== undefined && { textAlign: align },
       ]}
     />

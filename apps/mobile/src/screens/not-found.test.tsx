@@ -16,8 +16,8 @@ describe('unmatched deep link screen', () => {
 
     const title = view.getByText('화면을 찾을 수 없어요');
     // 시스템 폰트로 떨어지는 회귀를 막는다 — 이 화면은 딥링크 실패 시 첫인상이다.
-    // 파일 이름은 토큰(heavy)에서 끌어와 무게 계약이 옮겨도 폰트 없는 fallback 만 잡는다.
-    expect(StyleSheet.flatten(title.props.style).fontFamily).toBe(textFontFamily(weight.heavy));
+    // 파일 이름은 토큰(title = bold)에서 끌어와 무게 계약이 옮겨도 폰트 없는 fallback 만 잡는다.
+    expect(StyleSheet.flatten(title.props.style).fontFamily).toBe(textFontFamily(weight.bold));
 
     await fireEvent.press(view.getByRole('button', { name: '처음으로' }));
     expect(mockReplace).toHaveBeenCalledWith('/');

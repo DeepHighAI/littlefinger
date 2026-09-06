@@ -207,7 +207,7 @@ export function PromiseEntitlementSheet({
                 ) : null}
                 {locked && !permanent ? <LfText variant="caption">{LABEL.locked}</LfText> : null}
                 {!permanent ? (
-                  <LfCard tone="yellow" tilt="sticker" testID="entitlement-purchase-offer">
+                  <LfCard tone="yellow" testID="entitlement-purchase-offer">
                     <LfStack gap={1}>
                     <LfText variant="subtitle">{LABEL.purchaseTitle}</LfText>
                     <LfText variant="caption">{LABEL.purchaseDescription}</LfText>
@@ -215,7 +215,6 @@ export function PromiseEntitlementSheet({
                       label={busyAction === 'PURCHASE' ? LABEL.purchasing : LABEL.purchase(priceText)}
                       size="cta"
                       trailing="inventory_2"
-                      trailingBorder={false}
                       block
                       disabled={busy}
                       onPress={() => void buy()}

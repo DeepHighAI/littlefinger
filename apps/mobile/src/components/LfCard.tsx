@@ -1,16 +1,17 @@
 import { StyleSheet, View, type ViewProps } from 'react-native';
 
-import { colors, border, elevation, radius, size, tilt as tiltToken } from '../theme/tokens';
+import { colors, border, elevation, radius, size } from '../theme/tokens';
+import { LfInkContext } from './LfText';
 
 export type LfCardTone = 'paper' | 'yellow' | 'mint' | 'pink' | 'sky' | 'muted';
-export type LfCardTilt = 'sticker' | 'hero' | 'none';
 export type LfCardShape = 'card' | 'list';
 
 export interface LfCardProps extends Omit<ViewProps, 'style'> {
   tone?: LfCardTone;
   flat?: boolean;
-  tilt?: LfCardTilt;
   shape?: LfCardShape;
+  /** false 면 테두리만 남기고 5px 그림자를 뺀다 (`.lf-card--flat`) */
+  shadow?: boolean;
 }
 
 const toneColor: Record<LfCardTone, string> = {
@@ -22,6 +23,9 @@ const toneColor: Record<LfCardTone, string> = {
   muted: colors.surfaceMuted,
 };
 
+/** 4색 면 — 안의 보조·메타 글자를 잉크로 바꾼다 */
+const FACE_TONES: ReadonlySet<LfCardTone> = new Set(['yellow', 'mint', 'pink', 'sky']);
+
 const styles = StyleSheet.create({
   base: {
     borderWidth: border.card,
@@ -29,6 +33,7 @@ const styles = StyleSheet.create({
     padding: size.cardPadding,
     ...elevation.card,
   },
+  noShadow: { boxShadow: [] },
   flat: {
     borderWidth: 0,
     backgroundColor: 'transparent',
@@ -40,8 +45,9 @@ const styles = StyleSheet.create({
 export function LfCard({
   tone = 'paper',
   flat = false,
-  tilt = 'none',
   shape = 'card',
+  shadow = true,
+  children,
   ...rest
 }: LfCardProps): React.JSX.Element {
   return (
@@ -53,9 +59,11 @@ export function LfCard({
           backgroundColor: toneColor[tone],
           borderRadius: shape === 'card' ? radius.xl : radius.lg,
         },
-        tilt !== 'none' && { transform: [{ rotate: tiltToken[tilt] }] },
+        !shadow && styles.noShadow,
         flat && styles.flat,
       ]}
-    />
+    >
+      <LfInkContext.Provider value={FACE_TONES.has(tone)}>{children}</LfInkContext.Provider>
+    </View>
   );
 }

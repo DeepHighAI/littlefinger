@@ -65,7 +65,6 @@ export function PromiseListRow({
           variant="outlined"
           size="compact"
           trailing="arrow_forward"
-          trailingBorder={false}
           onPress={() => onOpen(item)}
           block
         />

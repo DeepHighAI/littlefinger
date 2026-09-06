@@ -130,7 +130,8 @@ describe('SCR-A01 로그인', () => {
       ? Object.assign({}, ...button.props.style.filter(Boolean))
       : button.props.style;
     expect(style.backgroundColor).toBe(colors.google);
-    expect(style.borderColor).toBe(colors.googleBorder);
+    // README: Google 도 r14 잉크 2.5 블록 테두리 — 공식 색은 배경·글자·G 마크로만 지킨다
+    expect(style.borderColor).toBe(colors.text);
     expect(view.getByTestId('google-mark')).toBeTruthy();
   });
 

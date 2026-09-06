@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   button: {
     width: size.iconButton,
     height: size.iconButton,
-    borderRadius: radius.pill,
+    borderRadius: radius.sm,
     borderWidth: border.chip,
     borderColor: colors.text,
     backgroundColor: colors.surface,
