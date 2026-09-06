@@ -10,8 +10,9 @@
 <link rel="stylesheet" href="../../styles/screens/app-entry.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
-<!-- 확정안 4b (2026-09-03): 옐로 블롭 임박 카드 · 파스텔 상태 도트 · 플로팅 필 CTA. 하단 탭바 없음 —
-     앱바 아바타 → 마이, 종 → 알림함 (D3). '지난 약속' 은 세 번째 필터 칩 (ADR 0011 D3 진입점 유지).
+<!-- 잉크 & 블록 (2026-09-06, PO E1): 흰 필 앱바(마스코트 원 + 워드마크 + "메뉴") · 옐로 히어로 + 핑크 D-Day 배지 ·
+     상태 타일 40 · 풀폭 CTA. 종·아바타 진입점은 메뉴 시트(scr-a02-home-menu.html)로 옮겼고 라우팅은 같다.
+     '지난 약속' 은 세 번째 필터 칩 (ADR 0011 D3 진입점 유지).
      ADR 0015 D7: 진행·대기 탭이 6건 이상이면 5번째 카드 뒤에 인피드 배너 1구좌 — ads_enabled=false·SDK 실패·no-fill
      이면 컴포넌트 자체를 그리지 않아 빈 공간이 남지 않는다. -->
 <body class="lf-page" data-screen-id="SCR-A02" data-screen-name="홈·약속 목록">
@@ -20,13 +21,13 @@
     <div class="lf-screen">
 
       <header class="lf-appbar lf-appbar--brand">
-        <img class="lf-mascot lf-mascot--sm" src="../../assets/images/mascot-face-e1.png" alt="">
-        <h1 class="lf-appbar__title">리틀핑거</h1>
-        <button class="lf-icon-button" type="button" aria-label="알림 — 읽지 않은 알림 있음">
-          <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
-          <span class="lf-icon-button__dot" aria-hidden="true"></span>
+        <span class="lf-appbar__mascot" aria-hidden="true"><img class="lf-mascot lf-mascot--sm" src="../../assets/images/mascot-face-e1.png" alt=""></span>
+        <h1 class="lf-appbar__wordmark">리틀핑거</h1>
+        <button class="lf-appbar__menu" type="button" aria-label="메뉴 — 읽지 않은 알림 있음">
+          <span>메뉴</span>
+          <span class="material-symbols-rounded" aria-hidden="true">menu</span>
+          <span class="lf-appbar__menu-dot" aria-hidden="true"></span>
         </button>
-        <button class="lf-avatar-button" type="button" aria-label="마이">지</button>
       </header>
 
       <div class="lf-home__headline">
@@ -41,78 +42,75 @@
 
       <div class="lf-screen__body lf-home__body">
 
-        <!-- 임박 약속 히어로 카드 — 기울인 종이 스티커, 우상단 옐로 블롭 + 정적 눈 -->
-        <a class="lf-card lf-card--clip lf-hero-card" href="#">
+        <!-- 임박 약속 히어로 — 옐로 면 r14, 상단에 겹치는 핑크 배지, 잉크 사각 화살표 -->
+        <a class="lf-card lf-hero-card" href="#">
+          <span class="lf-hero-card__badge">D-1 · 내일까지</span>
           <div class="lf-hero-card__main">
-            <p class="lf-eyebrow">D-1 · 내일까지</p>
             <p class="lf-hero-card__title">월말까지<br>야식 끊기</p>
-            <svg class="lf-blob--card" viewBox="0 0 120 100" aria-hidden="true">
-              <path class="lf-blob__soft-yellow" d="M50 10c30-14 66 6 62 40s-30 52-60 46S2 62 10 40 30 20 50 10Z"/>
-              <image href="../../assets/images/eyes-e1.png" x="42" y="36" width="56" height="22"/>
-            </svg>
+            <p class="lf-hero-card__meta">지우 — 민준</p>
           </div>
           <span class="lf-hero-card__arrow" aria-hidden="true"><span class="material-symbols-rounded">arrow_forward</span></span>
         </a>
 
         <ul class="lf-home__list">
 
-          <!-- 진행 중 — 민트 도트. 상태는 도트 옆 텍스트가 말한다 (§8) -->
+          <!-- 진행 중 — 민트 타일 bolt. 상태는 타일 옆 텍스트가 말한다 (§8) -->
           <li class="lf-card lf-card--list">
-            <span class="lf-status-dot lf-status-dot--mint" aria-hidden="true"></span>
+            <span class="lf-status-tile lf-status-tile--mint" aria-hidden="true"><span class="material-symbols-rounded">bolt</span></span>
             <div class="lf-home__row-main">
               <p class="lf-home__row-title">매주 화·목 아침 러닝 같이 하기</p>
-              <p class="lf-home__row-meta"><strong>진행 중</strong> · 8/11 (화) · 지우 — 민준</p>
+              <p class="lf-home__row-meta">진행 중 · 8/11 (화) · 지우 — 민준</p>
             </div>
-            <span class="lf-chip lf-chip--cream">D-17</span>
+            <span class="lf-chip lf-chip--sm">D-17</span>
           </li>
 
-          <!-- 이행 확인 필요 — 핑크 도트 + 응답 아웃라인 버튼 -->
+          <!-- 이행 확인 필요 — 핑크 타일 notification_important + 응답 버튼 -->
           <li class="lf-card lf-card--list lf-home__row--stack">
             <div class="lf-home__row-head">
-              <span class="lf-status-dot lf-status-dot--pink" aria-hidden="true"></span>
+              <span class="lf-status-tile lf-status-tile--pink" aria-hidden="true"><span class="material-symbols-rounded">notification_important</span></span>
               <div class="lf-home__row-main">
                 <p class="lf-home__row-title">월급날까지 배달앱 금지</p>
-                <p class="lf-home__row-meta"><strong>이행 확인 필요</strong> · 응답 기한 6일</p>
+                <p class="lf-home__row-meta">이행 확인 필요 · 응답 기한 6일</p>
               </div>
             </div>
-            <button class="lf-btn lf-btn--outlined lf-btn--outlined-paper lf-home__checking-cta" type="button">
+            <button class="lf-btn lf-btn--outlined lf-home__checking-cta" type="button">
               <span>지켜졌나요? 답하기</span>
               <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
             </button>
           </li>
 
           <li class="lf-card lf-card--list">
-            <span class="lf-status-dot lf-status-dot--mint" aria-hidden="true"></span>
+            <span class="lf-status-tile lf-status-tile--mint" aria-hidden="true"><span class="material-symbols-rounded">bolt</span></span>
             <div class="lf-home__row-main">
               <p class="lf-home__row-title">주 3회 홈트 인증하기</p>
-              <p class="lf-home__row-meta"><strong>진행 중</strong> · 8/20 (목) · 지우 — 하영</p>
+              <p class="lf-home__row-meta">진행 중 · 8/20 (목) · 지우 — 하영</p>
             </div>
-            <span class="lf-chip lf-chip--cream">D-26</span>
+            <span class="lf-chip lf-chip--sm">D-26</span>
           </li>
 
-          <!-- 종료일 없는 약속 — 스카이 도트, ∞ 칩 (ADR 0015 D2) -->
+          <!-- 종료일 없는 약속 — 스카이 타일 all_inclusive, ∞ 칩 (ADR 0015 D2) -->
           <li class="lf-card lf-card--list">
-            <span class="lf-status-dot lf-status-dot--sky" aria-hidden="true"></span>
+            <span class="lf-status-tile lf-status-tile--sky" aria-hidden="true"><span class="material-symbols-rounded">all_inclusive</span></span>
             <div class="lf-home__row-main">
               <p class="lf-home__row-title">매주 일요일 부모님께 안부 전화하기</p>
-              <p class="lf-home__row-meta"><strong>진행 중</strong> · 종료일 없음 · 지우 — 민준</p>
+              <p class="lf-home__row-meta">진행 중 · 종료일 없음 · 지우 — 민준</p>
             </div>
-            <span class="lf-chip lf-chip--cream" aria-label="종료일 없음">∞</span>
+            <span class="lf-chip lf-chip--sm" aria-label="종료일 없음">∞</span>
           </li>
 
           <!-- 인피드 배너 — 6행 이상일 때 5번째 카드 뒤 · ads_enabled 에 따름 · no-fill 이면 공간 없음 -->
           <li class="lf-home__ad">
             <span class="lf-chip lf-chip--sm">광고</span>
-            <span>인피드 배너 자리 · 적응형 배너 1구좌</span>
+            <span>인피드 배너 자리 · 비활성 시 공간 없음</span>
           </li>
 
           <li class="lf-card lf-card--list">
-            <span class="lf-status-dot lf-status-dot--mint" aria-hidden="true"></span>
+            <span class="lf-status-tile lf-status-tile--mint" aria-hidden="true"><span class="material-symbols-rounded">bolt</span></span>
             <div class="lf-home__row-main">
               <p class="lf-home__row-title">이번 달 책 한 권 같이 읽기</p>
-              <p class="lf-home__row-meta"><strong>진행 중</strong> · 8/31 (월) · 지우 — 민준</p>
+              <p class="lf-home__row-meta">진행 중 · 8/31 (월) · 지우 — 민준</p>
             </div>
-            <span class="lf-chip lf-chip--cream">D-37</span>
+            <span class="lf-chip lf-chip--sm">D-37</span>
           </li>
 
         </ul>
@@ -129,7 +127,7 @@
 
       <button class="lf-fab" type="button">
         <span>약속 만들기</span>
-        <span class="lf-btn__trailing" aria-hidden="true"><img class="lf-mascot lf-mascot--md" src="../../assets/images/mascot-face-e1.png" alt=""></span>
+        <span class="lf-btn__trailing" aria-hidden="true"><span class="material-symbols-rounded">add</span></span>
       </button>
 
     </div>

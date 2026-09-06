@@ -46,6 +46,7 @@
 .lf-eyes--header { width: var(--lf-eyes-header); }
 .lf-eyes--card   { width: var(--lf-eyes-card); }
 .lf-eyes--blob   { width: var(--lf-eyes-blob); }
+.lf-eyes--xl     { width: var(--lf-thumb); }
 
 /* C-1 손 루프 — 왼손은 컨테이너를 미러하고, 애니메이션은 안쪽 이미지에만 건다.
    손 PNG 는 804×763 이라 폭 = 크기 × 804/763. 두 손 사이 간격은 컬러 손 .12, 눈(검은 손) .5. */
@@ -498,7 +499,10 @@
   font-weight: var(--lf-weight-bold);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   border-radius: var(--lf-radius-sm);
+  box-shadow: var(--lf-elevation-sm);
 }
+
+.lf-btn--tonal:active { box-shadow: var(--lf-elevation-sm-pressed); }
 
 /* 보조 버튼 — 종이 50 + 2.5 잉크 + 3px 섀도 */
 .lf-btn--outlined {
@@ -553,8 +557,8 @@
 }
 
 /* 크기 변형 */
-.lf-btn--cta     { height: var(--lf-cta-height); font-size: var(--lf-type-body-size); }
-.lf-btn--compact { height: 44px; font-size: var(--lf-type-label-size); padding: 0 var(--lf-space-7); border-radius: var(--lf-radius-sm); }
+.lf-btn--cta     { height: var(--lf-cta-height); }
+.lf-btn--compact { height: 44px; font-size: var(--lf-type-chip-size); padding: 0 var(--lf-space-7); }
 .lf-btn--block   { width: 100%; }
 .lf-btn--grow    { flex: 1; }
 
@@ -664,28 +668,29 @@
   flex: none;
 }
 
-/* 알림 (카운트다운 · 안내) — 잉크 밑줄 스타일 */
+/* 안내 배지 (카운트다운 · 1회용 링크) — 32h r8 2px 잉크 + 3px 섀도. 톤은 lf-card--* 로 붙인다 */
 .lf-notice {
   display: inline-flex;
   align-items: center;
   gap: var(--lf-space-2);
-  height: auto;
-  padding: 0 2px 2px;
-  border-radius: 0;
-  border-bottom: 2px solid var(--lf-color-text);
-  background: transparent;
-  color: var(--lf-color-text-secondary);
+  height: 32px;
+  padding: 0 var(--lf-space-5);
+  border-radius: var(--lf-radius-xs);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  background: var(--lf-color-surface);
+  box-shadow: var(--lf-elevation-sm);
+  color: var(--lf-color-text);
   font-size: var(--lf-type-caption-size);
   font-weight: var(--lf-weight-bold);
   white-space: nowrap;
 }
 
-.lf-notice .material-symbols-rounded { font-size: 14px; }
+.lf-notice .material-symbols-rounded { font-size: 16px; }
 .lf-notice__timer { font-family: var(--lf-font-mono); }
 
-/* 카운트다운 숫자 (초대 링크 유효 시간) */
+/* 카운트다운 숫자 (초대 링크 유효 시간 · 응답 기한) */
 .lf-countdown {
-  font-size: var(--lf-type-sheet-title-size);
+  font-size: var(--lf-type-card-title-size);
   font-weight: var(--lf-weight-heavy);
   letter-spacing: 0.02em;
   color: var(--lf-color-text);
@@ -766,6 +771,9 @@
 .lf-outcome--enforced,
 .lf-list-item--unread,
 .lf-stamp--completed,
+.lf-compare__item--after,
+.lf-slot-sheet__notice,
+.lf-slot-sheet__offer,
 .lf-hero-card {
   --lf-color-text-secondary: var(--lf-color-text);
   --lf-color-text-muted: var(--lf-color-text);
@@ -912,10 +920,11 @@
 .lf-status-dot--muted { background: var(--lf-color-surface-muted); }
 .lf-status-dot--paper { background: var(--lf-color-surface); }
 
-/* 옐로 하이라이트 스팬 (빈 상태 안내) */
+/* 옐로 하이라이트 스팬 (빈 상태 안내) — 2px 잉크 테두리 r6 */
 .lf-highlight {
   background: var(--lf-color-primary-container);
-  padding: 0 6px;
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  padding: 2px 8px;
   border-radius: 6px;
   color: var(--lf-color-text);
 }
@@ -1091,7 +1100,7 @@
   color: var(--lf-color-text);
 }
 
-.lf-title--web { font-size: var(--lf-type-heading-size); line-height: 26px; }
+.lf-title--web { font-size: var(--lf-type-card-title-size); line-height: var(--lf-line-card-title); }
 
 .lf-subtitle {
   font-size: var(--lf-type-subtitle-size);
@@ -1111,6 +1120,7 @@
 .lf-body {
   font-size: var(--lf-type-body-size);
   line-height: var(--lf-line-body);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text);
 }
 
@@ -1120,7 +1130,7 @@
   color: var(--lf-color-text-secondary);
   font-size: var(--lf-type-label-size);
   line-height: var(--lf-line-body);
-  font-weight: var(--lf-weight-regular);
+  font-weight: var(--lf-weight-medium);
 }
 
 .lf-caption {
@@ -1133,6 +1143,7 @@
 .lf-meta-line {
   font-size: var(--lf-type-meta-size);
   line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
@@ -1439,7 +1450,7 @@
 .lf-list {
   display: flex;
   flex-direction: column;
-  gap: var(--lf-space-4);
+  gap: var(--lf-space-5);
 }
 
 .lf-list-item {
@@ -1470,8 +1481,9 @@
   flex: none;
 }
 
-.lf-list-item__icon--pink  { background: var(--lf-color-attention-container); }
-.lf-list-item__icon--cream { background: var(--lf-color-background); }
+.lf-list-item__icon--pink   { background: var(--lf-color-attention-container); }
+.lf-list-item__icon--yellow { background: var(--lf-color-primary-container); }
+.lf-list-item__icon--cream  { background: var(--lf-color-background); }
 .lf-list-item__icon--sky   { background: var(--lf-color-record-container); }
 .lf-list-item__icon--mint  { background: var(--lf-color-success-container); }
 .lf-list-item__icon--muted { background: var(--lf-color-surface-muted); }
@@ -1604,7 +1616,7 @@
 .lf-ring__svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .lf-ring__track { fill: none; stroke: var(--lf-color-surface-muted); stroke-width: var(--lf-trust-ring-stroke); }
 .lf-ring__fill  { fill: none; stroke: var(--lf-color-success-container); stroke-width: var(--lf-trust-ring-stroke); stroke-linecap: round; }
-.lf-ring__ink   { fill: none; stroke: var(--lf-color-text); stroke-width: 2.5; }
+.lf-ring__ink   { fill: none; stroke: var(--lf-color-text); stroke-width: var(--lf-border-card); }
 
 .lf-ring__value {
   position: absolute;
@@ -1745,13 +1757,16 @@
    COMPARE — 변경 전/후 (AMEND_PENDING) · 양측 주장 (DISPUTED)
    ------------------------------------------------------------- */
 .lf-compare {
-  display: flex;
-  flex-direction: column;
-  gap: var(--lf-space-3);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lf-space-4);
 }
 
+/* 한 칸짜리 비교 (추가되는 내용) 는 폭을 다 쓴다 */
+.lf-compare--single { grid-template-columns: 1fr; }
+
 .lf-compare__item {
-  border-radius: var(--lf-radius-md);
+  border-radius: var(--lf-radius-sm);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   background: var(--lf-color-surface);
   padding: var(--lf-space-5) var(--lf-space-6);
@@ -1759,8 +1774,7 @@
 
 .lf-compare__label {
   font-size: var(--lf-type-eyebrow-size);
-  font-weight: var(--lf-weight-bold);
-  letter-spacing: var(--lf-letter-spacing-wide);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
@@ -1768,6 +1782,7 @@
   margin-top: var(--lf-space-1);
   font-size: var(--lf-type-label-size);
   line-height: var(--lf-line-body-strong);
+  font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
 
@@ -1816,38 +1831,41 @@
 .lf-proof {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: var(--lf-radius-md);
+  border-radius: var(--lf-radius-2xl);
   background: var(--lf-color-surface);
   border: var(--lf-border-chip) solid var(--lf-color-text);
+  box-shadow: var(--lf-elevation-sm);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: var(--lf-space-1);
   color: var(--lf-color-text);
-  font-size: var(--lf-type-caption-size);
-  line-height: var(--lf-line-caption);
+  font-size: var(--lf-type-eyebrow-size);
   font-weight: var(--lf-weight-bold);
   position: relative;
 }
 
-.lf-proof .material-symbols-rounded { font-size: 22px; color: var(--lf-color-text-muted); }
+.lf-proof .material-symbols-rounded { font-size: 24px; color: var(--lf-color-text); }
 
 .lf-proof--tile    { width: var(--lf-thumb); height: var(--lf-thumb); aspect-ratio: auto; flex: none; }
 .lf-proof--tile-lg { width: var(--lf-thumb-lg); height: var(--lf-thumb-lg); aspect-ratio: auto; flex: none; }
 .lf-proof--add {
   background: transparent;
   border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
+  box-shadow: none;
   color: var(--lf-color-text-muted);
 }
+
+.lf-proof--add .material-symbols-rounded { color: var(--lf-color-text-muted); }
 
 /* 타일 우상단 제거 버튼 */
 .lf-proof__remove {
   position: absolute;
   top: -8px;
   right: -8px;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-text);
   color: var(--lf-color-on-action);
@@ -1877,7 +1895,7 @@
   border-bottom: none;
   border-radius: var(--lf-radius-hero) var(--lf-radius-hero) 0 0;
   box-shadow: var(--lf-elevation-sheet);
-  padding: var(--lf-space-5) var(--lf-space-9) var(--lf-space-3);
+  padding: var(--lf-space-4) 18px var(--lf-space-9);
   display: flex;
   flex-direction: column;
   gap: var(--lf-space-6);
@@ -1925,7 +1943,7 @@
 
 .lf-segmented__item {
   flex: 1;
-  min-height: var(--lf-chip-select-height);
+  min-height: var(--lf-icon-circle);
   padding: 0 var(--lf-space-5);
   display: flex;
   align-items: center;

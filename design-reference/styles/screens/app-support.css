@@ -41,11 +41,10 @@
 /* -------------------------------------------------------------
    NOTIFICATION LIST — SCR-A07 알림함 (.lf-list-item 카드 행 위에 구역 eyebrow 만 추가)
    ------------------------------------------------------------- */
-.lf-notif-section {
-  padding: 0 var(--lf-space-1);
-}
+/* 알림함 본문 — 구역 사이 20 */
+.lf-notif-body { gap: var(--lf-space-8); }
 
-.lf-notif-section + .lf-notif-section { margin-top: var(--lf-space-3); }
+.lf-notif-section { padding: 0; }
 
 /* 구 화면 별칭 — 카드 행과 같은 모양 */
 .lf-notif-list { display: flex; flex-direction: column; gap: var(--lf-space-4); }
@@ -93,14 +92,21 @@
 }
 
 .lf-profile__name {
-  font-size: var(--lf-type-heading-size);
+  font-size: var(--lf-type-card-title-size);
   font-weight: var(--lf-weight-heavy);
+  letter-spacing: var(--lf-letter-spacing-tight);
   color: var(--lf-color-text);
+}
+
+/* 마이 아바타만 옐로 오프셋 섀도 — 프로필 한 곳의 강조 */
+.lf-profile__identity .lf-avatar--xl {
+  box-shadow: var(--lf-press-offset) var(--lf-press-offset) 0 var(--lf-color-primary-container);
 }
 
 .lf-profile__meta {
   margin-top: 2px;
   font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
@@ -138,10 +144,10 @@
 /* 지킴율 설명 — 종이 카드 위 12.5/18 700 (가독성 계층 유지) */
 .lf-trust-card__note {
   margin-top: var(--lf-space-2);
-  font-size: var(--lf-type-caption-size);
-  line-height: var(--lf-line-caption);
-  font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-primary-ink);
+  font-size: var(--lf-type-micro-size);
+  line-height: var(--lf-line-micro);
+  font-weight: var(--lf-weight-medium);
+  color: var(--lf-color-text-muted);
 }
 
 /* 슬롯 행 — 스카이 아이콘 원 + 텍스트 + 옐로 컴팩트 버튼 */
@@ -154,15 +160,7 @@
 
 .lf-slot-row__body { flex: 1; min-width: 0; }
 .lf-slot-row__title { font-size: var(--lf-type-label-size); font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }
-.lf-slot-row__meta { margin-top: 2px; font-size: var(--lf-type-meta-size); color: var(--lf-color-text-secondary); }
-
-/* 언어 선택 쌍 — 선택 = 잉크 필, 비선택 = 아웃라인 */
-.lf-lang-pair {
-  display: flex;
-  gap: var(--lf-space-3);
-}
-
-.lf-lang-pair .lf-btn { flex: 1; height: 44px; min-height: 44px; }
+.lf-slot-row__meta { margin-top: 2px; font-size: var(--lf-type-meta-size); font-weight: var(--lf-weight-medium); color: var(--lf-color-text-secondary); }
 
 /* 섹션 eyebrow — 카드 위에 살짝 붙는다 */
 .lf-profile__eyebrow { margin: var(--lf-space-1) 0 calc(var(--lf-space-1) * -1); padding: 0 var(--lf-space-1); }
@@ -171,7 +169,7 @@
    SCR-A09 지난 약속 — 탭 4개 + 행, 빈 블롭
    ------------------------------------------------------------- */
 .lf-history__tabs {
-  padding-top: var(--lf-space-3);
+  padding-top: 22px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -179,35 +177,40 @@
 .lf-history__tabs::-webkit-scrollbar { display: none; }
 
 .lf-history__empty {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--lf-space-4);
-  padding-bottom: 40px;
+  gap: var(--lf-space-7);
+  padding: 36px 0 var(--lf-space-8);
 }
 
 /* -------------------------------------------------------------
    HINT ROW — 아이콘 + 안내문 (MOD-01 · MOD-02)
    ------------------------------------------------------------- */
+/* 안내 상자 — 2px 잉크 r10 톤 박스. 톤은 lf-card--sky / --muted 로 붙인다 */
 .lf-hint {
   display: flex;
-  align-items: flex-start;
-  gap: var(--lf-space-2);
+  align-items: center;
+  gap: var(--lf-space-3);
+  padding: var(--lf-space-4) var(--lf-space-5);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-sm);
+  background: var(--lf-color-surface-muted);
 }
 
 .lf-hint .material-symbols-rounded {
-  font-size: 16px;
+  font-size: 18px;
   color: var(--lf-color-text);
   flex: none;
-  margin-top: 1px;
 }
+
+.lf-hint--sky { background: var(--lf-color-record-container); }
 
 .lf-hint__text {
   font-size: var(--lf-type-caption-size);
   line-height: var(--lf-line-caption);
-  color: var(--lf-color-text-secondary);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
 }
 
 /* SEGMENTED CONTROL (MOD-01 · 마이 언어) — components.css 의 .lf-segmented 단일 박스 규칙을 쓴다 */
@@ -219,21 +222,22 @@
   display: flex;
   align-items: center;
   gap: var(--lf-space-5);
-  padding: var(--lf-space-5) var(--lf-space-7);
+  padding: var(--lf-space-5) var(--lf-space-6);
   border: var(--lf-border-card) solid var(--lf-color-text);
   border-radius: var(--lf-radius-lg);
   background: var(--lf-color-surface);
+  box-shadow: var(--lf-elevation-card);
 }
 
 .lf-witness__body { flex: 1; min-width: 0; }
-.lf-witness__name { font-size: var(--lf-type-label-size); font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }
-.lf-witness__meta { margin-top: 2px; font-size: var(--lf-type-meta-size); color: var(--lf-color-text-secondary); }
+.lf-witness__name { font-size: var(--lf-type-body-size); font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }
+.lf-witness__meta { margin-top: 2px; font-size: var(--lf-type-meta-size); font-weight: var(--lf-weight-medium); color: var(--lf-color-text-secondary); }
 
 .lf-witness--empty { background: var(--lf-color-background); }
 
 .lf-witness__avatar--empty {
-  width: var(--lf-avatar-lg);
-  height: var(--lf-avatar-lg);
+  width: 44px;
+  height: 44px;
   border-radius: var(--lf-radius-pill);
   background: var(--lf-color-surface-muted);
   border: var(--lf-border-pending) dashed var(--lf-color-outline-strong);
@@ -248,10 +252,20 @@
 .lf-witness__empty-label { font-size: var(--lf-type-label-size); font-weight: var(--lf-weight-bold); color: var(--lf-color-text-secondary); }
 
 /* 잠긴 자리 — 뮤트 행 + 스카이 원(보상형 광고) */
-.lf-witness-slot--locked { background: var(--lf-color-surface-muted); }
+.lf-witness-slot--locked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--lf-space-5);
+  padding: var(--lf-space-5) var(--lf-space-6);
+  background: none;
+  border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
+  border-radius: var(--lf-radius-xl);
+  box-shadow: none;
+}
 .lf-witness-slot--locked .lf-witness__empty-label,
 .lf-witness-slot--locked .lf-witness__meta { color: var(--lf-color-text); }
-.lf-witness-slot--locked .lf-witness__avatar--empty { background: var(--lf-color-record-container); border-style: solid; border-width: var(--lf-border-chip); border-color: var(--lf-color-text); color: var(--lf-color-text); }
+.lf-witness-slot--locked .lf-witness__empty-label { font-size: var(--lf-type-chip-size); line-height: 19px; }
+.lf-witness-slot--locked .lf-btn { height: 46px; }
 
 .lf-chip--signed { background: var(--lf-color-success-container); }
 
@@ -278,6 +292,7 @@
 .lf-celebrate__copy {
   font-size: var(--lf-type-label-size);
   line-height: var(--lf-line-body);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-secondary);
 }
 
@@ -317,12 +332,12 @@
    막힌 이유 안내(--notice, 핑크 flat) · 현재 상태 한 줄(--usage) · 구매 항목(--offer, 옐로 기울인 스티커)
    ------------------------------------------------------------- */
 .lf-slot-sheet__notice {
-  padding: var(--lf-space-5) var(--lf-space-7);
-  border: var(--lf-border-card) solid var(--lf-color-text);
-  border-radius: var(--lf-radius-xl);
+  padding: var(--lf-space-5) var(--lf-space-6);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-sm);
   background: var(--lf-color-attention-container);
   font-size: var(--lf-type-chip-size);
-  line-height: 20px;
+  line-height: 19px;
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
@@ -341,14 +356,15 @@
 .lf-slot-sheet__usage > span { white-space: nowrap; }
 
 .lf-slot-sheet__rule {
-  font-size: var(--lf-type-label-size);
-  line-height: var(--lf-line-body);
+  font-size: var(--lf-type-chip-size);
+  line-height: 19px;
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-secondary);
 }
 
 /* 구매 항목 — 옐로 스티커 하나, 재촉 없는 서술형(§8) */
 .lf-slot-sheet__offer {
-  padding: var(--lf-space-7) var(--lf-card-padding);
+  padding: var(--lf-card-padding);
   border: var(--lf-border-card) solid var(--lf-color-text);
   border-radius: var(--lf-radius-xl);
   background: var(--lf-color-primary-container);
@@ -358,5 +374,8 @@
   gap: var(--lf-space-1);
 }
 
-.lf-slot-sheet__offer-title { font-size: var(--lf-type-subtitle-size); font-weight: var(--lf-weight-heavy); color: var(--lf-color-text); }
-.lf-slot-sheet__offer-meta  { font-size: var(--lf-type-caption-size); color: var(--lf-color-text-secondary); }
+/* 영구 보관은 기록(스카이) 톤 — 슬롯 구매(옐로)와 성격이 다르다 */
+.lf-slot-sheet__offer--sky { background: var(--lf-color-record-container); gap: var(--lf-space-4); }
+
+.lf-slot-sheet__offer-title { font-size: var(--lf-type-stamp-size); font-weight: var(--lf-weight-heavy); color: var(--lf-color-text); }
+.lf-slot-sheet__offer-meta  { font-size: var(--lf-type-chip-size); line-height: 19px; font-weight: var(--lf-weight-bold); color: var(--lf-color-text); }

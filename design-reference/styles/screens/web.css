@@ -100,13 +100,26 @@
 .lf-app-hint {
   display: flex;
   align-items: center;
-  gap: var(--lf-space-5);
+  gap: var(--lf-space-6);
+}
+
+/* 마스코트를 담는 종이 원 56 */
+.lf-app-hint__mascot {
+  width: var(--lf-avatar-xl);
+  height: var(--lf-avatar-xl);
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-surface);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
 }
 
 .lf-app-hint__text {
   flex: 1;
-  font-size: var(--lf-type-label-size);
-  line-height: 18px;
+  font-size: var(--lf-type-body-size);
+  line-height: var(--lf-line-body);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
@@ -114,26 +127,29 @@
 /* -------------------------------------------------------------
    INFO BANNER — 스카이 안내 박스 (예: SCR-W05 증인 권한 안내)
    ------------------------------------------------------------- */
+/* 안내 상자 — 2px 잉크 r10 뮤트 박스 (앱의 .lf-hint 와 같은 문법) */
 .lf-info-banner {
   display: flex;
   align-items: center;
-  gap: var(--lf-space-3);
-  background: var(--lf-color-record-container);
-  border-radius: var(--lf-radius-md);
+  gap: var(--lf-space-4);
+  background: var(--lf-color-surface-muted);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  border-radius: var(--lf-radius-sm);
   padding: var(--lf-space-5) var(--lf-space-6);
 }
 
 .lf-info-banner .material-symbols-rounded {
-  font-size: 18px;
-  color: var(--lf-color-record);
+  font-size: 20px;
+  color: var(--lf-color-text);
+  flex: none;
 }
 
 .lf-info-banner__text {
   flex: 1;
-  font-size: var(--lf-type-caption-size);
-  line-height: 17px;
-  font-weight: var(--lf-weight-medium);
-  color: var(--lf-color-text-secondary);
+  font-size: var(--lf-type-chip-size);
+  line-height: 19px;
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
 }
 
 /* -------------------------------------------------------------
@@ -187,6 +203,10 @@
    ------------------------------------------------------------- */
 .lf-dashed--field {
   width: 100%;
+  min-height: 56px;
+  border-radius: var(--lf-radius-sm);
+  font-size: var(--lf-type-chip-size);
+  font-weight: var(--lf-weight-medium);
   resize: none;
   background: transparent;
   font-family: inherit;

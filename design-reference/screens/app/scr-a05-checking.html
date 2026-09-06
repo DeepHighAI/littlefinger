@@ -45,40 +45,38 @@
           <p class="lf-stamp__time">2026-07-12 21:04 확정</p>
         </div>
 
-        <div class="lf-card lf-card--pink lf-card--flat">
-          <p class="lf-eyebrow">RESPONSE · 응답 기한</p>
+        <div class="lf-card lf-card--pink lf-stack lf-gap-1">
+          <p class="lf-eyebrow lf-eyebrow--ink">RESPONSE · 응답 기한</p>
           <p class="lf-countdown">D-6 · 23:18:42</p>
           <p class="lf-body lf-body--sm">내 응답 완료 · 상대 응답을 기다리고 있어요</p>
         </div>
 
-        <div class="lf-card lf-card--flat">
-          <ul class="lf-list">
-            <li class="lf-list-item">
-              <span class="lf-avatar lf-avatar--a">지</span>
-              <div class="lf-list-item__text">
-                <p class="lf-list-item__headline">내 응답</p>
-                <p class="lf-list-item__supporting">오늘 10:02 제출</p>
-              </div>
-              <span class="lf-result lf-result--kept">
-                <span class="material-symbols-rounded" aria-hidden="true">check</span>
-                <span>지켰어요</span>
-              </span>
-            </li>
-            <li class="lf-list-item">
-              <span class="lf-avatar lf-avatar--b">민</span>
-              <div class="lf-list-item__text">
-                <p class="lf-list-item__headline">민준님 응답</p>
-                <p class="lf-list-item__supporting">아직 답하지 않았어요</p>
-              </div>
-              <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">hourglass_empty</span>
-            </li>
-          </ul>
-        </div>
+        <ul class="lf-card lf-card--flat lf-response-list">
+          <li class="lf-response-row">
+            <span class="lf-avatar lf-avatar--md lf-avatar--a">지</span>
+            <div class="lf-list-item__text">
+              <p class="lf-list-item__headline">내 응답</p>
+              <p class="lf-list-item__supporting">오늘 10:02 제출</p>
+            </div>
+            <span class="lf-result lf-result--kept">
+              <span class="material-symbols-rounded" aria-hidden="true">check</span>
+              <span>지켰어요</span>
+            </span>
+          </li>
+          <li class="lf-response-row">
+            <span class="lf-avatar lf-avatar--md lf-avatar--pending">민</span>
+            <div class="lf-list-item__text">
+              <p class="lf-list-item__headline">민준님 응답</p>
+              <p class="lf-list-item__supporting">아직 답하지 않았어요</p>
+            </div>
+            <span class="material-symbols-rounded lf-icon-muted" aria-hidden="true">hourglass_empty</span>
+          </li>
+        </ul>
 
-        <div>
-          <p class="lf-section-title">내 증빙 (선택)</p>
-          <div class="lf-stack lf-gap-2">
-            <div class="lf-row lf-gap-3">
+        <div class="lf-stack lf-gap-3">
+          <p class="lf-eyebrow lf-eyebrow--inset">PROOF · 내 증빙 (선택)</p>
+          <div class="lf-stack lf-gap-3">
+            <div class="lf-row lf-gap-4">
               <div class="lf-photo">
                 <span class="material-symbols-rounded" aria-hidden="true">image</span>
                 <span class="lf-photo__caption">러닝 인증.jpg</span>
@@ -88,7 +86,7 @@
                 <span class="lf-photo__caption">추가</span>
               </button>
             </div>
-            <p class="lf-caption">상대와 증인에게 공개돼요</p>
+            <p class="lf-meta-line lf-eyebrow--inset">상대와 증인에게 공개돼요</p>
           </div>
         </div>
 

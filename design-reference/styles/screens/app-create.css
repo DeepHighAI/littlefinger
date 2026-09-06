@@ -37,37 +37,38 @@ legend.lf-field__label { padding: 0; }
    SCR-A03 — 약속 작성 (3단계 위저드 유지 · 확정안 4c 카드/eyebrow/파스텔 칩)
    ------------------------------------------------------------- */
 
-/* 위저드 진행 점 — 활성 20×6 잉크, 나머지 6 뮤트 (앱바 아래) */
+/* 위저드 진행 막대 — 3등분 8h r4. 지난 단계는 잉크로 채우고, 남은 단계는 종이 + 2px 잉크 */
 .lf-wizard {
   flex: none;
   display: flex;
   align-items: center;
   gap: var(--lf-space-2);
-  padding: var(--lf-space-2) var(--lf-space-8) 0;
+  padding: 18px var(--lf-space-8) 0;
 }
 
 .lf-wizard__step {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-outline-strong);
+  flex: 1;
+  height: 8px;
+  border-radius: var(--lf-space-1);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  background: var(--lf-color-surface);
 }
 
 .lf-wizard__step--active {
-  width: 20px;
   background: var(--lf-color-text);
 }
 
 .lf-wizard__label {
-  margin-left: var(--lf-space-2);
+  margin-left: var(--lf-space-3);
   font-size: var(--lf-type-meta-size);
   font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-text-muted);
+  color: var(--lf-color-text);
+  white-space: nowrap;
 }
 
 .lf-create__body {
-  gap: var(--lf-space-5);
-  padding-top: var(--lf-space-7);
+  gap: var(--lf-space-7);
+  padding: 18px var(--lf-space-8) var(--lf-space-9) var(--lf-gutter-app);
 }
 
 /* 카드 안 필드 묶음 */
@@ -79,8 +80,10 @@ legend.lf-field__label { padding: 0; }
 
 /* 종료일 안내 — 무료 30일 규칙 서술 */
 .lf-create__hint {
+  margin-top: var(--lf-space-1);
   font-size: var(--lf-type-meta-size);
   line-height: var(--lf-line-caption);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
@@ -88,11 +91,8 @@ legend.lf-field__label { padding: 0; }
    SCR-A04 — 카톡 알림 미리보기 ("상대방에게는 이렇게 보여요")
    ------------------------------------------------------------- */
 
-/* 미리보기를 담는 톤 배경 (카톡 채팅창을 축약 표현) */
+/* 미리보기 — 아바타 34 + 말풍선. 채팅창 배경은 두지 않는다 (잉크 & 블록: 면은 4색과 종이뿐) */
 .lf-kakao-preview {
-  border-radius: var(--lf-radius-md);
-  background: var(--lf-color-surface-muted);
-  padding: var(--lf-space-5);
   display: flex;
   gap: var(--lf-space-3);
   align-items: flex-start;
@@ -103,7 +103,7 @@ legend.lf-field__label { padding: 0; }
   flex: 1;
   min-width: 0;
   border: var(--lf-border-chip) solid var(--lf-color-text);
-  border-radius: 6px var(--lf-radius-md) var(--lf-radius-md) var(--lf-radius-md);
+  border-radius: var(--lf-space-1) var(--lf-radius-md) var(--lf-radius-md) var(--lf-radius-md);
   background: var(--lf-color-surface);
   padding: var(--lf-space-5) var(--lf-space-6);
   display: flex;
@@ -122,15 +122,13 @@ legend.lf-field__label { padding: 0; }
   color: var(--lf-color-text-secondary);
 }
 
-/* 말풍선 안의 "약속 확인하기" 가짜 버튼 — 옐로 스티커, 실제로는 상대방 화면이라 클릭 불가 */
+/* 말풍선 안의 "약속 확인하기" — 카톡 링크 카드의 마지막 줄. 점선으로 나뉜 텍스트일 뿐 버튼이 아니다 */
 .lf-kakao-bubble__cta {
   margin-top: var(--lf-space-2);
-  padding: var(--lf-space-4);
-  border-radius: var(--lf-space-4);
-  background: var(--lf-color-primary-container);
-  border: var(--lf-border-chip) solid var(--lf-color-text);
+  padding-top: var(--lf-space-3);
+  border-top: var(--lf-border-dashed) dashed var(--lf-color-outline);
   text-align: center;
-  font-size: var(--lf-type-caption-size);
+  font-size: var(--lf-type-chip-size);
   font-weight: var(--lf-weight-bold);
   color: var(--lf-color-text);
 }
@@ -138,16 +136,11 @@ legend.lf-field__label { padding: 0; }
 /* 초대 링크 만료 카운트다운 진행 막대 — 71:59:32 남음 ≈ 99% */
 .lf-invite-countdown__fill { width: 99%; }
 
-/* 카운트다운 카드 — 시계 아이콘 + eyebrow + 큰 숫자 */
+/* 카운트다운 카드 — 옐로 아이콘 타일 40 + eyebrow + 큰 숫자 */
 .lf-countdown-card__row {
   display: flex;
   align-items: center;
-  gap: var(--lf-space-4);
-}
-
-.lf-countdown-card__icon {
-  font-size: 22px;
-  color: var(--lf-color-text);
+  gap: var(--lf-space-5);
 }
 
 /* -------------------------------------------------------------
@@ -172,22 +165,41 @@ legend.lf-field__label { padding: 0; }
   text-align: left;
 }
 
-.lf-answer__icon { font-size: 26px; color: var(--lf-color-text-muted); }
 .lf-answer__text { flex: 1; min-width: 0; }
 
 .lf-answer__title {
   font-size: var(--lf-type-stamp-size);
   font-weight: var(--lf-weight-heavy);
-  color: var(--lf-color-text-secondary);
+  color: var(--lf-color-text);
 }
 
 .lf-answer__subtitle {
   margin-top: 2px;
   font-size: var(--lf-type-meta-size);
-  color: var(--lf-color-text-muted);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text-secondary);
 }
 
-.lf-answer__indicator { font-size: 22px; color: var(--lf-color-outline-strong); }
+/* 라디오 표시 — 24 잉크 링, 선택되면 12 잉크 점이 들어온다 */
+.lf-answer__radio {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--lf-radius-pill);
+  border: var(--lf-border-chip) solid var(--lf-color-text);
+  background: var(--lf-color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.lf-answer[aria-pressed='true'] .lf-answer__radio::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: var(--lf-radius-pill);
+  background: var(--lf-color-text);
+}
 
 /* 선택 = 옐로 면 + 5px 섀도 (텍스트도 함께 진해져 색만으로 구분하지 않는다) */
 .lf-answer[aria-pressed='true'] {
@@ -195,20 +207,17 @@ legend.lf-field__label { padding: 0; }
   box-shadow: var(--lf-elevation-card);
 }
 
-.lf-answer[aria-pressed='true'] .lf-answer__icon,
-.lf-answer[aria-pressed='true'] .lf-answer__indicator,
-.lf-answer[aria-pressed='true'] .lf-answer__title { color: var(--lf-color-text); }
-.lf-answer[aria-pressed='true'] .lf-answer__subtitle { color: var(--lf-color-text-secondary); }
+.lf-answer[aria-pressed='true'] .lf-answer__subtitle { color: var(--lf-color-text); }
 
 /* 질문 헤드라인 블록 */
 .lf-fulfillment__question {
   padding: var(--lf-space-3) var(--lf-space-1) 0;
-  text-align: center;
 }
 
 .lf-fulfillment__question p {
   margin-top: var(--lf-space-2);
-  font-size: var(--lf-type-chip-size);
+  font-size: var(--lf-type-label-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-secondary);
 }
 
@@ -234,10 +243,9 @@ legend.lf-field__label { padding: 0; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--lf-type-caption-size);
-  line-height: var(--lf-line-caption);
+  font-size: var(--lf-type-eyebrow-size);
   font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-text);
+  color: var(--lf-color-text-secondary);
 }
 
 .lf-proof--dashed {
@@ -249,6 +257,7 @@ legend.lf-field__label { padding: 0; }
 .lf-proof-hint {
   padding: 0 var(--lf-space-1);
   font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-secondary);
 }
 
@@ -266,7 +275,8 @@ legend.lf-field__label { padding: 0; }
   flex: 1;
   min-width: 0;
   font-size: var(--lf-type-chip-size);
-  color: var(--lf-color-text-secondary);
+  font-weight: var(--lf-weight-bold);
+  color: var(--lf-color-text);
 }
 
 .lf-partner-status__icon {

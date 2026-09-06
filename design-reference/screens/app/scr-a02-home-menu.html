@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCR-A02 홈 · 메뉴 시트 — 리틀핑거</title>
+<link rel="stylesheet" href="../../styles/tokens.css">
+<link rel="stylesheet" href="../../styles/base.css">
+<link rel="stylesheet" href="../../styles/components.css">
+<link rel="stylesheet" href="../../styles/screens/app-entry.css">
+<link rel="stylesheet" href="../../styles/screen-page.css">
+</head>
+<!-- 잉크 & 블록 (2026-09-06, PO E1 ①): 앱바의 종·아바타 진입점을 "메뉴" 시트 타일 4개로 통합 — 알림(미읽음 배지) ·
+     마이 · 지난 약속 · 슬롯 n/m. 라우팅은 그대로, 진입점만 옮겼다. 시트는 r20 · 2.5 잉크 · 그림자 없음. -->
+<body class="lf-page" data-screen-id="SCR-A02" data-screen-name="홈 · 메뉴 시트">
+<div class="lf-device">
+  <div class="lf-device__viewport">
+    <div class="lf-screen">
+
+      <!-- 시트 아래 홈 — 열린 동안 흐려진다 -->
+      <div class="lf-home-menu__under" aria-hidden="true">
+        <header class="lf-appbar lf-appbar--brand">
+          <span class="lf-appbar__mascot"><img class="lf-mascot lf-mascot--sm" src="../../assets/images/mascot-face-e1.png" alt=""></span>
+          <h1 class="lf-appbar__wordmark">리틀핑거</h1>
+          <span class="lf-appbar__menu">
+            <span>메뉴</span>
+            <span class="material-symbols-rounded">menu</span>
+          </span>
+        </header>
+
+        <div class="lf-home__headline">
+          <h2 class="lf-headline">지우님, 이번 주<br>약속 6개 순항 중.</h2>
+        </div>
+
+        <div class="lf-screen__body lf-home__body">
+          <a class="lf-card lf-hero-card" href="#">
+            <span class="lf-hero-card__badge">D-1 · 내일까지</span>
+            <div class="lf-hero-card__main">
+              <p class="lf-hero-card__title">월말까지<br>야식 끊기</p>
+              <p class="lf-hero-card__meta">지우 — 민준</p>
+            </div>
+            <span class="lf-hero-card__arrow"><span class="material-symbols-rounded">arrow_forward</span></span>
+          </a>
+          <ul class="lf-home__list">
+            <li class="lf-card lf-card--list">
+              <span class="lf-status-tile lf-status-tile--mint"><span class="material-symbols-rounded">bolt</span></span>
+              <div class="lf-home__row-main">
+                <p class="lf-home__row-title">매주 화·목 아침 러닝 같이 하기</p>
+                <p class="lf-home__row-meta">진행 중 · 8/11 (화) · 지우 — 민준</p>
+              </div>
+              <span class="lf-chip lf-chip--sm">D-17</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="lf-scrim" aria-hidden="true"></div>
+
+      <div class="lf-sheet lf-home-menu" role="dialog" aria-modal="true" aria-label="메뉴">
+        <span class="lf-sheet__handle" aria-hidden="true"></span>
+
+        <div class="lf-home-menu__identity">
+          <span class="lf-avatar lf-avatar--lg" aria-hidden="true">지</span>
+          <div class="lf-grow">
+            <p class="lf-home-menu__name">지우</p>
+            <p class="lf-home-menu__rate">약속 지킴율 87%</p>
+          </div>
+          <button class="lf-icon-button" type="button" aria-label="닫기">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </div>
+
+        <!-- 타일 4 — 알림(옐로 + 미읽음 배지) · 마이 · 지난 약속(뮤트) · 슬롯(스카이) -->
+        <div class="lf-home-menu__grid">
+          <button class="lf-home-menu__tile lf-home-menu__tile--yellow" type="button" aria-label="알림 — 읽지 않은 알림 2개">
+            <span class="lf-list-item__icon" aria-hidden="true"><span class="material-symbols-rounded">notifications</span></span>
+            <span class="lf-home-menu__label">알림</span>
+            <span class="lf-home-menu__badge" aria-hidden="true">2</span>
+          </button>
+          <button class="lf-home-menu__tile" type="button">
+            <span class="lf-list-item__icon" aria-hidden="true"><span class="material-symbols-rounded">person</span></span>
+            <span class="lf-home-menu__label">마이</span>
+          </button>
+          <button class="lf-home-menu__tile" type="button">
+            <span class="lf-list-item__icon lf-list-item__icon--muted" aria-hidden="true"><span class="material-symbols-rounded">history</span></span>
+            <span class="lf-home-menu__label">지난 약속</span>
+          </button>
+          <button class="lf-home-menu__tile" type="button">
+            <span class="lf-list-item__icon lf-list-item__icon--sky" aria-hidden="true"><span class="material-symbols-rounded">bookmark</span></span>
+            <span class="lf-home-menu__label">슬롯 2 / 5</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../frame.js"></script>
+</body>
+</html>

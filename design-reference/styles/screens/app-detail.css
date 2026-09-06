@@ -23,10 +23,11 @@
 
 .lf-detail__date {
   font-size: var(--lf-type-meta-size);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text-muted);
 }
 
-.lf-detail__title { margin-top: var(--lf-space-5); }
+.lf-detail__title { margin-top: var(--lf-space-4); }
 
 .lf-dday-circle--sky { background: var(--lf-color-record-container); }
 
@@ -65,9 +66,11 @@
   background: var(--lf-color-record-container);
   border: var(--lf-border-card) solid var(--lf-color-text);
   border-radius: var(--lf-radius-xl);
-  padding: var(--lf-space-5) var(--lf-space-7);
-  font-size: var(--lf-type-caption-size);
-  line-height: var(--lf-line-caption);
+  padding: var(--lf-space-6) var(--lf-space-7);
+  box-shadow: var(--lf-elevation-card);
+  font-size: var(--lf-type-chip-size);
+  line-height: 19px;
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text);
 }
 
@@ -78,7 +81,7 @@
 }
 
 .lf-note--emphasis { font-weight: var(--lf-weight-bold); }
-.lf-note--plain { background: transparent; border: none; padding: 0 var(--lf-space-1); color: var(--lf-color-text-secondary); text-align: center; justify-content: center; }
+.lf-note--plain { background: transparent; border: none; box-shadow: none; font-size: var(--lf-type-meta-size); line-height: var(--lf-line-caption); padding: 0 var(--lf-space-1); color: var(--lf-color-text-secondary); text-align: center; justify-content: center; }
 
 /* -------------------------------------------------------------
    READONLY — 발송 후 잠긴 내용 (PENDING) — 뮤트 카드, eyebrow 는 잉크(대비)
@@ -93,6 +96,7 @@
   gap: var(--lf-space-4);
   font-size: var(--lf-type-label-size);
   line-height: var(--lf-line-body);
+  font-weight: var(--lf-weight-medium);
   color: var(--lf-color-text);
 }
 
@@ -186,12 +190,12 @@
 .lf-result--kept   { background: var(--lf-color-success-container); }
 .lf-result--broken { background: var(--lf-color-attention-container); }
 
-/* DISPUTED 주장 카드 내 작은 증빙 썸네일 (56×42) */
+/* DISPUTED 주장 카드 내 증빙 자리 — 카드 폭을 다 쓰는 56 높이 박스 */
 .lf-claim__evidence {
-  width: 56px;
-  height: 42px;
-  border-radius: var(--lf-radius-xs);
-  background: var(--lf-color-surface);
+  width: 100%;
+  height: 56px;
+  border-radius: var(--lf-radius-sm);
+  background: var(--lf-color-surface-muted);
   border: var(--lf-border-chip) solid var(--lf-color-text);
   display: flex;
   align-items: center;
@@ -199,7 +203,7 @@
   flex: none;
 }
 
-.lf-claim__evidence .material-symbols-rounded { font-size: 18px; color: var(--lf-color-text-muted); }
+.lf-claim__evidence .material-symbols-rounded { font-size: 22px; color: var(--lf-color-text); }
 
 .lf-claim__evidence--empty {
   background: none;
@@ -217,38 +221,63 @@
 .lf-photo {
   width: var(--lf-thumb);
   height: var(--lf-thumb);
-  border-radius: var(--lf-radius-md);
+  border-radius: var(--lf-radius-2xl);
   background: var(--lf-color-surface);
   border: var(--lf-border-chip) solid var(--lf-color-text);
+  box-shadow: var(--lf-elevation-sm);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: var(--lf-space-1);
   flex: none;
 }
 
-.lf-photo .material-symbols-rounded { font-size: 22px; color: var(--lf-color-text-muted); }
+.lf-photo .material-symbols-rounded { font-size: 24px; color: var(--lf-color-text); }
 
 .lf-photo__caption {
-  font-size: var(--lf-type-caption-size);
-  line-height: var(--lf-line-caption);
+  font-size: var(--lf-type-eyebrow-size);
   font-weight: var(--lf-weight-bold);
-  color: var(--lf-color-text);
+  color: var(--lf-color-text-secondary);
 }
 
 .lf-photo--add {
   background: none;
   border: var(--lf-border-dashed) dashed var(--lf-color-outline-strong);
+  box-shadow: none;
+  color: var(--lf-color-text-secondary);
 }
 
-/* 상세 하단 — 아웃라인 + 필 CTA 쌍 (확정안 4d) */
+.lf-photo--add .material-symbols-rounded,
+.lf-photo--add .lf-photo__caption { color: var(--lf-color-text-secondary); }
+
+/* -------------------------------------------------------------
+   RESPONSE LIST — CHECKING 양측 응답. 카드 하나 안의 점선 구분 행 (행마다 테두리를 두지 않는다)
+   ------------------------------------------------------------- */
+.lf-response-list {
+  padding: var(--lf-space-1) var(--lf-card-padding);
+  display: flex;
+  flex-direction: column;
+}
+
+.lf-response-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lf-space-5);
+  padding: var(--lf-space-5) 0;
+}
+
+.lf-response-row + .lf-response-row { border-top: var(--lf-border-dashed) dashed var(--lf-color-outline); }
+
+/* 상세 하단 — 아웃라인 + 잉크 CTA 쌍. .lf-screen__actions 안에 중첩될 수도 있으므로 display 를 직접 갖는다 */
 .lf-detail__actions {
+  display: flex;
   flex-direction: row;
-  gap: var(--lf-space-3);
+  align-items: center;
+  gap: var(--lf-space-5);
 }
 
-.lf-detail__actions .lf-btn { flex: 1; }
+.lf-detail__actions .lf-btn { flex: 1; height: var(--lf-cta-height); }
 .lf-detail__actions .lf-btn:has(> .lf-btn__trailing) { align-self: stretch; }
 
 /* 쌍 버튼은 360 폭에서 두 줄로 꺾이지 않도록 14px · 왼쪽 여백 16 · 간격 8 (확정안 4i 는 370 폭) */

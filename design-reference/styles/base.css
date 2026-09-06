@@ -168,15 +168,16 @@ svg {
   overflow: hidden;
 }
 
-/* 스크롤되는 본문. 앱바/하단 액션바 사이를 채운다. 카드 사이 10, 플로팅 CTA 자리는 페이드가 덮는다. */
+/* 스크롤되는 본문. 앱바/하단 액션바 사이를 채운다. 카드 사이 14, 플로팅 CTA 자리는 페이드가 덮는다.
+   오른쪽 여백이 왼쪽보다 4 넓은 것은 카드의 5px 하드 섀도가 잘리지 않게 하기 위한 것이다. */
 .lf-screen__body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--lf-space-4);
-  padding: var(--lf-space-3) var(--lf-gutter-app) var(--lf-space-5);
+  gap: var(--lf-space-6);
+  padding: 22px var(--lf-space-8) var(--lf-space-8) var(--lf-gutter-app);
 }
 
 /* 세로 flex 본문의 자식은 줄어들지 않는다 — overflow:hidden 카드(히어로·스탬프)의 min-height 가 0 이 되어
@@ -184,7 +185,7 @@ svg {
 .lf-screen__body > * { flex-shrink: 0; }
 
 .lf-screen__body--web {
-  padding: var(--lf-space-7) var(--lf-gutter-web) var(--lf-space-5);
+  padding: var(--lf-space-8) var(--lf-space-9) var(--lf-space-7) var(--lf-gutter-web);
 }
 
 /* 중앙 정렬 본문 (랜딩 · 빈 상태 · 만료 안내) */
@@ -201,7 +202,7 @@ svg {
   display: flex;
   flex-direction: column;
   gap: var(--lf-space-3);
-  padding: var(--lf-space-5) var(--lf-gutter-app) var(--lf-space-3);
+  padding: var(--lf-space-5) var(--lf-gutter-app) var(--lf-space-7);
   background: linear-gradient(to bottom, transparent, var(--lf-color-background) 40%);
 }
 
@@ -213,7 +214,7 @@ svg {
 }
 
 .lf-screen__actions--web {
-  padding: var(--lf-space-4) var(--lf-gutter-web) var(--lf-space-8);
+  padding: var(--lf-space-5) var(--lf-gutter-web) var(--lf-space-8);
 }
 
 .lf-screen__actions--plain {

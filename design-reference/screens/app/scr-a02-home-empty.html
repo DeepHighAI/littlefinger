@@ -10,19 +10,19 @@
 <link rel="stylesheet" href="../../styles/screens/app-entry.css">
 <link rel="stylesheet" href="../../styles/screen-page.css">
 </head>
-<!-- 확정안 4f (2026-09-03): 마스코트가 첫 약속을 유도. 크롬은 홈과 같다. -->
+<!-- 잉크 & 블록 (2026-09-06): 정원 170 + 민트 원 56 안에서 C-1 손 루프가 첫 약속을 유도. 크롬은 홈과 같다. -->
 <body class="lf-page" data-screen-id="SCR-A02" data-screen-name="홈 · 빈 상태">
 <div class="lf-device">
   <div class="lf-device__viewport">
     <div class="lf-screen">
 
       <header class="lf-appbar lf-appbar--brand">
-        <img class="lf-mascot lf-mascot--sm" src="../../assets/images/mascot-face-e1.png" alt="">
-        <h1 class="lf-appbar__title">리틀핑거</h1>
-        <button class="lf-icon-button" type="button" aria-label="알림">
-          <span class="material-symbols-rounded" aria-hidden="true">notifications</span>
+        <span class="lf-appbar__mascot" aria-hidden="true"><img class="lf-mascot lf-mascot--sm" src="../../assets/images/mascot-face-e1.png" alt=""></span>
+        <h1 class="lf-appbar__wordmark">리틀핑거</h1>
+        <button class="lf-appbar__menu" type="button" aria-label="메뉴">
+          <span>메뉴</span>
+          <span class="material-symbols-rounded" aria-hidden="true">menu</span>
         </button>
-        <button class="lf-avatar-button" type="button" aria-label="마이">지</button>
       </header>
 
       <div class="lf-home__headline">
@@ -37,18 +37,12 @@
 
       <div class="lf-screen__body lf-screen__body--centered lf-empty lf-home__empty">
 
-        <div class="lf-blob lf-blob--empty lf-blob--tilt" aria-hidden="true">
-          <svg class="lf-blob__svg" viewBox="0 0 200 170">
-            <path class="lf-blob__paper" d="M100 10c62-8 96 34 90 80s-44 80-94 76S6 130 10 86 44 18 100 10Z"/>
-            <path class="lf-blob__mint" d="M140 104c30-12 56 8 52 36s-26 36-52 30-36-22-30-40 12-20 30-26Z"/>
-          </svg>
-          <div class="lf-blob__eyes">
-            <span class="lf-pinky-loop lf-pinky-loop--eyes">
-              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
-              <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
-              <span class="lf-pinky-loop__spark"></span>
-            </span>
-          </div>
+        <div class="lf-blob lf-blob--circle lf-blob--circle-empty" aria-hidden="true">
+          <span class="lf-blob__accent"></span>
+          <span class="lf-pinky-loop lf-pinky-loop--md">
+            <span class="lf-pinky-loop__hand lf-pinky-loop__hand--left"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
+            <span class="lf-pinky-loop__hand lf-pinky-loop__hand--right"><img class="lf-pinky-loop__img" src="../../assets/images/hand-solid.png" alt=""></span>
+          </span>
         </div>
 
         <p class="lf-home__empty-copy">소중한 사람과 새끼손가락 걸고<br>지킬 약속을 만들어보세요.</p>
@@ -58,7 +52,7 @@
 
       <button class="lf-fab" type="button">
         <span>약속 만들기</span>
-        <span class="lf-btn__trailing lf-btn__trailing--plain" aria-hidden="true"><img class="lf-mascot lf-mascot--md" src="../../assets/images/mascot-face-e1.png" alt=""></span>
+        <span class="lf-btn__trailing" aria-hidden="true"><span class="material-symbols-rounded">add</span></span>
       </button>
 
     </div>

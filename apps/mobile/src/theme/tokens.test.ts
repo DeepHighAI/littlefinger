@@ -195,9 +195,9 @@ describe('잉크 & 블록 웹 토큰도 같은 계약을 쓴다', () => {
   test('안내·응답·안읽음 상태가 역할 기반 색을 쓴다', () => {
     const css = readFileSync(WEB_COMPONENTS_CSS, 'utf8');
 
-    // 잉크&스티커: notice 는 잉크 밑줄 스타일 — 본문 색은 text-secondary (ADR 0012)
+    // 잉크&블록: notice 는 32 r8 블록 배지 — 4색 면 위에 얹히므로 글자는 잉크다 (2026-09-06)
     expect(css).toMatch(
-      /\.lf-notice\s*\{[^}]*color:\s*var\(--lf-color-text-secondary\)/su,
+      /\.lf-notice\s*\{[^}]*border:\s*var\(--lf-border-chip\)[^}]*box-shadow:\s*var\(--lf-elevation-sm\)[^}]*color:\s*var\(--lf-color-text\)/su,
     );
     expect(css).toMatch(
       /\.lf-card--container\s+\.lf-dday\s*\{[^}]*color:\s*var\(--lf-color-success\)/su,
@@ -280,12 +280,15 @@ describe('잉크 & 블록 웹 토큰도 같은 계약을 쓴다', () => {
       const hint = /\.lf-field__hint\s*\{(?<body>[^}]*)\}/su.exec(css)?.groups?.body;
       const proof = /\.lf-proof\s*\{(?<body>[^}]*)\}/su.exec(css)?.groups?.body;
 
-      for (const body of [hint, proof]) {
-        expect(body).toContain('font-size: var(--lf-type-caption-size)');
-        expect(body).toContain('line-height: var(--lf-line-caption)');
-        expect(body).toContain('font-weight: var(--lf-weight-bold)');
-      }
+      expect(hint).toContain('font-size: var(--lf-type-caption-size)');
+      expect(hint).toContain('line-height: var(--lf-line-caption)');
+      expect(hint).toContain('font-weight: var(--lf-weight-bold)');
       expect(hint).toContain('color: var(--lf-color-text-secondary)');
+
+      // 잉크&블록: 증빙 타일은 84 r12 블록 — 파일명 캡션은 eyebrow 크기 볼드, 아이콘·본문은 잉크 (2026-09-06)
+      expect(proof).toContain('font-size: var(--lf-type-eyebrow-size)');
+      expect(proof).toContain('font-weight: var(--lf-weight-bold)');
+      expect(proof).toContain('box-shadow: var(--lf-elevation-sm)');
       expect(proof).toContain('color: var(--lf-color-text)');
     },
   );
@@ -298,14 +301,15 @@ describe('잉크 & 블록 웹 토큰도 같은 계약을 쓴다', () => {
     expect(create).toMatch(
       /\.lf-field__optional\s*\{[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-text-secondary\)/su,
     );
+    // 잉크&블록: 타일 캡션은 eyebrow 볼드 보조색, 지킴율 설명은 micro 미디엄 보조색 (2026-09-06)
     expect(create).toMatch(
-      /\.lf-proof--thumb \.lf-proof__filename\s*\{[^}]*font-size:\s*var\(--lf-type-caption-size\)[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-text\)/su,
+      /\.lf-proof--thumb \.lf-proof__filename\s*\{[^}]*font-size:\s*var\(--lf-type-eyebrow-size\)[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-text-secondary\)/su,
     );
     expect(detail).toMatch(
-      /\.lf-photo__caption\s*\{[^}]*font-size:\s*var\(--lf-type-caption-size\)[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-text\)/su,
+      /\.lf-photo__caption\s*\{[^}]*font-size:\s*var\(--lf-type-eyebrow-size\)[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-text-secondary\)/su,
     );
     expect(support).toMatch(
-      /\.lf-trust-card__note\s*\{[^}]*font-size:\s*var\(--lf-type-caption-size\)[^}]*font-weight:\s*var\(--lf-weight-bold\)[^}]*color:\s*var\(--lf-color-primary-ink\)/su,
+      /\.lf-trust-card__note\s*\{[^}]*font-size:\s*var\(--lf-type-micro-size\)[^}]*line-height:\s*var\(--lf-line-micro\)[^}]*font-weight:\s*var\(--lf-weight-medium\)[^}]*color:\s*var\(--lf-color-text-muted\)/su,
     );
   });
 
