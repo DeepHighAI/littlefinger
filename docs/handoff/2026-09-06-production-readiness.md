@@ -33,7 +33,8 @@ and the latest section of `docs/DEVELOPMENT_STATUS.md`.
   remains as the documented directory exception.
 - Gitignored evidence under `dist/`, including refund UI, native 360dp/font-scale captures, web
   privacy capture, fixture APK, UMP probe materials, code 24 AAB inspection, Play installation /
-  Billing captures and local source maps.
+  Billing captures, interrupted-purchase recovery, TalkBack/accessibility hierarchy, actual-app
+  360x800 dp/font-scale 1.5 captures and local source maps.
 
 ## Decisions made + why
 
@@ -76,6 +77,20 @@ passed. Play internal release 15 was published at 02:13 KST. The SM-N981N update
 02:15 KST and reports code 24 with installer `com.android.vending`. Session, redesigned Home,
 refund-derived ordinary retention, and the real Billing product sheet passed; purchase was canceled.
 
+Partner-side interrupted permanent-purchase recovery passed on the Play-delivered code 24 app. The
+app process was stopped while Billing was open, and no-charge test order
+`GPA.3399-5562-9509-45980` completed while the app was absent. No new server row existed before
+relaunch. Opening retention after relaunch reconciled exactly one new purchase
+(`c4e91129-dad9-40e9-b397-3194b1a3d14e`), set `partner_permanent=true`, and survived another cold
+start as `영구 보관 중`. The scoped two-row ledger has one active and one older revoked purchase
+across two distinct orders. Do not refund the new order without explicit PO direction.
+
+Google OAuth sign-out, signed-out cold restart and re-login passed. TalkBack focus order and labels
+were inspected on representative Home, detail and fulfillment controls without submitting a
+fulfillment result. The actual Play app passed 360x800 dp/font-scale 1.5 reflow for Home,
+notifications, full Profile and the fulfillment form. The device was restored to physical
+1080x2400, density 450, font scale 1.0, with accessibility disabled.
+
 Real UMP execution did not pass the user-visible consent gate: production app ID + corrected
 isolated test hash + forced EEA still returned NOT_REQUIRED/no form, and privacy re-open reported
 that a form is not required. The real code 23 RETENTION_30D request failed with Mobile Ads load
@@ -99,9 +114,10 @@ The documented `apps/mobile/.secrets/play-service-account.json` remains absent, 
 Console upload closed the internal-track installation gate. Future automated submits still require
 that key. Do not publish to production merely to repeat this gate.
 
-Creator-side permanent purchase, interrupted purchase recovery and two-party FINISH remain broader
-scenario coverage, not regressions found in this pass. Do not make a real-money purchase or mutate
-production retention records to simulate expiry.
+Creator-side permanent purchase and two-party FINISH remain broader scenario coverage. The PO
+explicitly skipped the Kakao login required for the creator account in this run, so both are
+recorded as skipped rather than failed. Partner interrupted-purchase recovery is closed. Do not
+make a real-money purchase or mutate production retention records to simulate expiry.
 
 ## The exact next step
 

@@ -47,6 +47,24 @@ but actual AdMob UMP choice/re-open and rewarded SSV grant evidence remain open.
   Billing displayed `약속 영구 보관`, ₩2,000 and the test-card/no-charge notice; it was canceled
   before confirmation. Evidence: `dist/play-code24-home.png`, `dist/play-code24-after-refund.png`,
   and `dist/play-code24-billing-sheet.png`.
+- Follow-up on the same Play-delivered code 24 app verified interrupted permanent-purchase recovery
+  for the Google-authenticated partner. The app process was stopped while the Play Billing sheet was
+  open, then the no-charge test order `GPA.3399-5562-9509-45980` was completed while the app process
+  was absent. Before relaunch there was no new server ledger row. Opening the retention sheet after
+  relaunch reconciled the unconsumed purchase exactly once: purchase
+  `c4e91129-dad9-40e9-b397-3194b1a3d14e`, one new distinct order, `partner_permanent=true`, and
+  `영구 보관 중` remained after another cold start. The older refunded purchase remains the only
+  revoked row. This was a Play test-card order and no charge was made; do not refund it unless the PO
+  explicitly requests another revocation test.
+- Google OAuth sign-out, cold-restart signed-out persistence and re-login passed. TalkBack was enabled
+  temporarily and verified meaningful focus order/labels on Home, promise detail and fulfillment
+  controls; no fulfillment choice was made or submitted. The actual Play app also passed a
+  360x800 dp, font-scale 1.5 inspection of Home, notifications, full Profile and fulfillment-form
+  reflow. Evidence includes `dist/e2e-360-font15-home.png`,
+  `dist/e2e-360-font15-notifications.png`, `dist/e2e-360-font15-profile-top.png`,
+  `dist/e2e-360-font15-profile-bottom.png`, `dist/e2e-360-font15-profile-end.png`, and
+  `dist/e2e-360-font15-fulfillment-{top,bottom}.png` with matching UI XML. Device size, density,
+  font scale and accessibility settings were restored to physical 1080x2400, 450, 1.0 and disabled.
 - A real isolated UMP request with the production app ID, correct test-device hash and forced EEA
   geography still returned NOT_REQUIRED/no form; the privacy form was not required. The earlier
   real rewarded request ended with Mobile Ads code 2 and no SSV grant. A Play code 24 retry created
@@ -89,8 +107,9 @@ Remaining release work, in order:
    already-published European message or change the verified website merely to force a refresh.
 2. After AdMob verification, prove an actual forced-EEA UMP choice and privacy-options re-open, then
    complete one real test-device rewarded ad through exactly one idempotent SSV grant.
-3. Complete creator-side permanent purchase, interrupted purchase recovery and two-party OAuth /
-   FINISH coverage if the PO requires those broader scenarios before production promotion.
+3. Creator-side permanent purchase and two-party FINISH remain optional broader coverage. The PO
+   explicitly skipped the Kakao login required for the creator account in this run; do not treat
+   those two skipped scenarios as failures. Interrupted partner purchase recovery is closed.
 4. Promote only the already-verified code 24 artifact after the remaining launch gates pass; do not
    rebuild or publish a production-track release merely to repeat the closed artifact gate.
 

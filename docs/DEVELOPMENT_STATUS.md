@@ -34,8 +34,24 @@ upload certificate, manifest, permission, SDK, ABI, production AdMob ID, App Lin
 and secret checks passed. Play internal release 15 was published at 02:13 KST and the SM-N981N
 updated through Play at 02:15 KST. The installed package reports code 24 and installer
 `com.android.vending`; session, redesigned Home, target retention state and the real Play Billing
-product sheet all passed smoke verification. No purchase was confirmed and no production-track
-release was created.
+product sheet all passed smoke verification. That initial sheet was canceled without purchase and
+no production-track release was created.
+
+A later Play-delivered code 24 pass closed partner-side interrupted permanent-purchase recovery.
+The app process was absent when the no-charge Play test order `GPA.3399-5562-9509-45980` completed;
+the server had no new purchase row before relaunch. Retention-sheet recovery then reconciled exactly
+one new ledger row (`c4e91129-dad9-40e9-b397-3194b1a3d14e`), set the Google-authenticated partner's
+effective permanent access, and retained `영구 보관 중` across another cold start. The scoped ledger
+now has one active and one revoked permanent purchase across two distinct orders. Do not refund the
+new test order without an explicit PO request.
+
+Google sign-out, cold-restart signed-out persistence and OAuth re-login passed. TalkBack focus and
+labels passed on representative Home, detail and fulfillment controls, without choosing or
+submitting a fulfillment result. The actual Play app also passed 360x800 dp/font-scale 1.5 reflow
+for Home, notifications, full Profile and the fulfillment form. Device size, density, font scale
+and accessibility state were restored to physical 1080x2400, 450, 1.0 and disabled. Creator-side
+permanent purchase and two-party FINISH were skipped at the PO's direction because their creator
+account requires the Kakao login flow; they are skipped coverage, not observed regressions.
 
 The real UMP SDK was executed with the production AdMob app ID and forced EEA test geography, but
 still returned `NOT_REQUIRED` with no form. A real code 23 rewarded request failed with Mobile Ads
