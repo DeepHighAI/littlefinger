@@ -25,13 +25,14 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useLabels, useLocale } from '../lib/locale-native';
 import { MOD_01_LABEL } from '../screens/scr-a05-labels.ts';
-import { colors, radius, space } from '../theme/tokens.ts';
+import { space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
 import { LfChoice } from './LfChoice.tsx';
 import { LfField } from './LfField.tsx';
+import { LfHint } from './LfHint.tsx';
 import { LfInput } from './LfInput.tsx';
 import { LfPicker } from './LfPicker.tsx';
-import { LfRow } from './LfRow.tsx';
+import { LfSegmented } from './LfSegmented.tsx';
 import { LfSheet } from './LfSheet.tsx';
 import { LfText } from './LfText.tsx';
 import { LfTextarea } from './LfTextarea.tsx';
@@ -55,12 +56,7 @@ const KEEPERS = Object.keys(KEEPER_LABEL) as Keeper[];
 
 const styles = StyleSheet.create({
   content: { gap: space[6], paddingBottom: space[5] },
-  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space[3] },
-  notice: {
-    padding: space[6],
-    borderRadius: radius.md,
-    backgroundColor: colors.primarySoft,
-  },
+  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
 });
 
 function proposalOf(detail: PromiseDetailResponse): PromiseAmendProposal {
@@ -171,26 +167,16 @@ export function PromiseAmendSheet({
       onClose={onClose}
     >
       <ScrollView contentContainerStyle={styles.content}>
-            <LfRow>
-              <LfButton
-                label={LABEL.amendTab}
-                variant={mode === 'AMEND' ? 'tonal' : 'text'}
-                accessibilityState={{ selected: mode === 'AMEND' }}
-                grow
-                onPress={() => setMode('AMEND')}
-              />
-              <LfButton
-                label={LABEL.cancelTab}
-                variant={mode === 'CANCEL' ? 'danger' : 'text'}
-                accessibilityState={{ selected: mode === 'CANCEL' }}
-                grow
-                onPress={() => setMode('CANCEL')}
-              />
-            </LfRow>
-
-            <View style={styles.notice}>
-              <LfText>{LABEL.commonNotice}</LfText>
-            </View>
+            <LfSegmented<Mode>
+              accessibilityLabel={LABEL.requestKind}
+              items={[
+                { key: 'AMEND', label: LABEL.amendTab },
+                { key: 'CANCEL', label: LABEL.cancelTab },
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
+            <LfHint icon="info" tone="sky" text={LABEL.commonNotice} />
 
             {mode === 'AMEND' ? (
               <>
@@ -234,7 +220,7 @@ export function PromiseAmendSheet({
                       onPress={() => update('end_date', null)}
                     />
                   ) : null}
-                  <LfText variant="caption">{LABEL.durationEntitlementNotice(END_DATE_EXTENSION_DAYS)}</LfText>
+                  <LfText variant="disclaimer">{LABEL.durationEntitlementNotice(END_DATE_EXTENSION_DAYS)}</LfText>
                 </LfField>
                 <LfField label={LABEL.keeperField} required>
                   <View style={styles.choices}>
@@ -265,9 +251,7 @@ export function PromiseAmendSheet({
                 {!changed ? <LfText variant="caption">{LABEL.noChanges}</LfText> : null}
               </>
             ) : (
-              <View style={styles.notice}>
-                <LfText>{LABEL.cancelNotice}</LfText>
-              </View>
+              <LfHint icon="info" text={LABEL.cancelNotice} />
             )}
 
             <LfField label={LABEL.reasonField} optional>
@@ -283,6 +267,7 @@ export function PromiseAmendSheet({
               label={LABEL.submit}
               size="cta"
               block
+              trailing="send"
               disabled={!submitEnabled}
               onPress={() => void submit()}
             />

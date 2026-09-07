@@ -27,6 +27,7 @@ export type LfTextVariant =
   | 'eyebrow'
   | 'chip'
   | 'note'
+  | 'hint'
   | 'countdown'
   | 'micro'
   | 'error'
@@ -188,6 +189,13 @@ const styles = StyleSheet.create<Record<LfTextVariant, TextStyle>>({
     lineHeight: CAPTION_LINE,
     fontWeight: weight.bold,
     color: colors.text,
+  },
+  // 13/19/800 뮤트 — 빈 상태·지원 화면 안내 (`.lf-empty__hint`)
+  hint: {
+    fontSize: type.chip,
+    lineHeight: CAPTION_LINE,
+    fontWeight: weight.bold,
+    color: colors.textMuted,
   },
   countdown: {
     fontSize: type.cardTitle,

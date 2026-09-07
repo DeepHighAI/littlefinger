@@ -20,9 +20,10 @@ import {
   SlotPurchaseCancelledError,
 } from '../lib/slot-purchase-native.ts';
 import { PROMISE_ENTITLEMENT_LABEL } from '../screens/promise-entitlement-labels.ts';
-import { size, space } from '../theme/tokens.ts';
+import { colors, border, radius, size, space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
 import { LfCard } from './LfCard.tsx';
+import { LfHint } from './LfHint.tsx';
 import { LfIcon } from './LfIcon.tsx';
 import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
@@ -42,9 +43,18 @@ type BusyAction = 'REWARD' | 'PURCHASE' | null;
 
 const styles = StyleSheet.create({
   scroll: { flexShrink: 1 },
-  content: { gap: space[5], paddingHorizontal: space[2], paddingTop: space[2] },
+  content: { gap: space[6] },
+  // 막힌 이유 안내 — 핑크 flat 상자 (`.lf-slot-sheet__notice` 12 14 · 2px 잉크 r10)
+  notice: {
+    paddingVertical: space[5],
+    paddingHorizontal: space[6],
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    borderRadius: radius.sm,
+    backgroundColor: colors.attentionContainer,
+  },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
-  rowText: { flex: 1 },
+  rowText: { flex: 1, minWidth: 0 },
 });
 
 export function PromiseEntitlementSheet({
@@ -167,65 +177,71 @@ export function PromiseEntitlementSheet({
       closeLabel={LABEL.close}
       onClose={onClose}
     >
-          <ScrollView
-            testID="entitlement-scroll"
-            style={styles.scroll}
-            contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space[9] }]}
-          >
-            {loading ? <LfText secondary>{LABEL.loading}</LfText> : null}
-            {failed ? (
-              <LfStack gap={4}>
-                <LfText variant="error">{LABEL.loadError}</LfText>
-                <LfButton label={LABEL.retry} variant="outlined" block onPress={() => setNonce((n) => n + 1)} />
-              </LfStack>
+      <ScrollView
+        testID="entitlement-scroll"
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space[9] }]}
+      >
+        {loading ? <LfText variant="caption">{LABEL.loading}</LfText> : null}
+        {failed ? (
+          <LfStack gap={4}>
+            <LfText variant="error">{LABEL.loadError}</LfText>
+            <LfButton label={LABEL.retry} variant="outlined" block onPress={() => setNonce((n) => n + 1)} />
+          </LfStack>
+        ) : null}
+        {value !== null ? (
+          <>
+            {reason === 'END_DATE_RANGE' && mode === 'DURATION' ? (
+              <View style={styles.notice}>
+                <LfText variant="note">{LABEL.endDateRangeGuide(END_DATE_EXTENSION_DAYS)}</LfText>
+              </View>
             ) : null}
-            {value !== null ? (
-              <>
-                {reason === 'END_DATE_RANGE' && mode === 'DURATION' ? (
-                  <LfText>{LABEL.endDateRangeGuide(END_DATE_EXTENSION_DAYS)}</LfText>
-                ) : null}
-                {!permanent ? <LfText secondary>
-                  {mode === 'DURATION'
-                    ? LABEL.durationDescription(END_DATE_EXTENSION_DAYS)
-                    : LABEL.retentionDescription(RETENTION_EXTENSION_DAYS)}
-                </LfText> : null}
-                {current !== null ? (
-                  <View style={styles.row}>
-                    <LfIcon name={mode === 'DURATION' ? 'event' : 'inventory_2'} size={size.appbarIcon} />
-                    <View style={styles.rowText}><LfText variant="subtitle">{current}</LfText></View>
-                  </View>
-                ) : null}
-                {creatorOnlyNotice ? <LfText variant="caption">{LABEL.durationCreatorOnly}</LfText> : null}
-                {rewardAvailable ? (
+            {!permanent ? (
+              <LfText variant="caption">
+                {mode === 'DURATION'
+                  ? LABEL.durationDescription(END_DATE_EXTENSION_DAYS)
+                  : LABEL.retentionDescription(RETENTION_EXTENSION_DAYS)}
+              </LfText>
+            ) : null}
+            {current !== null ? (
+              <View style={styles.row}>
+                <LfIcon name={mode === 'DURATION' ? 'event' : 'inventory_2'} size={size.appbarIcon} />
+                <View style={styles.rowText}><LfText variant="label">{current}</LfText></View>
+              </View>
+            ) : null}
+            {creatorOnlyNotice ? <LfText variant="caption">{LABEL.durationCreatorOnly}</LfText> : null}
+            {rewardAvailable ? (
+              <LfButton
+                label={rewardLabel}
+                variant="outlined"
+                block
+                disabled={busy}
+                onPress={() => void reward()}
+              />
+            ) : null}
+            {/* 광고 버튼이 있던 자리 — 잠김은 글로만 말하고 빈 버튼을 남기지 않는다 */}
+            {locked && !permanent ? <LfHint icon="lock" text={LABEL.locked} /> : null}
+            {!permanent ? (
+              <LfCard tone="sky" testID="entitlement-purchase-offer">
+                <LfStack gap={4}>
+                  <LfText variant="stamp">{LABEL.purchaseTitle}</LfText>
+                  <LfText variant="note">{LABEL.purchaseDescription}</LfText>
                   <LfButton
-                    label={rewardLabel}
-                    variant="outlined"
+                    label={busyAction === 'PURCHASE' ? LABEL.purchasing : LABEL.purchase(priceText)}
+                    size="cta"
+                    trailing="inventory_2"
                     block
+                    inset
                     disabled={busy}
-                    onPress={() => void reward()}
+                    onPress={() => void buy()}
                   />
-                ) : null}
-                {locked && !permanent ? <LfText variant="caption">{LABEL.locked}</LfText> : null}
-                {!permanent ? (
-                  <LfCard tone="yellow" testID="entitlement-purchase-offer">
-                    <LfStack gap={1}>
-                    <LfText variant="subtitle">{LABEL.purchaseTitle}</LfText>
-                    <LfText variant="caption">{LABEL.purchaseDescription}</LfText>
-                    <LfButton
-                      label={busyAction === 'PURCHASE' ? LABEL.purchasing : LABEL.purchase(priceText)}
-                      size="cta"
-                      trailing="inventory_2"
-                      block
-                      disabled={busy}
-                      onPress={() => void buy()}
-                    />
-                    </LfStack>
-                  </LfCard>
-                ) : null}
-                {message !== null ? <LfText variant="caption" align="center">{message}</LfText> : null}
-              </>
+                </LfStack>
+              </LfCard>
             ) : null}
-          </ScrollView>
+            {message !== null ? <LfText variant="caption" align="center">{message}</LfText> : null}
+          </>
+        ) : null}
+      </ScrollView>
     </LfSheet>
   );
 }

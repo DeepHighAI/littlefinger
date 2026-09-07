@@ -13,10 +13,15 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GoogleMark } from '../../components/GoogleMark';
+import { LfAppBar } from '../../components/LfAppBar';
 import { LfButton } from '../../components/LfButton';
 import { LfCard } from '../../components/LfCard';
+import { LfChip } from '../../components/LfChip';
+import { LfDday } from '../../components/LfDday';
 import { LfDisclaimer } from '../../components/LfDisclaimer';
 import { LfEyes, LfMascotFace } from '../../components/LfMascot';
+import { LfOutcomes } from '../../components/LfOutcomes';
+import { LfOval } from '../../components/LfOval';
 import { LfText } from '../../components/LfText';
 import { LfTextarea } from '../../components/LfTextarea';
 import { formatInviteCountdown } from '../../lib/invite-flow.ts';
@@ -39,7 +44,7 @@ import {
   phaseForInviteFailure,
   type InviteReviewPhase,
 } from '../../screens/invite-review-state.ts';
-import { space } from '../../theme/tokens';
+import { colors, gutter, space } from '../../theme/tokens';
 
 /**
  * 앱 내 초대 검토 — EC-I01 "해당 약속 화면으로 딥링크"의 실구현 (PO 2026-08-20, ADR 0007).
@@ -57,14 +62,39 @@ const MS_PER_SECOND = 1000;
 
 type PendingAction = 'APPROVE' | 'DECLINE' | 'AMEND' | null;
 
+/** README 상세 본문 상단 22 — 토큰 없음, ADR 0020 예외 */
+const BODY_TOP = 22;
+
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
+  screen: { flex: 1, backgroundColor: colors.background },
   scroll: { padding: space[8], gap: space[6], alignItems: 'stretch' },
   centered: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', gap: space[6] },
   badge: { alignItems: 'center' },
-  fields: { gap: space[4] },
   fieldRow: { gap: space[1] },
+  // 검토 — 상세(A05)와 같은 머리·내용 문법 (`.lf-detail__head` · `.lf-screen__body` 22/20/20/16)
+  body: {
+    paddingTop: BODY_TOP,
+    paddingRight: space[8],
+    paddingBottom: space[8],
+    paddingLeft: gutter.app,
+    gap: space[6],
+  },
+  head: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[5],
+    paddingTop: space[1],
+    paddingHorizontal: space[1],
+    paddingBottom: space[2],
+  },
+  headMain: { flex: 1, minWidth: 0 },
+  headTitle: { marginTop: space[4] },
+  content: { gap: space[4] },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
   actions: { gap: space[3], marginTop: space[4] },
+  // 보조 outlined(내용 폭) + 주 CTA(남는 폭) (`.lf-detail__actions`)
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
+  actionMain: { flex: 1 },
 });
 
 export default function InviteReviewScreen(): React.JSX.Element {
@@ -389,27 +419,46 @@ export default function InviteReviewScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <LfText variant="title">{L.reviewHeadline(preview.creator.nickname)}</LfText>
+      <LfAppBar
+        title={L.appTitle}
+        actions={<LfOval variant="tile"><LfMascotFace size="sm" /></LfOval>}
+      />
+      <ScrollView contentContainerStyle={styles.body}>
+        <View style={styles.head}>
+          <View style={styles.headMain}>
+            <LfText variant="eyebrow">{L.reviewEyebrow}</LfText>
+            <View style={styles.headTitle}><LfText variant="title">{preview.title}</LfText></View>
+          </View>
+          <LfDday
+            label={schedule === null ? L.infinity : formatDday(schedule.dday)}
+            tone={schedule === null ? 'sky' : 'yellow'}
+            accessibilityLabel={schedule === null ? L.noEndDate : `${L.endDate} ${schedule.endDate}`}
+          />
+        </View>
+        <LfText variant="bodySm" secondary>{L.reviewHeadline(preview.creator.nickname)}</LfText>
         <LfCard>
-          <View style={styles.fields}>
-            <LfText variant="subtitle">{preview.title}</LfText>
-            <LfText variant="body">{preview.body}</LfText>
-            <ReviewField label={L.category} value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][preview.category]} />
-            <ReviewField
-              label={L.endDate}
-              value={schedule === null ? L.noEndDate : `${schedule.endDate} · ${formatDday(schedule.dday)}`}
-            />
-            <ReviewField label={L.keeper} value={KEEPER_LABEL_BY_LOCALE[locale][preview.keeper]} />
-            {preview.reward !== null && <ReviewField label={L.reward} value={preview.reward} />}
-            {preview.penalty !== null && (
-              <ReviewField label={L.penalty} value={preview.penalty} />
-            )}
+          <View style={styles.content}>
+            <LfText variant="eyebrow">{L.content}</LfText>
+            <LfText variant="bodySm">{preview.body}</LfText>
+            <View style={styles.chips}>
+              <LfChip label={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][preview.category]} tone="muted" />
+              <LfChip label={KEEPER_LABEL_BY_LOCALE[locale][preview.keeper]} tone="muted" />
+              <LfChip
+                label={schedule === null ? L.noEndDate : `${L.endDate} · ${schedule.endDate}`}
+                tone={schedule === null ? 'sky' : 'muted'}
+              />
+            </View>
             {preview.witness_enabled && (
               <LfText variant="caption">{L.witnessNotice}</LfText>
             )}
           </View>
         </LfCard>
+        {preview.reward !== null || preview.penalty !== null ? (
+          <LfOutcomes
+            reward={preview.reward === null ? null : { label: L.reward, value: preview.reward }}
+            penalty={preview.penalty === null ? null : { label: L.penalty, value: preview.penalty }}
+          />
+        ) : null}
         <LfDisclaimer />
         {endDatePassed && (
           <LfText variant="caption" accessibilityRole="alert">
@@ -425,21 +474,26 @@ export default function InviteReviewScreen(): React.JSX.Element {
             <LfText variant="subtitle" align="center">
               {L.confirmQuestion(preview.creator.nickname)}
             </LfText>
-            <LfText variant="body" secondary align="center">{L.confirmBody}</LfText>
-            <LfButton
-              size="cta"
-              block
-              label={L.confirmYes}
-              disabled={busy}
-              onPress={() => void handleApprove()}
-            />
-            <LfButton
-              variant="outlined"
-              block
-              label={L.confirmNo}
-              disabled={busy}
-              onPress={() => setConfirming(false)}
-            />
+            <LfText variant="bodySm" secondary align="center">{L.confirmBody}</LfText>
+            <View style={styles.actionRow}>
+              <LfButton
+                variant="outlined"
+                size="cta"
+                label={L.confirmNo}
+                disabled={busy}
+                onPress={() => setConfirming(false)}
+              />
+              <View style={styles.actionMain}>
+                <LfButton
+                  size="cta"
+                  block
+                  trailing="check"
+                  label={L.confirmYes}
+                  disabled={busy}
+                  onPress={() => void handleApprove()}
+                />
+              </View>
+            </View>
           </View>
         ) : amending ? (
           <View style={styles.actions}>
@@ -449,30 +503,28 @@ export default function InviteReviewScreen(): React.JSX.Element {
               onChangeText={setAmendComment}
               accessibilityLabel={L.amendFieldLabel}
             />
-            <LfButton
-              size="cta"
-              block
-              label={L.amendCta}
-              disabled={busy}
-              onPress={() => void handleAmend()}
-            />
-            <LfButton
-              variant="outlined"
-              block
-              label={L.confirmNo}
-              disabled={busy}
-              onPress={() => setAmending(false)}
-            />
+            <View style={styles.actionRow}>
+              <LfButton
+                variant="outlined"
+                size="cta"
+                label={L.confirmNo}
+                disabled={busy}
+                onPress={() => setAmending(false)}
+              />
+              <View style={styles.actionMain}>
+                <LfButton
+                  size="cta"
+                  block
+                  trailing="send"
+                  label={L.amendCta}
+                  disabled={busy}
+                  onPress={() => void handleAmend()}
+                />
+              </View>
+            </View>
           </View>
         ) : (
           <View style={styles.actions}>
-            <LfButton
-              size="cta"
-              block
-              label={L.approveCta}
-              disabled={busy || endDatePassed}
-              onPress={() => setConfirming(true)}
-            />
             <LfButton
               variant="tonal"
               block
@@ -480,25 +532,28 @@ export default function InviteReviewScreen(): React.JSX.Element {
               disabled={busy}
               onPress={() => setAmending(true)}
             />
-            <LfButton
-              variant="outlined"
-              block
-              label={L.declineCta}
-              disabled={busy}
-              onPress={() => void handleDecline()}
-            />
+            <View style={styles.actionRow}>
+              <LfButton
+                variant="outlined"
+                size="cta"
+                label={L.declineCta}
+                disabled={busy}
+                onPress={() => void handleDecline()}
+              />
+              <View style={styles.actionMain}>
+                <LfButton
+                  size="cta"
+                  block
+                  trailing="check"
+                  label={L.approveCta}
+                  disabled={busy || endDatePassed}
+                  onPress={() => setConfirming(true)}
+                />
+              </View>
+            </View>
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function ReviewField({ label, value }: { label: string; value: string }): React.JSX.Element {
-  return (
-    <View style={styles.fieldRow}>
-      <LfText variant="eyebrow">{label}</LfText>
-      <LfText variant="body">{value}</LfText>
-    </View>
   );
 }

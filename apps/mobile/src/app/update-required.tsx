@@ -11,8 +11,15 @@ import { UPDATE_REQUIRED_LABEL } from '../screens/update-required-labels.ts';
 import { colors, space } from '../theme/tokens';
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background, padding: space[8] },
-  body: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[8] },
+  screen: { flex: 1, backgroundColor: colors.background },
+  // `.lf-empty` — 세로 가운데, 간격 20, 좌우 24. CTA 도 같은 열에 선다
+  body: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space[8],
+    paddingHorizontal: space[9],
+  },
   copy: { alignItems: 'center', gap: space[2] },
 });
 
@@ -27,11 +34,16 @@ export default function UpdateRequiredScreen(): React.JSX.Element {
           </LfOval>
         </View>
         <View style={styles.copy}>
-          <LfText variant="title" align="center">{LABEL.title}</LfText>
-          <LfText secondary align="center">{LABEL.copy}</LfText>
+          <LfText variant="subtitle" align="center">{LABEL.title}</LfText>
+          <LfText variant="hint" align="center">{LABEL.copy}</LfText>
         </View>
+        <LfButton
+          label={LABEL.store}
+          size="cta"
+          trailing="arrow_forward"
+          onPress={() => void openAndroidStore()}
+        />
       </View>
-      <LfButton label={LABEL.store} size="cta" block onPress={() => void openAndroidStore()} />
     </SafeAreaView>
   );
 }

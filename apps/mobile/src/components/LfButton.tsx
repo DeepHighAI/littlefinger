@@ -17,6 +17,8 @@ export interface LfButtonProps extends Omit<PressableProps, 'style' | 'children'
   grow?: boolean;
   leading?: React.JSX.Element;
   trailing?: LfIconName | 'mascot';
+  /** 카드 안에 놓인 filled CTA 는 3px (눌림 없음) — 영구 보관 제안 (README, MOD-05) */
+  inset?: boolean;
 }
 
 const DISABLED_OPACITY = 0.3;
@@ -169,6 +171,7 @@ export function LfButton({
   grow = false,
   leading,
   trailing,
+  inset = false,
   disabled,
   accessibilityState,
   ...rest
@@ -196,11 +199,12 @@ export function LfButton({
         buttonSize === 'compact' && { paddingHorizontal: space[7] },
         leading !== undefined && { paddingHorizontal: space[7] },
         trailing !== undefined && container.trailingLayout,
+        inset && elevation.sm,
         block && { width: '100%' },
         grow && { flex: 1 },
         pressed && {
           transform: [{ translateX: PRESS_OFFSET }, { translateY: PRESS_OFFSET }],
-          ...pressedShadow[variant],
+          ...(inset ? NO_SHADOW : pressedShadow[variant]),
         },
         isDisabled && { opacity: DISABLED_OPACITY, ...NO_SHADOW },
       ]}

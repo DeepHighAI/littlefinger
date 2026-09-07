@@ -1,9 +1,13 @@
 import {
   buildParticipantPromisesWebUrl,
+  ddayFrom,
+  formatDday,
+  formatKstDate,
   KEEPER_LABEL_BY_LOCALE,
   PARTICIPANT_ROLE_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL_BY_LOCALE,
   PROMISE_STATUS_LABEL_BY_LOCALE,
+  toKstDate,
   type CompletionCelebrationView,
   type EvidenceView,
   type FulfillmentCheckView,
@@ -20,11 +24,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
-  Modal,
   Pressable,
   ScrollView,
   Share,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,12 +38,15 @@ import { LfAvatar } from '../../components/LfAvatar';
 import { LfButton } from '../../components/LfButton';
 import { LfCard } from '../../components/LfCard';
 import { LfChip } from '../../components/LfChip';
+import { LfDday } from '../../components/LfDday';
 import { LfDisclaimer } from '../../components/LfDisclaimer';
-import { LfIcon } from '../../components/LfIcon';
-import { LfPromiseSeam } from '../../components/LfPromiseSeam';
-import { LfRow } from '../../components/LfRow';
+import { LfIcon, type LfIconName } from '../../components/LfIcon';
+import { LfOutcomes } from '../../components/LfOutcomes';
+import { LfSheet } from '../../components/LfSheet';
 import { LfStack } from '../../components/LfStack';
-import { LfText } from '../../components/LfText';
+import { LfStamp, type LfStampCorner } from '../../components/LfStamp';
+import { LfStatusTile } from '../../components/LfStatusTile';
+import { LfInkContext, LfText } from '../../components/LfText';
 import { CompletionCelebrationSheet } from '../../components/completion-celebration-sheet.tsx';
 import { PromiseAmendSheet } from '../../components/promise-amend-sheet.tsx';
 import { PromiseEntitlementSheet } from '../../components/promise-entitlement-sheet.tsx';
@@ -84,16 +91,27 @@ import {
   type PromiseDetailVisualMode,
 } from '../../screens/scr-a05-detail-state.ts';
 import { MOD_01_LABEL, SCR_A05_LABEL } from '../../screens/scr-a05-labels.ts';
-import { border, colors, elevation, gutter, radius, size, space } from '../../theme/tokens';
+import { textFontFamily } from '../../theme/fonts';
+import { border, colors, elevation, gutter, line, radius, size, space, type, weight } from '../../theme/tokens';
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const WITNESS_INVITE_STATUSES = new Set(['PENDING', 'ACTIVE', 'AMEND_PENDING', 'CHECKING']);
-const HISTORY_SHEET_MAX_HEIGHT = '88%';
-const ACTIVE_STAMP_BORDER_WIDTH = 2.5;
-const ACTIVE_OUTCOME_BORDER_WIDTH = 2.2;
+/** README 상세 본문 22/20/20/16 · 주장 증빙 자리 56 · 결과 필 아이콘 14 · 행 아이콘 20 · 지킴 체크 16 · 행 링크 화살표 18 · 증빙 아이콘 24 — 토큰 없음, ADR 0020 예외 */
+const BODY_TOP = 22;
+const CLAIM_EVIDENCE_HEIGHT = 56;
+const RESULT_ICON = 14;
+const ROW_ICON = 20;
+const KEPT_ICON = 16;
+const LINK_ICON = 18;
+const PROOF_ICON = 24;
 
 type ScreenPhase = 'loading' | 'ready' | 'not-found' | 'error';
+/** 헤더 상태 칩 옆 한 줄 — "종료일 2026-08-11 (화)" 처럼 라벨·값이 갈리거나 한 문장 */
+interface HeadLine {
+  label?: string;
+  value: string;
+}
 interface IntentKey {
   signature: string;
   key: string;
@@ -101,15 +119,6 @@ interface IntentKey {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  screenFriendly: { backgroundColor: colors.primarySoft },
-  screenRecord: { backgroundColor: colors.surfaceMuted },
-  screenApprovedActive: { backgroundColor: colors.background },
-  back: {
-    minWidth: size.touchMin,
-    minHeight: size.touchMin,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   centered: {
     flex: 1,
     alignItems: 'center',
@@ -118,115 +127,162 @@ const styles = StyleSheet.create({
     gap: space[6],
   },
   body: {
-    padding: gutter.app,
-    paddingBottom: space[9],
+    paddingTop: BODY_TOP,
+    paddingRight: space[8],
+    paddingBottom: space[8],
+    paddingLeft: gutter.app,
     gap: space[6],
   },
-  status: { alignItems: 'center', gap: space[3], padding: space[6] },
-  statusFriendly: {
-    borderTopLeftRadius: radius.hero,
-    borderTopRightRadius: radius.hero,
-    borderBottomRightRadius: radius.hero,
-    borderBottomLeftRadius: radius.sm,
-    backgroundColor: colors.primaryContainer,
+  // 헤더 — 상태 칩 + 날짜 · 제목 · D-Day (`.lf-detail__head` 4 4 6)
+  head: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[5],
+    paddingTop: space[1],
+    paddingHorizontal: space[1],
+    paddingBottom: space[2],
   },
-  statusRecord: {
-    borderRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.recordContainer,
-    backgroundColor: colors.surface,
-  },
-  statusTerminal: {
-    borderRadius: radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outline,
-    backgroundColor: colors.surface,
-  },
-  detailText: { gap: space[3] },
-  info: { gap: space[4] },
-  recordMetadata: {
-    padding: space[5],
-    borderRadius: radius.lg,
-    backgroundColor: colors.recordContainer,
-  },
-  // 확정 스탬프의 손붙임 기울기 (.lf-stamp rotate, ADR 0012)
-  recordStamp: { transform: [{ rotate: '-0.8deg' }] },
-  activeMeta: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
-  activeEndDate: { flexDirection: 'row', gap: space[1] },
-  activeMetaSpacer: { flex: 1 },
-  activeStamp: {
+  headMain: { flex: 1, minWidth: 0 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  headDate: { flex: 1, minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', gap: space[1] },
+  headTitle: { marginTop: space[4] },
+  content: { gap: space[4] },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
+  // 안내 배너 — 스카이 카드 노트 (`.lf-note`), 종이 변형은 배경만 다르다
+  note: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: space[2],
-    padding: space[8],
+    gap: space[3],
+    paddingVertical: space[6],
+    paddingHorizontal: space[7],
     borderRadius: radius.xl,
-    borderWidth: ACTIVE_STAMP_BORDER_WIDTH,
+    borderWidth: border.card,
     borderColor: colors.text,
-    backgroundColor: colors.surface,
-    transform: [{ rotate: '-0.8deg' }],
+    backgroundColor: colors.recordContainer,
     ...elevation.card,
   },
-  activeSeam: { alignSelf: 'stretch' },
-  activeApprovals: {
+  notePaper: { backgroundColor: colors.surface },
+  noteText: { flex: 1, minWidth: 0 },
+  // 행 링크 — 48h · 13/800 · 화살표 18 (`.lf-row-link`)
+  rowLink: {
+    minHeight: size.touchMin,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: space[2],
+    alignItems: 'center',
+    gap: space[3],
+    paddingHorizontal: space[2],
   },
-  activeApproval: { alignItems: 'center', gap: space[1] },
-  activeContent: { gap: space[3] },
-  activeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
-  activeOutcomes: { flexDirection: 'row', gap: space[3] },
-  activeOutcome: {
+  rowLinkLabel: { flex: 1, minWidth: 0 },
+  // 정보 행 — 40 아이콘 타일 + eyebrow 위 · 값 아래 (`.lf-info-row`)
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
+  infoBody: { flex: 1, minWidth: 0 },
+  infoValue: { marginTop: space[1] },
+  // flat 카드 안 점선 구분 행 (`.lf-response-list` · `.lf-response-row` 12 0)
+  list: { paddingVertical: space[1] },
+  listRow: { flexDirection: 'row', alignItems: 'center', gap: space[5], paddingVertical: space[5] },
+  divided: { borderTopWidth: border.dashed, borderTopColor: colors.outline, borderStyle: 'dashed' },
+  rowText: { flex: 1, minWidth: 0 },
+  divider: { height: 0, borderTopWidth: border.dashed, borderTopColor: colors.outline, borderStyle: 'dashed' },
+  // 내 기록 보관 행 (`.lf-retention-row`)
+  retention: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
+  // 변경 협의 비교 칸 (`.lf-compare__item` r10 2px · 12 14) — 변경 전은 뮤트 + 취소선
+  compare: { flexDirection: 'row', gap: space[4] },
+  compareItem: {
     flex: 1,
-    gap: space[1],
     paddingVertical: space[5],
+    paddingHorizontal: space[6],
+    borderRadius: radius.sm,
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    backgroundColor: colors.surface,
+  },
+  compareBefore: { backgroundColor: colors.surfaceMuted },
+  compareValue: { marginTop: space[1] },
+  strike: {
+    fontSize: type.label,
+    lineHeight: line.bodyStrong,
+    fontFamily: textFontFamily(weight.bold),
+    color: colors.text,
+    textDecorationLine: 'line-through',
+  },
+  // 의견 불일치 주장 — 두 카드가 같은 크기·순서 (P1, `.lf-claims` 16)
+  claims: { flexDirection: 'row', gap: space[7] },
+  claim: {
+    flex: 1,
+    alignItems: 'center',
+    gap: space[2],
+    paddingVertical: size.cardPadding,
     paddingHorizontal: space[5],
     borderRadius: radius.lg,
-    borderWidth: ACTIVE_OUTCOME_BORDER_WIDTH,
+    borderWidth: border.card,
     borderColor: colors.text,
+    backgroundColor: colors.surface,
+    ...elevation.card,
   },
-  activeReward: { backgroundColor: colors.rewardContainer },
-  activePenalty: { backgroundColor: colors.penaltyContainer },
-  value: { flex: 1, alignItems: 'flex-end' },
-  people: { gap: space[5] },
-  personText: { flex: 1 },
-  evidenceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space[3] },
-  evidence: {
-    width: size.evidenceThumb,
-    minHeight: size.evidenceThumb,
-    borderRadius: radius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outlineStrong,
-    backgroundColor: colors.surfaceMuted,
+  claimEvidence: {
+    alignSelf: 'stretch',
+    minHeight: CLAIM_EVIDENCE_HEIGHT,
+    marginTop: space[2],
+    padding: space[3],
     alignItems: 'center',
     justifyContent: 'center',
-    padding: space[3],
+    borderRadius: radius.sm,
+    borderWidth: border.chip,
+    borderColor: colors.text,
+    backgroundColor: colors.surfaceMuted,
   },
-  evidenceGroup: { width: size.evidenceThumb, gap: space[2] },
-  claims: { gap: space[5] },
-  claim: { flex: 1, gap: space[3], alignItems: 'center' },
-  actions: { gap: space[4] },
-  compare: { gap: space[5] },
-  changePair: { gap: space[3] },
-  historyScrim: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.scrim,
+  claimEvidenceEmpty: {
+    backgroundColor: 'transparent',
+    borderWidth: border.dashed,
+    borderStyle: 'dashed',
+    borderColor: colors.outlineStrong,
   },
-  historySheet: {
-    maxHeight: HISTORY_SHEET_MAX_HEIGHT,
-    paddingHorizontal: gutter.app,
-    paddingTop: space[7],
-    paddingBottom: space[9],
-    borderTopLeftRadius: radius['2xl'],
-    borderTopRightRadius: radius['2xl'],
+  evidenceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space[3] },
+  evidenceGroup: { alignItems: 'center', gap: space[2] },
+  // 증빙 썸네일 (`.lf-photo` 84 r12 2px + 3px) · 가려짐·만료 자리는 점선
+  photo: {
+    width: size.thumb,
+    height: size.thumb,
+    padding: space[2],
+    gap: space[1],
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius['2xl'],
+    borderWidth: border.chip,
+    borderColor: colors.text,
     backgroundColor: colors.surface,
+    ...elevation.sm,
+  },
+  photoPlaceholder: {
+    backgroundColor: 'transparent',
+    borderWidth: border.dashed,
+    borderStyle: 'dashed',
+    borderColor: colors.outlineStrong,
     ...elevation.sheet,
-    // 잉크&스티커: 시트는 상단+측면 잉크 테두리, 하단은 없음 (.lf-sheet, ADR 0012)
-    borderWidth: border.sheet,
-    borderBottomWidth: 0,
+  },
+  // 결과 필 (`.lf-result` 28h r8 2px) — 민트=지킴 · 핑크=안 지킴, 글자가 상태를 말한다
+  result: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[1],
+    height: size.chipStatusHeight,
+    paddingHorizontal: space[4],
+    borderRadius: radius.xs,
+    borderWidth: border.chip,
     borderColor: colors.text,
   },
+  resultKept: { backgroundColor: colors.successContainer },
+  resultBroken: { backgroundColor: colors.attentionContainer },
+  // 하단 — 보조 outlined(내용 폭) + 주 CTA(남는 폭) 56h (`.lf-detail__actions`)
+  actions: {
+    paddingHorizontal: space[8],
+    paddingTop: space[5],
+    paddingBottom: space[7],
+    gap: space[3],
+    backgroundColor: colors.background,
+  },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
+  actionMain: { flex: 1 },
+  safetyRow: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   historyContent: { gap: space[5], paddingBottom: space[5] },
 });
 
@@ -237,25 +293,15 @@ function promiseIdOf(value: string | string[] | undefined): string | null {
 function ScreenFrame({
   onBack,
   mode = 'terminal-neutral',
-  approvedActive = false,
   children,
 }: {
   onBack(): void;
   mode?: PromiseDetailVisualMode;
-  approvedActive?: boolean;
   children: React.ReactNode;
 }): React.JSX.Element {
   const LABEL = useLabels(SCR_A05_LABEL);
   return (
-    <SafeAreaView
-      style={[
-        styles.screen,
-        mode === 'friendly' && styles.screenFriendly,
-        mode === 'record' && styles.screenRecord,
-        approvedActive && styles.screenApprovedActive,
-      ]}
-      testID={`promise-detail-${mode}`}
-    >
+    <SafeAreaView style={styles.screen} testID={`promise-detail-${mode}`}>
       <LfAppBar
         title={LABEL.title}
         leading="back"
@@ -269,30 +315,187 @@ function ScreenFrame({
 
 function InfoRow({ label, value }: { label: string; value: string }): React.JSX.Element {
   return (
-    <LfRow>
-      <LfText variant="caption">{label}</LfText>
-      <View style={styles.value}>
-        <LfText>{value}</LfText>
-      </View>
-    </LfRow>
+    <View>
+      <LfText variant="eyebrow">{label}</LfText>
+      <LfText variant="label">{value}</LfText>
+    </View>
   );
 }
 
-function PersonRow({ person }: { person: PromiseDetailPerson }): React.JSX.Element {
+function ListRow({
+  divided = false,
+  children,
+}: {
+  divided?: boolean;
+  children: React.ReactNode;
+}): React.JSX.Element {
+  return <View style={[styles.listRow, divided && styles.divided]}>{children}</View>;
+}
+
+function PersonRow({
+  person,
+  divided = false,
+}: {
+  person: PromiseDetailPerson;
+  divided?: boolean;
+}): React.JSX.Element {
   const LABEL = useLabels(SCR_A05_LABEL);
   const { locale } = useLocale();
   return (
-    <LfRow>
+    <ListRow divided={divided}>
       <LfAvatar
+        size="row"
         nickname={person.nickname}
         profileImageUrl={person.profile_image_url}
         accessibilityLabel={LABEL.profileImage(person.nickname)}
       />
-      <View style={styles.personText}>
-        <LfText variant="subtitle">{person.nickname}</LfText>
-        <LfText variant="caption">{PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][person.role]}</LfText>
+      <View style={styles.rowText}>
+        <LfText variant="label">{person.nickname}</LfText>
+        <LfText variant="meta">{PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][person.role]}</LfText>
       </View>
-    </LfRow>
+    </ListRow>
+  );
+}
+
+/** 양측 응답 행 — 제출 사실은 글자로, 결과는 필로. DISPUTED 는 필 없이 사실만 (P1) */
+function ResponseRow({
+  nickname,
+  profileImageUrl,
+  submitted,
+  check,
+  silent = false,
+  divided = false,
+}: {
+  nickname: string;
+  profileImageUrl: string | null;
+  submitted: boolean;
+  check: FulfillmentCheckView | null;
+  silent?: boolean;
+  divided?: boolean;
+}): React.JSX.Element {
+  const LABEL = useLabels(SCR_A05_LABEL);
+  const { locale } = useLocale();
+  const kept = check?.answer === 'KEPT';
+  return (
+    <ListRow divided={divided}>
+      <LfAvatar
+        size="row"
+        pending={!submitted}
+        nickname={nickname}
+        profileImageUrl={profileImageUrl}
+        accessibilityLabel={LABEL.profileImage(nickname)}
+      />
+      <View style={styles.rowText}>
+        <LfText variant="label">{responseFact(nickname, submitted, locale)}</LfText>
+      </View>
+      {check !== null ? (
+        <View style={[styles.result, kept ? styles.resultKept : styles.resultBroken]}>
+          <LfIcon name={kept ? 'check' : 'close'} size={RESULT_ICON} />
+          <LfText variant="chip">{LABEL.answer[check.answer]}</LfText>
+        </View>
+      ) : submitted ? (
+        <LfIcon name="check" size={KEPT_ICON} />
+      ) : (
+        <LfIcon name={silent ? 'notifications_off' : 'hourglass_empty'} size={ROW_ICON} color="textMuted" />
+      )}
+    </ListRow>
+  );
+}
+
+function InfoCard({
+  tone,
+  icon,
+  label,
+  value,
+  action,
+}: {
+  tone: 'sky' | 'yellow';
+  icon: LfIconName;
+  label: string;
+  value: string;
+  action?: React.ReactNode;
+}): React.JSX.Element {
+  return (
+    <LfCard tone={tone}>
+      <View style={styles.infoRow}>
+        <LfStatusTile icon={icon} tone="paper" />
+        <View style={styles.infoBody}>
+          <LfText variant="eyebrow">{label}</LfText>
+          <View style={styles.infoValue}><LfText variant="label">{value}</LfText></View>
+        </View>
+        {action}
+      </View>
+    </LfCard>
+  );
+}
+
+function NoteBanner({
+  icon,
+  text,
+  tone = 'sky',
+}: {
+  icon: LfIconName;
+  text: string;
+  tone?: 'sky' | 'paper';
+}): React.JSX.Element {
+  return (
+    <View style={[styles.note, tone === 'paper' && styles.notePaper]}>
+      <LfIcon name={icon} size={ROW_ICON} />
+      <View style={styles.noteText}><LfText variant="note">{text}</LfText></View>
+    </View>
+  );
+}
+
+/** 행 링크 — 누를 수 없으면 버튼 역할도 주지 않는다 (종결 화면의 "가짜 액션" 금지) */
+function RowLink({
+  icon,
+  label,
+  accessibilityLabel,
+  onPress,
+}: {
+  icon?: LfIconName;
+  label: string;
+  accessibilityLabel?: string;
+  onPress?: () => void;
+}): React.JSX.Element {
+  const content = (
+    <>
+      {icon === undefined ? null : <LfIcon name={icon} size={LINK_ICON} />}
+      <View style={styles.rowLinkLabel}><LfText variant="note">{label}</LfText></View>
+      <LfIcon name="arrow_forward" size={LINK_ICON} />
+    </>
+  );
+  if (onPress === undefined) return <View style={styles.rowLink}>{content}</View>;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      style={styles.rowLink}
+      onPress={onPress}
+    >
+      {content}
+    </Pressable>
+  );
+}
+
+function CompareItem({
+  label,
+  value,
+  before = false,
+}: {
+  label: string;
+  value: string;
+  before?: boolean;
+}): React.JSX.Element {
+  return (
+    <LfInkContext.Provider value={!before}>
+      <View style={[styles.compareItem, before && styles.compareBefore]}>
+        <LfText variant="eyebrow">{label}</LfText>
+        <View style={styles.compareValue}>
+          {before ? <Text style={styles.strike}>{value}</Text> : <LfText variant="label">{value}</LfText>}
+        </View>
+      </View>
+    </LfInkContext.Provider>
   );
 }
 
@@ -308,8 +511,8 @@ function EvidenceTile({
   const placeholder = evidenceAvailabilityText(evidence.availability, locale);
   if (placeholder !== null) {
     return (
-      <View style={styles.evidence}>
-        <LfText variant="disclaimer" align="center">{placeholder}</LfText>
+      <View style={[styles.photo, styles.photoPlaceholder]}>
+        <LfText variant="micro" align="center">{placeholder}</LfText>
       </View>
     );
   }
@@ -318,7 +521,7 @@ function EvidenceTile({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={LABEL.evidenceOpen}
-        style={styles.evidence}
+        style={styles.photo}
         onPress={async () => {
           try {
             const signed = await signFulfillmentEvidence(evidence.evidence_id, 'FULL');
@@ -328,8 +531,8 @@ function EvidenceTile({
           }
         }}
       >
-        <LfIcon name="image" color="textMuted" />
-        <LfText variant="caption">{LABEL.evidenceOpen}</LfText>
+        <LfIcon name="image" size={PROOF_ICON} />
+        <LfText variant="eyebrow" align="center">{LABEL.evidenceOpen}</LfText>
       </Pressable>
       <LfButton
         label={LABEL.evidenceReport}
@@ -344,28 +547,36 @@ function EvidenceTile({
 function ClaimCard({
   check,
   nickname,
+  profileImageUrl,
   onReportEvidence,
 }: {
   check: FulfillmentCheckView;
   nickname: string;
+  profileImageUrl: string | null;
   onReportEvidence(evidenceId: string): void;
 }): React.JSX.Element {
   const LABEL = useLabels(SCR_A05_LABEL);
   const { locale } = useLocale();
   const claim = claimPresentation(check, nickname, locale);
+  const empty = check.evidences.length === 0;
   return (
-    <LfCard testID={`detail-claim-${check.role}`}>
-      <View style={styles.claim}>
-        <LfText variant="subtitle">{claim.nickname}</LfText>
-        <LfChip label={claim.answer} tone="paper" kind="status" />
-        <LfText align="center">
-          {check.comment === null || check.comment.length === 0
-            ? LABEL.noComment
-            : check.comment}
-        </LfText>
-        <LfText variant="caption">{claim.submittedAt}</LfText>
-        <LfText variant="caption">{claim.evidenceCount}</LfText>
-        {check.evidences.length > 0 && (
+    <View style={styles.claim} testID={`detail-claim-${check.role}`}>
+      <LfAvatar
+        size="md"
+        nickname={nickname}
+        profileImageUrl={profileImageUrl}
+        accessibilityLabel={LABEL.profileImage(nickname)}
+      />
+      <LfText variant="label" align="center">{claim.nickname}</LfText>
+      <LfChip label={claim.answer} tone="paper" kind="status" />
+      <LfText variant="bodySm" align="center">
+        {check.comment === null || check.comment.length === 0
+          ? LABEL.noComment
+          : check.comment}
+      </LfText>
+      <LfText variant="meta" align="center">{`${claim.submittedAt} · ${claim.evidenceCount}`}</LfText>
+      <View style={[styles.claimEvidence, empty && styles.claimEvidenceEmpty]}>
+        {empty ? null : (
           <View style={styles.evidenceRow}>
             {check.evidences.map((evidence) => (
               <EvidenceTile
@@ -377,7 +588,7 @@ function ClaimCard({
           </View>
         )}
       </View>
-    </LfCard>
+    </View>
   );
 }
 
@@ -392,18 +603,14 @@ function ChangedVersionSection({
   const { locale } = useLocale();
   const rows = changedVersionRows(before, after, locale);
   return (
-    <View style={styles.compare}>
+    <LfStack gap={4}>
       {rows.map((row) => (
-        <LfCard key={row.field}>
-          <View style={styles.changePair}>
-            <LfText variant="caption">{LABEL.changedBefore(row.label)}</LfText>
-            <LfText>{row.before}</LfText>
-            <LfText variant="caption">{LABEL.changedAfter(row.label)}</LfText>
-            <LfText>{row.after}</LfText>
-          </View>
-        </LfCard>
+        <View key={row.field} style={styles.compare}>
+          <CompareItem label={LABEL.changedBefore(row.label)} value={row.before} before />
+          <CompareItem label={LABEL.changedAfter(row.label)} value={row.after} />
+        </View>
       ))}
-    </View>
+    </LfStack>
   );
 }
 
@@ -422,141 +629,185 @@ function VersionHistorySheet({
   const LABEL = useLabels(SCR_A05_LABEL);
   const { locale } = useLocale();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.historyScrim}>
-        <View style={styles.historySheet} accessibilityViewIsModal>
-          <LfStack gap={5}>
-            <LfText variant="title">{LABEL.versionHistoryTitle}</LfText>
-            {state.phase === 'loading' || state.phase === 'idle' ? (
-              <LfText>{LABEL.versionHistoryLoading}</LfText>
-            ) : null}
-            {state.phase === 'error' ? <LfText variant="error">{LABEL.loadError}</LfText> : null}
-            {state.phase === 'ready' ? (
-              <ScrollView contentContainerStyle={styles.historyContent}>
-                {state.value.versions.length === 0 ? (
-                  <LfText>{LABEL.versionHistoryEmpty}</LfText>
-                ) : state.value.versions.map((item) => (
-                  <LfCard key={item.version.version_no}>
-                    <LfStack gap={3}>
-                      <LfText variant="eyebrow">{LABEL.version(item.version.version_no)}</LfText>
-                      <LfText variant="subtitle">{item.version.title}</LfText>
-                      <LfText>{item.version.body}</LfText>
-                      <InfoRow label={LABEL.category} value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][item.version.category]} />
-                      <InfoRow label={LABEL.endDate} value={formatDetailDate(item.version.end_date, locale)} />
-                      <InfoRow label={LABEL.keeper} value={KEEPER_LABEL_BY_LOCALE[locale][item.version.keeper]} />
-                      <InfoRow label={LABEL.reward} value={item.version.reward ?? LABEL.noReward} />
-                      <InfoRow label={LABEL.penalty} value={item.version.penalty ?? LABEL.noPenalty} />
-                      <LfText variant="caption">{LABEL.contentHash}</LfText>
-                      <LfText>{item.version.content_hash.slice(0, 8)}</LfText>
-                      {item.version.activated_at !== null ? (
-                        <InfoRow label={LABEL.versionActivated} value={formatDetailInstant(item.version.activated_at)} />
-                      ) : null}
-                      {item.version.superseded_at !== null ? (
-                        <InfoRow label={LABEL.versionSuperseded} value={formatDetailInstant(item.version.superseded_at)} />
-                      ) : null}
-                      {item.change_requester !== null ? (
-                        <InfoRow label={LABEL.versionRequester} value={item.change_requester.nickname} />
-                      ) : null}
-                      {item.approved_by !== null ? (
-                        <InfoRow label={LABEL.versionApprover} value={item.approved_by.nickname} />
-                      ) : null}
-                      {item.approved_at !== null ? (
-                        <InfoRow label={LABEL.versionApproved} value={formatDetailInstant(item.approved_at)} />
-                      ) : null}
-                      {item.change_reason !== null ? (
-                        <InfoRow label={LABEL.versionReason} value={item.change_reason} />
-                      ) : null}
-                    </LfStack>
-                  </LfCard>
-                ))}
-              </ScrollView>
-            ) : null}
-            <LfButton
-              label={LABEL.versionHistoryClose}
-              variant="outlined"
-              block
-              onPress={onClose}
-            />
-          </LfStack>
-        </View>
-      </View>
-    </Modal>
+    <LfSheet
+      visible={visible}
+      title={LABEL.versionHistoryTitle}
+      closeLabel={LABEL.versionHistoryClose}
+      onClose={onClose}
+    >
+      {state.phase === 'loading' || state.phase === 'idle' ? (
+        <LfText>{LABEL.versionHistoryLoading}</LfText>
+      ) : null}
+      {state.phase === 'error' ? <LfText variant="error">{LABEL.loadError}</LfText> : null}
+      {state.phase === 'ready' ? (
+        <ScrollView contentContainerStyle={styles.historyContent}>
+          {state.value.versions.length === 0 ? (
+            <LfText>{LABEL.versionHistoryEmpty}</LfText>
+          ) : state.value.versions.map((item) => (
+            <LfCard key={item.version.version_no} shadow={false}>
+              <LfStack gap={3}>
+                <LfChip label={LABEL.version(item.version.version_no)} tone="paper" kind="status" />
+                <LfText variant="bodyStrong">{item.version.title}</LfText>
+                <LfText variant="bodySm">{item.version.body}</LfText>
+                <InfoRow label={LABEL.category} value={PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][item.version.category]} />
+                <InfoRow label={LABEL.endDate} value={formatDetailDate(item.version.end_date, locale)} />
+                <InfoRow label={LABEL.keeper} value={KEEPER_LABEL_BY_LOCALE[locale][item.version.keeper]} />
+                <InfoRow label={LABEL.reward} value={item.version.reward ?? LABEL.noReward} />
+                <InfoRow label={LABEL.penalty} value={item.version.penalty ?? LABEL.noPenalty} />
+                <InfoRow label={LABEL.contentHash} value={item.version.content_hash.slice(0, 8)} />
+                {item.version.activated_at !== null ? (
+                  <InfoRow label={LABEL.versionActivated} value={formatDetailInstant(item.version.activated_at)} />
+                ) : null}
+                {item.version.superseded_at !== null ? (
+                  <InfoRow label={LABEL.versionSuperseded} value={formatDetailInstant(item.version.superseded_at)} />
+                ) : null}
+                {item.change_requester !== null ? (
+                  <InfoRow label={LABEL.versionRequester} value={item.change_requester.nickname} />
+                ) : null}
+                {item.approved_by !== null ? (
+                  <InfoRow label={LABEL.versionApprover} value={item.approved_by.nickname} />
+                ) : null}
+                {item.approved_at !== null ? (
+                  <InfoRow label={LABEL.versionApproved} value={formatDetailInstant(item.approved_at)} />
+                ) : null}
+                {item.change_reason !== null ? (
+                  <InfoRow label={LABEL.versionReason} value={item.change_reason} />
+                ) : null}
+              </LfStack>
+            </LfCard>
+          ))}
+        </ScrollView>
+      ) : null}
+    </LfSheet>
   );
 }
 
+/** 이행 확인 — 응답 기한(핑크) · 양측 응답 행 · 증빙 · DISPUTED 는 두 주장을 같은 무게로 나란히 (P1) */
 function FulfillmentSection({
   detail,
+  headline,
   onReportEvidence,
 }: {
   detail: PromiseDetailResponse;
+  headline: string;
   onReportEvidence(evidenceId: string): void;
 }): React.JSX.Element | null {
   const LABEL = useLabels(SCR_A05_LABEL);
   const { locale } = useLocale();
   const fulfillment = detail.fulfillment;
   if (fulfillment === null) return null;
+  const partnerName = detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].PARTNER;
+  const partnerImage = detail.partner?.profile_image_url ?? null;
+  const personOf = (role: FulfillmentCheckView['role']) => role === 'CREATOR'
+    ? { nickname: detail.creator.nickname, profileImageUrl: detail.creator.profile_image_url }
+    : { nickname: partnerName, profileImageUrl: partnerImage };
+  const disputed = detail.status === 'DISPUTED';
   const checks = [fulfillment.creator_check, fulfillment.partner_check].filter(
     (check): check is FulfillmentCheckView => check !== null,
   );
+  const proofs = checks.filter((check) => check.evidences.length > 0);
   return (
     <LfStack gap={5}>
-      <LfText variant="eyebrow">{LABEL.fulfillment}</LfText>
-      <LfCard tone="yellow">
-        <LfStack gap={3}>
-          <LfText>{responseFact(detail.creator.nickname, fulfillment.creator_has_submitted, locale)}</LfText>
-          <LfText>
-            {responseFact(detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].PARTNER, fulfillment.partner_has_submitted, locale)}
-          </LfText>
-          {detail.check_deadline_at !== null && (
-            <InfoRow
-              label={LABEL.checkDeadline}
-              value={formatDetailInstant(detail.check_deadline_at)}
-            />
-          )}
-        </LfStack>
+      {detail.status === 'CHECKING' && detail.check_deadline_at !== null ? (
+        <LfCard tone="pink">
+          <LfStack gap={1}>
+            <LfText variant="eyebrow">{LABEL.checkDeadline}</LfText>
+            <LfText variant="bodyStrong">{formatDetailInstant(detail.check_deadline_at)}</LfText>
+          </LfStack>
+        </LfCard>
+      ) : null}
+      {disputed ? (
+        <LfCard shadow={false}>
+          <LfStack gap={2} center>
+            <LfText variant="bodyStrong" align="center">{headline}</LfText>
+            <LfText variant="meta" align="center">{LABEL.statusSubtitle.DISPUTED}</LfText>
+          </LfStack>
+        </LfCard>
+      ) : null}
+      <LfCard shadow={false}>
+        <View style={styles.list}>
+          <ResponseRow
+            nickname={detail.creator.nickname}
+            profileImageUrl={detail.creator.profile_image_url}
+            submitted={fulfillment.creator_has_submitted}
+            check={disputed ? null : fulfillment.creator_check}
+          />
+          <ResponseRow
+            divided
+            nickname={partnerName}
+            profileImageUrl={partnerImage}
+            submitted={fulfillment.partner_has_submitted}
+            check={disputed ? null : fulfillment.partner_check}
+            silent={detail.status === 'UNRESOLVED'}
+          />
+        </View>
       </LfCard>
-      {checks.length > 0 && (
+      {disputed && checks.length > 0 ? (
         <View style={styles.claims}>
           {checks.map((check) => (
             <ClaimCard
               key={`${check.round_no}.${check.role}`}
               check={check}
-              nickname={
-                check.role === 'CREATOR'
-                  ? detail.creator.nickname
-                  : (detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].PARTNER)
-              }
+              {...personOf(check.role)}
               onReportEvidence={onReportEvidence}
             />
           ))}
         </View>
-      )}
+      ) : null}
+      {!disputed && proofs.length > 0 ? (
+        <LfStack gap={3}>
+          <LfText variant="eyebrow">{LABEL.evidence}</LfText>
+          {proofs.map((check) => (
+            <LfStack key={check.role} gap={2}>
+              <LfText variant="meta">
+                {`${personOf(check.role).nickname} · ${LABEL.evidenceCount(check.evidences.length)}`}
+              </LfText>
+              <View style={styles.evidenceRow}>
+                {check.evidences.map((evidence) => (
+                  <EvidenceTile
+                    key={evidence.evidence_id}
+                    evidence={evidence}
+                    onReport={onReportEvidence}
+                  />
+                ))}
+              </View>
+            </LfStack>
+          ))}
+        </LfStack>
+      ) : null}
       {fulfillment.history.length > 0 && (
         <LfStack gap={4}>
           <LfText variant="eyebrow">{LABEL.history}</LfText>
           {fulfillment.history.map((round) => (
             <LfStack key={round.round_no} gap={3}>
-              <LfText variant="caption">{LABEL.round(round.round_no)}</LfText>
-              {[round.creator_check, round.partner_check]
-                .filter((check): check is FulfillmentCheckView => check !== null)
-                .map((check) => (
-                  <ClaimCard
-                    key={`${round.round_no}.${check.role}`}
-                    check={check}
-                    nickname={
-                      check.role === 'CREATOR'
-                        ? detail.creator.nickname
-                        : (detail.partner?.nickname ?? PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].PARTNER)
-                    }
-                    onReportEvidence={onReportEvidence}
-                  />
-                ))}
+              <LfText variant="meta">{LABEL.round(round.round_no)}</LfText>
+              <View style={styles.claims}>
+                {[round.creator_check, round.partner_check]
+                  .filter((check): check is FulfillmentCheckView => check !== null)
+                  .map((check) => (
+                    <ClaimCard
+                      key={`${round.round_no}.${check.role}`}
+                      check={check}
+                      {...personOf(check.role)}
+                      onReportEvidence={onReportEvidence}
+                    />
+                  ))}
+              </View>
             </LfStack>
           ))}
         </LfStack>
       )}
     </LfStack>
   );
+}
+
+function compactStampOf(
+  status: PromiseDetailResponse['status'],
+): { corner?: LfStampCorner; muted?: boolean; icon?: LfIconName } {
+  if (status === 'CHECKING') return { corner: 'mint' };
+  if (status === 'BROKEN') return { corner: 'pink' };
+  if (status === 'UNRESOLVED') return { muted: true, icon: 'hourglass_bottom' };
+  return { muted: true, icon: 'remove' };
 }
 
 export default function PromiseDetailScreen(): React.JSX.Element {
@@ -673,7 +924,6 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
   const status = detailStatusOf(detail.status, locale);
   const visualMode = detailVisualModeOf(detail.status);
-  const contentCardTone = visualMode === 'record' ? 'paper' : 'yellow';
   const terminalReason =
     detail.status === 'DECLINED'
       ? (detail.approvals.find((approval) => approval.action === 'DECLINE')?.comment ?? null)
@@ -968,431 +1218,479 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     });
   }
 
+  const now = new Date();
+  const ROLE = PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale];
+  const endDateLine: HeadLine = detail.end_date === null
+    ? { value: LABEL.noEndDate }
+    : { label: LABEL.endDate, value: formatDetailDate(detail.end_date, locale) };
+  const closedLine: HeadLine = detail.closed_at === null
+    ? endDateLine
+    : { value: LABEL.closedOn(formatKstDate(toKstDate(new Date(detail.closed_at)), locale)) };
+  const headLine: HeadLine = pendingAmend?.type === 'AMEND' && pendingAmend.proposed_version !== null
+    ? { value: LABEL.proposedVersion(detail.current_version.version_no, pendingAmend.proposed_version.version_no) }
+    : detail.status === 'CHECKING' && detail.check_deadline_at !== null
+      ? {
+          label: LABEL.checkDeadline,
+          value: formatDday(ddayFrom(toKstDate(new Date(detail.check_deadline_at)), now)),
+        }
+      : detail.status === 'DISPUTED'
+        ? { value: LABEL.disputedHint }
+        : terminal ? closedLine : endDateLine;
+  // 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다 (PO 2026-08-20).
+  // 최초 확정 시각은 승인 이력에 그대로 남는다.
+  const recordTime = detail.current_version.activated_at === null
+    ? undefined
+    : formatDetailInstant(detail.current_version.activated_at);
+  const closedTime = detail.closed_at === null ? recordTime : formatDetailInstant(detail.closed_at);
+  const compactTime = detail.status === 'CHECKING' ? recordTime : closedTime;
+  const fingerprint = fingerprintText(detail.current_version.fingerprint, locale);
+  const stampApprovals = detail.approvals.map((approval) => ({
+    label: `${approval.actor.nickname} · ${ROLE[approval.role]} · ${LABEL.approvalAction[approval.action]}`,
+    time: formatDetailInstant(approval.acted_at),
+  }));
+  const amendBanner = pendingAmend === null
+    ? null
+    : pendingAmend.type === 'AMEND'
+      ? LABEL.amendRequested(pendingAmend.requester.nickname)
+      : pendingAmend.type === 'FINISH'
+        ? LABEL.finishRequested(pendingAmend.requester.nickname)
+        : LABEL.cancelRequested(pendingAmend.requester.nickname);
+  const amendApproveLabel = pendingAmend?.type === 'AMEND'
+    ? LABEL.amendApproveAction
+    : pendingAmend?.type === 'FINISH'
+      ? LABEL.finishApproveAction
+      : LABEL.cancelApproveAction;
+  const ddayText = formatDetailDday(detail.end_date, now, locale);
+  const showOutcomes = ['ACTIVE', 'AMEND_PENDING', 'CHECKING', 'BROKEN'].includes(detail.status);
+  const openWitness = () => setWitnessSheetOpen(true);
+  const shareCompleted = () => void Share.share({
+    message: LABEL.shareMessage(detail.title, PROMISE_STATUS_LABEL_BY_LOCALE[locale].COMPLETED),
+  });
+  // 하단 한 줄 — 보조(outlined, 내용 폭) + 주 CTA(옐로, 남는 폭). 상태마다 한 쌍만 둔다
+  const secondaryAction: { label: string; onPress(): void } | null =
+    detail.status === 'ACTIVE' && canRequestAmend
+      ? { label: LABEL.amendRequestAction, onPress: () => setAmendSheetOpen(true) }
+      : detail.status === 'PENDING'
+        ? {
+            label: LABEL.pendingAction,
+            onPress: () => router.push({ pathname: '/invite', params: { promise_id: detail.promise_id } }),
+          }
+        : detail.status === 'COMPLETED'
+          ? { label: LABEL.shareAction, onPress: shareCompleted }
+          : detail.status === 'CHECKING' && canInviteWitness
+            ? { label: LABEL.witnessInviteAction, onPress: openWitness }
+            : null;
+  const primaryAction: { label: string; trailing: LfIconName | null; busy: boolean; onPress(): void } | null =
+    detail.status === 'CHECKING'
+      ? {
+          label: LABEL.checkingAction,
+          trailing: 'check',
+          busy: false,
+          onPress: () => router.push({ pathname: '/fulfillment/[promise_id]', params: { promise_id: detail.promise_id } }),
+        }
+      : detail.status === 'DISPUTED'
+        ? { label: LABEL.disputedAction, trailing: null, busy, onPress: () => void reopen() }
+        : detail.status === 'COMPLETED'
+          ? { label: LABEL.newPromiseAction, trailing: 'add', busy: false, onPress: () => router.push('/promise/edit') }
+          : canInviteWitness
+            ? { label: LABEL.witnessInviteAction, trailing: 'person_add', busy: false, onPress: openWitness }
+            : null;
+
   return (
-    <ScreenFrame
-      onBack={() => router.back()}
-      mode={visualMode}
-      approvedActive={detail.status === 'ACTIVE'}
-    >
+    <ScreenFrame onBack={() => router.back()} mode={visualMode}>
       <ScrollView contentContainerStyle={styles.body}>
-        {detail.status === 'ACTIVE' ? (
-          <>
-            <View style={styles.activeMeta}>
-              <LfChip label={status.label} tone={status.tone} />
-              <View style={styles.activeEndDate}>
-                <LfText variant="caption">{LABEL.endDate}</LfText>
-                <LfText variant="caption">{formatDetailDate(detail.end_date, locale)}</LfText>
+        <View style={styles.head}>
+          <View style={styles.headMain}>
+            <View style={styles.statusRow}>
+              <LfChip label={status.label} tone={status.tone} kind="status" />
+              <View style={styles.headDate}>
+                {headLine.label === undefined ? null : <LfText variant="meta">{headLine.label}</LfText>}
+                <LfText variant="meta">{headLine.value}</LfText>
               </View>
-              <View style={styles.activeMetaSpacer} />
-              <LfText variant="bodyStrong">{formatDetailDday(detail.end_date, new Date(), locale)}</LfText>
             </View>
-            <LfText variant="title">{detail.title}</LfText>
+            <View style={styles.headTitle}><LfText variant="title">{detail.title}</LfText></View>
+          </View>
+          {detail.status === 'ACTIVE' ? (
+            <LfDday
+              label={detail.end_date === null ? LABEL.infinity : ddayText}
+              tone={detail.end_date === null ? 'sky' : 'yellow'}
+              accessibilityLabel={detail.end_date === null ? LABEL.noEndDate : `${LABEL.dday} ${ddayText}`}
+            />
+          ) : null}
+        </View>
 
-            <View style={styles.activeStamp}>
-              <View style={styles.activeSeam}>
-                <LfPromiseSeam />
-              </View>
-              <LfText variant="subtitle" align="center">{status.headline}</LfText>
-              {detail.current_version.activated_at !== null && (
-                <LfText variant="caption" align="center">
-                  {formatDetailInstant(detail.current_version.activated_at)}
-                </LfText>
-              )}
-              {detail.approvals.length > 0 && (
-                <View style={styles.activeApprovals}>
-                  {detail.approvals.map((approval, index) => (
-                    <View
-                      key={`${approval.acted_at}.${approval.role}.${index}`}
-                      style={styles.activeApproval}
-                    >
-                      <LfChip
-                        label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]} · ${LABEL.approvalAction[approval.action]}`}
-                        tone="paper"
-                        kind="meta"
-                      />
-                      <LfText variant="caption">{formatDetailInstant(approval.acted_at)}</LfText>
-                    </View>
-                  ))}
-                </View>
-              )}
-              <LfText variant="caption" align="center">
-                {fingerprintText(detail.current_version.fingerprint, locale)}
-              </LfText>
-            </View>
-
-            <View style={styles.activeContent}>
-              <LfText variant="eyebrow">{LABEL.content}</LfText>
-              <LfText>{detail.body}</LfText>
-              <View style={styles.activeChips}>
-                <LfChip
-                  label={`${LABEL.category} · ${PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category]}`}
-                />
-                <LfChip
-                  label={`${LABEL.keeper} · ${KEEPER_LABEL_BY_LOCALE[locale][detail.keeper]}`}
-                />
-              </View>
-            </View>
-
-            <View style={styles.activeOutcomes}>
-              <View style={[styles.activeOutcome, styles.activeReward]}>
-                <LfText variant="eyebrow">{LABEL.reward}</LfText>
-                <LfText>{detail.reward ?? LABEL.noReward}</LfText>
-              </View>
-              <View style={[styles.activeOutcome, styles.activePenalty]}>
-                <LfText variant="eyebrow">{LABEL.penalty}</LfText>
-                <LfText>{detail.penalty ?? LABEL.noPenalty}</LfText>
-              </View>
-            </View>
-          </>
-        ) : (
-          <>
-            <View
-              style={[
-                styles.status,
-                visualMode === 'friendly' && styles.statusFriendly,
-                visualMode === 'record' && styles.statusRecord,
-                visualMode === 'terminal-neutral' && styles.statusTerminal,
-              ]}
-            >
-              <LfChip label={status.label} tone={status.tone} />
-              <LfText
-                variant={visualMode === 'record' ? 'title' : 'headline'}
-                align="center"
-              >
-                {status.headline}
-              </LfText>
-              <LfText variant="caption" align="center">
-                {LABEL.statusSubtitle[detail.status]}
-              </LfText>
-            </View>
-
-            <LfCard tone={contentCardTone}>
-              <View style={styles.detailText}>
-                <LfText variant="title">{detail.title}</LfText>
-                <LfText>{detail.body}</LfText>
-                <LfRow>
-                  <LfChip
-                    label={`${LABEL.category} · ${PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category]}`}
-                  />
-                  <LfChip
-                    label={`${LABEL.keeper} · ${KEEPER_LABEL_BY_LOCALE[locale][detail.keeper]}`}
-                  />
-                </LfRow>
-                <InfoRow label={LABEL.endDate} value={formatDetailDate(detail.end_date, locale)} />
-                <InfoRow label={LABEL.dday} value={formatDetailDday(detail.end_date, new Date(), locale)} />
-              </View>
-            </LfCard>
-          </>
+        {detail.status === 'PENDING' ? (
+          <LfStamp
+            variant="pending"
+            headline={status.headline}
+            body={LABEL.statusSubtitle.PENDING}
+            pair={{
+              nickname: detail.creator.nickname,
+              profileImageUrl: detail.creator.profile_image_url,
+              accessibilityLabel: LABEL.profileImage(detail.creator.nickname),
+              pendingAccessibilityLabel: LABEL.partnerPending,
+            }}
+          />
+        ) : detail.status === 'ACTIVE' ? (
+          <LfStamp
+            testID="promise-stamp"
+            variant="active"
+            corner={detail.end_date === null ? 'sky' : 'mint'}
+            headline={status.headline}
+            {...(recordTime === undefined ? {} : { time: recordTime })}
+            approvals={stampApprovals}
+            fingerprint={fingerprint}
+          />
+        ) : detail.status === 'COMPLETED' ? (
+          <LfStamp
+            variant="completed"
+            headline={status.headline}
+            {...(closedTime === undefined ? {} : { time: closedTime })}
+            fingerprint={fingerprint}
+          />
+        ) : detail.status === 'AMEND_PENDING' && amendBanner !== null ? (
+          <NoteBanner
+            icon={pendingAmend?.type === 'FINISH' ? 'flag' : 'sync_alt'}
+            tone={pendingAmend?.type === 'AMEND' ? 'sky' : 'paper'}
+            text={amendBanner}
+          />
+        ) : detail.status === 'DISPUTED' ? null : (
+          <LfStamp
+            variant="compact"
+            {...compactStampOf(detail.status)}
+            headline={status.headline}
+            {...(compactTime === undefined ? {} : { time: compactTime })}
+            fingerprint={fingerprint}
+          />
         )}
 
-        <LfStack gap={4}>
+        {detail.status === 'PENDING' && detail.invitation !== null ? (
+          <LfCard>
+            <View style={styles.infoRow}>
+              <LfStatusTile icon="schedule" tone="yellow" />
+              <View style={styles.infoBody}>
+                <LfText variant="eyebrow">{LABEL.invitationExpires}</LfText>
+                <View style={styles.infoValue}>
+                  <LfText variant="bodyStrong">{formatDetailInstant(detail.invitation.expires_at)}</LfText>
+                </View>
+              </View>
+              <LfChip label={LABEL.invitationStatus[detail.invitation.status]} tone="paper" kind="status" />
+            </View>
+          </LfCard>
+        ) : null}
+
+        {pendingAmend !== null ? (
+          <LfCard shadow={false}>
+            <LfStack gap={4}>
+              <LfText variant="eyebrow">{LABEL.amend}</LfText>
+              {pendingAmend.type === 'AMEND' && pendingAmend.proposed_version !== null ? (
+                <ChangedVersionSection
+                  before={detail.current_version}
+                  after={pendingAmend.proposed_version}
+                />
+              ) : null}
+              <CompareItem label={LABEL.amendRequester} value={pendingAmend.requester.nickname} />
+              <CompareItem label={LABEL.amendRequestedAt} value={formatDetailInstant(pendingAmend.created_at)} />
+              {pendingAmend.reason !== null ? (
+                <CompareItem label={LABEL.amendReason} value={pendingAmend.reason} />
+              ) : null}
+              <View style={styles.divider} />
+              {isAmendRequester && counterpart !== null ? (
+                <View style={styles.listRow}>
+                  <LfAvatar
+                    size="row"
+                    pending
+                    nickname={counterpart.nickname}
+                    profileImageUrl={counterpart.profile_image_url}
+                    accessibilityLabel={LABEL.profileImage(counterpart.nickname)}
+                  />
+                  <View style={styles.rowText}>
+                    <LfText variant="caption">{LABEL.amendWaiting(counterpart.nickname)}</LfText>
+                  </View>
+                  <LfIcon name="hourglass_empty" size={ROW_ICON} color="textMuted" />
+                </View>
+              ) : null}
+              <RowLink
+                icon="history"
+                label={LABEL.versionKept(detail.current_version.version_no)}
+                accessibilityLabel={LABEL.versionHistoryAction}
+                {...(canShowVersionHistory ? { onPress: () => void openVersionHistory() } : {})}
+              />
+              <LfText variant="meta" align="center">{LABEL.statusSubtitle.AMEND_PENDING}</LfText>
+              {isAmendRequester ? (
+                <LfButton
+                  label={LABEL.amendWithdrawAction}
+                  variant="outlined"
+                  block
+                  disabled={busy}
+                  onPress={() => void withdrawAmend()}
+                />
+              ) : null}
+              {isAmendResponder ? (
+                <View style={styles.actionRow}>
+                  <LfButton
+                    label={LABEL.amendDeclineAction}
+                    variant="outlined"
+                    size="cta"
+                    disabled={busy}
+                    onPress={() => void respondAmend('DECLINE')}
+                  />
+                  <View style={styles.actionMain}>
+                    <LfButton
+                      label={amendApproveLabel}
+                      size="cta"
+                      block
+                      trailing="check"
+                      disabled={busy}
+                      onPress={() => void respondAmend('APPROVE')}
+                    />
+                  </View>
+                </View>
+              ) : null}
+            </LfStack>
+          </LfCard>
+        ) : null}
+
+        <LfCard
+          {...(detail.status === 'PENDING' ? { tone: 'muted' as const } : {})}
+          shadow={detail.status === 'ACTIVE' || detail.status === 'AMEND_PENDING'}
+        >
+          <View style={styles.content}>
+            <LfText variant="eyebrow">
+              {detail.status === 'PENDING' ? LABEL.contentReadonly : LABEL.content}
+            </LfText>
+            <LfText variant="bodySm">{detail.body}</LfText>
+            <View style={styles.chips}>
+              <LfChip
+                label={`${LABEL.category} · ${PROMISE_CATEGORY_LABEL_BY_LOCALE[locale][detail.category]}`}
+                tone={detail.status === 'PENDING' ? 'paper' : 'muted'}
+              />
+              <LfChip
+                label={`${LABEL.keeper} · ${KEEPER_LABEL_BY_LOCALE[locale][detail.keeper]}`}
+                tone={detail.status === 'PENDING' ? 'paper' : 'muted'}
+              />
+              {detail.status !== 'ACTIVE' && detail.end_date === null ? (
+                <LfChip label={LABEL.noEndDate} tone="sky" />
+              ) : null}
+            </View>
+          </View>
+        </LfCard>
+
+        {showOutcomes ? (
+          <LfOutcomes
+            reward={{ label: LABEL.reward, value: detail.reward ?? LABEL.noReward }}
+            penalty={{ label: LABEL.penalty, value: detail.penalty ?? LABEL.noPenalty }}
+          />
+        ) : null}
+
+        {detail.status === 'ACTIVE' && detail.end_date === null ? (
+          <InfoCard
+            tone="sky"
+            icon="all_inclusive"
+            label={LABEL.noEndDate}
+            value={LABEL.noEndDateHint}
+            {...(canRequestFinish
+              ? {
+                  action: (
+                    <LfButton
+                      label={LABEL.finishRequestAction}
+                      variant="text"
+                      disabled={busy}
+                      onPress={confirmFinish}
+                    />
+                  ),
+                }
+              : {})}
+          />
+        ) : null}
+
+        <LfStack gap={3}>
           <LfText variant="eyebrow">{LABEL.people}</LfText>
-          <LfCard tone={contentCardTone}>
-            <View style={styles.people}>
+          <LfCard shadow={false}>
+            <View style={styles.list}>
               <PersonRow person={detail.creator} />
               {detail.partner === null ? (
-                <LfText>{LABEL.partnerPending}</LfText>
+                <ListRow divided>
+                  <LfAvatar
+                    size="row"
+                    pending
+                    nickname="?"
+                    profileImageUrl={null}
+                    accessibilityLabel={LABEL.partnerPending}
+                  />
+                  <View style={styles.rowText}><LfText variant="label">{LABEL.partnerPending}</LfText></View>
+                </ListRow>
               ) : (
-                <PersonRow person={detail.partner} />
+                <PersonRow divided person={detail.partner} />
               )}
-              {detail.witnesses.map((witness) => <PersonRow key={witness.user_id} person={witness} />)}
+              {detail.witnesses.map((witness) => <PersonRow key={witness.user_id} divided person={witness} />)}
             </View>
           </LfCard>
         </LfStack>
 
-        {detail.status !== 'ACTIVE' && (
-          <LfStack gap={4}>
-            <LfText variant="eyebrow">{LABEL.reward}</LfText>
-            <LfCard tone="yellow"><LfText>{detail.reward ?? LABEL.noReward}</LfText></LfCard>
-            <LfText variant="eyebrow">{LABEL.penalty}</LfText>
-            <LfCard><LfText>{detail.penalty ?? LABEL.noPenalty}</LfText></LfCard>
-          </LfStack>
-        )}
+        <FulfillmentSection detail={detail} headline={status.headline} onReportEvidence={confirmEvidenceReport} />
 
-        {detail.status === 'PENDING' && detail.invitation !== null && (
-          <LfCard tone={visualMode === 'record' ? 'paper' : 'yellow'}>
-            <View style={styles.info}>
-              <InfoRow
-                label={LABEL.invitation}
-                value={LABEL.invitationStatus[detail.invitation.status]}
-              />
-              <InfoRow
-                label={LABEL.invitationExpires}
-                value={formatDetailInstant(detail.invitation.expires_at)}
-              />
-            </View>
-          </LfCard>
-        )}
-
-        {pendingAmend !== null && (
-          <LfStack gap={4}>
-            <LfText variant="eyebrow">{LABEL.amend}</LfText>
-            {pendingAmend.type === 'AMEND' && pendingAmend.proposed_version !== null ? (
-              <ChangedVersionSection
-                before={detail.current_version}
-                after={pendingAmend.proposed_version}
-              />
-            ) : pendingAmend.type === 'FINISH' ? (
-              <LfCard tone="sky">
-                <LfText>{LABEL.finishRequested(pendingAmend.requester.nickname)}</LfText>
-              </LfCard>
-            ) : (
-              <LfCard tone="sky">
-                <LfText>{LABEL.cancelRequested(pendingAmend.requester.nickname)}</LfText>
-              </LfCard>
-            )}
-            <InfoRow label={LABEL.amendRequester} value={pendingAmend.requester.nickname} />
-            <InfoRow label={LABEL.amendRequestedAt} value={formatDetailInstant(pendingAmend.created_at)} />
-            {pendingAmend.reason !== null ? (
-              <InfoRow label={LABEL.amendReason} value={pendingAmend.reason} />
-            ) : null}
-            {isAmendRequester ? (
-              <LfButton
-                label={LABEL.amendWithdrawAction}
-                variant="outlined"
-                block
-                disabled={busy}
-                onPress={() => void withdrawAmend()}
-              />
-            ) : null}
-            {isAmendResponder ? (
-              <LfRow>
-                <LfButton
-                  label={pendingAmend.type === 'AMEND'
-                    ? LABEL.amendApproveAction
-                    : pendingAmend.type === 'FINISH'
-                      ? LABEL.finishApproveAction
-                      : LABEL.cancelApproveAction}
-                  grow
-                  disabled={busy}
-                  onPress={() => void respondAmend('APPROVE')}
-                />
-                <LfButton
-                  label={LABEL.amendDeclineAction}
-                  variant="outlined"
-                  grow
-                  disabled={busy}
-                  onPress={() => void respondAmend('DECLINE')}
-                />
-              </LfRow>
-            ) : null}
-          </LfStack>
-        )}
-
-        <FulfillmentSection detail={detail} onReportEvidence={confirmEvidenceReport} />
+        {detail.status === 'COMPLETED' && detail.reward !== null ? (
+          <InfoCard tone="sky" icon="redeem" label={LABEL.reward} value={detail.reward} />
+        ) : null}
 
         {entitlements !== null && detail.current_version.activated_at !== null ? (
-          <LfStack gap={4}>
-            <LfText variant="eyebrow">{LABEL.retention}</LfText>
-            <LfCard tone="sky">
-              <LfStack gap={3}>
-                <LfText>
+          <LfCard shadow={false}>
+            <View style={styles.retention}>
+              <LfIcon name="inventory_2" size={ROW_ICON} />
+              <View style={styles.rowText}>
+                <LfText variant="note">{LABEL.retention}</LfText>
+                <LfText variant="meta">
                   {entitlements.retention.permanent
                     ? LABEL.retentionPermanent
                     : entitlements.retention.expires_at === null
                       ? LABEL.retentionAwaitingFinish
                       : `${LABEL.retentionExpires} · ${formatDetailInstant(entitlements.retention.expires_at)}`}
                 </LfText>
-                {!entitlements.retention.permanent ? (
-                  <LfButton
-                    label={LABEL.retentionManage}
-                    variant="outlined"
-                    block
-                    onPress={() => setEntitlementMode('RETENTION')}
-                  />
-                ) : null}
-              </LfStack>
+              </View>
+              {!entitlements.retention.permanent ? (
+                <LfButton
+                  label={LABEL.retentionManage}
+                  variant="text"
+                  onPress={() => setEntitlementMode('RETENTION')}
+                />
+              ) : null}
+            </View>
+          </LfCard>
+        ) : null}
+
+        {terminalReason !== null ? (
+          <LfCard tone="muted" shadow={false}>
+            <LfStack gap={2}>
+              <LfText variant="eyebrow">
+                {detail.status === 'DECLINED' ? LABEL.declineReason : LABEL.amendReason}
+              </LfText>
+              <LfText variant="bodySm">{terminalReason}</LfText>
+            </LfStack>
+          </LfCard>
+        ) : null}
+
+        {detail.status !== 'ACTIVE' && detail.approvals.length > 0 ? (
+          <LfStack gap={3}>
+            <LfText variant="eyebrow">{LABEL.approvals}</LfText>
+            <LfCard shadow={false}>
+              <View style={styles.list}>
+                {detail.approvals.map((approval, index) => (
+                  <ListRow key={`${approval.acted_at}.${approval.role}.${index}`} divided={index > 0}>
+                    <LfAvatar
+                      size="row"
+                      nickname={approval.actor.nickname}
+                      profileImageUrl={approval.actor.profile_image_url}
+                      accessibilityLabel={LABEL.profileImage(approval.actor.nickname)}
+                    />
+                    <View style={styles.rowText}>
+                      <LfText variant="label">{`${approval.actor.nickname} · ${ROLE[approval.role]}`}</LfText>
+                      <LfText variant="meta">{formatDetailInstant(approval.acted_at)}</LfText>
+                      {approval.comment !== null ? <LfText variant="bodySm">{approval.comment}</LfText> : null}
+                    </View>
+                    <LfChip label={LABEL.approvalAction[approval.action]} tone="paper" kind="status" />
+                  </ListRow>
+                ))}
+              </View>
             </LfCard>
           </LfStack>
         ) : null}
 
+        {canShowVersionHistory && detail.status !== 'AMEND_PENDING' ? (
+          <RowLink
+            label={LABEL.versionLink(detail.current_version.version_no)}
+            accessibilityLabel={LABEL.versionHistoryAction}
+            onPress={() => void openVersionHistory()}
+          />
+        ) : null}
+
+        {canNotifyPartner ? (
+          <LfCard tone="yellow">
+            <LfStack gap={3}>
+              <LfText variant="note">{LABEL.notifyPartnerHint}</LfText>
+              <LfButton
+                label={LABEL.notifyPartnerAction}
+                variant="outlined"
+                block
+                onPress={() => void Share.share({
+                  message: LABEL.notifyPartnerMessage(
+                    detail.title,
+                    buildParticipantPromisesWebUrl(
+                      process.env['EXPO_PUBLIC_WEB_BASE_URL'] ?? '',
+                    ),
+                  ),
+                })}
+              />
+            </LfStack>
+          </LfCard>
+        ) : null}
+
         {detail.status === 'ACTIVE' ? (
-          <LfStack gap={4}>
-            {canShowVersionHistory ? (
-              <LfButton
-                label={LABEL.versionHistoryAction}
-                variant="outlined"
-                block
-                onPress={() => void openVersionHistory()}
-              />
-            ) : null}
-            <LfDisclaimer />
-          </LfStack>
-        ) : (
-          <LfStack gap={4}>
-            <LfText variant="eyebrow">{LABEL.record}</LfText>
-            <View style={visualMode === 'record' ? styles.recordStamp : null}>
-              <LfCard tone={visualMode === 'record' ? 'paper' : 'yellow'}>
-                <View style={[styles.info, visualMode === 'record' && styles.recordMetadata]}>
-                  {/* 지문이 현재 버전 것이므로 시각도 같은 버전의 승인 시각이어야 짝이 맞는다
-                      (PO 2026-08-20). 최초 확정 시각은 승인 이력에 그대로 남는다. */}
-                  {detail.current_version.activated_at !== null && (
-                    <>
-                      <LfPromiseSeam />
-                      <LfText variant="caption">
-                        {formatDetailInstant(detail.current_version.activated_at)}
-                      </LfText>
-                    </>
-                  )}
-                  <LfText variant="caption">
-                    {fingerprintText(detail.current_version.fingerprint, locale)}
-                  </LfText>
-                </View>
-              </LfCard>
-            </View>
-            {detail.approvals.length > 0 && (
-              <LfStack gap={3}>
-                <LfText variant="eyebrow">{LABEL.approvals}</LfText>
-                {detail.approvals.map((approval, index) => (
-                  <LfCard
-                    key={`${approval.acted_at}.${approval.role}.${index}`}
-                    tone={contentCardTone}
-                  >
-                    <InfoRow
-                      label={`${approval.actor.nickname} · ${PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role]}`}
-                      value={LABEL.approvalAction[approval.action]}
-                    />
-                    <LfText variant="caption">{formatDetailInstant(approval.acted_at)}</LfText>
-                    {approval.comment !== null && <LfText>{approval.comment}</LfText>}
-                  </LfCard>
-                ))}
-              </LfStack>
-            )}
-            {canShowVersionHistory ? (
-              <LfButton
-                label={LABEL.versionHistoryAction}
-                variant="outlined"
-                block
-                onPress={() => void openVersionHistory()}
-              />
-            ) : null}
-          </LfStack>
+          <LfDisclaimer />
+        ) : ['PENDING', 'AMEND_PENDING', 'DISPUTED'].includes(detail.status) ? null : (
+          <LfText variant="meta" align="center">{LABEL.statusSubtitle[detail.status]}</LfText>
         )}
+      </ScrollView>
 
-        {terminalReason !== null && <LfCard><LfText>{terminalReason}</LfText></LfCard>}
-
-        <View style={styles.actions}>
-          {canRequestAmend ? (
-            <LfButton
-              label={LABEL.amendRequestAction}
-              variant="outlined"
-              block
-              disabled={busy}
-              onPress={() => setAmendSheetOpen(true)}
-            />
-          ) : null}
-          {canRequestFinish ? (
-            <LfButton
-              label={LABEL.finishRequestAction}
-              variant="outlined"
-              block
-              disabled={busy}
-              onPress={confirmFinish}
-            />
-          ) : null}
-          {canNotifyPartner ? (
-            <LfCard tone="yellow">
-              <LfStack gap={3}>
-                <LfText variant="caption">{LABEL.notifyPartnerHint}</LfText>
-                <LfButton
-                  label={LABEL.notifyPartnerAction}
-                  variant="outlined"
-                  block
-                  onPress={() => void Share.share({
-                    message: LABEL.notifyPartnerMessage(
-                      detail.title,
-                      buildParticipantPromisesWebUrl(
-                        process.env['EXPO_PUBLIC_WEB_BASE_URL'] ?? '',
-                      ),
-                    ),
-                  })}
-                />
-              </LfStack>
-            </LfCard>
-          ) : null}
-          {detail.status === 'PENDING' && (
-            <LfButton
-              label={LABEL.pendingAction}
-              variant="outlined"
-              block
-              onPress={() => router.push({ pathname: '/invite', params: { promise_id: detail.promise_id } })}
-            />
-          )}
-          {detail.status === 'CHECKING' && (
-            <LfButton
-              label={LABEL.checkingAction}
-              block
-              onPress={() => router.push({ pathname: '/fulfillment/[promise_id]', params: { promise_id: detail.promise_id } })}
-            />
-          )}
-          {detail.status === 'DISPUTED' && (
-            <LfButton
-              label={LABEL.disputedAction}
-              block
-              disabled={busy}
-              onPress={() => void reopen()}
-            />
-          )}
-          {detail.status === 'COMPLETED' && (
-            <LfRow>
+      <View style={styles.actions}>
+        {primaryAction !== null || secondaryAction !== null ? (
+          <View style={styles.actionRow}>
+            {secondaryAction !== null ? (
               <LfButton
-                label={LABEL.shareAction}
+                label={secondaryAction.label}
                 variant="outlined"
-                grow
-                onPress={() =>
-                  void Share.share({
-                    message: LABEL.shareMessage(
-                      detail.title,
-                      PROMISE_STATUS_LABEL_BY_LOCALE[locale].COMPLETED,
-                    ),
-                  })
-                }
+                size="cta"
+                {...(primaryAction === null ? { block: true } : {})}
+                onPress={secondaryAction.onPress}
               />
+            ) : null}
+            {primaryAction !== null ? (
+              <View style={styles.actionMain}>
+                <LfButton
+                  label={primaryAction.label}
+                  size="cta"
+                  block
+                  {...(primaryAction.trailing === null ? {} : { trailing: primaryAction.trailing })}
+                  disabled={primaryAction.busy}
+                  onPress={primaryAction.onPress}
+                />
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+        {terminal || counterpart !== null ? (
+          <View style={styles.safetyRow}>
+            {terminal ? (
               <LfButton
-                label={LABEL.newPromiseAction}
-                grow
-                onPress={() => router.push('/promise/edit')}
-              />
-            </LfRow>
-          )}
-          {canInviteWitness && (
-            <LfButton
-              label={LABEL.witnessInviteAction}
-              variant="tonal"
-              block
-              onPress={() => setWitnessSheetOpen(true)}
-            />
-          )}
-          {terminal && (
-            <LfButton
-              label={LABEL.hideAction}
-              variant="outlined"
-              block
-              disabled={busy}
-              onPress={() => void hideFromList()}
-            />
-          )}
-          {counterpart !== null && (
-            <LfRow>
-              <LfButton
-                label={LABEL.userReport}
+                label={LABEL.hideAction}
                 variant="text"
                 grow
                 disabled={busy}
-                onPress={confirmUserReport}
+                onPress={() => void hideFromList()}
               />
-              <LfButton
-                label={LABEL.userBlock}
-                variant="danger"
-                grow
-                disabled={busy}
-                onPress={confirmBlock}
-              />
-            </LfRow>
-          )}
-          {actionError && <LfText variant="error" align="center">{LABEL.actionFailed}</LfText>}
-        </View>
-      </ScrollView>
+            ) : null}
+            {counterpart !== null ? (
+              <>
+                <LfButton
+                  label={LABEL.userReport}
+                  variant="text"
+                  grow
+                  disabled={busy}
+                  onPress={confirmUserReport}
+                />
+                <LfButton
+                  label={LABEL.userBlock}
+                  variant="danger"
+                  grow
+                  disabled={busy}
+                  onPress={confirmBlock}
+                />
+              </>
+            ) : null}
+          </View>
+        ) : null}
+        {actionError ? <LfText variant="error" align="center">{LABEL.actionFailed}</LfText> : null}
+      </View>
       <WitnessInviteSheet
         visible={witnessSheetOpen}
         promiseId={detail.promise_id}
@@ -1401,7 +1699,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
       <PromiseAmendSheet
         visible={amendSheetOpen}
         detail={detail}
-        now={new Date()}
+        now={now}
         durationUnlimited={entitlements?.duration.unlimited === true}
         onClose={() => setAmendSheetOpen(false)}
         onSubmit={submitAmend}

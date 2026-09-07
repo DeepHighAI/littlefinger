@@ -18,10 +18,13 @@ import {
   type WitnessInviteWithToken,
 } from '../lib/witness-native.ts';
 import { MOD_02_LABEL } from '../screens/mod-02-labels.ts';
-import { colors, radius, size, space } from '../theme/tokens.ts';
+import { colors, border, elevation, radius, size, space } from '../theme/tokens.ts';
 import { LfAvatar } from './LfAvatar.tsx';
 import { LfButton } from './LfButton.tsx';
 import { LfChip } from './LfChip.tsx';
+import { LfHint } from './LfHint.tsx';
+import { LfIcon } from './LfIcon.tsx';
+import { KakaoMark } from './KakaoMark.tsx';
 import { LfRow } from './LfRow.tsx';
 import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
@@ -46,35 +49,45 @@ interface PendingShare {
   invite: WitnessInviteWithToken;
 }
 
+/** README 빈 자리 아바타 44 — 토큰 없음, ADR 0020 예외 */
+const EMPTY_AVATAR = 44;
+
 const styles = StyleSheet.create({
-  scrollContent: {
-    gap: space[5],
-    paddingBottom: space[5],
-  },
+  scrollContent: { gap: space[5], paddingBottom: space[5] },
+  // 증인 행 — 5px 카드 (`.lf-witness` 12 14 · r14 2.5)
   witness: {
-    paddingHorizontal: space[6],
+    gap: space[5],
     paddingVertical: space[5],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.outline,
-    borderRadius: radius.md,
+    paddingHorizontal: space[6],
+    borderWidth: border.card,
+    borderColor: colors.text,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
+    ...elevation.card,
   },
-  witnessCopy: {
-    flex: 1,
-  },
-  emptySlot: {
-    minHeight: size.ctaHeight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
+  // 빈·잠긴 자리 — 점선 r14, 그림자 없음 (`.lf-witness-slot--locked`)
+  slot: {
+    backgroundColor: 'transparent',
+    borderWidth: border.dashed,
     borderStyle: 'dashed',
     borderColor: colors.outlineStrong,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceChrome,
+    borderRadius: radius.xl,
+    ...elevation.sheet,
   },
-  centered: {
-    paddingVertical: space[9],
+  witnessCopy: { flex: 1, minWidth: 0 },
+  // 빈 자리 아바타 — 뮤트 원 + 점선 + 아이콘 20 (`.lf-witness__avatar--empty`)
+  emptyAvatar: {
+    width: EMPTY_AVATAR,
+    height: EMPTY_AVATAR,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: border.pending,
+    borderStyle: 'dashed',
+    borderColor: colors.outlineStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  centered: { paddingVertical: space[9] },
 });
 
 function WitnessRow({
@@ -92,16 +105,16 @@ function WitnessRow({
       <View style={styles.witness}>
         <LfRow gap={5}>
           <LfAvatar
+            size="md"
+            pending
             nickname={LABEL.anonymous}
             profileImageUrl={null}
             accessibilityLabel={LABEL.anonymous}
           />
           <View style={styles.witnessCopy}>
-            <LfStack gap={2}>
-              <LfText>{LABEL.anonymous}</LfText>
-              <LfChip label={LABEL.invited} tone="paper" kind="status" />
-            </LfStack>
+            <LfText variant="bodyStrong">{LABEL.anonymous}</LfText>
           </View>
+          <LfChip label={LABEL.invited} tone="paper" kind="status" />
         </LfRow>
         <LfButton
           label={LABEL.reshare}
@@ -121,17 +134,16 @@ function WitnessRow({
     <View style={styles.witness}>
       <LfRow gap={5}>
         <LfAvatar
+          size="md"
           nickname={nickname}
           profileImageUrl={slot.profile_image_url}
           accessibilityLabel={nickname}
         />
         <View style={styles.witnessCopy}>
-          <LfStack gap={2}>
-            <LfText>{nickname}</LfText>
-            {signedAt !== null ? (
-              <LfText variant="caption">{LABEL.signedAt(signedAt)}</LfText>
-            ) : null}
-          </LfStack>
+          <LfText variant="bodyStrong">{nickname}</LfText>
+          {signedAt !== null ? (
+            <LfText variant="meta">{LABEL.signedAt(signedAt)}</LfText>
+          ) : null}
         </View>
         <LfChip
           label={signedAt !== null ? LABEL.signed : LABEL.unsigned}
@@ -255,10 +267,10 @@ export function WitnessInviteSheet({
       title={LABEL.title}
       closeLabel={LABEL.close}
       onClose={onClose}
+      titleAccessory={list === null ? null : (
+        <LfChip label={LABEL.count(list.occupied_count, list.capacity)} tone="paper" kind="status" />
+      )}
     >
-      {list !== null ? (
-        <LfChip label={LABEL.count(list.occupied_count, list.capacity)} />
-      ) : null}
       <LfText variant="caption">{LABEL.description(WITNESS_MAX)}</LfText>
 
       {loadState.phase === 'LOADING' ? (
@@ -276,47 +288,53 @@ export function WitnessInviteSheet({
       ) : null}
       {ready !== null && list !== null ? (
         <ScrollView contentContainerStyle={styles.scrollContent}>
-              {list.witnesses.map((slot) => (
-                <WitnessRow
-                  key={slot.participant_id}
-                  slot={slot}
-                  busy={busy}
-                  onReshare={(participantId) => void share(participantId)}
-                />
-              ))}
-              {!atCapacity ? (
-                <View style={styles.emptySlot}>
-                  <LfText variant="caption">{remainingLabel}</LfText>
-                </View>
-              ) : (
-                <LfText variant="caption" align="center">
-                  {lockedOut ? LABEL.locked : LABEL.atCapacity}
+          {list.witnesses.map((slot) => (
+            <WitnessRow
+              key={slot.participant_id}
+              slot={slot}
+              busy={busy}
+              onReshare={(participantId) => void share(participantId)}
+            />
+          ))}
+          {/* 빈 자리 — 남은 자리 안내, 다 썼거나 잠겼으면 그 말을 한다. 해제 CTA 는 행 안에 붙는다 */}
+          <View style={[styles.witness, styles.slot]}>
+            <LfRow gap={5}>
+              <View style={styles.emptyAvatar}>
+                <LfIcon name={atCapacity ? 'redeem' : 'person_add'} size={size.appbarIcon} color="textMuted" />
+              </View>
+              <View style={styles.witnessCopy}>
+                <LfText variant="note">
+                  {!atCapacity ? remainingLabel : lockedOut ? LABEL.locked : LABEL.atCapacity}
                 </LfText>
-              )}
-              {canUnlock ? (
-                <LfButton
-                  label={LABEL.unlock}
-                  variant="outlined"
-                  block
-                  disabled={busy}
-                  onPress={() => void unlockWitness()}
-                />
-              ) : null}
-              {rewardMessage !== null ? (
-                <LfText variant="caption" align="center">{rewardMessage}</LfText>
-              ) : null}
-              <LfText variant="caption" align="center">{LABEL.hint}</LfText>
-              {actionError ? (
-                <LfText variant="error" align="center">{LABEL.shareError}</LfText>
-              ) : null}
+              </View>
+            </LfRow>
+            {canUnlock ? (
               <LfButton
-                testID="witness-invite-button"
-                label={LABEL.invite}
-                variant="kakao"
+                label={LABEL.unlock}
+                variant="outlined"
                 block
-                disabled={busy || atCapacity}
-                onPress={() => void share(null)}
+                disabled={busy}
+                onPress={() => void unlockWitness()}
               />
+            ) : null}
+          </View>
+          {rewardMessage !== null ? (
+            <LfText variant="caption" align="center">{rewardMessage}</LfText>
+          ) : null}
+          <LfHint icon="visibility" text={LABEL.hint} />
+          {actionError ? (
+            <LfText variant="error" align="center">{LABEL.shareError}</LfText>
+          ) : null}
+          <LfButton
+            testID="witness-invite-button"
+            label={LABEL.invite}
+            variant="kakao"
+            size="cta"
+            block
+            leading={<KakaoMark />}
+            disabled={busy || atCapacity}
+            onPress={() => void share(null)}
+          />
         </ScrollView>
       ) : null}
     </LfSheet>

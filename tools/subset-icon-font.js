@@ -34,11 +34,11 @@ import subsetFont from 'subset-font';
 export const ICONS = [
   'add', 'ads_click', 'alarm', 'all_inclusive', 'arrow_back', 'arrow_forward', 'balance', 'block',
   'bolt', 'bookmark', 'cancel', 'check', 'check_circle', 'close', 'description', 'draw', 'east',
-  'edit', 'event', 'expand_more', 'fingerprint', 'forum', 'history', 'home', 'hourglass_empty',
-  'image', 'info', 'inventory_2', 'link_off', 'mail', 'menu', 'more_horiz', 'more_vert',
-  'notification_important', 'notifications', 'person', 'person_add', 'photo_camera', 'privacy_tip',
-  'radio_button_checked', 'radio_button_unchecked', 'redeem', 'refresh', 'remove', 'schedule', 'sell',
-  'send', 'settings', 'share', 'sync_alt', 'trending_up', 'visibility',
+  'edit', 'event', 'expand_more', 'fingerprint', 'flag', 'forum', 'history', 'home', 'hourglass_bottom',
+  'hourglass_empty', 'image', 'info', 'inventory_2', 'link_off', 'lock', 'mail', 'menu', 'more_horiz',
+  'more_vert', 'notification_important', 'notifications', 'notifications_off', 'person', 'person_add',
+  'photo_camera', 'privacy_tip', 'radio_button_checked', 'radio_button_unchecked', 'redeem', 'refresh',
+  'remove', 'schedule', 'sell', 'send', 'settings', 'share', 'sync_alt', 'trending_up', 'visibility',
 ];
 
 // 잉크 & 블록 스타일 가이드의 font-variation-settings(wght 500)와 같다. 넷을 모두 핀하면 fvar 가 사라진 정적 폰트가 된다.

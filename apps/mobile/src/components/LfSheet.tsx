@@ -16,6 +16,8 @@ export interface LfSheetProps extends Pick<ModalProps, 'onShow' | 'testID'> {
   centered?: boolean;
   /** centered 시트의 마스코트 아트 — 핸들과 제목 사이 */
   art?: React.ReactNode;
+  /** 제목과 닫기 사이의 칩 — 증인 초대의 "증인 1 / 2" (MOD-02) */
+  titleAccessory?: React.ReactNode;
 }
 
 /** README 시트 좌우 18 — 토큰 없음, ADR 0020 예외 */
@@ -34,6 +36,7 @@ export function LfSheet({
   sheetTestID,
   centered = false,
   art,
+  titleAccessory,
 }: LfSheetProps): React.JSX.Element {
   return (
     <Modal
@@ -69,6 +72,7 @@ export function LfSheet({
           ) : (
             <View style={styles.header}>
               <View style={styles.title}><LfText variant="sheetTitle">{title}</LfText></View>
+              {titleAccessory}
               <LfIconButton icon="close" accessibilityLabel={closeLabel} onPress={onClose} />
             </View>
           )}

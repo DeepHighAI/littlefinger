@@ -1,5 +1,5 @@
 // 생성 파일 — 손으로 고치지 않는다. `node tools/subset-icon-font.js` 가 만든다.
-// 이름 → Material Symbols Rounded 의 코드포인트. 서브셋 폰트에 이 52개만 들어 있다.
+// 이름 → Material Symbols Rounded 의 코드포인트. 서브셋 폰트에 이 56개만 들어 있다.
 export const ICON_CODEPOINT = {
   'add': 0xe145,
   'ads_click': 0xe762,
@@ -22,20 +22,24 @@ export const ICON_CODEPOINT = {
   'event': 0xe24f,
   'expand_more': 0xe5cf,
   'fingerprint': 0xe90d,
+  'flag': 0xe153,
   'forum': 0xe0bf,
   'history': 0xe28e,
   'home': 0xe88a,
+  'hourglass_bottom': 0xea5c,
   'hourglass_empty': 0xe88b,
   'image': 0xe251,
   'info': 0xe88e,
   'inventory_2': 0xe1a1,
   'link_off': 0xe16f,
+  'lock': 0xe88d,
   'mail': 0xe0be,
   'menu': 0xe5d2,
   'more_horiz': 0xe5d3,
   'more_vert': 0xe5d4,
   'notification_important': 0xe004,
   'notifications': 0xe7f4,
+  'notifications_off': 0xe7f6,
   'person': 0xe7fd,
   'person_add': 0xe7fe,
   'photo_camera': 0xe3b0,

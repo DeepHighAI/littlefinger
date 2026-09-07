@@ -633,7 +633,8 @@ describe('SCR-A05 약속 상세', () => {
 
     expect(view.getByText('함께 확인한 약속이에요')).toBeTruthy();
     expect(view.getByTestId('promise-detail-record')).toBeTruthy();
-    expect(view.getAllByTestId('promise-seam', { includeHiddenElements: true })).toHaveLength(1);
+    // 잉크 & 블록: 확정 기록은 봉합선이 아니라 손가락 건 스탬프 하나다
+    expect(view.getAllByTestId('promise-stamp')).toHaveLength(1);
     expect(view.getByText('지우 · 작성자 · 승인')).toBeTruthy();
     expect(view.getByText('민준 · 상대방 · 승인')).toBeTruthy();
     expect(view.queryByText('기록 일치')).toBeNull();

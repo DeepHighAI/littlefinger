@@ -143,16 +143,16 @@ describe('MOD-01 변경·파기 요청', () => {
 
   test('변경·파기 탭은 현재 선택을 스크린리더 상태로 구분한다', async () => {
     const view = await render(<PromiseAmendSheet {...props()} />);
-    const amend = view.getByRole('button', { name: '내용 변경' });
-    const cancel = view.getByRole('button', { name: '파기 요청' });
+    const amend = view.getByRole('tab', { name: '내용 변경' });
+    const cancel = view.getByRole('tab', { name: '파기 요청' });
     expect(amend.props.accessibilityState).toMatchObject({ selected: true });
     expect(cancel.props.accessibilityState).toMatchObject({ selected: false });
 
     await fireEvent.press(cancel);
-    expect(view.getByRole('button', { name: '내용 변경' }).props.accessibilityState).toMatchObject({
+    expect(view.getByRole('tab', { name: '내용 변경' }).props.accessibilityState).toMatchObject({
       selected: false,
     });
-    expect(view.getByRole('button', { name: '파기 요청' }).props.accessibilityState).toMatchObject({
+    expect(view.getByRole('tab', { name: '파기 요청' }).props.accessibilityState).toMatchObject({
       selected: true,
     });
   });
@@ -209,7 +209,7 @@ describe('MOD-01 변경·파기 요청', () => {
       .mockResolvedValueOnce(true);
     const view = await render(<PromiseAmendSheet {...props({ onSubmit, confirmCancel })} />);
 
-    await fireEvent.press(view.getByRole('button', { name: '파기 요청' }));
+    await fireEvent.press(view.getByRole('tab', { name: '파기 요청' }));
     expect(view.getByText('두 사람 모두 동의하면 약속이 파기돼요')).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '요청 보내기' }));
     expect(onSubmit).not.toHaveBeenCalled();

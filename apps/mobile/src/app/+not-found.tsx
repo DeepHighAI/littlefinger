@@ -11,8 +11,15 @@ import { NOT_FOUND_LABEL } from '../screens/not-found-labels.ts';
 import { colors, space } from '../theme/tokens';
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background, padding: space[8] },
-  body: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[8] },
+  screen: { flex: 1, backgroundColor: colors.background },
+  // `.lf-empty` — 세로 가운데, 간격 20, 좌우 24. 버튼도 같은 열에 선다
+  body: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space[8],
+    paddingHorizontal: space[9],
+  },
   copy: { alignItems: 'center', gap: space[2] },
 });
 
@@ -30,11 +37,11 @@ export default function NotFoundScreen(): React.JSX.Element {
           </LfOval>
         </View>
         <View style={styles.copy}>
-          <LfText variant="title" align="center">{LABEL.title}</LfText>
-          <LfText secondary align="center">{LABEL.copy}</LfText>
+          <LfText variant="subtitle" align="center">{LABEL.title}</LfText>
+          <LfText variant="hint" align="center">{LABEL.copy}</LfText>
         </View>
+        <LfButton label={LABEL.action} variant="outlined" onPress={() => router.replace('/')} />
       </View>
-      <LfButton label={LABEL.action} size="cta" block onPress={() => router.replace('/')} />
     </SafeAreaView>
   );
 }

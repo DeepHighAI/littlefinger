@@ -3,7 +3,7 @@ import Svg, { G, Path } from 'react-native-svg';
 
 import { colors, border, elevation, size, space } from '../theme/tokens';
 
-export type LfBlobVariant = 'login' | 'empty' | 'cornerMint' | 'cornerYellow';
+export type LfBlobVariant = 'login' | 'empty' | 'cornerMint' | 'cornerYellow' | 'cornerSky' | 'cornerPink';
 
 export interface LfBlobProps extends Omit<ViewProps, 'style'> {
   variant: LfBlobVariant;
@@ -25,6 +25,16 @@ const dimensions: Record<LfBlobVariant, { width: number; height: number }> = {
   empty: { width: EMPTY_WIDTH, height: EMPTY_HEIGHT },
   cornerMint: { width: CORNER_WIDTH, height: CORNER_HEIGHT },
   cornerYellow: { width: CORNER_WIDTH, height: CORNER_HEIGHT },
+  cornerSky: { width: CORNER_WIDTH, height: CORNER_HEIGHT },
+  cornerPink: { width: CORNER_WIDTH, height: CORNER_HEIGHT },
+};
+
+// 스탬프 모서리 블롭 색 — 진행 민트 · 대기 옐로 · 무기한 스카이 · 불이행 핑크 (A05 아트보드)
+const cornerFill: Record<Exclude<LfBlobVariant, 'login' | 'empty'>, string> = {
+  cornerMint: colors.successContainer,
+  cornerYellow: colors.primaryContainer,
+  cornerSky: colors.recordContainer,
+  cornerPink: colors.attentionContainer,
 };
 
 const EMPTY_WHITE = 'M120 40c60-30 130 10 140 70s-20 120-90 120S30 210 30 150 60 70 120 40Z';
@@ -55,10 +65,7 @@ function BlobArtwork({ variant }: { variant: LfBlobVariant }): React.JSX.Element
   }
   return (
     <Svg width="100%" height="100%" viewBox="0 0 90 70">
-      <Path
-        fill={variant === 'cornerMint' ? colors.successContainer : colors.primaryContainer}
-        d="M40 6c22-10 50 6 46 30S60 68 36 66 4 50 8 32 22 14 40 6Z"
-      />
+      <Path fill={cornerFill[variant]} d="M40 6c22-10 50 6 46 30S60 68 36 66 4 50 8 32 22 14 40 6Z" />
     </Svg>
   );
 }
