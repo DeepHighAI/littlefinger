@@ -419,8 +419,8 @@ function statusChipClass(status: PromiseFulfillmentDetailResponse['status']): st
 }
 
 function statusCardClass(status: PromiseFulfillmentDetailResponse['status']): string {
-  if (status === 'CHECKING') return 'lf-card--pink lf-card--flat';
-  if (status === 'AMEND_PENDING') return 'lf-card--sky lf-card--flat';
+  if (status === 'CHECKING') return 'lf-card--pink';
+  if (status === 'AMEND_PENDING') return 'lf-card--sky';
   return '';
 }
 
@@ -741,7 +741,7 @@ function ResponseForm({
         ))}
       </div>
       <button
-        className="lf-btn lf-btn--filled lf-btn--block"
+        className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block"
         type="button"
         disabled={
           pending ||
@@ -845,18 +845,24 @@ function AmendRequestSheet({
       <button className="lf-scrim" type="button" aria-label={L.amendClose} onClick={onClose} />
       <section className="lf-sheet lf-f11-sheet">
         <div className="lf-sheet__handle" aria-hidden="true" />
-        <div className="lf-row lf-gap-3">
+        <div className="lf-sheet__title-row">
           <h3 className="lf-sheet__title lf-grow">{L.amendRequestCta}</h3>
-          <button className="lf-btn lf-btn--text" type="button" onClick={onClose}>{L.amendClose}</button>
+          <button className="lf-icon-button" type="button" aria-label={L.amendClose} onClick={onClose}>
+            <LfIcon name="close" />
+          </button>
         </div>
-        <div className="lf-segmented">
-          <button type="button" aria-pressed={mode === 'AMEND'} onClick={() => setMode('AMEND')}>{L.amendTab}</button>
-          <button type="button" aria-pressed={mode === 'CANCEL'} onClick={() => setMode('CANCEL')}>{L.cancelTab}</button>
+        {/* 세그먼트는 tab 역할이다 — 앱 MOD-01 과 같은 접근성 문법 */}
+        <div className="lf-segmented" role="tablist" aria-label={L.amendRequestCta}>
+          <button className="lf-segmented__item" type="button" role="tab" aria-selected={mode === 'AMEND'} onClick={() => setMode('AMEND')}>{L.amendTab}</button>
+          <button className="lf-segmented__item" type="button" role="tab" aria-selected={mode === 'CANCEL'} onClick={() => setMode('CANCEL')}>{L.cancelTab}</button>
           {detail.end_date === null ? (
-            <button type="button" aria-pressed={mode === 'FINISH'} onClick={() => setMode('FINISH')}>{L.finishTab}</button>
+            <button className="lf-segmented__item" type="button" role="tab" aria-selected={mode === 'FINISH'} onClick={() => setMode('FINISH')}>{L.finishTab}</button>
           ) : null}
         </div>
-        <p className="lf-info-banner">{L.amendCommonNotice}</p>
+        <div className="lf-info-banner">
+          <LfIcon name="info" />
+          <p className="lf-info-banner__text">{L.amendCommonNotice}</p>
+        </div>
         {mode === 'AMEND' ? (
           <div className="lf-stack lf-gap-4">
             <label className="lf-field">{L.amendField.title}<input className="lf-input" value={proposal.title} onChange={(event) => update('title', event.target.value)} /></label>
@@ -868,12 +874,20 @@ function AmendRequestSheet({
             <label className="lf-field">{L.amendField.penalty}<input className="lf-input" value={proposal.penalty ?? ''} onChange={(event) => update('penalty', event.target.value === '' ? null : event.target.value)} /></label>
             {!changed ? <p className="lf-field__hint">{L.noAmendChanges}</p> : null}
           </div>
-        ) : <p className="lf-info-banner">{mode === 'FINISH' ? L.finishNotice : L.cancelNotice}</p>}
+        ) : (
+          <div className="lf-info-banner">
+            <LfIcon name={mode === 'FINISH' ? 'flag' : 'info'} />
+            <p className="lf-info-banner__text">{mode === 'FINISH' ? L.finishNotice : L.cancelNotice}</p>
+          </div>
+        )}
         <label className="lf-field">
           <span className="lf-field__label">{L.amendReasonLabel} · {L.optionalLabel}</span>
           <textarea className="lf-input lf-textarea" aria-label={L.amendReasonLabel} placeholder={L.amendReasonPlaceholder} value={reason} onChange={(event) => setReason(event.target.value)} />
         </label>
-        <button className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button" disabled={disabled} onClick={() => void submit()}>{L.amendSubmitCta}</button>
+        <button className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" type="button" disabled={disabled} onClick={() => void submit()}>
+          <span>{L.amendSubmitCta}</span>
+          <span className="lf-btn__trailing"><LfIcon name="send" /></span>
+        </button>
       </section>
     </div>
   );
@@ -919,9 +933,15 @@ function PendingAmendPanel({
   return (
     <div className="lf-stack lf-gap-4 lf-mt-4">
       {request.type === 'CANCEL' ? (
-        <p className="lf-info-banner">{L.cancelRequested(request.requester.nickname)}</p>
+        <div className="lf-info-banner">
+          <LfIcon name="info" />
+          <p className="lf-info-banner__text">{L.cancelRequested(request.requester.nickname)}</p>
+        </div>
       ) : request.type === 'FINISH' ? (
-        <p className="lf-info-banner">{L.finishRequested(request.requester.nickname)}</p>
+        <div className="lf-info-banner">
+          <LfIcon name="flag" />
+          <p className="lf-info-banner__text">{L.finishRequested(request.requester.nickname)}</p>
+        </div>
       ) : proposed !== null ? (
         <div className="lf-stack lf-gap-3">
           {fields.map((field) => (
@@ -932,15 +952,15 @@ function PendingAmendPanel({
           ))}
         </div>
       ) : null}
-      <p className="lf-caption">{L.requesterLabel} · {request.requester.nickname}</p>
-      <p className="lf-caption">{L.requestedAtLabel} · {formatKstDateTime(new Date(request.created_at))}{KST_MARK}</p>
-      {request.reason !== null ? <p>{request.reason}</p> : null}
+      <p className="lf-caption--strong">{L.requesterLabel} · {request.requester.nickname}</p>
+      <p className="lf-caption--strong">{L.requestedAtLabel} · {formatKstDateTime(new Date(request.created_at))}{KST_MARK}</p>
+      {request.reason !== null ? <p className="lf-body">{request.reason}</p> : null}
       {requester ? (
         <button className="lf-btn lf-btn--outlined lf-btn--block" type="button" disabled={pending} onClick={onWithdraw}>{L.amendWithdraw}</button>
       ) : (
         <div className="lf-row lf-gap-3">
-          <button className="lf-btn lf-btn--filled lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('APPROVE')}>{request.type === 'AMEND' ? L.amendApprove : request.type === 'FINISH' ? L.finishApprove : L.cancelApprove}</button>
-          <button className="lf-btn lf-btn--outlined lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('DECLINE')}>{L.amendDecline}</button>
+          <button className="lf-btn lf-btn--filled lf-btn--cta lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('APPROVE')}>{request.type === 'AMEND' ? L.amendApprove : request.type === 'FINISH' ? L.finishApprove : L.cancelApprove}</button>
+          <button className="lf-btn lf-btn--outlined lf-btn--cta lf-btn--grow" type="button" disabled={pending} onClick={() => onRespond('DECLINE')}>{L.amendDecline}</button>
         </div>
       )}
     </div>
@@ -961,7 +981,12 @@ function VersionHistoryOverlay({
       <button className="lf-scrim" type="button" aria-label={L.versionHistoryClose} onClick={onClose} />
       <section className="lf-sheet lf-f11-sheet">
         <div className="lf-sheet__handle" aria-hidden="true" />
-        <h3 className="lf-sheet__title">{L.versionHistoryTitle}</h3>
+        <div className="lf-sheet__title-row">
+          <h3 className="lf-sheet__title lf-grow">{L.versionHistoryTitle}</h3>
+          <button className="lf-icon-button" type="button" aria-label={L.versionHistoryClose} onClick={onClose}>
+            <LfIcon name="close" />
+          </button>
+        </div>
         {value === null ? <p>{L.versionHistoryLoading}</p> : value.versions.map((item) => (
           <article className="lf-card" key={item.version.version_no}>
             <div className="lf-stack lf-gap-3">
@@ -1085,13 +1110,16 @@ function PromiseCard({
 
         {detail.status === 'CHECKING' && detail.my_check === null && (
           <>
-            <div className="lf-info-banner lf-stack lf-gap-1 lf-mt-4">
-              <p>{L.myResponsePending}</p>
-              <p>
-                {counterpartHasSubmitted
-                  ? L.counterpartSubmitted
-                  : L.counterpartResponsePending}
-              </p>
+            <div className="lf-info-banner lf-mt-4">
+              <LfIcon name="hourglass_empty" />
+              <div className="lf-info-banner__text lf-stack lf-gap-1">
+                <p>{L.myResponsePending}</p>
+                <p>
+                  {counterpartHasSubmitted
+                    ? L.counterpartSubmitted
+                    : L.counterpartResponsePending}
+                </p>
+              </div>
             </div>
             <ResponseForm
               accessToken={accessToken}
@@ -1887,6 +1915,7 @@ export function ScrW04ParticipantPromises(): React.JSX.Element {
                 ))}
               </ul>
             )}
+            <p className="lf-web-note">{L.installNote}</p>
           </>
         )}
         {versionHistory !== null ? (

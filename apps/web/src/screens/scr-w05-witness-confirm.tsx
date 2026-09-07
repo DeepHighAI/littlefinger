@@ -205,7 +205,7 @@ function WitnessContent({
           <span className="lf-avatar lf-avatar--sm lf-avatar--alt" aria-hidden="true">
             {Array.from(partner.nickname)[0]}
           </span>
-          <span className="lf-caption">
+          <span className="lf-caption--strong">
             {L.parties(detail.creator.nickname, partner.nickname)} · {kst(detail.activated_at!)}
           </span>
         </div>
@@ -257,7 +257,7 @@ function WitnessActions({
             />
             <span>{L.confirmCheckbox}</span>
           </label>
-          <p className="lf-caption lf-text-center">{L.signHint}</p>
+          <p className="lf-caption--strong lf-text-center">{L.signHint}</p>
           <button
             className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block"
             type="button"

@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
 
-import { LfBlob, LfMascotFace, LfPinkyLoop } from './LfMascot.tsx';
+import { LfMascotFace, LfOval, LfPinkyLoop } from './LfMascot.tsx';
 
 describe('web E-1 brand components', () => {
   test('uses the approved mascot asset and accessible name', () => {
@@ -18,9 +18,10 @@ describe('web E-1 brand components', () => {
     expect(container.querySelectorAll('img[alt=""]')).toHaveLength(2);
   });
 
-  test('renders the frozen login blob with the solid loop', () => {
-    const { container } = render(<LfBlob variant="login"><LfPinkyLoop size="eyes" /></LfBlob>);
-    expect(container.querySelector('.lf-blob--login')).not.toBeNull();
+  test('renders the web oval with the solid loop inside', () => {
+    const { container } = render(<LfOval variant="web"><LfPinkyLoop size="eyes" /></LfOval>);
+    expect(container.querySelector('.lf-oval--web')).not.toBeNull();
+    expect(container.querySelector('.lf-oval__inner')).not.toBeNull();
     expect(container.querySelectorAll('img[src*="hand-solid.png"]')).toHaveLength(2);
   });
 });

@@ -35,7 +35,7 @@ export function LfEyes({
   size = 'blob',
   accessibilityLabel,
 }: {
-  size?: 'row' | 'header' | 'card' | 'blob';
+  size?: 'row' | 'header' | 'card' | 'blob' | 'web';
   accessibilityLabel?: string;
 }): React.JSX.Element {
   return (
@@ -77,33 +77,23 @@ export function LfPinkyLoop({
   );
 }
 
-export function LfBlob({
+/**
+ * 타원 아트 — 잉크 & 블록의 마스코트 자리 (`.lf-oval`). web 190×152 는 안쪽 종이 타원을 갖고,
+ * hint 60×56 은 종이 바탕 2px 로 카드 안에 들어간다. 장식이라 접근성 트리에서 뺀다.
+ */
+export function LfOval({
   variant,
+  muted = false,
   children,
 }: {
-  variant: 'login' | 'empty';
+  variant: 'web' | 'hint';
+  muted?: boolean;
   children?: React.ReactNode;
 }): React.JSX.Element {
-  const empty = variant === 'empty';
   return (
-    <div className={`lf-blob lf-blob--${variant} lf-blob--${empty ? 'tilt-empty' : 'tilt'}`} aria-hidden="true">
-      <svg className="lf-blob__svg" viewBox={empty ? '0 0 200 170' : '0 0 220 200'}>
-        <path
-          className="lf-blob__paper"
-          d={empty
-            ? 'M100 8c62-8 96 34 92 80s-42 78-94 74S4 130 8 84 48 16 100 8Z'
-            : 'M110 12c70-10 106 40 100 90s-50 92-104 88S6 150 10 100 50 20 110 12Z'}
-        />
-        {!empty && (
-          <path
-            className="lf-blob__yellow"
-            d="M150 120c34-14 66 8 62 40s-30 44-62 38-40-26-34-48 14-24 34-30Z"
-          />
-        )}
-      </svg>
-      <span className="lf-blob__eyes">
-        {children ?? <LfEyes />}
-      </span>
+    <div className={`lf-oval lf-oval--${variant}${muted ? ' lf-oval--muted' : ''}`} aria-hidden="true">
+      {variant === 'web' ? <span className="lf-oval__inner" /> : null}
+      {children}
     </div>
   );
 }

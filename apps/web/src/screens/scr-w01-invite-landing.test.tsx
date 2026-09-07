@@ -81,12 +81,13 @@ afterEach(() => {
 });
 
 describe('SCR-W01 초대 랜딩', () => {
-  it('승인된 블롭과 손 루프로 초대 브랜드를 표시한다', async () => {
+  it('승인된 타원과 손 루프로 초대 브랜드를 표시한다', async () => {
     fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
     renderAt();
     await screen.findByRole('heading');
 
-    expect(document.querySelector('.lf-blob--login')).not.toBeNull();
+    // 잉크 & 블록: 랜딩 마크는 로그인 블롭이 아니라 웹 타원(`.lf-oval--web`)이다
+    expect(document.querySelector('.lf-oval--web')).not.toBeNull();
     expect(document.querySelectorAll('img[src*="hand-solid.png"]')).toHaveLength(2);
   });
 

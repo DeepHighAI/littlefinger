@@ -463,7 +463,7 @@ describe('SCR-W04 참여 약속', () => {
     );
     renderAt();
     fireEvent.click(await screen.findByRole('button', { name: '변경·파기 요청' }));
-    fireEvent.click(screen.getByRole('button', { name: '파기 요청' }));
+    fireEvent.click(screen.getByRole('tab', { name: '파기 요청' }));
     expect(screen.getByText('두 사람 모두 동의하면 약속이 파기돼요')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
 
@@ -480,7 +480,7 @@ describe('SCR-W04 참여 약속', () => {
     );
     renderAt();
     fireEvent.click(await screen.findByRole('button', { name: '변경·파기 요청' }));
-    fireEvent.click(screen.getByRole('button', { name: '마무리 요청' }));
+    fireEvent.click(screen.getByRole('tab', { name: '마무리 요청' }));
     expect(screen.getByText('상대가 승인한 시각부터 이행 확인과 개인 보관 기간이 시작돼요.')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
 

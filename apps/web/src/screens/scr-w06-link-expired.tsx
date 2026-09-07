@@ -1,7 +1,7 @@
 import type { ErrorCode } from '@littlefinger/shared';
 
 import { LfIcon } from '../components/LfIcon.tsx';
-import { LfBlob } from '../components/LfMascot.tsx';
+import { LfEyes, LfOval } from '../components/LfMascot.tsx';
 import { useLabels } from '../lib/locale.tsx';
 import { SCR_W06_LABEL } from './scr-w06-labels.ts';
 
@@ -53,7 +53,7 @@ export function ScrW06LinkExpired({ reason }: { reason: LinkUnavailableReason })
     // 레퍼런스의 lf-browserbar 는 옮기지 않는다 — 실제 카톡 인앱 브라우저가 그 자리다.
     <div className="lf-screen">
       <div className="lf-screen__body lf-screen__body--web lf-screen__body--centered lf-gap-5">
-        <LfBlob variant="empty" />
+        <LfOval variant="web" muted><LfEyes size="web" /></LfOval>
 
         <h1 className="lf-title lf-title--web">{L.title}</h1>
 

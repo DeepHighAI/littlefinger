@@ -12,7 +12,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LfDisclaimer } from '../components/LfDisclaimer.tsx';
 import { useLabels, useLocale } from '../lib/locale.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
-import { LfPinkyLoop } from '../components/LfMascot.tsx';
+import { LfMascotFace, LfOval, LfPinkyLoop } from '../components/LfMascot.tsx';
 import { promisesPath } from '../routes.ts';
 import { SCR_W03_LABEL } from './scr-w03-labels.ts';
 
@@ -35,25 +35,35 @@ const ANDROID_STORE_URL = buildPlayStoreUrl({
 });
 const ANDROID_USER_AGENT = /Android/iu;
 
-function RevisitCard({ promiseId }: { promiseId: string | null }): React.JSX.Element {
+/**
+ * 재접근 출구 — Android 는 설치 앱(미설치면 스토어)으로, 그 밖은 계정 기반 SCR-W04 로.
+ * 확정 직후 화면이라 앱 설치 배너(`.lf-app-hint`)는 두지 않는다 — EC-I03 과 W03 테스트가 그 부재를 잠근다.
+ * 하단 액션 영역이 아트보드 자리(주 CTA + 텍스트 링크)다.
+ */
+function RevisitActions({ promiseId }: { promiseId: string | null }): React.JSX.Element {
   const L = useLabels(SCR_W03_LABEL);
   const android = ANDROID_USER_AGENT.test(window.navigator.userAgent);
   return (
-    <div className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-center">
-      <p className="lf-body--secondary">{L.revisitCopy}</p>
+    <div className="lf-screen__actions lf-screen__actions--web">
+      <p className="lf-web-note">{L.revisitCopy}</p>
       {android ? (
         <a
-          className="lf-btn lf-btn--tonal lf-btn--block"
+          className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block"
           data-testid="progress-in-app"
           href={buildPromiseProgressAppIntentUri(promiseId, ANDROID_STORE_URL)}
         >
-          {L.revisitAppCta}
+          <span>{L.revisitAppCta}</span>
+          <span className="lf-btn__trailing"><LfIcon name="arrow_forward" /></span>
         </a>
       ) : (
-        <Link className="lf-btn lf-btn--tonal lf-btn--block" to={promisesPath()}>
-          {L.revisitWebCta}
+        <Link className="lf-btn lf-btn--filled lf-btn--cta lf-btn--block" to={promisesPath()}>
+          <span>{L.revisitWebCta}</span>
+          <span className="lf-btn__trailing"><LfIcon name="arrow_forward" /></span>
         </Link>
       )}
+      {android ? (
+        <Link className="lf-btn-link" to={promisesPath()}>{L.revisitWebCta}</Link>
+      ) : null}
     </div>
   );
 }
@@ -101,8 +111,9 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
     return (
       <div className="lf-screen" data-testid="no-result">
         <div className="lf-screen__body lf-screen__body--web lf-screen__body--centered">
-          <RevisitCard promiseId={null} />
+          <LfOval variant="web"><LfPinkyLoop size="eyes" /></LfOval>
         </div>
+        <RevisitActions promiseId={null} />
       </div>
     );
   }
@@ -112,10 +123,11 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
     // 광고는 수락 웹 전체에 없다(CLAUDE.md §8-1).
     <div className="lf-screen">
       <div className="lf-screen__body lf-screen__body--web">
-        {/* 확정 스탬프 — 법적 문서가 아니라 "제대로 기록됐다"는 느낌만 준다(CLAUDE.md §8-3). */}
-        <div className="lf-stamp">
-          <PinkyHooked />
-          <h1 className="lf-stamp__headline">{L.stampLabel}</h1>
+        {/* 확정 스탬프 — 법적 문서가 아니라 "제대로 기록됐다"는 느낌만 준다(CLAUDE.md §8-3).
+            잉크 & 블록: 카드 전체가 민트, 종이 필 안에 컬러 손 루프, 제목 20 */}
+        <div className="lf-stamp lf-stamp--completed">
+          <span className="lf-stamp__pill"><PinkyHooked /></span>
+          <h1 className="lf-stamp__headline lf-stamp__headline--lg">{L.stampLabel}</h1>
           <p className="lf-stamp__time" data-testid="confirmed-at">
             {L.confirmedAt(`${formatKstDateTime(new Date(result.activated_at))}${KST_MARK}`)}
           </p>
@@ -125,7 +137,7 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
           <div className="lf-stamp__approvals">
             {result.approvals.map((approval) => (
               <span className="lf-approval" key={approval.role} data-testid="approval-row">
-                <LfIcon name="check" />
+                <span className="lf-approval__dot" aria-hidden="true" />
                 {L.approvalLine(
                   approval.nickname,
                   PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][approval.role],
@@ -137,7 +149,6 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
 
           {/* 기록 지문 — 확정 영역에는 항상 노출한다(Q-4). "해시"라고 부르지 않는다(§7). */}
           <p className="lf-fingerprint">
-            <LfIcon name="fingerprint" />
             {L.fingerprintLabel}{' '}
             <span className="lf-fingerprint__code" data-testid="fingerprint">
               {result.fingerprint}
@@ -146,13 +157,13 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
         </div>
 
         <LfDisclaimer />
-        <RevisitCard promiseId={result.promise_id} />
 
         {/* 여기서 **일부러 빼는 것**:
             · 리마인드 이메일 카드(§4-4-4 2항) — PO 결정으로 MVP 미수집·미발송.
             · [버전 이력 보기](§4-4-3) — 미해결 항목 **G8**. 버전 이력을 읽는 슬러그가 없다.
             증인 서명 현황(§4-4-3)도 없다 — 확정 직후에는 증인이 존재하지 않는다(F-05 는 M3). */}
       </div>
+      <RevisitActions promiseId={result.promise_id} />
     </div>
   );
 }

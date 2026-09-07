@@ -500,7 +500,7 @@ export function ScrW02PromiseReview(): React.JSX.Element {
           <span className="lf-caption">{PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale].CREATOR}</span>
         </div>
 
-        <div className="lf-card lf-card--web lf-card--flat lf-stack lf-gap-4 lf-text-left">
+        <div className="lf-card lf-card--web lf-stack lf-gap-4 lf-text-left">
           <p className="lf-eyebrow">{L.contentEyebrow}</p>
           <h2 className="lf-subtitle">{preview.title}</h2>
           <p className="lf-body">{preview.body}</p>

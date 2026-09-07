@@ -332,24 +332,6 @@
   transform: translateX(-50%);
 }
 
-/* 웹 세그먼트(button 자식 마크업, P7 전까지) — components.css 의 단일 2px 박스 문법과 같은 모양 */
-.lf-segmented button {
-  flex: 1;
-  min-height: var(--lf-touch-min);
-  border-radius: 0;
-  background: var(--lf-color-surface);
-  color: var(--lf-color-text);
-  font-weight: var(--lf-weight-medium);
-}
-
-.lf-segmented button + button { border-left: var(--lf-border-chip) solid var(--lf-color-text); }
-
-.lf-segmented button[aria-pressed='true'] {
-  background: var(--lf-color-primary-container);
-  color: var(--lf-color-text);
-  font-weight: var(--lf-weight-bold);
-}
-
 /* -------------------------------------------------------------
    공개 법적 문서 초안 — 로그인·초대와 독립된 스크롤 문서
    ------------------------------------------------------------- */

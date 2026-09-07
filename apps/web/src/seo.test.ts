@@ -112,7 +112,7 @@ describe('메타·공유 태그', () => {
     expect(INDEX_HTML).toMatch(/<meta\s+property="og:title"\s+content="리틀핑거"/u);
     expect(INDEX_HTML).toMatch(/<meta\s+property="og:description"\s+content="[^"]{20,}"/u);
     expect(INDEX_HTML).toMatch(/<meta\s+property="og:type"\s+content="website"/u);
-    expect(INDEX_HTML).toContain('<meta name="theme-color" content="#F3ECDC" />');
+    expect(INDEX_HTML).toContain('<meta name="theme-color" content="#FBF8F1" />');
   });
 
   test('og:url 은 ADR 0005 의 오리진이다', () => {

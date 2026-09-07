@@ -11,7 +11,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 
 import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
-import { LfBlob, LfPinkyLoop } from '../components/LfMascot.tsx';
+import { LfOval, LfPinkyLoop } from '../components/LfMascot.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import { INTERNAL_MESSAGE_BY_LOCALE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { useLabels, useLocale } from '../lib/locale.tsx';
@@ -311,7 +311,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
             (기기 시계는 믿지 않는다, EC-F09), 여기서 화면을 SCR-W06 으로 바꿔 버리면
             시계가 앞선 기기에서 멀쩡한 초대가 열리지 않는다. */}
         {remainingMs > 0 && (
-          <p className="lf-notice">
+          <p className="lf-notice lf-notice--pink">
             <LfIcon name="schedule" />
             <span className="lf-notice__timer" data-testid="countdown">
               {formatRemaining(remainingMs)}
@@ -322,9 +322,9 @@ export function ScrW01InviteLanding(): React.JSX.Element {
 
         <PinkyBadge />
 
-        <h1 className="lf-headline">{L.headline(phase.invite.creator_nickname)}</h1>
+        <h1 className="lf-title lf-title--heavy">{L.headline(phase.invite.creator_nickname)}</h1>
 
-        <div className="lf-card lf-card--web lf-card--flat lf-text-left">
+        <div className="lf-card lf-card--web lf-card--fill lf-text-left">
           <p className="lf-eyebrow">{L.previewEyebrow}</p>
           <p className="lf-preview__title">{phase.invite.title}</p>
           <p className="lf-preview__hint">{L.previewHint}</p>
@@ -351,8 +351,9 @@ export function ScrW01InviteLanding(): React.JSX.Element {
             <p className="lf-caption lf-text-center">{L.continueOnWeb}</p>
           </>
         )}
+        {/* 카카오 = 주 CTA 5px(`--kakao-login`), Google = 웹 변형 52h 3px. 둘 다 아트보드의 block 이다 */}
         <button
-          className="lf-btn lf-btn--kakao lf-btn--cta lf-btn--block"
+          className="lf-btn lf-btn--kakao lf-btn--kakao-login lf-btn--block"
           type="button"
           disabled={signingIn}
           onClick={() => void handleKakaoLogin()}
@@ -361,7 +362,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
           <span>{L.kakaoCta}</span>
         </button>
         <button
-          className="lf-btn lf-btn--google lf-btn--cta lf-btn--block"
+          className="lf-btn lf-btn--google lf-btn--block"
           type="button"
           disabled={signingIn}
           onClick={() => void handleGoogleLogin()}
@@ -369,7 +370,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
           <GoogleMark />
           <span>{L.googleCta}</span>
         </button>
-        {!signInFailed && <p className="lf-caption lf-text-center">{L.ctaCaption}</p>}
+        {!signInFailed && <p className="lf-web-note">{L.ctaCaption}</p>}
         <nav className="lf-login-legal" aria-label={L.legalNav}>
           <Link to={legalPath('TERMS')}>{LEGAL_DOCUMENT_LABELS_BY_LOCALE[locale].TERMS}</Link>
           <Link to={legalPath('PRIVACY')}>{LEGAL_DOCUMENT_LABELS_BY_LOCALE[locale].PRIVACY}</Link>
@@ -391,15 +392,15 @@ export function ScrW01InviteLanding(): React.JSX.Element {
 }
 
 /**
- * 브랜드 마크는 승인된 E-1 원본과 기존 마스코트 토큰을 사용한다.
- * SCR-W02 의 로딩도 이것을 쓴다. 같은 흐름의 두 화면 중 하나만 흰 화면이면 로딩이
+ * 브랜드 마크 — 잉크 & 블록의 웹 타원(190×152) 안 검은 손 루프. 승인된 E-1 원본과 마스코트 토큰을 쓴다.
+ * SCR-W02·W04 의 로딩도 이것을 쓴다. 같은 흐름의 두 화면 중 하나만 흰 화면이면 로딩이
  * 아니라 끊긴 것처럼 보인다.
  */
 export function PinkyBadge(): React.JSX.Element {
   return (
-    <LfBlob variant="login">
+    <LfOval variant="web">
       <LfPinkyLoop size="eyes" />
-    </LfBlob>
+    </LfOval>
   );
 }
 

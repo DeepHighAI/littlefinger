@@ -226,3 +226,22 @@ svg {
   align-items: center;
   gap: var(--lf-space-4);
 }
+
+/* =============================================================
+   WEB ONLY — 아래는 수락 웹(apps/web)에만 있는 규칙이다. design-reference/styles/base.css 에는 없다.
+   이 줄 위는 원본과 바이트 단위로 같아야 한다 — 다시 동기화할 때는 이 구획 위만 덮어쓴다.
+   ============================================================= */
+
+/* 카카오톡 인앱 브라우저 — index.html 의 viewport-fit=cover 가 노치·제스처 바까지 크림을 채우고,
+   본문과 액션은 그 안전영역만큼 물러선다. 미리보기 프레임(.lf-device)이 없으므로 화면은 뷰포트에 고정한다. */
+.lf-screen {
+  position: fixed;
+}
+
+.lf-screen__body--web {
+  padding-top: calc(var(--lf-space-8) + env(safe-area-inset-top));
+}
+
+.lf-screen__actions--web {
+  padding-bottom: calc(var(--lf-space-8) + env(safe-area-inset-bottom));
+}

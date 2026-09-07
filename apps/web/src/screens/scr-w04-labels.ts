@@ -95,6 +95,7 @@ const ko = {
   endDateMeta: (date: string) => `종료일 ${date}`,
   myAnswer: (answer: string) => `내 응답: ${answer}`,
   roundHistoryTitle: (round: number) => `${round}차 확인 기록`,
+  installNote: '앱을 설치하면 푸시로 바로 알려드려요',
 };
 
 const en = {
@@ -190,6 +191,7 @@ const en = {
   endDateMeta: (date: string) => `End date ${date}`,
   myAnswer: (answer: string) => `Your response: ${answer}`,
   roundHistoryTitle: (round: number) => `Round ${round} check record`,
+  installNote: 'Install the app to get push alerts right away',
 } satisfies typeof ko;
 
 export const SCR_W04_LABEL: Localized<typeof ko> = { ko, en };

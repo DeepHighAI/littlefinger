@@ -74,9 +74,10 @@ describe('SCR-W06 링크 무효·만료 안내', () => {
     }
   });
 
-  it('만료 상태는 승인된 빈 화면 블롭을 쓴다', () => {
+  it('만료 상태는 승인된 뮤트 타원과 눈을 쓴다', () => {
     const { container } = render(<ScrW06LinkExpired reason="E_INVITE_EXPIRED" />);
-    expect(container.querySelector('.lf-blob--empty')).not.toBeNull();
+    // 잉크 & 블록: 빈 화면 블롭 대신 뮤트 웹 타원(`.lf-oval--web.lf-oval--muted`)
+    expect(container.querySelector('.lf-oval--web.lf-oval--muted')).not.toBeNull();
     expect(container.querySelector('img[src*="eyes-e1.png"]')).not.toBeNull();
   });
 
