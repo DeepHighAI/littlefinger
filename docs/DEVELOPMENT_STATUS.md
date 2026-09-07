@@ -2,25 +2,39 @@
 
 Snapshot date: **2026-09-07 KST**.
 
-## 잉크 & 블록 restyle (in progress, 2026-09-06)
+## 잉크 & 블록 restyle — complete (2026-09-07, ADR 0020)
 
 The PO delivered the fifth visual system, **잉크 & 블록 (시안 1a, 45° hard shadow)**, as
-`design-reference/design_handoff_ink_block/` (README, style guide, four screen boards, drop-in
-`handoff/tokens.css`). It keeps every token name and swaps values: canvas `#FBF8F1`, the four
-accent colours saturated, blur-free ink shadows `5px 5px 0` / `3px 3px 0`, radius 14/10/8/20,
-borders 2/2.5, tilt 0, Pretendard 500/600/800/900. Component grammar: white pill app bar with a
-메뉴 sheet replacing the bell and avatar, 40 dp status tiles, r14 block buttons, a full-width home
-CTA, badge-on-card heroes, shadow-less sheets. PO decisions E1–E6 and the nine-session plan live in
-`docs/plans/2026-09-06-ink-block-restyle.md`; ADR 0020 will record both this baseline and the
-2026-09-03 pastel baseline, which shipped without an ADR.
+`design-reference/design_handoff_ink_block/` on 2026-09-06 (read-only reference now). It keeps every
+token name and swaps values: canvas `#FBF8F1`, the four faces saturated, blur-free ink shadows
+`5px 5px 0` / `3px 3px 0`, radius 14/10/8/20, borders 2/2.5, tilt 0, Pretendard 500/600/800/900. The
+component grammar changed with it: paper app-bar block with a 메뉴 sheet replacing the bell and
+avatar, 40 dp status tiles, r14 block buttons with a yellow CTA (no black fill), a full-width home
+CTA, badge-on-card heroes, shadow-less sheets, irregular-oval mascot art.
 
-Session 1 landed the bundle, Pretendard Medium/Black, the Material Symbols subset at weight 500
-with the status-tile and menu glyphs, and the token swap across the three targets. Sessions 2–10
-ported the components, every RN screen (P5–P6) and the acceptance web (P7, 2026-09-07: the eight
-web routes were captured 360×800 against the artboards with fixtures — `tools/capture-web-screens.js`).
-**The web deployment hold that started with the reference CSS rewrite (P3) is lifted as of
-2026-09-07**; `firebase deploy --only hosting:web` runs when the PO says so. Nothing from P5–P6 has
-been seen on a device yet (the emulator sign-in is blocked server-side); P8 writes ADR 0020 and the docs.
+Eleven sessions (2026-09-06 → 2026-09-07) landed P0–P8: bundle, fonts and icon subset (P1), the
+179-token swap across the three targets (P2), the reference CSS rewrite (P3), the 42-page gallery in
+two PO-confirmed batches (P4), the RN components and the menu sheet (P5), every RN screen (P6), the
+acceptance web (P7) and the documentation (P8). **ADR 0020** records this baseline together with the
+2026-09-03 pastel baseline that had shipped without an ADR, plus the PO decisions E1–E11 and the
+literal / substitution exception table; `DESIGN.md` is rewritten; both plan files are deleted;
+`LfPromiseSeam`, the transitional `.lf-status-dot` / `.lf-chip--cream` / `.lf-avatar-button`
+selectors and the LEGACY `.lf-pinky*` / `.sl-*` CSS block are gone. **The acceptance web was
+deployed on 2026-09-07** (`firebase deploy --only hosting:web`, build of the P7 markup →
+`https://littlefinger-app.web.app`).
+
+Gates at close: five-project typecheck, Vitest **114 files / 2,179 tests**, jest-expo **84 suites / 928 tests**, web production
+build (616 kB main chunk, pre-existing warning), `check:agents`, `git diff --check`. P8 also found
+and moved a lockstep assertion that had been failing since P7: the `base.css` byte-identity test in
+`apps/mobile/src/theme/tokens.test.ts` now compares only above the web `/* WEB ONLY */` section
+(the runner that owns it is jest, which session 10 skipped — `docs/notes/environment-gotchas.md`).
+
+**Still open:** nothing from P5–P6 has been seen on a device — the emulator Kakao/Google sign-in is
+blocked (dev email test accounts retired server-side). First checks once a sign-in exists:
+`boxShadow` inside clipping on the stamp and proof thumbnails, the 56 h CTA and chips at font
+scale 1.5, Android hard-shadow rendering, and the KakaoTalk in-app browser safe-area on the deployed
+web. `app.json` still carries the pastel-era splash `#F3ECDC` and notification colour `#FFE59A` —
+a PO decision, not part of ADR 0020.
 
 Carried from the retired production-readiness handoff, unchanged and still open: recheck the
 AdMob app and its app-ads.txt table after crawler propagation (first meaningful check after

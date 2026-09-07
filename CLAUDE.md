@@ -41,7 +41,8 @@ rationale → `docs/adr/`. Status → `docs/DEVELOPMENT_STATUS.md`. Rules → th
 home outside the handoff, it is not yet preserved.
 
 **`docs/plans/` keeps one file per accepted initiative** and is deleted when its ADR lands — the
-2026-08-29 monetization plan stays until ADR 0015 is deployed, then goes.
+two restyle plans went with ADR 0020 on 2026-09-07, so the directory is empty until the next
+accepted initiative.
 
 The one exception now in the directory is
 `2026-07-26-kakao-supabase-oauth-findings.md`: §6-1 and `supabase/config.toml` cite it as the source
@@ -116,7 +117,7 @@ npm run preview           # node design-reference/serve.js → http://localhost:
 
 | URL | Contents |
 |---|---|
-| `http://localhost:4173/` | Full screen gallery, 27 screens |
+| `http://localhost:4173/` | Full screen gallery, 42 screens (34 app incl. the home menu sheet · 8 web) |
 | `http://localhost:4173/docs/flows.html` | Screen-to-screen flow map |
 
 ```bash
@@ -200,8 +201,9 @@ a diff is ever needed.
 
 The app framework (open point N-3) is **decided: React Native + Expo** (PO, 2026-07-25; ADR 0002).
 
-`design-reference/` holds the approved UI as a **framework-free HTML/CSS screen library** — 27
-screens, 116 design tokens, 110 `lf-*` component classes. It is read-only during implementation.
+`design-reference/` holds the approved UI as a **framework-free HTML/CSS screen library** — 42
+screens (34 app · 8 web), 179 design tokens, 96 base `lf-*` classes (228 selectors counting
+modifiers and elements). It is read-only during implementation.
 The sole exception is an explicit PO-approved restyle previewed first and recorded in `DESIGN.md`
 and an ADR; that change creates a new frozen comparison baseline. Preview it with `npm run preview`.
 
@@ -213,8 +215,9 @@ All three workspaces exist and are feature-complete for the approved MVP scope:
 release gates and open verification live in `docs/DEVELOPMENT_STATUS.md`.
 
 Port rules are fully specified in `04` §3–§5. **Follow them; do not improvise.** Two known gaps in
-`04`: it counts 111 `lf-*` classes (actually 110), and its §4-6 dependency list omits
-`react-native-svg`, which SCR-A01's 핑키 logo needs.
+`04`: its `lf-*` class count (111) describes the original library — the class set has since grown
+through four PO-approved restyles (latest ADR 0020) — and its §4-6 dependency list omits
+`react-native-svg`, which the entry mascot blob and the `LfOval` art need.
 
 ### 5-2. The domain contract lives in `packages/shared`
 
@@ -274,12 +277,14 @@ keepRate denominator counts **only promises where I am the obligor**, and shows 
 
 ### 5-3. The design system is a one-source, three-target pipeline
 
-Read [`DESIGN.md`](DESIGN.md) before changing UI. It defines the approved **잉크 & 스티커**
-(Ink & Sticker, Setlog 시안 1a — ADR 0012) system: cream paper canvas, one warm ink for
-text/borders/filled CTA, sticker containers (butter=brand/positive, lavender=durable record,
-apricot=deadline/response), Pretendard 400/600/700/800 as the single product typeface, thick ink borders with offset
-sticker shadows, and red as danger-only. The product hierarchy in §4 and the hard constraints
-in §8 still win.
+Read [`DESIGN.md`](DESIGN.md) before changing UI. It defines the approved **잉크 & 블록**
+(Ink & Block, 시안 1a · 45° hard shadow — ADR 0020) system: paper canvas `#FBF8F1`, one warm ink
+for text, borders and the shadows themselves, four saturated faces (yellow=brand/selection/CTA,
+mint=progress/completion, pink=deadline/response/failure/penalty, sky=durable record/amendment/
+reward — text on a face is always ink), Pretendard 500/600/800/900 as the single product typeface,
+thick ink borders with blur-free block shadows (`5px 5px 0` / `3px 3px 0`), r14 blocks, no tilt,
+a yellow filled CTA (no black fill), and red as danger-only. The product hierarchy in §4 and the
+hard constraints in §8 still win.
 
 `src/styles/tokens.css` is the single definition of every colour, type scale, radius, spacing,
 elevation, easing and duration. It was authored at a **360×800 dp** viewport, which is why the port
@@ -288,12 +293,15 @@ is mechanical:
 | Target | Transform |
 |---|---|
 | `design-reference/styles/tokens.css` | canonical approved baseline; frozen between PO-approved restyles |
-| `apps/mobile/src/theme/tokens.ts` | **px number = RN dp, 1:1**. Only shadows (→ objects), easing (→ `Easing.bezier`), weights (→ strings) change shape |
+| `apps/mobile/src/theme/tokens.ts` | **px number = RN dp, 1:1**. Only shadows (→ New Architecture `boxShadow` arrays, `sheet` empty), easing (→ bezier coefficient tuples), weights (→ strings) change shape. Press offsets, oval radii and the A00/A01 entry values are the only literals — ADR 0020's exception table, do not grow it |
 | `apps/web/src/styles/tokens.css` | copy, used as-is |
 
-`src/styles/components.css` holds 110 `lf-*` classes. Modifier classes collapse into **props**, not
-separate components — `lf-btn--filled` → `<LfButton variant="filled">`. The full 110→~33 mapping
-table is `04` §5-2. Screen-specific styles live in `src/styles/screens/`.
+`src/styles/components.css` holds the `lf-*` classes. `components.css` and `screens/web.css` are
+byte-identical between the reference and `apps/web`, and `base.css` is identical above its
+`/* WEB ONLY */` section — `apps/mobile/src/theme/tokens.test.ts` asserts all three, so a CSS
+change is always a same-commit copy. Modifier classes collapse into **props**, not separate
+components — `lf-btn--filled` → `<LfButton variant="filled">`. The original 110→~33 mapping table
+is `04` §5-2. Screen-specific styles live in `src/styles/screens/`.
 
 **Never write a design literal.** No hex, no font size, no spacing number, no radius in screen or
 component code — always through the token layer. If a value is missing, add the token first (and
@@ -315,11 +323,14 @@ KakaoTalk in-app browser plays that role). Keep the `lf-screen` structure and ev
 
 Two port gotchas already discovered, do not rediscover them:
 - The web/reference target self-hosts `PretendardVariable.woff2`; RN loads Pretendard static files
-  for 400/600/700/800 because RN Android's variable-font weight axis is unreliable. Since ADR 0014,
-  Korean, English, display, body, metadata, and record strings all use Pretendard with no font-role
-  exception. `theme/fontAssets.ts` and `theme/fonts.ts` are the native loading and weight map.
-- Material Symbols Rounded is not bundled with Expo — use `@expo/vector-icons` MaterialIcons behind
-  an `LfIcon` wrapper so the swap point stays in one file. Screens never import icons directly.
+  for **500/600/800/900** (ADR 0020 — weight 700 does not exist: unselected tabs/chips use 600,
+  everything the bundle called 700 uses 800) because RN Android's variable-font weight axis is
+  unreliable. Since ADR 0014, Korean, English, display, body, metadata, and record strings all use
+  Pretendard with no font-role exception. `theme/fontAssets.ts` and `theme/fonts.ts` are the native
+  loading and weight map.
+- Material Symbols Rounded is not bundled with Expo — `tools/subset-icon-font.js` generates a
+  static subset (weight 500) for RN and the web, loaded behind the `LfIcon` wrapper with the closed
+  `LfIconName` union, so the swap point stays in one file. Screens never import icons directly.
 
 ### 5-5. Target layout after the port (npm workspaces)
 
@@ -595,7 +606,7 @@ Full detail: `04` §10.
 | ~~N-3~~ | ~~App framework~~ | **Decided: React Native + Expo** (2026-07-25). Rationale `03`, port rules `04` |
 | ~~C-1~~ | ~~Business registration → email collection~~ | **Closed 2026-07-26. The PO has a business registration, and chose not to collect email anyway.** See §6-1 below — Biz App is still mandatory, for a different reason than `04` §13 assumed |
 | ~~Emoji~~ | ~~`02` §2-3 wants both "count code points" and "emoji counts as 1"~~ | **Decided 2026-07-26: code points.** A family emoji counts 5, 🇰🇷 counts 2. Grapheme counting needs `Intl.Segmenter`, an ECMA-402 surface where Hermes has gaps. Revisit at M4 if device testing allows |
-| C-2 | Match icons to the original 100%? | Default: no — Expo MaterialIcons, slight corner-curvature difference |
+| ~~C-2~~ | ~~Match icons to the original 100%?~~ | **Closed 2026-09-03: a Material Symbols Rounded static subset (`tools/subset-icon-font.js`, weight 500 since ADR 0020) serves RN and the web** |
 | ~~C-3~~ | ~~Buy a domain for the acceptance web?~~ | **Closed 2026-08-18 (ADR 0005), domain re-cut 2026-08-25: use `https://littlefinger-app.web.app` — no personal name in the public origin (ADR 0010). The old `…-philwoo` site 301-redirects.** |
 | ~~C-4~~ | ~~Pretty KakaoTalk share card for invites?~~ | **Closed 2026-08-23: SCR-A04 ships the OS share sheet (카톡·SMS·SNS 전부) + an explicit link-copy button (expo-clipboard).** The old "카카오톡으로 초대 보내기" label was retired — the handler was already the OS sheet, only the label lied |
 | N-1 | '리틀핑거' trademark / store name | Confirm before launch |

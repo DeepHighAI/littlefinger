@@ -453,3 +453,14 @@ router state, so the script pushes `{ usr: payload }` with `history.pushState` a
 or `btoa`, so the JWT's base64url is hand-rolled. `vite preview` serves `index.html` for unknown
 routes (Firebase rewrites to `app.html`), which is fine for capture because React replaces the
 prerendered home markup on mount.
+
+## Changing `apps/web` CSS needs jest, not only vitest (2026-09-07)
+
+The reference ↔ web CSS lockstep assertions — `components.css` and `screens/web.css` byte-identical,
+`base.css` identical above its `/* WEB ONLY */` section — live in
+`apps/mobile/src/theme/tokens.test.ts`, which is a **jest-expo** test, not a Vitest one. Session 10
+appended the WEB ONLY section to `apps/web/src/styles/base.css`, ran Vitest (green) and skipped jest
+because "no `apps/mobile` file changed"; the byte-identity assertion had been failing since that
+commit and nobody saw it until P8 ran the file. Rule: any change under `design-reference/styles/` or
+`apps/web/src/styles/` runs `cd apps/mobile && npx jest src/theme/tokens.test.ts` at minimum, and a
+"tests unchanged" claim is only true after the runner that owns the assertion has run.

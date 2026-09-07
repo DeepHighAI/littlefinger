@@ -2,14 +2,15 @@
 
 기본적으로 이 디렉터리는 구현 이식 중 **읽기 전용**이다. 단 PO가 비교 시안을 승인하고 그
 변경을 `DESIGN.md`와 ADR에 기록한 전역 리스타일은 새로운 기준선을 만드는 명시적 예외다.
-현재 기준선은 **잉크 & 스티커 (Setlog 시안 1a, 2026-08-27, ADR 0012)**다. 임의 수정은 여전히 금지한다.
+현재 기준선은 **잉크 & 블록 (시안 1a · 45° 하드 섀도, 2026-09-06, ADR 0020)**다. 임의 수정은 여전히 금지한다.
 
 | 경로 | 내용 |
 |---|---|
-| `screens/app/` | 안드로이드 앱 화면 21개 — React Native 이식의 시각 기준 |
-| `screens/web/` | 수락 웹 화면 6개 — Vite JSX 변환의 원본 |
-| `styles/` | `tokens.css`(디자인 토큰 115종) · `base.css` · `components.css`(`lf-*` 110개) · `screens/` |
-| `assets/fonts/` | `PretendardVariable.woff2` — **웹 전용.** 앱은 정적 `.ttf` 4종이 따로 필요하다(§5-4) |
+| `screens/app/` | 안드로이드 앱 화면 34면(홈 메뉴 시트 포함) — React Native 이식의 시각 기준 |
+| `screens/web/` | 수락 웹 화면 8면 — Vite JSX 변환의 원본 |
+| `styles/` | `tokens.css`(디자인 토큰 179종, 번들과 값 동일) · `base.css` · `components.css`(`lf-*` 기본 클래스 96개) · `screens/` — `components.css`·`screens/web.css`는 `apps/web` 사본과 바이트 동일, `base.css`는 `/* WEB ONLY */` 구획 위까지 동일 |
+| `assets/fonts/` | `PretendardVariable.woff2` — **웹 전용.** 앱은 정적 `.ttf` 4종(500/600/800/900)이 따로 필요하다(§5-4). Material Symbols Rounded 서브셋은 `tools/subset-icon-font.js`가 만든다 |
+| `design_handoff_ink_block/` | PO가 전달한 잉크 & 블록 리디자인 번들(README · 스타일 가이드 · 화면 보드 · `tokens.css`) — **읽기 전용 원본**. 아트보드는 `content-box`라 README 수치가 정본이다 |
 | `concept-4.html` | Claude Design 원본 캔버스 |
 | `serve.js`, `index.html`, `docs/flows.html` | 미리보기 서버·갤러리·플로우 연결도 |
 
@@ -34,7 +35,7 @@ Claude Design 프로젝트 *리틀핑거 모바일 UI 컨셉안*에서 내보낸
 | 파일 | 역할 | 여기 없는 이유 |
 |---|---|---|
 | `support.js` | `<x-dc>` · `<x-import>` · `<sc-if>` · props를 해석하는 캔버스 런타임 (React 기반, 생성 파일) | 뷰어 도구일 뿐 디자인 내용이 아니다. `screens/frame.js`가 그 역할을 대체한다 |
-| `colors_and_type.css` | Material 3 기본(퍼플) 토큰 | `styles/tokens.css`로 옮긴 뒤, 현재는 승인된 A 역할 팔레트로 재정의했다 |
+| `colors_and_type.css` | Material 3 기본(퍼플) 토큰 | `styles/tokens.css`로 옮긴 뒤, 네 차례 리스타일을 거쳐 현재는 잉크 & 블록 값(ADR 0020)으로 재정의했다 |
 | `android-frame.jsx` | 안드로이드 디바이스 프레임 컴포넌트 | `styles/base.css`의 `.lf-device` + `frame.js`로 재구현했다 |
 | `fonts/PretendardVariable.woff2` | 브랜드 서체 | `assets/fonts/`에 있다 |
 
