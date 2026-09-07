@@ -2,6 +2,98 @@
 
 Snapshot date: **2026-09-07 KST**.
 
+## Internal release preparation (2026-09-07)
+
+PO approved this sequence: merge/update local work, commit/push, build the latest production
+AAB, distribute through **internal testing**, resolve and verify ads, then consider public release.
+The local `codex/supabase-e2e` branch is already an ancestor of `main`; the merge returned
+`Already up to date.` No public-track rollout or ad-flag change is part of this preparation.
+Pre-commit verification: 114 Vitest files / 2,179 tests and 84 mobile Jest suites / 928 tests
+passed; five-project typecheck, agent-doc synchronization and whitespace checks passed.
+Artifact creation and internal rollout are pending; Play code 24 remains the installed baseline.
+
+## Play reinstall and live ad recheck (2026-09-07)
+
+Latest diagnosis: five metadata-only HTTP requests to the official UMP consent endpoint isolated
+an app-specific difference. The product AdMob app ID returned HTTP 200 / NOT_REQUIRED / no form
+with either QA or product package metadata, Korean or English, and EEA-only debug flags. The
+Google demo app ID control returned COLLECT_CONSENT / privacy options REQUIRED / a form payload.
+Together with the native SDK result below, this narrows the issue to app-specific message serving;
+the underlying Google-side reason is **not confirmed**. These requests are not a real-device
+consent or SSV pass. The console showed 198 selected ad partners; the preview's zero-partner
+placeholder was not the configured list. App review was requested September 5. There is no
+confirmed evidence that app-readiness review itself blocks UMP delivery. The console still has
+the earlier advertising ID, not the phone's currently observed ID; reconcile it before rewarded QA.
+
+**Isolated UMP follow-up:** with PO approval, installed a separate diagnostic build
+as `com.littlefinger.app.umpqa`; Play `com.littlefinger.app` remains version 0.3.0/code 24 from
+`com.android.vending`, without replacement or data clearing. The QA-only native activity uses
+the real UMP SDK and product AdMob app ID. It reports `isTestDevice=true` and
+`debugGeography=1` (EEA). After resetting only QA consent and requesting updated information,
+the response remains consentStatus 1 (NOT_REQUIRED), privacyOptions NOT_REQUIRED,
+formAvailable false, canRequestAds true. Required-form presentation completes without a visible
+form; privacy re-open returns error 3, `Privacy options form is not required.` The product RN
+privacy-options wrapper in the same isolated package returns the same error. No consent choice
+was possible; this is a failed QA gate, not successful consent or proof of a production SDK bug.
+The QA app remains installed for investigation. No ads, SSV attempts or backend writes were made
+in this follow-up, and no production message configuration was changed.
+
+Local evidence: `dist/ump-diagnostic-20260907.apk`, `dist/ump-diagnostic-20260907.png`,
+`dist/ump-product-wrapper-20260907.png`; QA sources and init script live under
+`dist/ump-diagnostic/` and `dist/ump-diagnostic.init.gradle` (gitignored, not release artifacts).
+Build: `BUILD SUCCESSFUL in 3m 49s` after supplying the local Android SDK path; five-project
+typecheck passed and the two targeted UMP test suites passed 7/7 tests. The QA source map includes
+the real AdsConsent module and product wrapper, not the previous ad fixture mocks.
+
+The phone's advertising ID observed during this follow-up differs from the one registered earlier
+today. It was not reset by this run; reconcile the current ID with the console before further
+rewarded QA. This does not invalidate the separately verified UMP `isTestDevice=true` result.
+The differential diagnosis above is the next investigation result; preserve these facts for Google
+support if app-specific console/message checks do not explain delivery.
+
+### Earlier reinstall and rewarded attempt (before the isolated follow-up above)
+
+With explicit PO approval, removed the debug client from SM-N981N and installed the Play
+internal-test app: `versionName=0.3.0`, `versionCode=24`, installer `com.android.vending`,
+no DEBUGGABLE flag. Login restored and Home loaded. This older artifact does not contain the
+September 7 restyle/copy changes; reinstalling it is not a new Play deployment.
+
+The existing isolated UMP EEA probe was temporarily reinstalled. Its request returned
+`status=NOT_REQUIRED`, `isConsentFormAvailable=false`, `canRequestAds=true`, and
+`privacyOptionsRequirementStatus=NOT_REQUIRED`; showing the consent form did not display one.
+The product privacy-options wrapper returned `Privacy options form is not required.`
+This is isolated-package evidence, not a successful choice/re-open on the Play app. The Play
+app's own SDK logged `IABTCF_gdprApplies=0`; Profile had no privacy-options row.
+
+At 14:20 KST, the signed-in partner requested the witness rewarded benefit on the existing
+`Witness share QA` promise. Intent `74174983-7101-4c1b-b789-fcd395a26a44` was created at
+`2026-09-07 05:20:36.148902+00` with action `WITNESS_PARTNER`. The Play process logged
+`Ad failed to load : 3`; the UI remained locked. Read-only Supabase queries found the intent
+PENDING, granted_at null, and zero grants for this intent. Flags remained
+`ads_enabled=false`, `rewarded_ads_enabled=true`. No ad was watched, no SSV grant or duplicate
+callback was verified, and no purchase, invitation or direct entitlement write was performed.
+Local captures: `dist/ump-recheck-20260907.png`, `dist/ssv-recheck-20260907.png`.
+The temporary `com.littlefinger.app.umpqa` package was removed after this earlier probe, then
+reinstalled for the later isolated follow-up above; the Play app and its session were preserved.
+
+Both release gates remain open. A subsequent console check found the test-device list empty;
+with PO approval, registered `Littlefinger QA SM-N981N` using the phone's actual Android
+advertising ID on September 7. The console confirmed the addition and showed one Android device.
+The previous September 2 registration claim is superseded; SDK debug hashes are not the
+advertising ID required by the console. Test-ad delivery after propagation is not yet verified.
+
+The existing `Littlefinger Android` European message (console name: `리틀핑거 Android`) is
+published, last modified September 5, and selects `com.littlefinger.app` with the product privacy
+URL. It uses English only and targets EEA, UK and Switzerland, not all countries. No message
+settings were changed or republished. The pulled Play code 24 APK and isolated probe APK both
+contain AdMob app ID `ca-app-pub-9625042173735017~2273644771`, matching the console app.
+App readiness remains getting ready / under review, with limited ad serving.
+
+Next allow test-device propagation (up to 24 hours), confirm a Test Ad label before rewarded
+QA, then verify SSV through the server ledger. UMP choice/re-open still needs a valid EEA test;
+console test-device registration alone does not force UMP debug geography. Do not infer ad fill
+from app-ads.txt approval or change production message targeting just to force a QA prompt.
+
 ## Compact localized copy — implemented (2026-09-07, ADR 0021)
 
 Applied the PO-approved 24 compact Korean replacements to mobile/web catalogs, shared display

@@ -371,6 +371,26 @@ show real `AdsConsent` plus product `ads-consent-native` and no GMA mocks. A `.m
 JSON.parse(readFileSync(...)), not require(...map), which treats it as JavaScript and dumps it in
 the SyntaxError output. Never print an entire source map, as it can include public environment data.
 
+September 7 follow-up: a QA-only native Activity bypassing the RN bridge confirmed
+`ConsentDebugSettings.isTestDevice() == true` and `getDebugGeography() == 1`, yet the real UMP
+request still returned NOT_REQUIRED with no form. Do not keep treating the old debug hash as the
+proven cause. The native and product RN privacy-options calls both return `Privacy options form
+is not required.` The separate `.umpqa` package is not evidence that the Play package would behave
+identically in EEA. Its release-source-set manifest overlay can override the AdMob app ID and add
+the diagnostic Activity without modifying the product manifest; never distribute this QA APK.
+
+AdMob console registration uses the Android advertising ID, not the UMP debug hash. The phone's
+advertising ID changed between the September 7 registration and follow-up; recheck it before
+rewarded QA. Do not reset it as a troubleshooting step, and do not assume its change also changes
+the UMP hash: the native test-device check above still passed.
+
+The subsequent official UMP endpoint control returned a consent form for Google's demo app ID
+but NOT_REQUIRED for the product app ID with the same EEA request shape. Product-package
+metadata, English and removal of PREVIEWING_DEBUG_MESSAGES did not change the product result.
+Do not attribute this to package mismatch, language, RN alone, or an unregistered native UMP
+debug device without new evidence. The underlying app-specific serving cause remains unknown;
+readiness review is not a proven UMP dependency. Never count a raw HTTP probe as device consent QA.
+
 ## Mobile PKCE lands on `code_challenge_method=plain`, and that is fine (2026-09-05)
 
 `apps/mobile` sets `flowType: 'pkce'` (2026-09-05 security fix — the auth-js default is `implicit`,

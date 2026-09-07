@@ -127,7 +127,7 @@ ADMOB_REWARDED_WITNESS_UNIT_ID:         ca-app-pub-9625042173735017/8166907779
 ADMOB_REWARDED_DURATION_UNIT_ID:        ca-app-pub-9625042173735017/3843580039
 ADMOB_REWARDED_RETENTION_UNIT_ID:       ca-app-pub-9625042173735017/9969627380
 SSV_CALLBACK_SET_ON_ALL_THREE:          [x] URL verified and saved
-ADMOB_TEST_DEVICE_IDS:                  registered 2026-09-02 (SM-N981N; id in ADR0015_DEVICE_QA.md prerequisite 7)
+ADMOB_TEST_DEVICE_IDS:                  reconcile current phone ID (2026-09-07 registration now differs from the observed ID)
 ```
 
 The three rewarded ids are set in both Supabase Edge secrets and the EAS `production`
@@ -395,19 +395,12 @@ preview build.
 Do this before exercising any ad row with the production unit ids. Test-device registration is an
 AdMob account setting; it does not require another app build.
 
-1. Open AdMob → **Settings → Test devices → Add test device**, select Android, give the phone a
-   recognizable name, and save its advertising/test-device id.
-2. If the id is not already known, install the internal-track build, connect ADB, clear logcat, and
-   open one ad-bearing screen **once without tapping the ad**:
-
-   ```powershell
-   adb logcat -c
-   adb logcat | Select-String 'setTestDeviceIds|RequestConfiguration|test device'
-   ```
-
-   Copy the hexadecimal id from Mobile Ads SDK's `setTestDeviceIds(...)` instruction into the
-   AdMob test-device form. This discovery request can look live, so do not click it.
-3. Force-stop and reopen the app after saving. AdMob says propagation can take up to 15 minutes.
+1. Read the Android **advertising ID** under device Settings → Google → Ads. Do not reset it.
+2. Open AdMob → **Settings → Test devices → Add test device**, select Android, give the phone a
+   recognizable name, and save that advertising ID. The logcat hash from `setTestDeviceIds(...)`
+   belongs to SDK programmatic configuration, not this console form.
+3. Force-stop and reopen the app after propagation. AdMob says this can take up to one hour,
+   and in some cases up to 24 hours.
    Do not continue QA until the creative carries the **Test Ad** label.
 4. Keep Google Play license testing separate: add the tester account in Play Console before the
    purchase rows. AdMob test-device status does not make Play Billing a test purchase.
@@ -415,9 +408,13 @@ AdMob account setting; it does not require another app build.
    changes only after SSV, and the server grant row exists. A client `EARNED_REWARD` event by itself
    is never a pass.
 
-The SM-N981N was registered on 2026-09-02 (`docs/qa/ADR0015_DEVICE_QA.md` prerequisite 7). Any
-further QA phone follows the same steps. The open-testing follow-up runbook is
-`docs/setup/open-testing-release.md`.
+On 2026-09-07 the console list was empty, superseding the earlier September 2 registration claim.
+The SM-N981N was then registered as `Littlefinger QA SM-N981N` using its actual advertising ID;
+the console confirmed one Android device. A later check found the phone's current ID differed
+from that console entry; reconcile it before the next rewarded attempt. Further QA phones follow
+the same steps. Registration
+does not force UMP EEA geography. The open-testing follow-up runbook is
+`docs/setup/open-testing-release.md`. Source: [AdMob test-device setup](https://support.google.com/admob/answer/9691433?hl=en).
 
 ---
 

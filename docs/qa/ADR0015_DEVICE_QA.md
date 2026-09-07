@@ -141,7 +141,7 @@ line) opened its confirm dialog.
 | 4 | Account B — partner | license tester `____________` (second phone, or the acceptance web `https://littlefinger-app.web.app` on desktop) |
 | 5 | Account C — witness | `____________` (any account; web) |
 | 6 | 0.1.x device | one phone still on `0.1.0 (9)` for row 1 — do **not** update it until row 1 is captured |
-| 7 | AdMob test devices | **DONE (PO confirmed)** — `278D76522FF9E640A4DB636E0016313E` registered; immediate device retest reached the SDK and returned no fill |
+| 7 | AdMob test devices | **Reconciliation required (2026-09-07)** — registered `Littlefinger QA SM-N981N` using its actual Android advertising ID, not an SDK hash. A later read found the phone's ID had changed while the console retained the earlier one. Register the current ID before rewarded QA; Test Ad delivery remains unverified. This supersedes registration claims in the historical notes below. |
 | 8 | `rewarded_ads_enabled` | `true` (migration default) — rows 7a and 13 change it and restore it |
 | 9 | `ads_enabled` | `false` — row 13 sets `true` for that row only and restores `false` |
 | 10 | Worker secrets in hand | `PURCHASE_RECONCILE_SECRET` (row 12) and `RETENTION_WORKER_SECRET` (row 18), read from `npx supabase secrets` owner's notes — never from the repo |
