@@ -464,3 +464,12 @@ because "no `apps/mobile` file changed"; the byte-identity assertion had been fa
 commit and nobody saw it until P8 ran the file. Rule: any change under `design-reference/styles/` or
 `apps/web/src/styles/` runs `cd apps/mobile && npx jest src/theme/tokens.test.ts` at minimum, and a
 "tests unchanged" claim is only true after the runner that owns the assertion has run.
+
+## Reinstalling the same package brings the signed-in session back (2026-09-07)
+
+`adb install` of the debug dev client on the PO's phone — with no Littlefinger package installed at the time —
+opened straight into the signed-in home. The manifest has `android:allowBackup="true"` with the SecureStore backup
+rules, so Android's restore-at-install apparently put the session back. Useful for QA (no Kakao / Google round trip),
+but it also means an uninstall does not log the account out on that device; treat a "fresh install" on a phone
+that once had the app as an already-authenticated state, and use the app's 로그아웃 when a signed-out state is the
+point of the test.

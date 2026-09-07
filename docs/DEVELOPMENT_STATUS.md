@@ -29,21 +29,25 @@ and moved a lockstep assertion that had been failing since P7: the `base.css` by
 `apps/mobile/src/theme/tokens.test.ts` now compares only above the web `/* WEB ONLY */` section
 (the runner that owns it is jest, which session 10 skipped — `docs/notes/environment-gotchas.md`).
 
-**Still open:** nothing from P5–P6 has been seen on a device — the emulator Kakao/Google sign-in is
-blocked (dev email test accounts retired server-side). First checks once a sign-in exists:
-`boxShadow` inside clipping on the stamp and proof thumbnails, the 56 h CTA and chips at font
-scale 1.5, Android hard-shadow rendering, and the KakaoTalk in-app browser safe-area on the deployed
-web. `app.json` still carries the pastel-era splash `#F3ECDC` and notification colour `#FFE59A` —
-a PO decision, not part of ADR 0020.
+**Device QA (2026-09-07, PO's SM-N981N, debug dev client + Metro, 360×800 dp via density 480,
+font scale 1.0 and 1.5, settings restored):** A00, home with all three tabs, the menu sheet, A03,
+A04, A05 PENDING / CHECKING, A06, A07, A08, A09 and MOD-02 were captured beside their gallery pages.
+Every screen follows the gallery grammar; the Android `boxShadow` ink shadows render, including the
+stamp with its clipped corner blob; at font scale 1.5 nothing clips (CTA labels wrap, buttons grow).
+Not covered (no ACTIVE promise on the account): A05 ACTIVE / COMPLETED / BROKEN / DISPUTED,
+MOD-01 / 03 / 04 / 05, SCR-I. Three observations went to the PO: the app's Korean-only eyebrows vs
+the gallery's `TITLE · 제목` prefixes (copy decision), the A09 filter chips wrapping to two rows at
+360 dp, and the A04 stamp blob sitting top-left (RN `LfStamp` has one corner). The KakaoTalk in-app
+browser safe-area on the deployed web is still unverified. `app.json` derivatives were re-derived
+from the tokens (splash `#FBF8F1`, notification `#FFD43B`; the launcher field stays `#FFE59A`) —
+PO-delegated 2026-09-07, effective in the next native build.
 
-Carried from the retired production-readiness handoff, unchanged and still open: recheck the
-AdMob app and its app-ads.txt table after crawler propagation (first meaningful check after
-2026-09-06 23:15 KST; investigate if still absent after 2026-09-12 23:15 KST). Once verification is
-ready, use the Play code 24 test installation with forced-EEA debug geography to record an actual
-UMP choice plus privacy-options re-open, then complete one real rewarded ad and prove exactly one
-`ADMOB_SSV` grant for its intent, including duplicate-callback idempotence. Production-track
-promotion stays prohibited until both pieces of evidence pass. Do not refund another purchase or
-republish the European message.
+Carried from the retired production-readiness handoff: **AdMob app-ads.txt is approved (PO,
+2026-09-07)** — the crawler recheck is closed. Still open: use the Play code 24 test installation
+with forced-EEA debug geography to record an actual UMP choice plus privacy-options re-open, then
+complete one real rewarded ad and prove exactly one `ADMOB_SSV` grant for its intent, including
+duplicate-callback idempotence. Production-track promotion stays prohibited until both pieces of
+evidence pass. Do not refund another purchase or republish the European message.
 
 ## Production readiness closure pass (2026-09-06)
 
