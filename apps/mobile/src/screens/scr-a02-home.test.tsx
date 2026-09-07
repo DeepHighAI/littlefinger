@@ -117,7 +117,7 @@ describe('SCR-A02 Soft Promise 홈', () => {
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
     expect(listHomePromises).toHaveBeenCalledWith({ tab: 'ACTIVE' });
-    expect(view.getByText('이번 주\n약속 0개 순항 중.')).toBeTruthy();
+    expect(view.getByText('이번 주\n약속 0개 지켜요!')).toBeTruthy();
     // 홈 탭은 진행·대기 둘뿐이다 — 종결은 히스토리 화면의 몫이다.
     expect(view.getByRole('tab', { name: '진행 중 0' })).toBeTruthy();
     expect(view.getByRole('tab', { name: '대기 2' })).toBeTruthy();
@@ -222,7 +222,7 @@ describe('SCR-A02 Soft Promise 홈', () => {
     }));
     const view = await render(<HomeScreen now={NOW} />);
     await settle();
-    expect(view.getByText('이행 확인 필요')).toBeTruthy();
+    expect(view.getByText('결과 확인 필요')).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '지켜졌나요? 답하기' }));
     expect(push).toHaveBeenCalledWith({
       pathname: '/promise/[promise_id]', params: { promise_id: ACTIVE_ID },

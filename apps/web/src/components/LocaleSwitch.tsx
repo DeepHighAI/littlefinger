@@ -1,23 +1,11 @@
-import type { Locale } from '@littlefinger/shared';
+import type { Locale, Localized } from '@littlefinger/shared';
 
 import { useLocale } from '../lib/locale.tsx';
 
-/**
- * 언어 수동 전환 (PO 2026-08-20: 기기 언어 자동 + 수동 전환).
- *
- * 버튼에는 **전환될 언어의 이름을 그 언어로** 적는다 — 지금 화면 언어를 읽지 못하는
- * 사용자가 자기 언어를 찾는 장치라서, 현재 언어로 번역해 두면 정작 필요한 사람이
- * 못 읽는다. 두 로케일뿐이라 토글 하나면 충분하다. 상태는 색이 아니라 텍스트가
- * 전달한다(CLAUDE.md §8-7).
- */
-
-const LOCALE_NAME: Record<Locale, string> = { ko: '한국어', en: 'English' };
-
-// aria 도 전환될 언어로 적는다 — 이 버튼의 청자는 그 언어의 사용자다.
-const SWITCH_ARIA: Record<Locale, string> = {
-  ko: '한국어로 보기',
-  en: 'View in English',
-};
+// 한 화면에는 한 언어만 표시한다 — 접근성 이름도 현재 언어를 따른다(ADR 0021).
+const ko = { name: '영어', aria: '영어로 보기' };
+const en = { name: 'Korean', aria: 'View in Korean' } satisfies typeof ko;
+const LABEL: Localized<typeof ko> = { ko, en };
 
 export function LocaleSwitch(): React.JSX.Element {
   const { locale, setLocale } = useLocale();
@@ -27,10 +15,10 @@ export function LocaleSwitch(): React.JSX.Element {
       className="lf-locale-switch"
       type="button"
       data-testid="locale-switch"
-      aria-label={SWITCH_ARIA[target]}
+      aria-label={LABEL[locale].aria}
       onClick={() => setLocale(target)}
     >
-      {LOCALE_NAME[target]}
+      {LABEL[locale].name}
     </button>
   );
 }

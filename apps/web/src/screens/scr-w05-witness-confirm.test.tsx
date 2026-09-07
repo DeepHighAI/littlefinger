@@ -307,7 +307,7 @@ describe('SCR-W05 witness confirmation', () => {
     getWitnessDetail.mockResolvedValue(WITH_EVIDENCE);
     renderAt(witnessPath(PROMISE_ID));
 
-    expect((await screen.findByAltText('증빙 사진')).getAttribute('src')).toBe(
+    expect((await screen.findByAltText('확인 사진')).getAttribute('src')).toBe(
       'https://storage.example/thumb.jpg',
     );
     expect(signFulfillmentEvidence).toHaveBeenCalledWith('jwt', EVIDENCE_AVAILABLE, 'THUMBNAIL');

@@ -8,8 +8,8 @@ const ko = {
   back: '뒤로',
   history: '지난 약속',
   greeting: (nickname: string | null, count: number) => nickname === null
-    ? `이번 주\n약속 ${count}개 순항 중.`
-    : `${nickname}님, 이번 주\n약속 ${count}개 순항 중.`,
+    ? `이번 주\n약속 ${count}개 지켜요!`
+    : `${nickname}님, 이번 주\n약속 ${count}개 지켜요!`,
   closestPromise: '가장 가까운 약속',
   activeSection: '진행 중 약속',
   waitingSection: '대기 중 약속',
@@ -25,8 +25,8 @@ const ko = {
   retryListAccessibility: '약속 목록 다시 시도',
   retryPageAccessibility: '목록 더 불러오기 다시 시도',
   pageError: '목록을 더 불러오지 못했어요.',
-  pinnedTitle: '임박한 약속',
-  needsResponse: '이행 확인 필요',
+  pinnedTitle: '곧 끝나요',
+  needsResponse: '결과 확인 필요',
   answerFulfillment: '지켜졌나요? 답하기',
   viewPromise: '약속 보기',
   witness: '증인',
@@ -71,8 +71,8 @@ const en = {
   back: 'Back',
   history: 'Past promises',
   greeting: (nickname: string | null, count: number) => nickname === null
-    ? `This week\n${count} promises are on track.`
-    : `${nickname}, this week\n${count} promises are on track.`,
+    ? `This week\nKeep ${count} promises!`
+    : `${nickname}, this week\nKeep ${count} promises!`,
   closestPromise: 'Closest promise',
   activeSection: 'Promises in progress',
   waitingSection: 'Waiting promises',

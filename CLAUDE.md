@@ -62,6 +62,13 @@ in §4-1 of this file), then read that range only.
 | **Every report, status update, question, and summary to the PO** | **Korean (한글)** |
 | User-facing strings in the product | **Korean + English** (PO, 2026-08-20) via `Localized<T>` typed catalogs (`const ko = {…}; const en = {…} satisfies typeof ko`) — never hardcoded. Server-rendered copy (notification rows, error envelopes) stays Korean in phase 1. See ADR 0006 |
 
+PO copy decision (2026-09-07, ADR 0021): each locale displays its own language only; remove
+decorative bilingual prefixes and localize language-setting labels. Use the approved compact
+Korean copy without increasing its rendered width. PENDING = `수락 대기`, AMEND_PENDING =
+`변경 대기`, CHECKING = `결과 확인 중`, DISPUTED = `답이 달라요`, MONEY = `돈`.
+The underlying codes, policies and immutable legal copy are unchanged. Keep existing design
+tokens and verify changed short labels at 360 dp and font scales 1.0/1.5.
+
 ### 1-3. Code style
 
 Write the shortest code that is still explicit. No speculative abstraction, no cleverness, no

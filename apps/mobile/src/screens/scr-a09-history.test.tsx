@@ -102,7 +102,7 @@ describe('SCR-A09 지난 약속 히스토리', () => {
 
     expect(listHomePromises).toHaveBeenCalledWith({ tab: 'UNSETTLED' });
     expect(view.getByText('의견이 갈린 약속')).toBeTruthy();
-    expect(view.getByText('의견 불일치')).toBeTruthy();
+    expect(view.getByText('답이 달라요')).toBeTruthy();
 
     await fireEvent.press(view.getByRole('button', { name: '의견이 갈린 약속 열기' }));
     expect(push).toHaveBeenCalledWith({

@@ -104,7 +104,7 @@ describe('SCR-W01 초대 랜딩', () => {
     const paragraphs = [...document.querySelectorAll('p')].map(visibleText).filter((t) => t);
     expect(paragraphs).toEqual([
       `${formatRemaining(Date.parse(INVITE.expires_at) - Date.now())}안에 확인해 주세요`,
-      'PROMISE · 약속 미리보기',
+      '약속 미리보기',
       '매주 화·목 아침 러닝 같이 하기',
       '자세한 내용은 로그인 후 볼 수 있어요',
       '리틀핑거는 둘이 합의한 약속을 기록하고지키게 돕는 서비스예요',

@@ -17,13 +17,13 @@ import type { Localized } from './i18n.ts';
 
 export const PROMISE_STATUSES = [
   'DRAFT', // 작성 중 — 작성자만 열람·수정·삭제
-  'PENDING', // 승인 대기 — 초대 링크 1회용, INVITE_TTL_HOURS 만료
+  'PENDING', // 수락 대기 — 초대 링크 1회용, INVITE_TTL_HOURS 만료
   'ACTIVE', // 진행 중 — 양측 승인 완료, 내용 불변
-  'AMEND_PENDING', // 변경 협의 중 — 상대 동의 시에만 성립
-  'CHECKING', // 이행 확인 중 — 양측 응답 대기
+  'AMEND_PENDING', // 변경 대기 — 상대 동의 시에만 성립
+  'CHECKING', // 결과 확인 중 — 양측 응답 대기
   'COMPLETED', // 완료 — 약속 지킴율에 반영
   'BROKEN', // 불이행 — 기록된 벌칙 표시, 지킴율에 반영
-  'DISPUTED', // 의견 불일치 — 판정 없이 양측 주장만 기록. 재협의로 CHECKING 재진입(T-16)
+  'DISPUTED', // 답이 달라요 — 판정 없이 양측 주장만 기록. 재협의로 CHECKING 재진입(T-16)
   'UNRESOLVED', // 미확정 종결 — 지킴율 제외, 별도 건수 표기
   'DECLINED', // 거절됨 — 지킴율 제외
   'CANCELED', // 파기됨 — 지킴율 제외
@@ -34,13 +34,13 @@ export type PromiseStatus = (typeof PROMISE_STATUSES)[number];
 /** 상태별 화면 표시 라벨 (디자인요청서 §9 용어 사전. 새 용어 발명 금지) */
 export const PROMISE_STATUS_LABEL: Record<PromiseStatus, string> = {
   DRAFT: '작성 중',
-  PENDING: '승인 대기',
+  PENDING: '수락 대기',
   ACTIVE: '진행 중',
-  AMEND_PENDING: '변경 협의 중',
-  CHECKING: '이행 확인 중',
+  AMEND_PENDING: '변경 대기',
+  CHECKING: '결과 확인 중',
   COMPLETED: '완료',
   BROKEN: '불이행',
-  DISPUTED: '의견 불일치',
+  DISPUTED: '답이 달라요',
   UNRESOLVED: '미확정 종결',
   DECLINED: '거절됨',
   CANCELED: '파기됨',
@@ -99,7 +99,7 @@ export type PromiseCategory = 'HABIT' | 'BET' | 'MONEY' | 'ETC';
 export const PROMISE_CATEGORY_LABEL: Record<PromiseCategory, string> = {
   HABIT: '습관',
   BET: '내기',
-  MONEY: '금전',
+  MONEY: '돈',
   ETC: '기타',
 };
 

@@ -206,7 +206,7 @@ describe('SCR-A04 초대 전송·대기', () => {
     const view = await render(<InviteScreen />);
     await settle();
 
-    await fireEvent.press(view.getByRole('button', { name: '초대 링크 무효화' }));
+    await fireEvent.press(view.getByRole('button', { name: '초대 링크 막기' }));
     expect(alert).toHaveBeenCalledTimes(1);
     alert.mock.calls[0]?.[2]?.find((button) => button.text === '계속')?.onPress?.();
     expect(alert).toHaveBeenCalledTimes(2);
@@ -214,7 +214,7 @@ describe('SCR-A04 초대 전송·대기', () => {
 
     await act(async () => {
       await alert.mock.calls[1]?.[2]
-        ?.find((button) => button.text === '초대 링크 무효화')
+        ?.find((button) => button.text === '초대 링크 막기')
         ?.onPress?.();
     });
 

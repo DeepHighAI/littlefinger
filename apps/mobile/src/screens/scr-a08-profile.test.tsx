@@ -271,7 +271,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.getByText('75%')).toBeTruthy();
     expect(view.getByRole('progressbar', { name: '약속 지킴율' }).props.accessibilityValue)
       .toEqual({ min: 0, max: 100, now: 75 });
-    for (const text of ['완료 3건 · 불이행 1건', '의견 불일치 2건 · 미확정 종결 4건', '진행 중 5건']) {
+    for (const text of ['완료 3건 · 불이행 1건', '답이 달라요 2건 · 미확정 종결 4건', '진행 중 5건']) {
       expect(view.getByText(text)).toBeTruthy();
     }
     expect(view.queryByText('이메일 리마인드')).toBeNull();
@@ -292,13 +292,13 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     const view = await render(<ProfileScreen />);
     await settle();
 
-    const switches = ['D-7 리마인드', 'D-3 리마인드', 'D-1 리마인드', 'D-Day 리마인드']
+    const switches = ['7일 전 알림', '3일 전 알림', '1일 전 알림', '당일 알림']
       .map((name) => view.getByRole('switch', { name }));
     expect(switches.map((item) => item.props.accessibilityState.checked)).toEqual([true, true, false, true]);
     await fireEvent.press(switches[0]!);
     expect(updateMock).toHaveBeenCalledWith({ ...REMINDERS, remind_d7: false });
     for (const item of switches) expect(item.props.accessibilityState.disabled).toBe(true);
-    expect(view.getByRole('button', { name: '리마인드 발송 시각 12:00' }).props.accessibilityState.disabled).toBe(true);
+    expect(view.getByRole('button', { name: '약속 알림 시간 12:00' }).props.accessibilityState.disabled).toBe(true);
   });
 
   test('발송 시각 picker는 정확히 세 KST 선택지를 저장한다', async () => {
@@ -308,7 +308,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     const view = await render(<ProfileScreen />);
     await settle();
 
-    await fireEvent.press(view.getByRole('button', { name: '리마인드 발송 시각 12:00' }));
+    await fireEvent.press(view.getByRole('button', { name: '약속 알림 시간 12:00' }));
     expect(alert.mock.calls[0]?.[2]?.map((button) => button.text)).toEqual(['09:00', '12:00', '20:00', '취소']);
     await act(async () => alert.mock.calls[0]?.[2]?.find((button) => button.text === '20:00')?.onPress?.());
     expect(updateMock).toHaveBeenCalledWith({ ...REMINDERS, remind_hour: '20' });
@@ -320,9 +320,9 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     const view = await render(<ProfileScreen />);
     await settle();
 
-    await fireEvent.press(view.getByRole('switch', { name: 'D-7 리마인드' }));
+    await fireEvent.press(view.getByRole('switch', { name: '7일 전 알림' }));
     await settle();
-    expect(view.getByRole('switch', { name: 'D-7 리마인드' }).props.accessibilityState.checked).toBe(true);
+    expect(view.getByRole('switch', { name: '7일 전 알림' }).props.accessibilityState.checked).toBe(true);
     expect(view.getByText('설정을 저장하지 못했어요. 다시 시도해 주세요.')).toBeTruthy();
   });
 
@@ -429,7 +429,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.getByText('탈퇴하지 못했어요. 다시 시도해 주세요.')).toBeTruthy();
   });
 
-  test('언어 행은 두 언어를 각자의 이름으로 보여 주고 선택 상태를 문구로 말한다', async () => {
+  test('언어 행은 현재 언어로 선택지와 선택 상태를 표시한다', async () => {
     loadMock.mockResolvedValue(PROFILE);
     const view = await render(
       <LocaleProvider>
@@ -441,7 +441,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     // 기본 기기는 한국어(jest-setup) — 선택 상태가 색이 아니라 라벨로 드러난다.
     // README 세그먼트 38h 항목 — hitSlop 으로 48 을 채운다
     const korean = view.getByRole('tab', { name: '한국어 · 선택됨' });
-    const english = view.getByRole('tab', { name: 'English(으)로 보기' });
+    const english = view.getByRole('tab', { name: '영어로 보기' });
     for (const item of [korean, english]) {
       expect(StyleSheet.flatten(item.props.style).minHeight + item.props.hitSlop * 2)
         .toBeGreaterThanOrEqual(size.touchMin);
@@ -452,7 +452,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
 
     // 전환 뒤에는 화면 전체가 영어다 — 언어 행 자신도 영어 규칙을 따른다.
     expect(view.getByRole('tab', { name: 'English · Selected' })).toBeTruthy();
-    expect(view.getByRole('tab', { name: 'View in 한국어' })).toBeTruthy();
+    expect(view.getByRole('tab', { name: 'View in Korean' })).toBeTruthy();
     expect(view.getByText(SCR_A08_LABEL.en.legalTitle)).toBeTruthy();
   });
 
@@ -463,7 +463,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
 
     const controls = [
       view.getByRole('button', { name: '지난 약속' }),
-      view.getByRole('button', { name: '리마인드 발송 시각 12:00' }),
+      view.getByRole('button', { name: '약속 알림 시간 12:00' }),
       view.getByRole('button', { name: '이용약관 열기' }),
       view.getByRole('button', { name: '개인정보 처리방침 열기' }),
       view.getByRole('button', { name: '로그아웃' }),

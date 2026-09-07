@@ -98,7 +98,7 @@ describe('SCR-W03 승인 완료', () => {
     );
     const { container } = renderWith(RESULT);
     expect(container.querySelector('input')).toBeNull();
-    expect(screen.queryByText('버전 이력 보기')).toBeNull();
+    expect(screen.queryByText('이전 내용 보기')).toBeNull();
     expect(container.querySelector('.lf-app-hint')).toBeNull();
     const link = screen.getByRole('link', { name: '앱에서 진행상황 보기' });
     const store = encodeURIComponent(

@@ -237,7 +237,7 @@ describe('SCR-A06 이행 확인', () => {
     expect(
       view.getByRole('button', { name: '제출' }).props.accessibilityState,
     ).toMatchObject({ disabled: false });
-    expect(view.getByText(/증빙 사진/u)).toBeTruthy();
+    expect(view.getByText(/확인 사진/u)).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
     expect(view.getByTestId('evidence-picker')).toBeTruthy();
   });
@@ -504,7 +504,7 @@ describe('SCR-A06 이행 확인', () => {
     const view = await render(<FulfillmentScreen />);
     await settle();
 
-    await fireEvent.press(view.getByRole('button', { name: '응답 수정' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 수정' }));
     await fireEvent.press(
       view.getByRole('button', { name: '증빙 evidence-1 삭제' }),
     );
@@ -801,7 +801,7 @@ describe('SCR-A06 이행 확인', () => {
 
     expect(view.getByText('상대의 확인을 기다리고 있습니다.')).toBeTruthy();
     expect(view.getByText('아침마다 함께 달렸어요')).toBeTruthy();
-    await fireEvent.press(view.getByRole('button', { name: '응답 수정' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 수정' }));
     expect(view.getByLabelText('한 줄 의견').props.value).toBe('아침마다 함께 달렸어요');
 
     await fireEvent.press(view.getByRole('button', { name: '안 지켜졌어요' }));
@@ -819,8 +819,8 @@ describe('SCR-A06 이행 확인', () => {
       },
       '22222222-2222-4222-8222-222222222222',
     );
-    expect(view.getByText('응답 수정 기회를 사용했어요.')).toBeTruthy();
-    expect(view.queryByRole('button', { name: '응답 수정' })).toBeNull();
+    expect(view.getByText('답변 수정 기회를 사용했어요.')).toBeTruthy();
+    expect(view.queryByRole('button', { name: '답변 수정' })).toBeNull();
   });
 
   test('오래 열린 제출의 상태 충돌은 종결 안내 후 서버 상세를 다시 불러온다', async () => {
@@ -1074,7 +1074,7 @@ describe('SCR-A06 이행 확인', () => {
     expect(view.queryByText('아침마다 함께 달렸어요')).toBeNull();
   });
 
-  test('기기 시간대와 무관한 KST 종료일·응답 시각과 과거 라운드를 표시한다', async () => {
+  test('기기 시간대와 무관한 KST 종료일·답한 시간과 과거 라운드를 표시한다', async () => {
     loadDetailMock.mockResolvedValue(
       makeDetail({
         status: 'COMPLETED',

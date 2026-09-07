@@ -102,6 +102,10 @@ of ADR 0018.
 
 ## Typography
 
+- PO copy update (2026-09-07, ADR 0021): use one language per locale, with no decorative English
+  prefix on Korean labels. Approved compact Korean replacements must fit their existing slots;
+  do not shrink text or spacing to make copy fit. The current gallery includes these copy changes.
+
 - Pretendard is the only user-visible typeface — Korean and English, headings and body, the
   fingerprint, timers and the wordmark (ADR 0014). `word-break: keep-all` on the web.
 - The weight contract is **regular 500, medium 600, bold 800, heavy 900**. React Native loads four

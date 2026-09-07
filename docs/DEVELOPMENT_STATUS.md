@@ -2,6 +2,27 @@
 
 Snapshot date: **2026-09-07 KST**.
 
+## Compact localized copy — implemented (2026-09-07, ADR 0021)
+
+Applied the PO-approved 24 compact Korean replacements to mobile/web catalogs, shared display
+labels and the current gallery. Reminder choices follow the same pattern for 7/3/1 days and the
+due date. Removed decorative bilingual prefixes; language controls now use the current locale
+for visible and accessible labels. State codes, policy, design tokens and immutable legal copy
+are unchanged. The earlier eyebrow-copy question is resolved.
+
+Verification: `npm test` passed (Vitest **114 files / 2,179 tests**, jest-expo **84 suites / 928
+tests**). The final web language-control update also passed **5 files / 94 tests**. Five-project
+typecheck, web production build, `check:agents` and `git diff --check` passed; the existing
+616 kB web main-chunk warning remains. Fontkit measured all 24 replacements in four bundled
+Pretendard weights (**96 comparisons**, none wider than the original).
+
+Browser comparison of **27 changed gallery screens**, 360-wide content at text scales 1.0/1.5,
+checked **126 changed-text cases**: no added line wrapping or horizontal overflow. Short changed
+labels remained single-line; the profile explanation remains a paragraph with its existing
+wrapping. This is gallery/browser verification, not new Android device evidence. The PO explicitly
+skipped new device verification and authorized commit/push and deployment on 2026-09-07. Web
+deployment is prepared; the Android changes require a separate native build.
+
 ## 잉크 & 블록 restyle — complete (2026-09-07, ADR 0020)
 
 The PO delivered the fifth visual system, **잉크 & 블록 (시안 1a, 45° hard shadow)**, as

@@ -280,7 +280,7 @@ describe('SCR-A05 마무리(FINISH) 흐름', () => {
     expect(view.getByText('지우님이 이 약속의 마무리를 요청했어요.')).toBeTruthy();
     expect(view.getByRole('button', { name: '마무리하고 이행 확인 시작' })).toBeTruthy();
     expect(view.getByRole('button', { name: '거절' })).toBeTruthy();
-    expect(view.queryByRole('button', { name: '요청 철회' })).toBeNull();
+    expect(view.queryByRole('button', { name: '요청 취소' })).toBeNull();
     expect(view.queryByText(/종료 승인|종료하고/u)).toBeNull();
 
     await fireEvent.press(view.getByRole('button', { name: '마무리하고 이행 확인 시작' }));
@@ -301,12 +301,12 @@ describe('SCR-A05 마무리(FINISH) 흐름', () => {
 
     expect(view.queryByRole('button', { name: '마무리하고 이행 확인 시작' })).toBeNull();
     expect(view.queryByRole('button', { name: '거절' })).toBeNull();
-    await fireEvent.press(view.getByRole('button', { name: '요청 철회' }));
+    await fireEvent.press(view.getByRole('button', { name: '요청 취소' }));
     await settle();
     expect(withdrawAmendMock).toHaveBeenCalledWith(PROMISE_ID, REQUEST_ID, AMEND_KEY);
   });
 
-  test('승인 이력의 마무리 행동은 "종료" 가 아니라 "마무리" 로 표기된다', async () => {
+  test('수락 기록의 마무리 행동은 "종료" 가 아니라 "마무리" 로 표기된다', async () => {
     const base = makeDetail();
     loadDetailMock.mockResolvedValue(makeDetail({
       status: 'CHECKING',

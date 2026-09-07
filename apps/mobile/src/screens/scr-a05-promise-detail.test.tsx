@@ -78,7 +78,7 @@ jest.mock('../components/promise-amend-sheet.tsx', () => {
     }) => visible ? React.createElement(
       View,
       null,
-      React.createElement(Text, null, '변경·파기 요청 시트'),
+      React.createElement(Text, null, '변경·취소 요청 시트'),
       React.createElement(
         Pressable,
         {
@@ -706,7 +706,7 @@ describe('SCR-A05 약속 상세', () => {
     expect(view.getAllByText('2026-09-01 (화)').length).toBeGreaterThan(0);
     expect(view.getByText('2026-09-15 (화)')).toBeTruthy();
     expect(view.queryByText('변경 전 · 제목')).toBeNull();
-    await fireEvent.press(view.getByRole('button', { name: '요청 철회' }));
+    await fireEvent.press(view.getByRole('button', { name: '요청 취소' }));
     await settle();
     expect(withdrawAmendMock).toHaveBeenCalledWith(
       PROMISE_ID,
@@ -718,13 +718,13 @@ describe('SCR-A05 약속 상세', () => {
   test('ACTIVE 당사자만 MOD-01에 진입하고 증인·다른 상태에는 액션을 숨긴다', async () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '변경·파기 요청' }));
-    expect(view.getByText('변경·파기 요청 시트')).toBeTruthy();
+    await fireEvent.press(view.getByRole('button', { name: '변경·취소 요청' }));
+    expect(view.getByText('변경·취소 요청 시트')).toBeTruthy();
 
     loadDetailMock.mockResolvedValue(makeDetail({ my_role: 'WITNESS' }));
     const witness = await render(<PromiseDetailScreen />);
     await settle();
-    expect(witness.queryByRole('button', { name: '변경·파기 요청' })).toBeNull();
+    expect(witness.queryByRole('button', { name: '변경·취소 요청' })).toBeNull();
   });
 
   test('변경 요청 재시도는 같은 키를 보존하고 성공한 authoritative refresh 뒤 초기화한다', async () => {
@@ -742,7 +742,7 @@ describe('SCR-A05 약속 상세', () => {
       .mockResolvedValueOnce(makeDetail({ status: 'AMEND_PENDING' }));
     const view = await render(<PromiseDetailScreen />);
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '변경·파기 요청' }));
+    await fireEvent.press(view.getByRole('button', { name: '변경·취소 요청' }));
     await fireEvent.press(view.getByRole('button', { name: '테스트 변경 제출' }));
     await settle();
     await fireEvent.press(view.getByRole('button', { name: '테스트 변경 제출' }));
@@ -763,7 +763,7 @@ describe('SCR-A05 약속 상세', () => {
     requestAmendMock.mockRejectedValue(new Error('network'));
     const view = await render(<PromiseDetailScreen />);
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '변경·파기 요청' }));
+    await fireEvent.press(view.getByRole('button', { name: '변경·취소 요청' }));
     await fireEvent.press(view.getByRole('button', { name: '테스트 변경 제출' }));
     await settle();
     await fireEvent.press(view.getByRole('button', { name: '테스트 다른 변경 제출' }));
@@ -872,7 +872,7 @@ describe('SCR-A05 약속 상세', () => {
     });
     const view = await render(<PromiseDetailScreen />);
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '버전 이력 보기' }));
+    await fireEvent.press(view.getByRole('button', { name: '이전 내용 보기' }));
     await settle();
 
     for (const text of ['v1', '지우', '민준', '첫 확정', VERSION.body, 'aaaaaaaa']) {
@@ -889,7 +889,7 @@ describe('SCR-A05 약속 상세', () => {
     expect(view.getByText('지우 · 응답 완료')).toBeTruthy();
     expect(view.getByText('민준 · 응답 없음')).toBeTruthy();
     expect(view.getByText('2026-09-09 00:00 (KST)')).toBeTruthy();
-    await fireEvent.press(view.getByRole('button', { name: '이행 확인하기' }));
+    await fireEvent.press(view.getByRole('button', { name: '지켰는지 확인' }));
     expect(push).toHaveBeenCalledWith({ pathname: '/fulfillment/[promise_id]', params: { promise_id: PROMISE_ID } });
   });
 
@@ -934,7 +934,7 @@ describe('SCR-A05 약속 상세', () => {
 
     expect(view.getByText('신고 접수로 가려진 이미지입니다')).toBeTruthy();
     expect(view.getByText('보관 기간이 지난 증빙입니다')).toBeTruthy();
-    await fireEvent.press(view.getByRole('button', { name: '증빙 사진 열기' }));
+    await fireEvent.press(view.getByRole('button', { name: '확인 사진 열기' }));
     await settle();
     expect(signEvidenceMock).toHaveBeenCalledWith(creatorCheck.evidences[0]!.evidence_id, 'FULL');
     expect(Linking.openURL).toHaveBeenCalledWith('https://storage.example/full');

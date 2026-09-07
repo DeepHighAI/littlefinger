@@ -50,7 +50,7 @@ describe('PROMISE_STATUSES', () => {
   test('라벨은 용어 사전을 따른다', () => {
     expect(PROMISE_STATUS_LABEL.ACTIVE).toBe('진행 중');
     expect(PROMISE_STATUS_LABEL.BROKEN).toBe('불이행');
-    expect(PROMISE_STATUS_LABEL.DISPUTED).toBe('의견 불일치');
+    expect(PROMISE_STATUS_LABEL.DISPUTED).toBe('답이 달라요');
     // S-15 확정: "무응답 종결"이 아니라 "미확정 종결"
     expect(PROMISE_STATUS_LABEL.UNRESOLVED).toBe('미확정 종결');
   });
@@ -121,7 +121,7 @@ describe('라벨 상수', () => {
     expect(PROMISE_CATEGORY_LABEL).toEqual({
       HABIT: '습관',
       BET: '내기',
-      MONEY: '금전',
+      MONEY: '돈',
       ETC: '기타',
     });
   });

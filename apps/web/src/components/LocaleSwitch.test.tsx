@@ -31,17 +31,19 @@ describe('LocaleSwitch', () => {
     vi.restoreAllMocks();
   });
 
-  it('ko 화면에서는 English 를, 누르면 한국어를 보여 준다', () => {
+  it('언어 전환 버튼의 문구와 접근성 이름은 현재 언어를 따른다', () => {
     renderSwitch();
     const button = screen.getByTestId('locale-switch');
-    expect(button.textContent).toBe('English');
+    expect(button.textContent).toBe('영어');
+    expect(button.getAttribute('aria-label')).toBe('영어로 보기');
 
     fireEvent.click(button);
-    expect(button.textContent).toBe('한국어');
+    expect(button.textContent).toBe('Korean');
+    expect(button.getAttribute('aria-label')).toBe('View in Korean');
     expect(document.documentElement.lang).toBe('en');
 
     fireEvent.click(button);
-    expect(button.textContent).toBe('English');
+    expect(button.textContent).toBe('영어');
     expect(document.documentElement.lang).toBe('ko');
   });
 
@@ -53,7 +55,7 @@ describe('LocaleSwitch', () => {
     cleanup();
     renderSwitch();
     // 저장된 en 이 초기값 — 버튼은 되돌아갈 한국어를 보여 준다.
-    expect(screen.getByTestId('locale-switch').textContent).toBe('한국어');
+    expect(screen.getByTestId('locale-switch').textContent).toBe('Korean');
     expect(document.documentElement.lang).toBe('en');
   });
 });

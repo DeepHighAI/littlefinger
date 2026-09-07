@@ -108,7 +108,7 @@ function hiddenScrimProps(node: unknown): Record<string, unknown> | null {
   return hiddenScrimProps(value.children);
 }
 
-describe('MOD-01 변경·파기 요청', () => {
+describe('MOD-01 변경·취소 요청', () => {
   test('"종료일 없음" 선택지는 무기한이 열린 약속에서만 보인다', async () => {
     const closed = await render(<PromiseAmendSheet {...props()} />);
     expect(closed.queryByRole('button', { name: '종료일 없음' })).toBeNull();

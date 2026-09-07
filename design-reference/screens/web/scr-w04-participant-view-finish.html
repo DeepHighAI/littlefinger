@@ -13,7 +13,7 @@
 <!-- ADR 0015 D3·D7 (PO 2026-08-30): 수락 웹에서 종료일 없는 약속의 마무리 합의. 당사자 누구나 요청하고 상대가 승인·거절한다.
      웹은 광고도 결제도 싣지 않는다 — 종료일 없음을 보여 주고 마무리(FINISH)에 응답할 뿐, 기간·보관 혜택은 앱(MOD-05)에서만 연다.
      첫 카드: 상대가 보낸 마무리 요청(AMEND_PENDING · FINISH)에 응답하는 시점. 둘째 카드: 종료일 없는 ACTIVE 약속 —
-     [변경·파기 요청] 시트의 세그먼트에 "마무리 요청" 탭이 세 번째로 붙고(종료일 없을 때만) 안내는
+     [변경·취소 요청] 시트의 세그먼트에 "마무리 요청" 탭이 세 번째로 붙고(종료일 없을 때만) 안내는
      "상대가 승인한 시각부터 이행 확인과 개인 보관 기간이 시작돼요." 다. 문구 출처: scr-w04-labels.ts(ko). -->
 <body class="lf-page" data-screen-id="SCR-W04" data-screen-name="참여 약속 열람·응답 · 마무리 요청">
 
@@ -47,7 +47,7 @@
           <li>
             <div class="lf-card lf-card--web lf-card--sky lf-text-left">
               <div class="lf-card__header">
-                <span class="lf-chip lf-chip--sky">변경 협의 중</span>
+                <span class="lf-chip lf-chip--sky">변경 대기</span>
                 <span class="lf-card__spacer"></span>
                 <span class="lf-caption">오늘</span>
               </div>
@@ -83,7 +83,7 @@
 
               <!-- 누르면 시트: [내용 변경 | 파기 요청 | 마무리 요청] — 마무리 탭 안내:
                    "상대가 승인한 시각부터 이행 확인과 개인 보관 기간이 시작돼요." · 변경 이유(선택) · [요청 보내기] -->
-              <button class="lf-btn lf-btn--outlined lf-btn--block lf-mt-4" type="button">변경·파기 요청</button>
+              <button class="lf-btn lf-btn--outlined lf-btn--block lf-mt-4" type="button">변경·취소 요청</button>
             </div>
           </li>
 
