@@ -96,8 +96,9 @@ of ADR 0018.
   layers, and `splash-icon.png` from the permanent E-1 masters. The Play listing icon is the
   PO-curated `docs/디자인/store/app-icon/littlefinger-icon-512.png`; launcher export must not
   overwrite it. The source artboard remains `design-reference/ui-ux/project/assets/icon-face-e1.png`.
-- `app.json` still carries the pastel-era splash `#F3ECDC` and notification colour `#FFE59A`;
-  changing them is a PO decision, not part of ADR 0020.
+- `app.json` derivatives follow the tokens: splash background = canvas `#FBF8F1`, notification
+  accent = yellow `#FFD43B` (re-derived 2026-09-07, PO-delegated). The adaptive-icon field stays the
+  curated `#FFE59A` because it is part of the E-1 launcher bitmap, not a token derivative.
 
 ## Typography
 

@@ -82,7 +82,9 @@ test('Play 스토어 아이콘은 PO가 저장한 512×512 불투명 RGBA 원본
   );
 });
 
-test('Android 런처·스플래시·알림은 승인한 버터·크림 색을 따른다', () => {
+test('Android 런처는 E-1 옐로 바탕을, 스플래시·알림은 잉크 & 블록 토큰 파생값을 따른다', () => {
+  // 런처 바탕은 PO 가 고른 비트맵 필드(ADR 0019). 스플래시 배경 = --lf-color-background,
+  // 알림 강조색 = --lf-color-primary-container — 토큰이 바뀌면 같이 바뀐다(2026-09-07 PO 위임 결정).
   const splashPlugin = appConfig.expo.plugins.find(
     (plugin) => Array.isArray(plugin) && plugin[0] === 'expo-splash-screen',
   );
@@ -91,6 +93,6 @@ test('Android 런처·스플래시·알림은 승인한 버터·크림 색을 �
   );
 
   expect(appConfig.expo.android.adaptiveIcon.backgroundColor).toBe('#FFE59A');
-  expect(splashPlugin[1].backgroundColor).toBe('#F3ECDC');
-  expect(notificationPlugin[1].color).toBe('#FFE59A');
+  expect(splashPlugin[1].backgroundColor).toBe('#FBF8F1');
+  expect(notificationPlugin[1].color).toBe('#FFD43B');
 });

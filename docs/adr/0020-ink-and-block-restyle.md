@@ -214,6 +214,10 @@ values live as component literals or scale substitutions. Do not "fix" them by a
   Google sign-in is available: `boxShadow` inside clipping (stamp, proof thumbs), the 56 h CTA and
   chips at font scale 1.5, Android hard-shadow rendering, the KakaoTalk in-app browser safe-area on
   the deployed web.
-- Out of scope, PO item: `app.json` splash `#F3ECDC` and notification colour `#FFE59A` still carry
-  pastel-era values.
+- `app.json` derivatives (2026-09-07, PO delegated the call): the splash background and the
+  notification accent had been copied from the pastel `background` / `primary-container` values
+  (`#F3ECDC` / `#FFE59A`) and missed the swap; they are re-derived to `#FBF8F1` / `#FFD43B`
+  (`firebase-config.test.js` pins them). The adaptive-icon field keeps `#FFE59A` — it is the curated
+  E-1 launcher bitmap's field (ADR 0019), not a token derivative. Both take effect in the next
+  native build (EAS runs prebuild from `app.json`).
 - `DESIGN.md` is rewritten for this system; `CLAUDE.md` §5-3 / §5-4 point here.
