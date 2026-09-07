@@ -36,7 +36,6 @@ import { LfInput } from './LfInput';
 import { LfNotice } from './LfNotice';
 import { LfPicker } from './LfPicker';
 import { LfPinkyLoop, pinkyLoopDuration } from './LfPinkyLoop';
-import { LfPromiseSeam, promiseSeamDuration } from './LfPromiseSeam';
 import { LfOval } from './LfOval';
 import { LfRow } from './LfRow';
 import { LfSegmented } from './LfSegmented';
@@ -615,20 +614,17 @@ describe('Soft Promise 공통 컴포넌트', () => {
     expect(view.getByRole('progressbar').props.accessibilityValue).toEqual({ text: '집계 중' });
   });
 
-  test('reduced motion은 링과 Promise Seam의 공간 애니메이션을 0ms로 만든다', () => {
+  test('reduced motion은 링의 공간 애니메이션을 0ms로 만든다', () => {
     expect(trustRingDuration(true)).toBe(0);
-    expect(promiseSeamDuration(true)).toBe(0);
     expect(trustRingDuration(false)).toBe(400);
-    expect(promiseSeamDuration(false)).toBe(400);
   });
 
-  test('3단계 진행률과 헬퍼·지킴율 스트립·Promise Seam을 렌더한다', async () => {
+  test('3단계 진행률과 헬퍼·지킴율 스트립을 렌더한다', async () => {
     const view = await render(
       <>
         <LfWizardProgress step={2} labels={['내용', '조건', '확인']} />
         <LfHelper text="상대가 승인하면 이 내용으로 확정돼요." />
         <LfTrustStrip rate={87} onPress={() => undefined} />
-        <LfPromiseSeam />
       </>,
     );
     expect(view.getByRole('progressbar').props.accessibilityValue).toEqual({
@@ -639,7 +635,6 @@ describe('Soft Promise 공통 컴포넌트', () => {
     });
     expect(view.getByText('상대가 승인하면 이 내용으로 확정돼요.')).toBeTruthy();
     expect(view.getByRole('button', { name: '지금까지 약속의 87%를 지켰어요' })).toBeTruthy();
-    expect(view.getByTestId('promise-seam', { includeHiddenElements: true })).toBeTruthy();
   });
 });
 

@@ -421,22 +421,6 @@
   border: 1.5px solid var(--lf-color-text);
 }
 
-/* 아바타 버튼 — 잉크 원 안 옐로 첫 글자 (앱바 → 마이) */
-.lf-avatar-button {
-  width: var(--lf-icon-button);
-  height: var(--lf-icon-button);
-  border-radius: var(--lf-radius-pill);
-  background: var(--lf-color-text);
-  color: var(--lf-color-primary-container);
-  box-shadow: var(--lf-elevation-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--lf-type-label-size);
-  font-weight: var(--lf-weight-bold);
-  flex: none;
-}
-
 /* -------------------------------------------------------------
    BROWSER BAR — 카톡 인앱 브라우저 크롬 (수락 웹 전용)
    ------------------------------------------------------------- */
@@ -715,7 +699,6 @@
 .lf-chip--sky    { background: var(--lf-color-record-container); }
 .lf-chip--muted  { background: var(--lf-color-surface-muted); }
 .lf-chip--paper  { background: var(--lf-color-surface); }
-.lf-chip--cream  { background: var(--lf-color-surface-muted); }
 
 /* 상태 라벨 별칭 — 상태는 항상 텍스트를 동반한다 (§8). D7 매핑:
    status(브랜드)=옐로 · done(진행·완료)=민트 · urgent(응답 필요)·broken(불이행)=핑크 · info(기록·변경)=스카이 · neutral=종이 */
@@ -974,22 +957,6 @@
 .lf-status-tile--muted  { background: var(--lf-color-surface-muted); }
 .lf-status-tile--paper  { background: var(--lf-color-surface); }
 .lf-status-tile--dashed { border-style: dashed; }
-
-/* 상태 도트 — 10 + 2 잉크 링 (구 행 마크업. P4 가 행을 타일로 바꾸면 지운다) */
-.lf-status-dot {
-  width: var(--lf-status-dot);
-  height: var(--lf-status-dot);
-  border-radius: var(--lf-radius-pill);
-  border: var(--lf-border-chip) solid var(--lf-color-text);
-  background: var(--lf-color-surface);
-  flex: none;
-}
-
-.lf-status-dot--mint  { background: var(--lf-color-success-container); }
-.lf-status-dot--pink  { background: var(--lf-color-attention-container); }
-.lf-status-dot--sky   { background: var(--lf-color-record-container); }
-.lf-status-dot--muted { background: var(--lf-color-surface-muted); }
-.lf-status-dot--paper { background: var(--lf-color-surface); }
 
 /* 옐로 하이라이트 스팬 (빈 상태 안내) — 2px 잉크 테두리 r6 */
 .lf-highlight {
@@ -2060,61 +2027,6 @@
   background: var(--lf-color-primary-container);
   font-weight: var(--lf-weight-bold);
 }
-
-/* -------------------------------------------------------------
-   LEGACY — 구 화면(P4 배치 2·3 이전)이 아직 쓰는 핑키 루프 마크 · 스티커 장식.
-   새 화면은 쓰지 않는다. 마지막 소비자가 사라지는 커밋에서 이 구획을 지운다.
-   ------------------------------------------------------------- */
-.lf-pinky {
-  --lf-pinky-size: 46px;
-  width: calc(var(--lf-pinky-size) * 1.4);
-  height: var(--lf-pinky-size);
-  background-color: var(--lf-color-brand-symbol);
-  -webkit-mask: url('../assets/images/brand-symbol.png') center / contain no-repeat;
-  mask: url('../assets/images/brand-symbol.png') center / contain no-repeat;
-  flex: none;
-}
-
-.lf-pinky path { display: none; }
-.lf-pinky--on-primary { background-color: var(--lf-color-brand-symbol-on-action); }
-.lf-pinky--xs  { --lf-pinky-size: 20px; }
-.lf-pinky--sm  { --lf-pinky-size: 26px; }
-.lf-pinky--md  { --lf-pinky-size: 46px; }
-.lf-pinky--lg  { --lf-pinky-size: 56px; }
-.lf-pinky--xl  { --lf-pinky-size: 64px; }
-
-.lf-pinky-badge {
-  width: 104px;
-  height: 104px;
-  border-radius: 36px;
-  background: var(--lf-color-primary-container);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-}
-
-.sl-doodles { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-.sl-doodles svg { position: absolute; }
-.sl-ink { fill: none; stroke: var(--lf-color-text); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
-.sl-fill-butter { fill: var(--lf-color-primary-container); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
-.sl-fill-lavender { fill: var(--lf-color-reward-container); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
-.sl-fill-surface { fill: var(--lf-color-surface); stroke: var(--lf-color-text); stroke-width: 2.4; stroke-linejoin: round; }
-.sl-face { fill: none; stroke: var(--lf-color-text); stroke-width: 1.8; stroke-linecap: round; }
-.sl-dd--sparkle-tl { left: 26px; top: 74px; width: 34px; }
-.sl-dd--star-tr    { right: 30px; top: 56px; width: 58px; transform: rotate(9deg); }
-.sl-dd--mail-l     { left: 20px; top: 210px; width: 52px; transform: rotate(-8deg); }
-.sl-dd--moon-r     { right: 24px; top: 228px; width: 46px; transform: rotate(10deg); }
-.sl-dd--tea-bl     { left: 34px; bottom: 200px; width: 44px; transform: rotate(-6deg); }
-.sl-dd--plant-br   { right: 38px; bottom: 194px; width: 48px; transform: rotate(7deg); }
-.sl-dd--sparkle-b  { left: 12px; bottom: 320px; width: 18px; transform: rotate(14deg); }
-.sl-mascot { width: 132px; height: 132px; }
-.lf-onboarding__badge .sl-mascot { width: 124px; height: 124px; }
-.sl-mascot__body { fill: var(--lf-color-primary-container); stroke: var(--lf-color-text); stroke-width: 3.2; stroke-linejoin: round; }
-.sl-mascot__eye { fill: var(--lf-color-text); }
-.sl-mascot__smile { fill: none; stroke: var(--lf-color-text); stroke-width: 3; stroke-linecap: round; }
-.sl-glyph { --lf-pinky-size: 38px; margin-top: 4px; }
-.sl-typeline { font-family: var(--lf-font-mono); font-size: 13px; font-weight: 500; color: var(--lf-color-text-secondary); }
 
 /* -------------------------------------------------------------
    UTILITY

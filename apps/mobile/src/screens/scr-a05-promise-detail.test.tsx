@@ -680,7 +680,6 @@ describe('SCR-A05 약속 상세', () => {
 
     expect(view.getByText('상대방의 승인을 기다리고 있어요')).toBeTruthy();
     expect(view.getByTestId('promise-detail-friendly')).toBeTruthy();
-    expect(view.queryByTestId('promise-seam')).toBeNull();
     expect(view.getByText('2026-08-19 00:00 (KST)')).toBeTruthy();
     expect(view.queryByText(/공증이나 전자계약 서비스가 아니며/u)).toBeNull();
     await fireEvent.press(view.getByRole('button', { name: '초대 관리하기' }));

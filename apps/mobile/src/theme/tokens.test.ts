@@ -220,12 +220,18 @@ describe('잉크 & 블록 웹 토큰도 같은 계약을 쓴다', () => {
     );
   });
 
-  test.each([
-    ['base.css', WEB_BASE_CSS, REFERENCE_BASE_CSS],
-    ['screens/web.css', WEB_SCREEN_CSS, REFERENCE_WEB_SCREEN_CSS],
-  ])('수락 웹의 %s 도 레퍼런스와 바이트 단위로 같다', (_name, web, reference) => {
+  test('수락 웹의 screens/web.css 도 레퍼런스와 바이트 단위로 같다', () => {
     // 2026-09-06 잉크 & 블록 P3: base.css 가 조용히 드리프트해 있었다 — 세 사본 모두 같은 커밋에서 복사한다.
-    expect(readFileSync(web, 'utf8')).toBe(readFileSync(reference, 'utf8'));
+    expect(readFileSync(WEB_SCREEN_CSS, 'utf8')).toBe(readFileSync(REFERENCE_WEB_SCREEN_CSS, 'utf8'));
+  });
+
+  test('수락 웹의 base.css 는 WEB ONLY 구획 위가 레퍼런스와 바이트 단위로 같다', () => {
+    // P7(2026-09-07): 고정 화면·안전영역 규칙은 수락 웹에만 필요해 WEB ONLY 구획으로 덧붙였다.
+    // 그 위는 원본 그대로여야 다음 동기화 때 구획 위만 덮어쓸 수 있다.
+    const reference = readFileSync(REFERENCE_BASE_CSS, 'utf8');
+    const web = readFileSync(WEB_BASE_CSS, 'utf8');
+    expect(web.startsWith(reference)).toBe(true);
+    expect(web.slice(reference.length)).toMatch(/^\n\/\* =+\n\s+WEB ONLY/u);
   });
 
   test.each([REFERENCE_COMPONENTS_CSS, WEB_COMPONENTS_CSS])(
