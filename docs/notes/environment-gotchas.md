@@ -391,6 +391,13 @@ Do not attribute this to package mismatch, language, RN alone, or an unregistere
 debug device without new evidence. The underlying app-specific serving cause remains unknown;
 readiness review is not a proven UMP dependency. Never count a raw HTTP probe as device consent QA.
 
+Release scanning (September 7, code 25): Supabase JS contains the literal `sb_secret_` solely to
+recognize new-format API keys. Hermes packs adjacent strings without plain-text delimiters, so
+even a raw-byte `sb_secret_[A-Za-z0-9_-]{20,}` search can incorrectly join that prefix to the next
+string. Check the source map and actual `hermesc -b -dump-bytecode` string table before declaring
+a secret leak; do not print candidate secrets. The code 25 AAB has only the bare SDK prefix.
+Splash color is under the `expo-splash-screen` plugin in packaged `app.config`, not `config.splash`.
+
 ## Mobile PKCE lands on `code_challenge_method=plain`, and that is fine (2026-09-05)
 
 `apps/mobile` sets `flowType: 'pkce'` (2026-09-05 security fix — the auth-js default is `implicit`,

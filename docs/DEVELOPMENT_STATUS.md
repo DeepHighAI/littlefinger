@@ -6,11 +6,72 @@ Snapshot date: **2026-09-07 KST**.
 
 PO approved this sequence: merge/update local work, commit/push, build the latest production
 AAB, distribute through **internal testing**, resolve and verify ads, then consider public release.
-The local `codex/supabase-e2e` branch is already an ancestor of `main`; the merge returned
+PO subsequently reserved GPC upload for themselves: save the verified AAB locally only; do not
+upload or roll out any Play release. The local `codex/supabase-e2e` branch is already an ancestor of `main`; the merge returned
 `Already up to date.` No public-track rollout or ad-flag change is part of this preparation.
 Pre-commit verification: 114 Vitest files / 2,179 tests and 84 mobile Jest suites / 928 tests
 passed; five-project typecheck, agent-doc synchronization and whitespace checks passed.
-Artifact creation and internal rollout are pending; Play code 24 remains the installed baseline.
+Build source and ad-diagnostic documentation were pushed as `b91ca0c`. EAS production build
+`8d0c5fea-ffd0-4b43-8cb9-ebdc48599b08` **FINISHED**, producing version 0.3.0/code 25.
+The ignored generated Android project and `dist/` QA artifacts are excluded from the upload.
+Play code 24 remains the installed baseline; no GPC upload or track mutation was performed.
+
+Saved artifact: `dist/littlefinger-production-v0.3.0-code25.aab`, **85,594,445 bytes**.
+SHA-256: `E38B52E9BA6B37D88C1D294F7EE91BE0DC8651A4288D14E20A94F710F5DCEB2D`.
+Bundletool validation passed; jarsigner returned `jar verified.` and the upload certificate
+matches previous releases. Manifest: `com.littlefinger.app`, minSdk 24 / targetSdk 36,
+non-debuggable, no diagnostic Activity, production AdMob app ID and correct App Link host.
+All four ABIs are present: arm64-v8a, armeabi-v7a, x86, x86_64. Packaged configuration includes
+all five production ad units, splash `#FBF8F1` and notification accent `#FFD43B`.
+The separately exported production JS source map passed the real-module check (2,187 sources);
+Home/detail copy catalogs and design tokens match the current source. Actual AAB Hermes
+inspection found the product endpoint marker and no scanned QA/private-key markers. The bare
+`sb_secret_` string is Supabase SDK key-format detection, not a secret; disassembly confirmed
+there is no full secret-shaped token. Device re-verification was skipped as requested.
+
+Full code 25 permission list (for comparison with listing section 7):
+
+```text
+android.permission.ACCESS_ADSERVICES_AD_ID
+android.permission.ACCESS_ADSERVICES_ATTRIBUTION
+android.permission.ACCESS_ADSERVICES_TOPICS
+android.permission.ACCESS_NETWORK_STATE
+android.permission.FOREGROUND_SERVICE
+android.permission.INTERNET
+android.permission.POST_NOTIFICATIONS
+android.permission.READ_APP_BADGE
+android.permission.READ_EXTERNAL_STORAGE
+android.permission.RECEIVE_BOOT_COMPLETED
+android.permission.USE_BIOMETRIC
+android.permission.USE_FINGERPRINT
+android.permission.VIBRATE
+android.permission.WAKE_LOCK
+android.permission.WRITE_EXTERNAL_STORAGE
+com.anddoes.launcher.permission.UPDATE_COUNT
+com.android.vending.BILLING
+com.google.android.c2dm.permission.RECEIVE
+com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE
+com.google.android.gms.permission.AD_ID
+com.htc.launcher.permission.READ_SETTINGS
+com.htc.launcher.permission.UPDATE_SHORTCUT
+com.huawei.android.launcher.permission.CHANGE_BADGE
+com.huawei.android.launcher.permission.READ_SETTINGS
+com.huawei.android.launcher.permission.WRITE_SETTINGS
+com.littlefinger.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+com.majeur.launcher.permission.UPDATE_BADGE
+com.oppo.launcher.permission.READ_SETTINGS
+com.oppo.launcher.permission.WRITE_SETTINGS
+com.sec.android.provider.badge.permission.READ
+com.sec.android.provider.badge.permission.WRITE
+com.sonyericsson.home.permission.BROADCAST_BADGE
+com.sonymobile.home.permission.PROVIDER_INSERT_BADGE
+me.everything.badger.permission.BADGE_COUNT_READ
+me.everything.badger.permission.BADGE_COUNT_WRITE
+```
+
+Next: PO uploads this AAB to internal testing. UMP choice/re-open, a test-labeled rewarded ad,
+and the corresponding SSV server grant remain open; artifact validation does not close ad QA.
+No production-track rollout is authorized before those gates pass.
 
 ## Play reinstall and live ad recheck (2026-09-07)
 
