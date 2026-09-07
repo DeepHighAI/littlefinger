@@ -20,8 +20,16 @@ Browser comparison of **27 changed gallery screens**, 360-wide content at text s
 checked **126 changed-text cases**: no added line wrapping or horizontal overflow. Short changed
 labels remained single-line; the profile explanation remains a paragraph with its existing
 wrapping. This is gallery/browser verification, not new Android device evidence. The PO explicitly
-skipped new device verification and authorized commit/push and deployment on 2026-09-07. Web
-deployment is prepared; the Android changes require a separate native build.
+skipped new device verification and authorized commit/push and deployment on 2026-09-07.
+
+Release: implementation commit `db05f8e` pushed to `origin/main`. `firebase deploy --only
+hosting:web --project littlefinger-app-philwoo --non-interactive` completed successfully on
+2026-09-07. Live `https://littlefinger-app.web.app/app.html` returned HTTP 200 and references
+`main-a_f4AStH.js` / `main-tvp7rIZN.css`; both deployed assets match the local production build
+byte-for-byte (SHA-256). Live `/promises` browser verification passed: Korean `영어` /
+`영어로 보기` switches to English `Korean` / `View in Korean`, with `html lang` changing to `en`
+and no captured browser errors. Android changes are committed but require a separate native build;
+no Play release or device re-verification was performed.
 
 ## 잉크 & 블록 restyle — complete (2026-09-07, ADR 0020)
 

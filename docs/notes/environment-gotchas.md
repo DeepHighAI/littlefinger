@@ -9,6 +9,14 @@ anything discovered in a session that outlives the session belongs here instead.
 
 ---
 
+## Firebase CLI authentication output can expose credentials (2026-09-07)
+
+Firebase CLI 15.1.0 `firebase login:list --json` includes the stored token object, including
+refresh/access/ID tokens. It is not a safe diagnostic to print into a terminal transcript. Avoid
+raw output and never save it to project files; use a project-scoped operation to verify access,
+or filter only explicitly allowed non-secret fields before output. The copy deployment session
+encountered this behavior; no credential values were added to repository files.
+
 ## 1. Icons — subsetting by ligature name silently fails
 
 **Never subset Material Symbols by icon name.** Every name is spelled from `a-z` and `_`, so keeping

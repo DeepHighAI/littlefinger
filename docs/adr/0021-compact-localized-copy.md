@@ -66,3 +66,9 @@ existing interaction and state-transition coverage.
   1.0/1.5: 126 changed-text comparisons, no new wrapping or horizontal overflow. Existing
   multiline profile explanation remains multiline. The PO explicitly skipped Android device
   re-verification and authorized commit/push and deployment on 2026-09-07.
+
+## Release
+
+Implementation commit `db05f8e` was pushed to main and deployed to Firebase Hosting target
+`hosting:web` on 2026-09-07. Live HTML returns HTTP 200; the JS and CSS assets match the local
+build by SHA-256. Android changes are committed and await a separate native build.
