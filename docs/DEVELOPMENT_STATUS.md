@@ -1,6 +1,6 @@
 # Development Status
 
-Snapshot date: **2026-09-06 KST**.
+Snapshot date: **2026-09-07 KST**.
 
 ## 잉크 & 블록 restyle (in progress, 2026-09-06)
 
@@ -15,8 +15,12 @@ CTA, badge-on-card heroes, shadow-less sheets. PO decisions E1–E6 and the nine
 2026-09-03 pastel baseline, which shipped without an ADR.
 
 Session 1 landed the bundle, Pretendard Medium/Black, the Material Symbols subset at weight 500
-with the status-tile and menu glyphs, and the token swap across the three targets. **Web deployment
-is on hold from the reference CSS rewrite (P3) until the acceptance web is re-marked-up (P7).**
+with the status-tile and menu glyphs, and the token swap across the three targets. Sessions 2–10
+ported the components, every RN screen (P5–P6) and the acceptance web (P7, 2026-09-07: the eight
+web routes were captured 360×800 against the artboards with fixtures — `tools/capture-web-screens.js`).
+**The web deployment hold that started with the reference CSS rewrite (P3) is lifted as of
+2026-09-07**; `firebase deploy --only hosting:web` runs when the PO says so. Nothing from P5–P6 has
+been seen on a device yet (the emulator sign-in is blocked server-side); P8 writes ADR 0020 and the docs.
 
 Carried from the retired production-readiness handoff, unchanged and still open: recheck the
 AdMob app and its app-ads.txt table after crawler propagation (first meaningful check after

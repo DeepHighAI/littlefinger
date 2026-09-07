@@ -333,7 +333,8 @@ an option for verifying that a pushed migration actually took effect.
 To read real remote state, POST SQL to the Management API with the PAT already in `.env`:
 
 ```bash
-export SUPABASE_ACCESS_TOKEN=$(grep '^SUPABASE_ACCESS_TOKEN=' .env | cut -d= -f2- | tr -d '')
+export SUPABASE_ACCESS_TOKEN=$(grep '^SUPABASE_ACCESS_TOKEN=' .env | cut -d= -f2- | tr -d '
+')
 curl -s -X POST "https://api.supabase.com/v1/projects/<ref>/database/query"   -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json"   -d '{"query":"select has_column_privilege(...)"}'
 ```
 
@@ -436,3 +437,19 @@ silent about which files it would have touched. The same block with no backtick 
 why it looks intermittent. Recipe: write the script to the session scratchpad with the Write tool and
 run `python <path>` (with `PYTHONIOENCODING=utf-8` for Korean output). A bash heredoc followed by a
 `\|` grep on the same line fails the same way.
+
+## Capturing the acceptance web without a backend (2026-09-07)
+
+Every SCR-W route except the expired page needs either a live invite token or a Supabase session,
+and both are unavailable offline (dev test accounts are retired server-side). The Playwright MCP
+server can still render the built app: `tools/capture-web-screens.js` intercepts
+`**/functions/v1/**` with `page.route` and answers each slug from a fixture, answers CORS preflights
+itself (the app posts JSON with `Authorization` and `Idempotency-Key`, so every call preflights), and
+plants a fake session in `localStorage` under `sb-<project-ref>-auth-token` — supabase-js only checks
+`expires_at` before returning it, no signature is verified. SCR-W03 has no fetch at all; its data is
+router state, so the script pushes `{ usr: payload }` with `history.pushState` and dispatches
+`popstate`. Two traps: `browser_run_code_unsafe` only accepts files under the repo root
+(`.playwright-mcp/` is gitignored and is the allowed scratch root), and the sandbox has no `Buffer`
+or `btoa`, so the JWT's base64url is hand-rolled. `vite preview` serves `index.html` for unknown
+routes (Firebase rewrites to `app.html`), which is fine for capture because React replaces the
+prerendered home markup on mount.
