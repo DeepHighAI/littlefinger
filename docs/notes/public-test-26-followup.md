@@ -1,6 +1,6 @@
 # Public test 26 follow-up
 
-Date: 2026-09-09. Reported release: 26 (0.3.1). All ten requested changes are implemented. Backend changes are deployed and final integrated checks passed. Firebase web deployment completed and the deployed JavaScript SHA-256 matches the local build. The new 0.3.2 AAB build has not started.
+Date: 2026-09-09. Reported release: 26 (0.3.1). All ten requested changes are implemented. Backend changes are deployed and final integrated checks passed. Firebase web deployment completed and the deployed JavaScript SHA-256 matches the local build. The production 0.3.2 / code 27 AAB is ready.
 
 ## Approved decisions and implemented scope
 
@@ -42,4 +42,12 @@ Live Realtime smoke verification, the rollback-based alias smoke test, and privi
 
 Temporary QA configuration was restored and its Metro server stopped. Logs under `dist/public-test-26-followup-*` and captures under `apps/mobile/dist/followup-qa/` are verification evidence, not release artifacts.
 
-Next: prepare the new native AAB release. Code 26 users need the new client for remote suggestions and the alias editor; backend deployment alone does not add controls to an old binary.
+Production artifact: `dist/littlefinger-production-v0.3.2-code27.aab`, 85,602,731 bytes.
+SHA-256: `43A3EF0BDC2AAAD6388BDCF509274FA1FC46919127F75C34926D9C291EEBEE57`.
+EAS build `7c9cc306-3605-4a55-aa45-b981c035203d` finished from pushed commit `15202b6`.
+Bundletool validation, JBR signature verification, upload-certificate continuity, manifest/ABI/ads
+checks and feature-marker checks passed. Separate production bundle validation covered 2,200 sources.
+
+Next: physical Samsung S25+ / Samsung Keyboard acceptance, followed by PO-owned Google Play upload.
+Code 26 users need the new client for remote suggestions and the alias editor; backend deployment
+alone does not add controls to an old binary. AAB validation is not physical-device approval.

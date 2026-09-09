@@ -2,7 +2,7 @@
 
 Snapshot date: **2026-09-09 KST**.
 
-## Public-test 26 follow-up: 0.3.2 preparation (2026-09-09)
+## Public-test 26 follow-up: 0.3.2 artifact ready (2026-09-09)
 
 All ten follow-up items and the four PO confirmations are implemented (ADR 0024).
 Private counterpart aliases apply across the owner's promises/devices without changing profiles
@@ -19,8 +19,16 @@ Samsung Keyboard validation remains outstanding.
 Both 20260909 alias/preset migrations and `counterpart-alias-get`, `counterpart-alias-update`,
 and `push-send` are deployed. Live checks verified Realtime delivery, access privileges, and
 viewer-only alias behavior in a rolled-back transaction. Security advisors introduced no warnings.
-Acceptance web is deployed and its JavaScript SHA-256 matches the local build. The new production AAB is being prepared; code 26 remains the
-latest completed artifact below. Google Play publication remains PO-owned.
+Acceptance web is deployed and its JavaScript SHA-256 matches the local build.
+Implementation commit `15202b6` is pushed to `origin/main`. EAS build
+`7c9cc306-3605-4a55-aa45-b981c035203d` finished from that commit as **0.3.2 / code 27**.
+Artifact: `dist/littlefinger-production-v0.3.2-code27.aab` (85,602,731 bytes), SHA-256
+`43A3EF0BDC2AAAD6388BDCF509274FA1FC46919127F75C34926D9C291EEBEE57`.
+Bundletool validation and JBR JAR signature verification passed; the upload certificate matches
+code 26. Manifest checks passed for package/version, minSdk 24 / targetSdk 36, non-debuggable,
+production AdMob configuration, App Links, four ABIs and forbidden-permission absence. The actual
+AAB contains both new feature markers and no QA-entry marker. A separate production export passed
+required-module checks across 2,200 source-map entries. Google Play publication remains PO-owned.
 
 Details: [follow-up verification](notes/public-test-26-followup.md),
 [operator configuration](setup/promise-suggestions.md).
