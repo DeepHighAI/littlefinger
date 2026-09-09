@@ -2,7 +2,7 @@
 
 Snapshot date: **2026-09-09 KST**.
 
-## Public-test corrections implemented locally (2026-09-09)
+## Public-test corrections released as production artifact (2026-09-09)
 
 PO approved all six reported corrections and explicitly required account choice before
 reviewing/accepting invitations (ADR 0023). Invitation landing no longer starts Kakao OAuth
@@ -38,9 +38,26 @@ native crash appeared during the final pass. Ignored evidence is under `dist/phy
 and `dist/physical-qa-*.xml`. The temporary QA package was uninstalled, font scale restored to
 1.0, and Metro/package overrides restored byte-for-byte.
 
-Production database migration, web deployment and AAB release are still pending at this point in
-the log. Ship the migration and both clients together. Existing approvals and participant identities
-remain unchanged; past acceptance by another account is not transferred by this fix.
+The implementation and launch-document commits were pushed to `origin/main` as `7b003be` and
+`b30d320`. EAS production build `e73fad95-7b19-438f-9c94-96137a95a879` **FINISHED** from
+`7b003be`, producing version 0.3.1/code 26. The AAB is saved at
+`dist/littlefinger-production-v0.3.1-code26.aab` (**85,598,442 bytes**), SHA-256
+`A526F51F497DA108E3066CB3DBB330A67B3A578B9C6441F3CC207101A9C311A2`.
+
+Bundletool validation, JAR signature verification and upload-certificate continuity passed. The
+manifest confirms `com.littlefinger.app`, minSdk 24 / targetSdk 36, non-debuggable, the production
+AdMob app ID, the correct App Link host and no forbidden camera, microphone, overlay, broad-package,
+phone-state or location permissions. All four ABIs are present: arm64-v8a, armeabi-v7a, x86 and
+x86_64. Packaged configuration carries all five production ad units and the current splash and
+notification colours. The Hermes bundle carries a product endpoint marker and no scanned QA,
+private-key or full secret-shaped token. A separate production export completed with 2,249 Metro
+modules; `npm run verify:android-bundle` passed all required-module checks across 2,192 source-map
+entries. The AAB was not uploaded to Google Play; publication remains PO-owned.
+
+Production database migration and web deployment remain pending. Ship them before or with the
+code 26 Play release so invitation-account and public-nickname behavior is consistent across all
+surfaces. Existing approvals and participant identities remain unchanged; past acceptance by
+another account is not transferred by this fix.
 
 ## Exposure ads enabled; launch QA resumed (2026-09-07)
 
