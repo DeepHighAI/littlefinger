@@ -48,6 +48,7 @@ import { LfStamp, type LfStampCorner } from '../../components/LfStamp';
 import { LfStatusTile } from '../../components/LfStatusTile';
 import { LfInkContext, LfText } from '../../components/LfText';
 import { CompletionCelebrationSheet } from '../../components/completion-celebration-sheet.tsx';
+import { CounterpartAliasSheet } from '../../components/counterpart-alias-sheet.tsx';
 import { PromiseAmendSheet } from '../../components/promise-amend-sheet.tsx';
 import { PromiseEntitlementSheet } from '../../components/promise-entitlement-sheet.tsx';
 import { WitnessInviteSheet } from '../../components/witness-invite-sheet.tsx';
@@ -67,6 +68,7 @@ import {
 } from '../../lib/fulfillment-native.ts';
 import { useLabels, useLocale } from '../../lib/locale-native';
 import { MobileApiError } from '../../lib/mobile-api.ts';
+import { COUNTERPART_ALIAS_LABEL } from '../../screens/counterpart-alias-labels.ts';
 import { getPromiseEntitlements } from '../../lib/monetization-native.ts';
 import {
   createPromiseAmendIdempotencyKey,
@@ -181,6 +183,7 @@ const styles = StyleSheet.create({
   listRow: { flexDirection: 'row', alignItems: 'center', gap: space[5], paddingVertical: space[5] },
   divided: { borderTopWidth: border.dashed, borderTopColor: colors.outline, borderStyle: 'dashed' },
   rowText: { flex: 1, minWidth: 0 },
+  aliasAction: { alignSelf: 'flex-start' },
   divider: { height: 0, borderTopWidth: border.dashed, borderTopColor: colors.outline, borderStyle: 'dashed' },
   // 내 기록 보관 행 (`.lf-retention-row`)
   retention: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
@@ -272,7 +275,7 @@ const styles = StyleSheet.create({
   },
   resultKept: { backgroundColor: colors.successContainer },
   resultBroken: { backgroundColor: colors.attentionContainer },
-  // 하단 — 보조 outlined(내용 폭) + 주 CTA(남는 폭) 56h (`.lf-detail__actions`)
+  // 긴 번역도 한 버튼이 가로 공간을 독점하지 않도록 두 액션의 폭을 나눈다.
   actions: {
     paddingHorizontal: space[8],
     paddingTop: space[5],
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
-  actionMain: { flex: 1 },
+  actionMain: { flex: 1, minWidth: 0 },
   safetyRow: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   historyContent: { gap: space[5], paddingBottom: space[5] },
 });
@@ -335,11 +338,14 @@ function ListRow({
 function PersonRow({
   person,
   divided = false,
+  onEditAlias,
 }: {
   person: PromiseDetailPerson;
   divided?: boolean;
+  onEditAlias?: () => void;
 }): React.JSX.Element {
   const LABEL = useLabels(SCR_A05_LABEL);
+  const ALIAS = useLabels(COUNTERPART_ALIAS_LABEL);
   const { locale } = useLocale();
   return (
     <ListRow divided={divided}>
@@ -352,6 +358,7 @@ function PersonRow({
       <View style={styles.rowText}>
         <LfText variant="label">{person.nickname}</LfText>
         <LfText variant="meta">{PARTICIPANT_ROLE_LABEL_BY_LOCALE[locale][person.role]}</LfText>
+        {onEditAlias !== undefined && <View style={styles.aliasAction}><LfButton label={ALIAS.edit} variant="text" size="compact" onPress={onEditAlias} /></View>}
       </View>
     </ListRow>
   );
@@ -823,6 +830,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   const [actionError, setActionError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [witnessSheetOpen, setWitnessSheetOpen] = useState(false);
+  const [aliasSheetOpen, setAliasSheetOpen] = useState(false);
   const [amendSheetOpen, setAmendSheetOpen] = useState(false);
   const [versionSheetOpen, setVersionSheetOpen] = useState(false);
   const [entitlementMode, setEntitlementMode] = useState<'DURATION' | 'RETENTION' | null>(null);
@@ -884,6 +892,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
 
   useEffect(() => {
     activePromiseId.current = promiseId;
+    setAliasSheetOpen(false);
     claimAttemptedFor.current = null;
     shownAttemptedFor.current = null;
     setCelebration(null);
@@ -1508,7 +1517,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           <LfText variant="eyebrow">{LABEL.people}</LfText>
           <LfCard shadow={false}>
             <View style={styles.list}>
-              <PersonRow person={detail.creator} />
+              <PersonRow person={detail.creator} {...(detail.my_role === 'PARTNER' ? { onEditAlias: () => setAliasSheetOpen(true) } : {})} />
               {detail.partner === null ? (
                 <ListRow divided>
                   <LfAvatar
@@ -1521,7 +1530,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                   <View style={styles.rowText}><LfText variant="label">{LABEL.partnerPending}</LfText></View>
                 </ListRow>
               ) : (
-                <PersonRow divided person={detail.partner} />
+                <PersonRow divided person={detail.partner} {...(detail.my_role === 'CREATOR' ? { onEditAlias: () => setAliasSheetOpen(true) } : {})} />
               )}
               {detail.witnesses.map((witness) => <PersonRow key={witness.user_id} divided person={witness} />)}
             </View>
@@ -1636,13 +1645,15 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         {primaryAction !== null || secondaryAction !== null ? (
           <View style={styles.actionRow}>
             {secondaryAction !== null ? (
+              <View style={styles.actionMain}>
               <LfButton
                 label={secondaryAction.label}
                 variant="outlined"
                 size="cta"
-                {...(primaryAction === null ? { block: true } : {})}
+                block
                 onPress={secondaryAction.onPress}
               />
+              </View>
             ) : null}
             {primaryAction !== null ? (
               <View style={styles.actionMain}>
@@ -1719,6 +1730,12 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         state={versionState}
         onClose={() => setVersionSheetOpen(false)}
       />
+      {aliasSheetOpen && <CounterpartAliasSheet
+        key={detail.promise_id}
+        promiseId={detail.promise_id}
+        onClose={() => setAliasSheetOpen(false)}
+        onSaved={() => { setAliasSheetOpen(false); void refresh(); }}
+      />}
       <CompletionCelebrationSheet
         visible={celebration !== null}
         celebration={celebration}

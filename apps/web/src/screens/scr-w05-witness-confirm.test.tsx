@@ -212,7 +212,7 @@ describe('SCR-W05 witness confirmation', () => {
     expect(await screen.findByText(FULL.content!.body)).toBeTruthy();
     expect(screen.getByText('지우 · 민준의 약속 · 2026-08-16 18:00 (KST)')).toBeTruthy();
     expect(screen.getByText('증인은 내용을 확인만 해요 — 누가 옳은지 판정하지 않아요')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /이행|수정|변경|파기/u })).toBeNull();
+    expect(screen.queryByRole('button', { name: /이행|수정|변경|약속 취소/u })).toBeNull();
     expect(screen.queryByTestId('lf-ad-slot')).toBeNull();
   });
 
@@ -312,7 +312,7 @@ describe('SCR-W05 witness confirmation', () => {
     );
     expect(signFulfillmentEvidence).toHaveBeenCalledWith('jwt', EVIDENCE_AVAILABLE, 'THUMBNAIL');
     expect(screen.getByText('신고 접수로 가려진 이미지입니다')).toBeTruthy();
-    expect(screen.getByText('보관 기간이 만료된 증빙입니다')).toBeTruthy();
+    expect(screen.getByText('보관 기간이 만료된 확인 사진입니다')).toBeTruthy();
     expect(signFulfillmentEvidence).toHaveBeenCalledTimes(1);
   });
 

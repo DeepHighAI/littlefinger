@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontFamily: textFontFamily(weight.regular),
   },
-  hook: { marginTop: space[7] },
+  hook: { marginTop: space[7], maxWidth: '100%' },
   actions: {
     paddingHorizontal: space[9],
     paddingBottom: ACTIONS_BOTTOM,

@@ -20,52 +20,17 @@ describe('SCR-A03 약속 초안 규칙', () => {
       penalty: '',
       witness_enabled: false,
     });
-    // 기본값(ko)은 명세 문구 그대로다 — 로케일 인자를 안 넘기는 기존 호출부의 동결 검증.
-    expect(rewardPresets()).toEqual([
-      '커피 한 잔 사주기',
-      '다음 메뉴 선택권',
-      '소원권 1장',
-      '주말 계획 결정권',
-      '칭찬 세 가지',
-      '스벅쏘기',
-      '올영쏘기',
-      '만원',
+    expect(rewardPresets().slice(0, 3)).toEqual([
+      '다음 메뉴 선택권', '주말 계획 결정권', '칭찬 세 가지',
     ]);
-    expect(penaltyPresets()).toEqual([
-      '커피 한 잔 사기',
-      '설거지 1주일',
-      '다음 데이트 비용',
-      '노래방 한 곡',
-      '소원권 1장 주기',
-      '스벅쏘기',
-      '올영쏘기',
-      '만원',
-      '나의 노예가 되어라',
+    expect(penaltyPresets().slice(0, 3)).toEqual([
+      '설거지 1주일', '소원권 1장 주기', '노래방 한 곡',
     ]);
-    expect(rewardPresets('en')).toEqual([
-      'A coffee treat',
-      'Pick the next menu',
-      'One wish coupon',
-      'Decide the weekend plan',
-      'Three compliments',
-      'Starbucks treat',
-      'Olive Young treat',
-      '10$',
-    ]);
-    expect(penaltyPresets('en')).toEqual([
-      'Buy a coffee',
-      'Dishes for a week',
-      'Pay for the next date',
-      'Sing one karaoke song',
-      'Give one wish coupon',
-      'Starbucks treat',
-      'Olive Young treat',
-      '10$',
-      'Be my servant',
-    ]);
-    // 벌칙에만 추가된 프리셋 하나를 제외하면 두 로케일의 칩 구성이 같다.
-    expect(rewardPresets('en')).toHaveLength(rewardPresets('ko').length);
-    expect(penaltyPresets('en')).toHaveLength(penaltyPresets('ko').length);
+    expect(rewardPresets()).toContain('10,000원');
+    expect(penaltyPresets()).toContain('10,000원');
+    expect(rewardPresets('en')).not.toContain('Olive Young treat');
+    expect(penaltyPresets('en')).not.toContain('Olive Young treat');
+    expect(rewardPresets()).toContain('올영쏘기');
     expect(rewardPresets()).not.toContain('나의 노예가 되어라');
   });
 

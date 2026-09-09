@@ -33,7 +33,7 @@ describe('F-06 알림 계약', () => {
         partnerNickname: '민준',
         amendType: 'CANCEL',
       }),
-    ).toMatchObject({ title: '민준님이 약속 파기를 요청했어요' });
+    ).toMatchObject({ title: '민준님이 약속 취소를 요청했어요' });
     expect(
       render('NT-15', {
         promiseTitle: '매일 걷기',
@@ -43,12 +43,12 @@ describe('F-06 알림 계약', () => {
     ).toMatchObject({ title: '민준님이 약속 마무리를 요청했어요' });
     expect(
       render('NT-16', { promiseTitle: '매일 걷기', amendDecision: 'APPROVE' }),
-    ).toMatchObject({ title: '요청이 승인됐어요', deeplink: 'SCR-A05' });
+    ).toMatchObject({ title: '요청이 수락됐어요', deeplink: 'SCR-A05' });
     expect(
       render('NT-16', { promiseTitle: '매일 걷기', amendDecision: 'DECLINE' }),
     ).toMatchObject({ title: '요청이 거절됐어요', deeplink: 'SCR-A05' });
     expect(render('NT-17', { promiseTitle: '매일 걷기' })).toMatchObject({
-      title: '변경 요청이 자동 철회됐어요',
+      title: '변경 요청이 자동으로 취소됐어요',
       deeplink: 'SCR-A05',
     });
   });
@@ -84,7 +84,7 @@ describe('F-06 알림 계약', () => {
       'NT-06': ['약속까지 7일 남았어요', 'SCR-A05'],
       'NT-07': ['오늘이 약속 종료일이에요', 'SCR-A05'],
       'NT-08': ['약속이 지켜졌나요?', 'SCR-A06'],
-      'NT-10': ['이행 확인이 2일 남았어요', 'SCR-A06'],
+      'NT-10': ['지킴 확인이 2일 남았어요', 'SCR-A06'],
     });
   });
 
@@ -97,11 +97,11 @@ describe('F-06 알림 계약', () => {
       'NT-14': [NOTIFICATION_TITLE['NT-14']('무시'), NOTIFICATION_DEEPLINK['NT-14']],
       'NT-19': [NOTIFICATION_TITLE['NT-19']('무시'), NOTIFICATION_DEEPLINK['NT-19']],
     }).toEqual({
-      'NT-09': ['민준님이 이행 확인을 보냈어요', 'SCR-A06'],
+      'NT-09': ['민준님이 지킴 확인을 보냈어요', 'SCR-A06'],
       'NT-11': ['약속을 지켰어요!', 'SCR-A05'],
-      'NT-12': ['약속이 불이행으로 기록됐어요', 'SCR-A05'],
+      'NT-12': ['약속이 안 지킴으로 기록됐어요', 'SCR-A05'],
       'NT-13': ['두 분의 확인이 서로 달라요', 'SCR-A05'],
-      'NT-14': ['이행 확인 없이 종결됐어요', 'SCR-A05'],
+      'NT-14': ['지킴 확인 없이 종결됐어요', 'SCR-A05'],
       'NT-19': ['다시 확인해 달라는 요청이 왔어요', 'SCR-A06'],
     });
   });

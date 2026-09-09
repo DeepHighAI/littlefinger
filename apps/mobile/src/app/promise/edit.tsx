@@ -44,6 +44,7 @@ import { SlotPaywallSheet } from '../../components/slot-paywall-sheet.tsx';
 import { PromiseEntitlementSheet } from '../../components/promise-entitlement-sheet.tsx';
 import { DraftAutosave } from '../../lib/draft-autosave.ts';
 import { useLabels, useLocale } from '../../lib/locale-native';
+import { usePromisePresets } from '../../lib/use-promise-presets.ts';
 import { localizedApiMessage, MobileApiError } from '../../lib/mobile-api.ts';
 import {
   clearEditorLocalDraft,
@@ -149,6 +150,7 @@ export function conditionInputScrollY(
 export default function PromiseEditorScreen(): React.JSX.Element {
   const LABEL = useLabels(PROMISE_EDIT_LABEL);
   const { locale } = useLocale();
+  const featuredPresets = usePromisePresets();
   const router = useRouter();
   const params = useLocalSearchParams<{ promise_id?: string | string[] }>();
   const promiseId = routePromiseId(params.promise_id);
@@ -520,7 +522,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       <LfCard><LfStack gap={7}>
         <LfField label={LABEL.reward} optional error={errorFor('reward')}>
           <View style={styles.choices}>
-            {rewardPresets(locale).map((preset) => (
+            {rewardPresets(locale, featuredPresets).map((preset) => (
               <LfChoice
                 key={preset}
                 label={preset}
@@ -542,7 +544,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         </LfField>
         <LfField label={LABEL.penalty} optional error={errorFor('penalty')}>
           <View style={styles.choices}>
-            {penaltyPresets(locale).map((preset) => (
+            {penaltyPresets(locale, featuredPresets).map((preset) => (
               <LfChoice
                 key={preset}
                 label={preset}

@@ -92,6 +92,6 @@ describe('MOD-03 완료 축하', () => {
   test('광고·증빙·공유 카드 자리표시자를 렌더하지 않는다', async () => {
     const { view } = await renderSheet();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
-    expect(view.queryByText(/증빙|공유 카드/u)).toBeNull();
+    expect(view.queryByText(/확인 사진|공유 카드/u)).toBeNull();
   });
 });

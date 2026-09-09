@@ -91,7 +91,9 @@ export function LfAppBar({
           <LfText variant="appbar" align="center" numberOfLines={1}>{title}</LfText>
         </View>
       )}
-      {menuControl ?? actions ?? (leadingControl === null ? null : <View style={styles.spacer} />)}
+      {menuControl ?? (actions === undefined
+        ? (leadingControl === null ? null : <View style={styles.spacer} />)
+        : <View style={styles.actions}>{actions}</View>)}
     </View>
   );
 }
@@ -113,6 +115,7 @@ const styles = StyleSheet.create({
     ...elevation.card,
   },
   title: { flex: 1, minWidth: 0 },
+  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   brand: {
     flex: 1,
     minWidth: 0,

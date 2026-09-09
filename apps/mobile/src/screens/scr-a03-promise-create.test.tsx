@@ -17,7 +17,13 @@ import {
   saveEditorLocalDraft,
   submitEditorDraft,
 } from '../lib/promise-editor-native.ts';
-import { EMPTY_PROMISE_DRAFT } from '../lib/promise-draft.ts';
+import { DEFAULT_FEATURED_PRESETS, EMPTY_PROMISE_DRAFT } from '../lib/promise-draft.ts';
+import { readFeaturedPresets, subscribeFeaturedPresets } from '../lib/promise-presets-native.ts';
+
+jest.mock('../lib/promise-presets-native.ts', () => ({
+  readFeaturedPresets: jest.fn().mockResolvedValue(null),
+  subscribeFeaturedPresets: jest.fn(() => jest.fn()),
+}));
 
 jest.mock('expo-router', () => ({ useLocalSearchParams: jest.fn(), useRouter: jest.fn() }));
 jest.mock('../lib/promise-editor-native.ts', () => ({
@@ -148,7 +154,7 @@ describe('SCR-A03 3단계 약속 작성', () => {
     expect(view.getByLabelText('보상')).toBeTruthy();
     expect(view.getAllByRole('button', { name: '스벅쏘기' })).toHaveLength(2);
     expect(view.getAllByRole('button', { name: '올영쏘기' })).toHaveLength(2);
-    expect(view.getAllByRole('button', { name: '만원' })).toHaveLength(2);
+    expect(view.getAllByRole('button', { name: '10,000원' })).toHaveLength(2);
     expect(view.getByRole('button', { name: '나의 노예가 되어라' })).toBeTruthy();
     expect(view.queryByLabelText('제목')).toBeNull();
   });
@@ -166,6 +172,23 @@ describe('SCR-A03 3단계 약속 작성', () => {
     await fireEvent(view.getByLabelText('벌칙'), 'focus');
   });
 
+  test('추천이 실시간으로 바뀌어도 선택한 보상과 직접 입력한 벌칙을 유지한다', async () => {
+    const view = await render(<PromiseEditorScreen />);
+    await settle();
+    await fillStepOne(view);
+    await fireEvent.press(view.getByRole('button', { name: '다음 메뉴 선택권' }));
+    await fireEvent.changeText(view.getByLabelText('벌칙'), '직접 정한 벌칙');
+    jest.mocked(readFeaturedPresets).mockResolvedValueOnce({
+      ...DEFAULT_FEATURED_PRESETS,
+      reward: { ko: ['새 보상 하나', '새 보상 둘', '새 보상 셋'], en: ['First', 'Second', 'Third'] },
+    });
+    await act(async () => { jest.mocked(subscribeFeaturedPresets).mock.calls.at(-1)?.[0](); });
+    expect(view.getByRole('button', { name: '새 보상 하나' })).toBeTruthy();
+    expect(view.queryByRole('button', { name: '다음 메뉴 선택권' })).toBeNull();
+    expect(view.getByLabelText('보상').props.value).toBe('다음 메뉴 선택권');
+    expect(view.getByLabelText('벌칙').props.value).toBe('직접 정한 벌칙');
+  });
+
   test('조건 프리셋과 종료일을 유지하고 확인 단계에서 수정·증인·확정 안내를 보여준다', async () => {
     const view = await render(<PromiseEditorScreen />);
     await settle();
@@ -178,7 +201,7 @@ describe('SCR-A03 3단계 약속 작성', () => {
 
     expect(view.getByRole('progressbar').props.accessibilityValue).toMatchObject({ now: 3, text: '확인' });
     expect(view.getAllByText('3/3 · 확인')).toHaveLength(1);
-    expect(view.getByText('상대가 승인하면 이 내용으로 확정돼요.')).toBeTruthy();
+    expect(view.getByText('상대가 수락하면 이 내용으로 확정돼요.')).toBeTruthy();
     expect(view.getByRole('button', { name: '약속 내용 수정' })).toBeTruthy();
     expect(view.getByRole('button', { name: '약속 조건 수정' })).toBeTruthy();
     expect(view.getByText('커피 한 잔 사주기')).toBeTruthy();

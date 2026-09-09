@@ -38,6 +38,20 @@ export function nicknameOf(body: Record<string, unknown>): string {
   return body['nickname'];
 }
 
+export function counterpartAliasPromiseOf(body: Record<string, unknown>): string {
+  exact(body, ['promise_id'], 'promise_id');
+  return uuid(body['promise_id'], 'promise_id');
+}
+
+export function counterpartAliasUpdateOf(body: Record<string, unknown>): {
+  promiseId: string; alias: string | null;
+} {
+  exact(body, ['promise_id', 'alias'], 'nickname');
+  const alias = body['alias'];
+  if (alias !== null && typeof alias !== 'string') throw new ApiError('E_VALIDATION', { field: 'nickname' });
+  return { promiseId: uuid(body['promise_id'], 'promise_id'), alias };
+}
+
 export function promiseHideOf(body: Record<string, unknown>): { promiseId: string; hidden: boolean } {
   exact(body, ['promise_id', 'hidden'], 'promise_id');
   const hidden = body['hidden'];

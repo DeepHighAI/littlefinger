@@ -79,10 +79,10 @@ describe('SCR-A09 지난 약속 히스토리', () => {
 
     expect(listHomePromises).toHaveBeenCalledWith({ tab: 'DONE' });
     expect(view.getByRole('tab', { name: '완료 1' })).toBeTruthy();
-    expect(view.getByRole('tab', { name: '불이행 0' })).toBeTruthy();
+    expect(view.getByRole('tab', { name: '안 지킴 0' })).toBeTruthy();
     // P1: 의견 불일치는 '불이행'이 아니라 중립 '협의 중단' 탭이다.
     expect(view.getByRole('tab', { name: '협의 중단 1' })).toBeTruthy();
-    expect(view.getByRole('tab', { name: '거절·파기 0' })).toBeTruthy();
+    expect(view.getByRole('tab', { name: '거절·약속 취소 0' })).toBeTruthy();
     expect(view.getByText('끝난 약속')).toBeTruthy();
     // 광고 슬롯은 없다 — F-12 허용 지면은 A02·A07·A08 뿐이다.
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();

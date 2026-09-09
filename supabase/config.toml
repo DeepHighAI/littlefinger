@@ -235,6 +235,12 @@ verify_jwt = false
 [functions.account-delete-retry]
 verify_jwt = false
 
+[functions.counterpart-alias-get]
+verify_jwt = true
+
+[functions.counterpart-alias-update]
+verify_jwt = true
+
 # ============================================================
 # 카카오 프로바이더 블록을 **의도적으로 두지 않는다.**
 #

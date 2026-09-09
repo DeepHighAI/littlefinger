@@ -13,11 +13,13 @@ const styles = StyleSheet.create({
   // 보이는 칩은 36h 지만 누르는 상자는 48 — 갤러리의 ::after 와 같은 역할
   target: {
     minHeight: size.touchMin,
+    maxWidth: '100%',
     justifyContent: 'center',
   },
   visual: {
-    height: size.chipSelectHeight,
+    minHeight: size.chipSelectHeight,
     paddingHorizontal: space[6],
+    paddingVertical: space[2],
     borderRadius: radius.sm,
     borderWidth: border.chip,
     borderColor: colors.text,
@@ -29,6 +31,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryContainer,
   },
   label: {
+    flexShrink: 1,
     color: colors.text,
     fontFamily: textFontFamily(weight.medium),
     fontSize: type.chip,

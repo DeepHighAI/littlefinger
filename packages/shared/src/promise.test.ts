@@ -49,10 +49,10 @@ describe('PROMISE_STATUSES', () => {
 
   test('라벨은 용어 사전을 따른다', () => {
     expect(PROMISE_STATUS_LABEL.ACTIVE).toBe('진행 중');
-    expect(PROMISE_STATUS_LABEL.BROKEN).toBe('불이행');
+    expect(PROMISE_STATUS_LABEL.BROKEN).toBe('안 지킴');
     expect(PROMISE_STATUS_LABEL.DISPUTED).toBe('답이 달라요');
     // S-15 확정: "무응답 종결"이 아니라 "미확정 종결"
-    expect(PROMISE_STATUS_LABEL.UNRESOLVED).toBe('미확정 종결');
+    expect(PROMISE_STATUS_LABEL.UNRESOLVED).toBe('확인 못함');
   });
 });
 

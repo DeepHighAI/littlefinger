@@ -15,7 +15,7 @@ const ko = {
   stampLabel: '확정된 약속',
   confirmedAt: (time: string) => `${time} 확정`,
   approvalLine: (nickname: string, role: string, actedAt: string) =>
-    `${nickname}(${role}) 승인 ${actedAt}`,
+    `${nickname}(${role}) 수락 ${actedAt}`,
   fingerprintLabel: '기록 지문',
   revisitCopy: '이 약속은 로그인하면 언제든 다시 볼 수 있어요',
   revisitAppCta: '앱에서 진행상황 보기',

@@ -126,7 +126,7 @@ async function settle(): Promise<void> {
   });
 }
 
-describe('SCR-A06 이행 확인', () => {
+describe('SCR-A06 지킴 확인', () => {
   beforeEach(() => {
     push.mockReset();
     replace.mockReset();
@@ -192,7 +192,7 @@ describe('SCR-A06 이행 확인', () => {
       expect(view.getByLabelText('한 줄 의견').props.value).toBe(value);
     }
     await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
     expect(submitMock.mock.calls[0]?.[0]).toMatchObject({ comment: '약속 지킴\n가' });
   });
@@ -219,10 +219,10 @@ describe('SCR-A06 이행 확인', () => {
       .mockResolvedValueOnce(makeDetail());
 
     const view = await render(<FulfillmentScreen />);
-    expect(view.getByText('이행 확인을 불러오는 중이에요')).toBeTruthy();
+    expect(view.getByText('지킴 확인을 불러오는 중이에요')).toBeTruthy();
 
     await act(async () => rejectLoad?.(new Error('network')));
-    expect(view.getByText('이행 확인을 불러오지 못했어요.')).toBeTruthy();
+    expect(view.getByText('지킴 확인을 불러오지 못했어요.')).toBeTruthy();
 
     await fireEvent.press(view.getByRole('button', { name: '다시 시도' }));
     await settle();
@@ -247,11 +247,11 @@ describe('SCR-A06 이행 확인', () => {
     await settle();
 
     expect(
-      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+      view.getByRole('button', { name: '답변 보내기' }).props.accessibilityState,
     ).toMatchObject({ disabled: true });
     await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
     expect(
-      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+      view.getByRole('button', { name: '답변 보내기' }).props.accessibilityState,
     ).toMatchObject({ disabled: false });
     expect(view.getByText(/확인 사진/u)).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
@@ -276,7 +276,7 @@ describe('SCR-A06 이행 확인', () => {
     const view = await render(<FulfillmentScreen />);
     await settle();
     await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
 
     expect(order).toEqual(['clear', 'replace']);
@@ -349,7 +349,7 @@ describe('SCR-A06 이행 확인', () => {
     expect(uploadEvidenceMock).toHaveBeenCalledTimes(3);
     for (const asset of assets) expect(view.getByText(asset.file_name)).toBeTruthy();
     expect(
-      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+      view.getByRole('button', { name: '답변 보내기' }).props.accessibilityState,
     ).toMatchObject({ disabled: true });
     expect(view.queryByRole('button', { name: '사진 추가' })).toBeNull();
 
@@ -367,7 +367,7 @@ describe('SCR-A06 이행 확인', () => {
       await Promise.resolve();
     });
     expect(
-      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+      view.getByRole('button', { name: '답변 보내기' }).props.accessibilityState,
     ).toMatchObject({ disabled: false });
   });
 
@@ -420,10 +420,10 @@ describe('SCR-A06 이행 확인', () => {
     expect(view.getByText('사진은 장당 5MB까지 올릴 수 있어요.')).toBeTruthy();
     expect(view.getByText('사진 1장을 올리지 못했어요.')).toBeTruthy();
     expect(
-      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+      view.getByRole('button', { name: '답변 보내기' }).props.accessibilityState,
     ).toMatchObject({ disabled: false });
 
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
     expect(submitMock).toHaveBeenCalledWith(
       {
@@ -522,11 +522,11 @@ describe('SCR-A06 이행 확인', () => {
 
     await fireEvent.press(view.getByRole('button', { name: '답변 수정' }));
     await fireEvent.press(
-      view.getByRole('button', { name: '증빙 evidence-1 삭제' }),
+      view.getByRole('button', { name: '확인 사진 evidence-1 삭제' }),
     );
     await fireEvent.press(view.getByRole('button', { name: '사진 추가' }));
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '수정 제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '수정한 답변 보내기' }));
     await settle();
 
     expect(submitMock).toHaveBeenCalledWith(
@@ -579,7 +579,7 @@ describe('SCR-A06 이행 확인', () => {
 
     expect(signEvidenceMock).toHaveBeenCalledWith('evidence-1', 'THUMBNAIL');
     expect(view.getByText('신고 접수로 가려진 이미지입니다')).toBeTruthy();
-    expect(view.getByText('보관 기간이 만료된 증빙입니다')).toBeTruthy();
+    expect(view.getByText('보관 기간이 만료된 확인 사진입니다')).toBeTruthy();
     await fireEvent(
       view.getByTestId('evidence-image-evidence-1'),
       'error',
@@ -629,7 +629,7 @@ describe('SCR-A06 이행 확인', () => {
     ]);
     await fireEvent.press(
       view.getByRole('button', {
-        name: '증빙 11111111-1111-4111-8111-111111111111 삭제',
+        name: '확인 사진 11111111-1111-4111-8111-111111111111 삭제',
       }),
     );
     await settle();
@@ -664,7 +664,7 @@ describe('SCR-A06 이행 확인', () => {
     ).toBeTruthy();
     await fireEvent.press(
       view.getByRole('button', {
-        name: '증빙 11111111-1111-4111-8111-111111111111 삭제',
+        name: '확인 사진 11111111-1111-4111-8111-111111111111 삭제',
       }),
     );
     await settle();
@@ -702,7 +702,7 @@ describe('SCR-A06 이행 확인', () => {
         .accessibilityState,
     ).toMatchObject({ selected: true });
     expect(view.getByLabelText('한 줄 의견').props.value).toBe('복원한 의견');
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
     expect(submitMock).toHaveBeenCalledWith(
       {
@@ -744,7 +744,7 @@ describe('SCR-A06 이행 확인', () => {
     await settle();
 
     expect(loadEvidenceDraftMock).toHaveBeenCalledWith('promise-1', 1);
-    expect(view.getByRole('button', { name: '수정 제출' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '수정한 답변 보내기' })).toBeTruthy();
     expect(
       view.getByRole('button', { name: '안 지켜졌어요' }).props
         .accessibilityState,
@@ -764,14 +764,14 @@ describe('SCR-A06 이행 확인', () => {
     expect(input.props.value).toBe(`가${'🙂'.repeat(199)}`);
     expect(view.getByText('200/200')).toBeTruthy();
     expect(
-      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+      view.getByRole('button', { name: '답변 보내기' }).props.accessibilityState,
     ).toMatchObject({ disabled: false });
 
     await fireEvent.changeText(input, `가${'🙂'.repeat(200)}`);
     expect(view.getByText('201/200')).toBeTruthy();
     expect(view.getByText('한 줄 의견은 200자까지 입력할 수 있어요.')).toBeTruthy();
     expect(
-      view.getByRole('button', { name: '제출' }).props.accessibilityState,
+      view.getByRole('button', { name: '답변 보내기' }).props.accessibilityState,
     ).toMatchObject({ disabled: true });
   });
 
@@ -812,7 +812,7 @@ describe('SCR-A06 이행 확인', () => {
 
     await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
     await fireEvent.changeText(view.getByLabelText('한 줄 의견'), '아침마다 함께 달렸어요');
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
 
     expect(view.getByText('상대의 확인을 기다리고 있습니다.')).toBeTruthy();
@@ -822,7 +822,7 @@ describe('SCR-A06 이행 확인', () => {
 
     await fireEvent.press(view.getByRole('button', { name: '안 지켜졌어요' }));
     await fireEvent.changeText(view.getByLabelText('한 줄 의견'), '수정한 의견');
-    await fireEvent.press(view.getByRole('button', { name: '수정 제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '수정한 답변 보내기' }));
     await settle();
 
     expect(submitMock).toHaveBeenNthCalledWith(
@@ -857,7 +857,7 @@ describe('SCR-A06 이행 확인', () => {
     await settle();
 
     await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
 
     expect(view.getByText('이미 종료된 약속입니다.')).toBeTruthy();
@@ -882,7 +882,7 @@ describe('SCR-A06 이행 확인', () => {
     await settle();
 
     await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
 
     expect(
@@ -913,12 +913,12 @@ describe('SCR-A06 이행 확인', () => {
     await settle();
 
     await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
     await fireEvent.changeText(view.getByLabelText('한 줄 의견'), '새 의견');
-    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await fireEvent.press(view.getByRole('button', { name: '답변 보내기' }));
     await settle();
 
     expect(submitMock).toHaveBeenNthCalledWith(

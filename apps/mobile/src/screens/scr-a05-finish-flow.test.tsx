@@ -251,7 +251,7 @@ describe('SCR-A05 마무리(FINISH) 흐름', () => {
     await fireEvent.press(view.getByRole('button', { name: '이 약속 마무리 요청' }));
     expect(Alert.alert).toHaveBeenCalledWith(
       '이 약속의 마무리를 요청할까요?',
-      '상대방이 승인한 시각부터 이행 확인과 기록 보관 기간이 시작돼요.',
+      '상대방이 수락한 시각부터 지킴 확인과 기록 보관 기간이 시작돼요.',
       expect.any(Array),
     );
     const confirm = alertButtons().find((button) => button.text === '마무리 요청');
@@ -278,12 +278,12 @@ describe('SCR-A05 마무리(FINISH) 흐름', () => {
     await settle();
 
     expect(view.getByText('지우님이 이 약속의 마무리를 요청했어요.')).toBeTruthy();
-    expect(view.getByRole('button', { name: '마무리하고 이행 확인 시작' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '마무리하고 지킴 확인 시작' })).toBeTruthy();
     expect(view.getByRole('button', { name: '거절' })).toBeTruthy();
     expect(view.queryByRole('button', { name: '요청 취소' })).toBeNull();
-    expect(view.queryByText(/종료 승인|종료하고/u)).toBeNull();
+    expect(view.queryByText(/종료 수락|종료하고/u)).toBeNull();
 
-    await fireEvent.press(view.getByRole('button', { name: '마무리하고 이행 확인 시작' }));
+    await fireEvent.press(view.getByRole('button', { name: '마무리하고 지킴 확인 시작' }));
     await settle();
     expect(respondAmendMock).toHaveBeenCalledWith(
       { promise_id: PROMISE_ID, request_id: REQUEST_ID, decision: 'APPROVE' },
@@ -299,7 +299,7 @@ describe('SCR-A05 마무리(FINISH) 흐름', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    expect(view.queryByRole('button', { name: '마무리하고 이행 확인 시작' })).toBeNull();
+    expect(view.queryByRole('button', { name: '마무리하고 지킴 확인 시작' })).toBeNull();
     expect(view.queryByRole('button', { name: '거절' })).toBeNull();
     await fireEvent.press(view.getByRole('button', { name: '요청 취소' }));
     await settle();
@@ -342,7 +342,7 @@ describe('SCR-A05 마무리(FINISH) 흐름', () => {
     await settle();
 
     expect(view.getByText('마무리 요청')).toBeTruthy();
-    expect(view.getByText('마무리 승인')).toBeTruthy();
-    expect(view.queryByText(/종료 요청|종료 승인/u)).toBeNull();
+    expect(view.getByText('마무리 수락')).toBeTruthy();
+    expect(view.queryByText(/종료 요청|종료 수락/u)).toBeNull();
   });
 });

@@ -1,5 +1,7 @@
 import type { Localized } from '@littlefinger/shared';
 
+import { APP_VERSION_LABEL } from './app-version-labels.ts';
+import { COUNTERPART_ALIAS_LABEL } from './counterpart-alias-labels.ts';
 import { BLOCKED_USERS_LABEL } from './blocked-users-labels.ts';
 import { INVITE_LABEL } from './invite-labels.ts';
 import { INVITE_REVIEW_LABEL } from './invite-review-labels.ts';
@@ -27,6 +29,8 @@ import { UPDATE_REQUIRED_LABEL } from './update-required-labels.ts';
  * 웹 `apps/web/src/labels-registry.ts` 와 같은 규칙의 앱 쪽 거울이다.
  */
 export const MOBILE_LABEL_CATALOGS = {
+  APP_VERSION_LABEL,
+  COUNTERPART_ALIAS_LABEL,
   BLOCKED_USERS_LABEL,
   INVITE_LABEL,
   INVITE_REVIEW_LABEL,

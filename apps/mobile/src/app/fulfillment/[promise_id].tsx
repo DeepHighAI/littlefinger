@@ -56,6 +56,7 @@ import {
 } from '../../lib/fulfillment-native.ts';
 import { useLabels, useLocale } from '../../lib/locale-native';
 import { MobileApiError } from '../../lib/mobile-api.ts';
+import { useKeyboardScroll } from '../../lib/use-keyboard-scroll.ts';
 import { SCR_A06_LABEL } from '../../screens/scr-a06-labels.ts';
 import { statusToneOf } from '../../screens/status-tone.ts';
 import {
@@ -503,6 +504,7 @@ function RoundHistory({ round }: { round: FulfillmentRoundView }): React.JSX.Ele
 }
 
 export default function FulfillmentScreen(): React.JSX.Element {
+  const keyboard = useKeyboardScroll(true);
   const LABEL = useLabels(SCR_A06_LABEL);
   const { locale } = useLocale();
   const router = useRouter();
@@ -955,7 +957,15 @@ export default function FulfillmentScreen(): React.JSX.Element {
 
   return (
     <ScreenFrame onBack={() => router.back()}>
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView
+        ref={keyboard.scrollRef}
+        keyboardShouldPersistTaps="handled"
+        onScroll={keyboard.onScroll}
+        scrollEventThrottle={16}
+        onLayout={() => keyboard.reveal()}
+        onContentSizeChange={() => keyboard.reveal()}
+        contentContainerStyle={[styles.body, { paddingBottom: space[8] + keyboard.inset }]}
+      >
         <LfCard tone="muted" shadow={false}>
           <LfStack gap={1}>
             <LfText variant="bodyStrong">{detail.title}</LfText>
@@ -1012,6 +1022,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
                 accessibilityLabel={LABEL.comment}
                 placeholder={LABEL.commentPlaceholder}
                 value={comment}
+                onFocus={keyboard.onFocus}
                 onChangeText={(value) => {
                   if (comment !== value) submitIdempotencyKey.current = null;
                   setComment(value);

@@ -17,10 +17,10 @@ import {
  * 두 문법을 한 형태로 담을 수 없다. 한도 수치는 인자로 받는다(config 상수가 출처).
  */
 const ko = {
-  title: '이행 확인',
+  title: '지킴 확인',
   back: '뒤로가기',
-  loading: '이행 확인을 불러오는 중이에요',
-  loadError: '이행 확인을 불러오지 못했어요.',
+  loading: '지킴 확인을 불러오는 중이에요',
+  loadError: '지킴 확인을 불러오지 못했어요.',
   notFound: '약속을 찾을 수 없어요.',
   retry: '다시 시도',
   question: '약속, 지켜졌나요?',
@@ -39,8 +39,8 @@ const ko = {
   commentPlaceholder: '서로에게 남길 말을 적어보세요',
   commentLimit: (max: number) =>
     `한 줄 의견은 ${max}자까지 입력할 수 있어요.`,
-  submit: '제출',
-  reviseSubmit: '수정 제출',
+  submit: '답변 보내기',
+  reviseSubmit: '수정한 답변 보내기',
   evidence: '확인 사진',
   evidenceAdd: '사진 추가',
   evidenceHint: '상대와 증인에게 공개돼요',
@@ -53,10 +53,10 @@ const ko = {
   evidenceReady: '업로드 완료',
   evidenceFailed: '업로드 실패',
   evidenceRetry: '사진 업로드 다시 시도',
-  evidenceRemove: (id: string) => `증빙 ${id} 삭제`,
-  evidenceOpen: (id: string) => `증빙 ${id} 열기`,
+  evidenceRemove: (id: string) => `확인 사진 ${id} 삭제`,
+  evidenceOpen: (id: string) => `확인 사진 ${id} 열기`,
   evidenceBlinded: '신고 접수로 가려진 이미지입니다',
-  evidenceExpired: '보관 기간이 만료된 증빙입니다',
+  evidenceExpired: '보관 기간이 만료된 확인 사진입니다',
   counterpartFirst: '상대방이 먼저 답했어요',
   waiting: '상대의 확인을 기다리고 있습니다.',
   revise: '답변 수정',

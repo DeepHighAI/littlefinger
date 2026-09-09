@@ -5,6 +5,7 @@ import {
   type SlotStatusResponse,
 } from '@littlefinger/shared';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { nativeApplicationVersion, nativeBuildVersion } from 'expo-application';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,6 +39,7 @@ import {
   updateTrustProfileSettings,
 } from '../lib/trust-profile-native.ts';
 import { SCR_A08_LABEL } from '../screens/scr-a08-labels.ts';
+import { APP_VERSION_LABEL } from '../screens/app-version-labels.ts';
 import { SLOT_LABEL } from '../screens/slot-labels.ts';
 import { MOBILE_CHROME_LABEL } from '../screens/mobile-chrome-labels.ts';
 import {
@@ -129,6 +131,7 @@ function LanguageRow(): React.JSX.Element {
 export default function ProfileScreen(): React.JSX.Element {
   const LABEL = useLabels(SCR_A08_LABEL);
   const SLOT = useLabels(SLOT_LABEL);
+  const VERSION = useLabels(APP_VERSION_LABEL);
   const CHROME = useLabels(MOBILE_CHROME_LABEL);
   const router = useRouter();
   const [state, dispatch] = useReducer(profileReducer, undefined, createInitialProfileState);
@@ -455,6 +458,9 @@ export default function ProfileScreen(): React.JSX.Element {
       />
       {withdrawFailed && <LfText variant="error">{LABEL.withdrawError}</LfText>}
       <LfAdSlot enabled={adsEnabled} />
+      <LfText variant="meta" align="center" testID="app-version">
+        {VERSION.version(nativeApplicationVersion ?? VERSION.unavailable, nativeBuildVersion ?? VERSION.unavailable)}
+      </LfText>
     </ScrollView>
   );
 

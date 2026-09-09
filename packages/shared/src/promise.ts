@@ -39,11 +39,11 @@ export const PROMISE_STATUS_LABEL: Record<PromiseStatus, string> = {
   AMEND_PENDING: '변경 대기',
   CHECKING: '결과 확인 중',
   COMPLETED: '완료',
-  BROKEN: '불이행',
+  BROKEN: '안 지킴',
   DISPUTED: '답이 달라요',
-  UNRESOLVED: '미확정 종결',
+  UNRESOLVED: '확인 못함',
   DECLINED: '거절됨',
-  CANCELED: '파기됨',
+  CANCELED: '취소됨',
 };
 
 /**

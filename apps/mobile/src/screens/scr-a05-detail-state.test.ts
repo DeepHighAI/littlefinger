@@ -53,16 +53,16 @@ describe('SCR-A05 상태별 표현 계약', () => {
   });
 
   test.each([
-    ['PENDING', 'PENDING', '수락 대기', '상대방의 승인을 기다리고 있어요', 'paper'],
+    ['PENDING', 'PENDING', '수락 대기', '상대방의 수락을 기다리고 있어요', 'paper'],
     ['ACTIVE', 'ACTIVE', '진행 중', '함께 확인한 약속이에요', 'mint'],
     ['AMEND_PENDING', 'AMEND_PENDING', '변경 대기', '변경 내용을 확인하고 있어요', 'sky'],
     ['CHECKING', 'CHECKING', '결과 확인 중', '약속, 지켜졌나요?', 'pink'],
     ['COMPLETED', 'COMPLETED', '완료', '함께 지킨 약속으로 기록됐어요', 'mint'],
-    ['BROKEN', 'BROKEN', '불이행', '이번엔 못 지켰어요', 'pink'],
+    ['BROKEN', 'BROKEN', '안 지킴', '이번엔 못 지켰어요', 'pink'],
     ['DISPUTED', 'DISPUTED', '답이 달라요', '서로의 응답이 달라요', 'paper'],
-    ['UNRESOLVED', 'UNRESOLVED', '미확정 종결', '응답 없이 종료됐어요', 'muted'],
+    ['UNRESOLVED', 'UNRESOLVED', '확인 못함', '응답 없이 종료됐어요', 'muted'],
     ['DECLINED', 'TERMINAL', '거절됨', '이번엔 성립되지 않았어요', 'muted'],
-    ['CANCELED', 'TERMINAL', '파기됨', '약속이 파기됐어요', 'muted'],
+    ['CANCELED', 'TERMINAL', '취소됨', '약속이 취소됐어요', 'muted'],
   ] as const)(
     '%s를 9개 시각 변형과 확정 문구로 매핑한다',
     (status, variant, label, headline, tone) => {
@@ -93,7 +93,7 @@ describe('SCR-A05 상태별 표현 계약', () => {
     expect(presentation?.evidenceAvailabilityText('BLINDED')).toBe(
       '신고 접수로 가려진 이미지입니다',
     );
-    expect(presentation?.evidenceAvailabilityText('EXPIRED')).toBe('보관 기간이 지난 증빙입니다');
+    expect(presentation?.evidenceAvailabilityText('EXPIRED')).toBe('보관 기간이 지난 확인 사진입니다');
   });
 
   test('DISPUTED 양측 주장은 동일한 필드·강조 구조로 표현한다', () => {
@@ -127,13 +127,13 @@ describe('SCR-A05 상태별 표현 계약', () => {
       nickname: '지우',
       answer: '지켰어요',
       submittedAt: '2026-08-16 00:04 (KST)',
-      evidenceCount: '증빙 없음',
+      evidenceCount: '확인 사진 없음',
     });
     expect(presentation?.claimPresentation(partner, '민준')).toEqual({
       nickname: '민준',
       answer: '안 지켜졌어요',
       submittedAt: '2026-08-16 01:04 (KST)',
-      evidenceCount: '증빙 1장',
+      evidenceCount: '확인 사진 1장',
     });
   });
 });

@@ -137,14 +137,14 @@ describe('MOD-01 변경·취소 요청', () => {
     expect(view.getByText(VERSION.end_date)).toBeTruthy();
     expect(view.getByRole('button', { name: '습관' }).props.accessibilityState).toMatchObject({ selected: true });
     expect(view.getByRole('button', { name: '둘 다' }).props.accessibilityState).toMatchObject({ selected: true });
-    expect(view.getByText('상대가 승인하면 적용돼요. 승인 전까지는 지금 약속이 그대로 유지돼요.')).toBeTruthy();
+    expect(view.getByText('상대가 수락하면 적용돼요. 수락 전까지는 지금 약속이 그대로 유지돼요.')).toBeTruthy();
     expect(view.queryByTestId('lf-ad-slot')).toBeNull();
   });
 
   test('변경·파기 탭은 현재 선택을 스크린리더 상태로 구분한다', async () => {
     const view = await render(<PromiseAmendSheet {...props()} />);
     const amend = view.getByRole('tab', { name: '내용 변경' });
-    const cancel = view.getByRole('tab', { name: '파기 요청' });
+    const cancel = view.getByRole('tab', { name: '약속 취소 요청' });
     expect(amend.props.accessibilityState).toMatchObject({ selected: true });
     expect(cancel.props.accessibilityState).toMatchObject({ selected: false });
 
@@ -152,7 +152,7 @@ describe('MOD-01 변경·취소 요청', () => {
     expect(view.getByRole('tab', { name: '내용 변경' }).props.accessibilityState).toMatchObject({
       selected: false,
     });
-    expect(view.getByRole('tab', { name: '파기 요청' }).props.accessibilityState).toMatchObject({
+    expect(view.getByRole('tab', { name: '약속 취소 요청' }).props.accessibilityState).toMatchObject({
       selected: true,
     });
   });
@@ -209,8 +209,8 @@ describe('MOD-01 변경·취소 요청', () => {
       .mockResolvedValueOnce(true);
     const view = await render(<PromiseAmendSheet {...props({ onSubmit, confirmCancel })} />);
 
-    await fireEvent.press(view.getByRole('tab', { name: '파기 요청' }));
-    expect(view.getByText('두 사람 모두 동의하면 약속이 파기돼요')).toBeTruthy();
+    await fireEvent.press(view.getByRole('tab', { name: '약속 취소 요청' }));
+    expect(view.getByText('두 사람 모두 동의하면 약속이 취소돼요')).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '요청 보내기' }));
     expect(onSubmit).not.toHaveBeenCalled();
     await fireEvent.press(view.getByRole('button', { name: '요청 보내기' }));

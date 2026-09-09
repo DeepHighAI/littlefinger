@@ -46,7 +46,7 @@ export function detailVisualModeOf(status: PromiseStatus): PromiseDetailVisualMo
 // 순수 모듈이라 훅을 못 쓴다 — 로케일은 뒤쪽 인자(기본 ko)로 받는다.
 const HEADLINE: Localized<Record<PromiseDetailStatus, string>> = {
   ko: {
-    PENDING: '상대방의 승인을 기다리고 있어요',
+    PENDING: '상대방의 수락을 기다리고 있어요',
     ACTIVE: '함께 확인한 약속이에요',
     AMEND_PENDING: '변경 내용을 확인하고 있어요',
     CHECKING: '약속, 지켜졌나요?',
@@ -55,7 +55,7 @@ const HEADLINE: Localized<Record<PromiseDetailStatus, string>> = {
     DISPUTED: '서로의 응답이 달라요',
     UNRESOLVED: '응답 없이 종료됐어요',
     DECLINED: '이번엔 성립되지 않았어요',
-    CANCELED: '약속이 파기됐어요',
+    CANCELED: '약속이 취소됐어요',
   },
   // DISPUTED en 도 P1(기록자, 판정자 아님)을 지킨다 — 누가 옳은지 암시하지 않는다.
   en: {

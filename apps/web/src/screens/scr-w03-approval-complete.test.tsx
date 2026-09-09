@@ -70,8 +70,8 @@ describe('SCR-W03 승인 완료', () => {
     renderWith(RESULT);
     const rows = screen.getAllByTestId('approval-row').map(visibleText);
     expect(rows).toEqual([
-      '지우(작성자) 승인 2026-07-11 14:20 (KST)',
-      '민준(상대방) 승인 2026-07-12 21:04 (KST)',
+      '지우(작성자) 수락 2026-07-11 14:20 (KST)',
+      '민준(상대방) 수락 2026-07-12 21:04 (KST)',
     ]);
   });
 

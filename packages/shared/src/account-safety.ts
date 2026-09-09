@@ -1,5 +1,6 @@
 import type {
   AccountWithdrawResponse,
+  CounterpartAliasResponse,
   BlockedUserItem,
   ProfileNicknameUpdateResponse,
   PromiseHideResponse,
@@ -9,6 +10,7 @@ import type {
   UserUnblockResponse,
 } from './api.ts';
 import { codepointLength } from './text.ts';
+import { COUNTERPART_ALIAS_MAX_LENGTH } from './config.ts';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
@@ -22,6 +24,19 @@ function recordWithFields(value: unknown, fields: readonly string[]): Record<str
 export function asAccountWithdrawResponse(value: unknown): AccountWithdrawResponse | null {
   const record = recordWithFields(value, ['status']);
   return record?.['status'] === 'WITHDRAWN' ? { status: 'WITHDRAWN' } : null;
+}
+
+export function asCounterpartAliasResponse(value: unknown): CounterpartAliasResponse | null {
+  const record = recordWithFields(value, ['target_user_id', 'nickname', 'alias']);
+  const target = record?.['target_user_id'];
+  const nickname = record?.['nickname'];
+  const alias = record?.['alias'];
+  return typeof target === 'string' && UUID_PATTERN.test(target)
+    && typeof nickname === 'string' && nickname.length > 0
+    && (alias === null || (typeof alias === 'string' && codepointLength(alias) >= 1
+      && codepointLength(alias) <= COUNTERPART_ALIAS_MAX_LENGTH))
+    ? { target_user_id: target, nickname, alias }
+    : null;
 }
 
 export function asProfileNicknameUpdateResponse(value: unknown): ProfileNicknameUpdateResponse | null {

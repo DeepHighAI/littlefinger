@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 
 import { textFontFamily } from '../theme/fonts';
-import { colors, border, elevation, radius, size, type, weight } from '../theme/tokens';
+import { colors, border, elevation, radius, size, space, type, weight } from '../theme/tokens';
 
 export type LfDdayTone = 'yellow' | 'sky';
 
@@ -21,15 +21,18 @@ export function LfDday({ label, tone = 'yellow', accessibilityLabel, ...rest }: 
       accessibilityLabel={accessibilityLabel}
       style={[styles.tile, tone === 'sky' && styles.sky]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text numberOfLines={1} style={styles.label}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   tile: {
-    width: size.ddayCircle,
-    height: size.ddayCircle,
+    minWidth: size.ddayCircle,
+    minHeight: size.ddayCircle,
+    paddingHorizontal: space[1],
+    paddingVertical: space[2],
+    flexShrink: 0,
     borderRadius: radius.md,
     backgroundColor: colors.primaryContainer,
     borderWidth: border.chip,

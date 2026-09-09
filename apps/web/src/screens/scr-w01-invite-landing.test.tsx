@@ -22,11 +22,12 @@ vi.mock('../lib/supabase.ts', async (importOriginal) => ({
 
 const SUPABASE_URL = 'https://test-project.supabase.co';
 const TOKEN = 'a-b_c-d_e';
+const NOW = Date.UTC(2026, 8, 9);
 
 const INVITE = {
   creator_nickname: '지우',
   title: '매주 화·목 아침 러닝 같이 하기',
-  expires_at: new Date(Date.now() + (2 * 3600 + 3 * 60 + 4) * 1000).toISOString(),
+  expires_at: new Date(NOW + (2 * 3600 + 3 * 60 + 4) * 1000).toISOString(),
   target_role: 'PARTNER' as const,
 };
 
@@ -61,6 +62,8 @@ function visibleText(el: Element): string {
 }
 
 beforeEach(() => {
+  // 렌더와 검증 사이 실제 1초 경계를 넘어도 같은 남은 시간을 비교한다.
+  vi.spyOn(Date, 'now').mockReturnValue(NOW);
   vi.stubEnv('VITE_SUPABASE_URL', SUPABASE_URL);
   vi.stubGlobal('fetch', fetchMock);
   fetchMock.mockReset();

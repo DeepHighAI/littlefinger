@@ -23,6 +23,7 @@ export * from './legal.ts';
 export * from './monetization.ts';
 export * from './notification.ts';
 export * from './promise.ts';
+export * from './promise-presets.ts';
 export * from './profile-name.ts';
 export * from './promise-home.ts';
 export * from './promise-detail.ts';

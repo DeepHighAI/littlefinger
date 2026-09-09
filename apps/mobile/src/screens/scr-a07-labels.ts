@@ -66,11 +66,11 @@ export const SCR_A07_LABEL: Localized<typeof ko> = { ko, en };
 
 const semanticKo = {
   CONFIRMATION: '약속 확정',
-  APPROVAL: '승인 응답',
+  APPROVAL: '수락 응답',
   AMEND: '변경 요청',
   REMINDER: '리마인드',
-  FULFILLMENT: '이행 확인',
-  RESULT: '이행 결과',
+  FULFILLMENT: '지킴 확인',
+  RESULT: '지킴 결과',
 };
 
 const semanticEn = {

@@ -425,7 +425,7 @@ describe('SCR-W04 참여 약속', () => {
     expect(screen.getByDisplayValue('2026-09-01')).toBeTruthy();
     expect(screen.getByRole('button', { name: '습관' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('button', { name: '둘 다' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByText('상대가 승인하면 적용돼요. 승인 전까지는 지금 약속이 그대로 유지돼요.')).toBeTruthy();
+    expect(screen.getByText('상대가 수락하면 적용돼요. 수락 전까지는 지금 약속이 그대로 유지돼요.')).toBeTruthy();
     expect(container.querySelector('.lf-ad-slot')).toBeNull();
     expect(screen.getByRole('button', { name: '요청 보내기' }).className).toContain('lf-btn--cta');
   });
@@ -463,8 +463,8 @@ describe('SCR-W04 참여 약속', () => {
     );
     renderAt();
     fireEvent.click(await screen.findByRole('button', { name: '변경·취소 요청' }));
-    fireEvent.click(screen.getByRole('tab', { name: '파기 요청' }));
-    expect(screen.getByText('두 사람 모두 동의하면 약속이 파기돼요')).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', { name: '약속 취소 요청' }));
+    expect(screen.getByText('두 사람 모두 동의하면 약속이 취소돼요')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
 
     await waitFor(() => expect(mutationKeys(ENDPOINT.promiseAmendRequest)).toHaveLength(1));
@@ -481,7 +481,7 @@ describe('SCR-W04 참여 약속', () => {
     renderAt();
     fireEvent.click(await screen.findByRole('button', { name: '변경·취소 요청' }));
     fireEvent.click(screen.getByRole('tab', { name: '마무리 요청' }));
-    expect(screen.getByText('상대가 승인한 시각부터 이행 확인과 개인 보관 기간이 시작돼요.')).toBeTruthy();
+    expect(screen.getByText('상대가 수락한 시각부터 지킴 확인과 개인 보관 기간이 시작돼요.')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '요청 보내기' }));
 
     await waitFor(() => expect(mutationKeys(ENDPOINT.promiseAmendRequest)).toHaveLength(1));
@@ -499,7 +499,7 @@ describe('SCR-W04 참여 약속', () => {
     );
     renderAt();
     expect(await screen.findByText('지우님이 약속 마무리를 요청했어요')).toBeTruthy();
-    expect(screen.getByRole('button', { name: '마무리 승인' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '마무리 수락' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '거절' })).toBeTruthy();
   });
 
@@ -534,7 +534,7 @@ describe('SCR-W04 참여 약속', () => {
       { [PROMISE_A]: { ...pending, my_role: 'PARTNER' } },
     );
     renderAt();
-    expect(await screen.findByRole('button', { name: '변경 승인' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: '변경 수락' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '거절' })).toBeTruthy();
   });
 
@@ -675,10 +675,10 @@ describe('SCR-W04 참여 약속', () => {
     });
     renderAt();
 
-    fireEvent.click(await screen.findByRole('button', { name: '파기 승인' }));
+    fireEvent.click(await screen.findByRole('button', { name: '약속 취소 수락' }));
     expect(respondCalls).toBe(0);
     confirm.mockReturnValue(true);
-    fireEvent.click(screen.getByRole('button', { name: '파기 승인' }));
+    fireEvent.click(screen.getByRole('button', { name: '약속 취소 수락' }));
     fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
     fireEvent.click(await screen.findByRole('button', { name: '거절' }));
 
@@ -722,11 +722,11 @@ describe('SCR-W04 참여 약속', () => {
     });
     renderAt();
 
-    fireEvent.click(await screen.findByRole('button', { name: '변경 승인' }));
+    fireEvent.click(await screen.findByRole('button', { name: '변경 수락' }));
 
     await waitFor(() => expect(listCalls).toBe(2));
     expect(await screen.findByText('진행 중')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: '변경 승인' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '변경 수락' })).toBeNull();
   });
 
   it('목록과 상세 사이에 AMEND_PENDING으로 바뀌어도 상세 상태로 비교 payload를 읽는다', async () => {
@@ -737,7 +737,7 @@ describe('SCR-W04 참여 약속', () => {
     );
     renderAt();
 
-    expect(await screen.findByRole('button', { name: '변경 승인' })).toBeTruthy();
+    expect(await screen.findByRole('button', { name: '변경 수락' })).toBeTruthy();
     expect(
       fetchMock.mock.calls.filter(([url]) => endpointOf(url) === ENDPOINT.promiseDetail),
     ).toHaveLength(1);
@@ -826,7 +826,7 @@ describe('SCR-W04 참여 약속', () => {
     fireEvent.change(screen.getByLabelText('한 줄 의견'), {
       target: { value: '함께 잘 지켰어요' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '답변 보내기' }));
 
     await waitFor(() =>
       expect(
@@ -851,7 +851,7 @@ describe('SCR-W04 참여 약속', () => {
     const comment = screen.getByLabelText('한 줄 의견');
 
     fireEvent.change(comment, { target: { value: '가'.repeat(201) } });
-    expect((screen.getByRole('button', { name: '응답 제출' }) as HTMLButtonElement).disabled).toBe(
+    expect((screen.getByRole('button', { name: '답변 보내기' }) as HTMLButtonElement).disabled).toBe(
       true,
     );
     expect(screen.getByRole('alert').textContent).toBe(
@@ -859,7 +859,7 @@ describe('SCR-W04 참여 약속', () => {
     );
 
     fireEvent.change(comment, { target: { value: '가'.repeat(200) } });
-    expect((screen.getByRole('button', { name: '응답 제출' }) as HTMLButtonElement).disabled).toBe(
+    expect((screen.getByRole('button', { name: '답변 보내기' }) as HTMLButtonElement).disabled).toBe(
       false,
     );
   });
@@ -879,7 +879,7 @@ describe('SCR-W04 참여 약속', () => {
     expect(await screen.findByText('내 응답: 지켰어요')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '답변 수정' }));
     fireEvent.click(screen.getByRole('button', { name: '안 지켜졌어요' }));
-    fireEvent.click(screen.getByRole('button', { name: '수정 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '수정한 답변 보내기' }));
 
     await waitFor(() =>
       expect(
@@ -955,7 +955,7 @@ describe('SCR-W04 참여 약속', () => {
     renderAt();
     await screen.findByRole('heading', { level: 1 });
     fireEvent.click(screen.getByRole('button', { name: '지켰어요' }));
-    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '답변 보내기' }));
 
     await waitFor(() => expect(submitSeen).toBe(true));
     await waitFor(
@@ -967,7 +967,7 @@ describe('SCR-W04 참여 약속', () => {
         ).toHaveLength(2),
     );
     expect(await screen.findByText('완료')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: '응답 제출' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '답변 보내기' })).toBeNull();
   });
 
   it('제출 응답 유실 뒤 같은 intent 재시도는 같은 멱등 키를 쓴다', async () => {
@@ -1007,10 +1007,10 @@ describe('SCR-W04 참여 약속', () => {
     fireEvent.change(screen.getByLabelText('한 줄 의견'), {
       target: { value: '완료했어요' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '답변 보내기' }));
     fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
-    await screen.findByRole('button', { name: '응답 제출' });
-    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    await screen.findByRole('button', { name: '답변 보내기' });
+    fireEvent.click(screen.getByRole('button', { name: '답변 보내기' }));
 
     await waitFor(() => expect(mutationKeys(ENDPOINT.fulfillmentSubmit)).toHaveLength(2));
     const keys = mutationKeys(ENDPOINT.fulfillmentSubmit);
@@ -1050,11 +1050,11 @@ describe('SCR-W04 참여 약속', () => {
     fireEvent.change(screen.getByLabelText('한 줄 의견'), {
       target: { value: '같은 의견' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '답변 보내기' }));
     fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
-    await screen.findByRole('button', { name: '응답 제출' });
+    await screen.findByRole('button', { name: '답변 보내기' });
     changeIntent();
-    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '답변 보내기' }));
 
     await waitFor(() => expect(mutationKeys(ENDPOINT.fulfillmentSubmit)).toHaveLength(2));
     const keys = mutationKeys(ENDPOINT.fulfillmentSubmit);
@@ -1098,11 +1098,11 @@ describe('SCR-W04 참여 약속', () => {
     fireEvent.change(screen.getByLabelText('한 줄 의견'), {
       target: { value: '상대방 의견' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '답변 보내기' }));
     fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
 
     fireEvent.click(await screen.findByRole('button', { name: '답변 수정' }));
-    fireEvent.click(screen.getByRole('button', { name: '수정 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '수정한 답변 보내기' }));
 
     await waitFor(() => expect(mutationKeys(ENDPOINT.fulfillmentSubmit)).toHaveLength(2));
     const keys = mutationKeys(ENDPOINT.fulfillmentSubmit);
@@ -1156,7 +1156,7 @@ describe('SCR-W04 참여 약속', () => {
       evidence_upload_ids: ['upload-first.jpg', 'upload-second.webp'],
     });
 
-    fireEvent.click(screen.getByRole('button', { name: '응답 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '답변 보내기' }));
     await waitFor(() =>
       expect(
         fetchMock.mock.calls.some(
@@ -1286,7 +1286,7 @@ describe('SCR-W04 참여 약속', () => {
       },
     });
     await screen.findByText('업로드 완료');
-    fireEvent.click(screen.getByRole('button', { name: '수정 제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '수정한 답변 보내기' }));
 
     await waitFor(() =>
       expect(
@@ -1335,14 +1335,14 @@ describe('SCR-W04 참여 약속', () => {
     );
     renderAt();
 
-    const [image] = await screen.findAllByAltText('evidence-available 증빙');
-    if (image === undefined) throw new Error('증빙 이미지가 없다.');
+    const [image] = await screen.findAllByAltText('evidence-available 확인 사진');
+    if (image === undefined) throw new Error('확인 사진 이미지가 없다.');
     expect(screen.getAllByText('신고 접수로 가려진 이미지입니다')).toHaveLength(2);
-    expect(screen.getAllByText('보관 기간이 만료된 증빙입니다')).toHaveLength(2);
+    expect(screen.getAllByText('보관 기간이 만료된 확인 사진입니다')).toHaveLength(2);
     fireEvent.error(image);
     fireEvent.click(
       screen.getAllByRole('button', {
-        name: 'evidence-available 증빙 열기',
+        name: 'evidence-available 확인 사진 열기',
       })[0] as HTMLElement,
     );
     await waitFor(() =>
@@ -1505,7 +1505,7 @@ describe('SCR-W04 참여 약속', () => {
       }),
       summary({
         promise_id: PROMISE_B,
-        title: '불이행 약속',
+        title: '안 지킴 약속',
         status: 'BROKEN',
         needs_response: false,
         check_deadline_at: null,
@@ -1520,7 +1520,7 @@ describe('SCR-W04 참여 약속', () => {
       }),
       [PROMISE_B]: detail({
         promise_id: PROMISE_B,
-        title: '불이행 약속',
+        title: '안 지킴 약속',
         status: 'BROKEN',
         my_check: { ...partner, answer: 'NOT_KEPT' },
         partner_has_submitted: true,
@@ -1529,7 +1529,7 @@ describe('SCR-W04 참여 약속', () => {
     });
     const { container } = renderAt();
 
-    await screen.findByText('불이행 약속');
+    await screen.findByText('안 지킴 약속');
     const claimGroups = container.querySelectorAll('article > .lf-mt-4 > .lf-claims');
     expect(claimGroups).toHaveLength(2);
     expect(claimGroups[0]?.querySelectorAll('.lf-claim')).toHaveLength(2);
@@ -1589,7 +1589,7 @@ describe('SCR-W04 참여 약속', () => {
 
     expect(await screen.findByText('변경 대기')).toBeTruthy();
     expect(screen.getByRole('button', { name: '변경·취소 요청' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '파기 승인' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '약속 취소 수락' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '거절' })).toBeTruthy();
   });
 
@@ -1609,7 +1609,7 @@ describe('SCR-W04 참여 약속', () => {
     const first = renderAt();
     expect(await screen.findByText('참여 중인 약속이 아직 없어요')).toBeTruthy();
     expect(first.container.querySelector('ins, iframe, .lf-ad, .lf-ad-slot')).toBeNull();
-    expect(screen.queryByText(/증빙|사진/u)).toBeNull();
+    expect(screen.queryByText(/확인 사진|사진/u)).toBeNull();
 
     cleanup();
     fetchMock.mockReset();

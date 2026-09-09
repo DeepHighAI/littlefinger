@@ -271,7 +271,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.getByText('75%')).toBeTruthy();
     expect(view.getByRole('progressbar', { name: '약속 지킴율' }).props.accessibilityValue)
       .toEqual({ min: 0, max: 100, now: 75 });
-    for (const text of ['완료 3건 · 불이행 1건', '답이 달라요 2건 · 미확정 종결 4건', '진행 중 5건']) {
+    for (const text of ['완료 3건 · 안 지킴 1건', '답이 달라요 2건 · 확인 못함 4건', '진행 중 5건']) {
       expect(view.getByText(text)).toBeTruthy();
     }
     expect(view.queryByText('이메일 리마인드')).toBeNull();

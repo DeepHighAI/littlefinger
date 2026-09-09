@@ -81,15 +81,15 @@ export const NOTIFICATION_TITLE: Record<NotificationEvent, (partnerNickname: str
   'NT-06': (n) => `약속까지 ${n}일 남았어요`,
   'NT-07': () => '오늘이 약속 종료일이에요',
   'NT-08': () => '약속이 지켜졌나요?',
-  'NT-09': (n) => `${n}님이 이행 확인을 보냈어요`,
-  'NT-10': (n) => `이행 확인이 ${n}일 남았어요`,
+  'NT-09': (n) => `${n}님이 지킴 확인을 보냈어요`,
+  'NT-10': (n) => `지킴 확인이 ${n}일 남았어요`,
   'NT-11': () => '약속을 지켰어요!',
-  'NT-12': () => '약속이 불이행으로 기록됐어요',
+  'NT-12': () => '약속이 안 지킴으로 기록됐어요',
   'NT-13': () => '두 분의 확인이 서로 달라요',
-  'NT-14': () => '이행 확인 없이 종결됐어요',
+  'NT-14': () => '지킴 확인 없이 종결됐어요',
   'NT-15': (n) => `${n}님이 약속 변경을 요청했어요`,
   'NT-16': (n) => `요청이 ${n}됐어요`,
-  'NT-17': () => '변경 요청이 자동 철회됐어요',
+  'NT-17': () => '변경 요청이 자동으로 취소됐어요',
   'NT-18': (n) => `${n}님이 내용을 확인했어요`,
   'NT-19': () => '다시 확인해 달라는 요청이 왔어요',
   'NT-20': () => '작성 중인 약속이 있어요',
@@ -145,7 +145,7 @@ export interface NotificationTemplateArgs {
 /** NT-15 "{상대}님이 약속 {변경/파기/마무리}을 요청했어요" 의 목적어. 종료 합의(FINISH)도 같은 경로다. */
 const AMEND_REQUEST_OBJECT: Record<NonNullable<NotificationTemplateArgs['amendType']>, string> = {
   AMEND: '변경을',
-  CANCEL: '파기를',
+  CANCEL: '취소를',
   FINISH: '마무리를',
 };
 
@@ -190,7 +190,7 @@ export function renderNotificationTemplate(
       throw new Error('INVALID_NOTIFICATION_TEMPLATE_ARGS');
     }
     return {
-      title: NOTIFICATION_TITLE[event](args.amendDecision === 'APPROVE' ? '승인' : '거절'),
+      title: NOTIFICATION_TITLE[event](args.amendDecision === 'APPROVE' ? '수락' : '거절'),
       body: args.promiseTitle,
       deeplink: NOTIFICATION_DEEPLINK[event],
     };

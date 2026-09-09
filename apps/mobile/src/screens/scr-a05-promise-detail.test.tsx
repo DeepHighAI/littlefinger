@@ -28,6 +28,7 @@ import {
 } from '../lib/fulfillment-native.ts';
 import { MobileApiError } from '../lib/mobile-api.ts';
 import { getPromiseDetail } from '../lib/promise-detail-native.ts';
+import { loadCounterpartAliasNative } from '../lib/counterpart-alias-native.ts';
 import { size } from '../theme/tokens.ts';
 import { formatDetailInstant } from './scr-a05-detail-state.ts';
 import {
@@ -43,6 +44,11 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 jest.mock('../lib/promise-detail-native.ts', () => ({ getPromiseDetail: jest.fn() }));
+jest.mock('../lib/counterpart-alias-native.ts', () => ({
+  loadCounterpartAliasNative: jest.fn().mockResolvedValue({ target_user_id: 'partner-1', nickname: '민준', alias: null }),
+  updateCounterpartAliasNative: jest.fn(),
+  createCounterpartAliasKey: jest.fn(),
+}));
 jest.mock('../lib/account-safety-native.ts', () => ({
   blockUserNative: jest.fn(),
   hidePromiseNative: jest.fn(),
@@ -364,6 +370,18 @@ async function settle(): Promise<void> {
 }
 
 describe('SCR-A05 약속 상세', () => {
+  test.each(['CREATOR', 'PARTNER', 'WITNESS'] as const)('%s는 자신과 증인을 제외한 상대방의 별칭만 설정한다', async (role) => {
+    loadDetailMock.mockResolvedValue(makeDetail({ my_role: role }));
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    const buttons = view.queryAllByRole('button', { name: '별칭 설정' });
+    expect(buttons).toHaveLength(role === 'WITNESS' ? 0 : 1);
+    if (role !== 'WITNESS') {
+      await fireEvent.press(buttons[0]!);
+      expect(loadCounterpartAliasNative).toHaveBeenCalledWith(PROMISE_ID);
+      expect(await view.findByText('나만의 별칭')).toBeTruthy();
+    }
+  });
   beforeEach(() => {
     push.mockReset();
     back.mockReset();
@@ -635,8 +653,8 @@ describe('SCR-A05 약속 상세', () => {
     expect(view.getByTestId('promise-detail-record')).toBeTruthy();
     // 잉크 & 블록: 확정 기록은 봉합선이 아니라 손가락 건 스탬프 하나다
     expect(view.getAllByTestId('promise-stamp')).toHaveLength(1);
-    expect(view.getByText('지우 · 작성자 · 승인')).toBeTruthy();
-    expect(view.getByText('민준 · 상대방 · 승인')).toBeTruthy();
+    expect(view.getByText('지우 · 작성자 · 수락')).toBeTruthy();
+    expect(view.getByText('민준 · 상대방 · 수락')).toBeTruthy();
     expect(view.queryByText('기록 일치')).toBeNull();
     expect(view.queryByText('기록 불일치')).toBeNull();
     expect(view.queryByText('확정 전 기록')).toBeNull();
@@ -678,7 +696,7 @@ describe('SCR-A05 약속 상세', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    expect(view.getByText('상대방의 승인을 기다리고 있어요')).toBeTruthy();
+    expect(view.getByText('상대방의 수락을 기다리고 있어요')).toBeTruthy();
     expect(view.getByTestId('promise-detail-friendly')).toBeTruthy();
     expect(view.getByText('2026-08-19 00:00 (KST)')).toBeTruthy();
     expect(view.queryByText(/공증이나 전자계약 서비스가 아니며/u)).toBeNull();
@@ -795,10 +813,10 @@ describe('SCR-A05 약속 상세', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    const approve = view.getByRole('button', { name: '변경 승인' });
+    const approve = view.getByRole('button', { name: '변경 수락' });
     expect(StyleSheet.flatten(approve.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
     expect(view.getByRole('button', { name: '거절' })).toBeTruthy();
-    await fireEvent.press(view.getByRole('button', { name: '변경 승인' }));
+    await fireEvent.press(view.getByRole('button', { name: '변경 수락' }));
     await settle();
     expect(respondAmendMock).toHaveBeenCalledWith(
       { promise_id: PROMISE_ID, request_id: '99999999-9999-4999-8999-999999999999', decision: 'APPROVE' },
@@ -826,7 +844,7 @@ describe('SCR-A05 약속 상세', () => {
     }));
     const view = await render(<PromiseDetailScreen />);
     await settle();
-    await fireEvent.press(view.getByRole('button', { name: '변경 승인' }));
+    await fireEvent.press(view.getByRole('button', { name: '변경 수락' }));
     await settle();
     await fireEvent.press(view.getByRole('button', { name: '거절' }));
     await settle();
@@ -854,9 +872,9 @@ describe('SCR-A05 약속 상세', () => {
     }));
     const view = await render(<PromiseDetailScreen />);
     await settle();
-    expect(view.getByText('지우님이 파기를 요청했어요')).toBeTruthy();
+    expect(view.getByText('지우님이 약속 취소를 요청했어요')).toBeTruthy();
     expect(view.queryByText('변경 전 · 종료일')).toBeNull();
-    expect(view.getByRole('button', { name: '파기 승인' })).toBeTruthy();
+    expect(view.getByRole('button', { name: '약속 취소 수락' })).toBeTruthy();
   });
 
   test('버전 이력은 메타데이터와 각 버전 전문을 읽기 전용으로 표시한다', async () => {
@@ -916,7 +934,7 @@ describe('SCR-A05 약속 상세', () => {
     const claims = view.getAllByTestId(/^detail-claim-/u);
     expect(claims).toHaveLength(2);
     for (const claim of claims) {
-      expect(within(claim).getAllByText(/증빙/u).length).toBeGreaterThan(0);
+      expect(within(claim).getAllByText(/확인 사진/u).length).toBeGreaterThan(0);
     }
     await fireEvent.press(view.getByRole('button', { name: '재확인하기' }));
     await settle();
@@ -933,7 +951,7 @@ describe('SCR-A05 약속 상세', () => {
     await settle();
 
     expect(view.getByText('신고 접수로 가려진 이미지입니다')).toBeTruthy();
-    expect(view.getByText('보관 기간이 지난 증빙입니다')).toBeTruthy();
+    expect(view.getByText('보관 기간이 지난 확인 사진입니다')).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '확인 사진 열기' }));
     await settle();
     expect(signEvidenceMock).toHaveBeenCalledWith(creatorCheck.evidences[0]!.evidence_id, 'FULL');
@@ -1007,7 +1025,7 @@ describe('SCR-A05 약속 상세', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    await fireEvent.press(view.getByRole('button', { name: '증빙 신고' }));
+    await fireEvent.press(view.getByRole('button', { name: '확인 사진 신고' }));
     await act(async () => alert.mock.calls[0]?.[2]?.find((button) => button.text === '신고')?.onPress?.());
     await settle();
     expect(reportSafetyMock).toHaveBeenCalledWith({
@@ -1021,7 +1039,7 @@ describe('SCR-A05 약속 상세', () => {
 
   test.each([
     ['DECLINED', '이번엔 성립되지 않았어요', '초대 내용을 받아들이기 어려워요', 'terminal-neutral'],
-    ['CANCELED', '약속이 파기됐어요', '일정이 바뀌었어요', 'record'],
+    ['CANCELED', '약속이 취소됐어요', '일정이 바뀌었어요', 'record'],
   ] as const)('%s는 중립 종결 이유를 표시하고 가짜 수정 액션이 없다', async (status, headline, reason, visualMode) => {
     loadDetailMock.mockResolvedValue(makeDetail({
       status,
@@ -1042,6 +1060,6 @@ describe('SCR-A05 약속 상세', () => {
     expect(view.getByText(headline)).toBeTruthy();
     expect(view.getByTestId(`promise-detail-${visualMode}`)).toBeTruthy();
     expect(view.getAllByText(reason).length).toBeGreaterThan(0);
-    expect(view.queryByRole('button', { name: /다시 보내기|변경|파기|증인|버전/u })).toBeNull();
+    expect(view.queryByRole('button', { name: /다시 보내기|변경|약속 취소|증인|버전/u })).toBeNull();
   });
 });

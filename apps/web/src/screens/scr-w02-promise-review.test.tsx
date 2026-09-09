@@ -238,21 +238,21 @@ describe('SCR-W02 약속 검토', () => {
   it('승인 버튼만으로는 승인되지 않는다 — 확인 시트를 거친다', async () => {
     fetchMock.mockResolvedValue(fakeResponse(200, PREVIEW));
     renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
+    fireEvent.click(await screen.findByRole('button', { name: '수락하기' }));
 
     // 오수락 방지(§4-3-4 · F-03). 여기서 함수가 불리면 방어선이 없는 것이다.
     expect(callsTo(ENDPOINT.promiseApprove)).toHaveLength(0);
     const sheet = screen.getByRole('dialog');
     expect(sheet.textContent).toContain('지우님이 보낸 약속이 맞나요?');
-    expect(sheet.textContent).toContain('승인하면 두 사람의 기록으로 확정돼요.');
-    expect(screen.getByRole('button', { name: '네, 승인합니다' })).toBeTruthy();
+    expect(sheet.textContent).toContain('수락하면 두 사람의 기록으로 확정돼요.');
+    expect(screen.getByRole('button', { name: '네, 수락할게요' })).toBeTruthy();
     expect(screen.getByRole('button', { name: '아니에요' })).toBeTruthy();
   });
 
   it('[아니에요] 는 시트를 닫고 아무것도 보내지 않는다', async () => {
     fetchMock.mockResolvedValue(fakeResponse(200, PREVIEW));
     renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
+    fireEvent.click(await screen.findByRole('button', { name: '수락하기' }));
     fireEvent.click(screen.getByRole('button', { name: '아니에요' }));
 
     expect(screen.queryByRole('dialog')).toBeNull();
@@ -268,8 +268,8 @@ describe('SCR-W02 약속 검토', () => {
       ),
     );
     renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
-    fireEvent.click(screen.getByRole('button', { name: '네, 승인합니다' }));
+    fireEvent.click(await screen.findByRole('button', { name: '수락하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '네, 수락할게요' }));
 
     // 확정 화면이 실제로 그려져야 한다 — 넘기기만 하고 state 가 비면 빈 화면이 된다.
     expect((await screen.findByTestId('fingerprint')).textContent).toBe('A3F9-77C2-01');
@@ -295,8 +295,8 @@ describe('SCR-W02 약속 검토', () => {
       ),
     );
     renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
-    fireEvent.click(screen.getByRole('button', { name: '네, 승인합니다' }));
+    fireEvent.click(await screen.findByRole('button', { name: '수락하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '네, 수락할게요' }));
 
     expect((await screen.findByTestId('nav-type')).textContent).toBe('REPLACE');
   });
@@ -313,8 +313,8 @@ describe('SCR-W02 약속 검토', () => {
       ),
     );
     renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
-    fireEvent.click(screen.getByRole('button', { name: '네, 승인합니다' }));
+    fireEvent.click(await screen.findByRole('button', { name: '수락하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '네, 수락할게요' }));
 
     expect((await screen.findByTestId('action-error')).textContent).toBe(
       '처리 중 문제가 발생했습니다. 다시 시도해 주세요.',
@@ -336,8 +336,8 @@ describe('SCR-W02 약속 검토', () => {
     renderAt();
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
-      fireEvent.click(screen.getByRole('button', { name: '네, 승인합니다' }));
+      fireEvent.click(await screen.findByRole('button', { name: '수락하기' }));
+      fireEvent.click(screen.getByRole('button', { name: '네, 수락할게요' }));
       await screen.findByTestId('action-error');
     }
 
@@ -394,7 +394,7 @@ describe('SCR-W02 약속 검토', () => {
     // 키보드·스크린리더 사용자에게는 열린 줄 모른 채 뒤의 [승인하기]가 그대로 잡힌다.
     fetchMock.mockResolvedValue(fakeResponse(200, PREVIEW));
     renderAt();
-    const approve = await screen.findByRole('button', { name: '승인하기' });
+    const approve = await screen.findByRole('button', { name: '수락하기' });
     approve.focus();
     fireEvent.click(approve);
 
@@ -412,11 +412,11 @@ describe('SCR-W02 약속 검토', () => {
     fetchMock.mockResolvedValue(fakeResponse(200, { ...PREVIEW, end_date: kstDatePlus(-1) }));
     renderAt();
 
-    const approve = await screen.findByRole('button', { name: '승인하기' });
+    const approve = await screen.findByRole('button', { name: '수락하기' });
     expect((approve as HTMLButtonElement).disabled).toBe(true);
     // 문구는 §4-3-4(261행)다. §10(1108행)은 다르게 적혀 있지만 서버가 §4-3-4 를 골랐다.
     expect(screen.getByTestId('end-date-passed').textContent).toBe(
-      '종료일이 지난 약속은 승인할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.',
+      '종료일이 지난 약속은 수락할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.',
     );
     expect(screen.getByRole('button', { name: '종료일 변경 요청하기' })).toBeTruthy();
     // 잠겼는데도 눌러 보내지는 일이 없어야 한다.
@@ -433,22 +433,22 @@ describe('SCR-W02 약속 검토', () => {
           ? fakeResponse(ERROR_HTTP_STATUS.E_VALIDATION, {
               code: 'E_VALIDATION',
               field: 'end_date',
-              message: '종료일이 지난 약속은 승인할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.',
+              message: '종료일이 지난 약속은 수락할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.',
               action: 'AMEND_SUGGEST',
             })
           : fakeResponse(200, PREVIEW),
       ),
     );
     renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: '승인하기' }));
-    fireEvent.click(screen.getByRole('button', { name: '네, 승인합니다' }));
+    fireEvent.click(await screen.findByRole('button', { name: '수락하기' }));
+    fireEvent.click(screen.getByRole('button', { name: '네, 수락할게요' }));
 
     expect((await screen.findByTestId('end-date-passed')).textContent).toBe(
-      '종료일이 지난 약속은 승인할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.',
+      '종료일이 지난 약속은 수락할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.',
     );
     await waitFor(() =>
       expect(
-        (screen.getByRole('button', { name: '승인하기' }) as HTMLButtonElement).disabled,
+        (screen.getByRole('button', { name: '수락하기' }) as HTMLButtonElement).disabled,
       ).toBe(true),
     );
     expect(screen.getByRole('button', { name: '종료일 변경 요청하기' })).toBeTruthy();
@@ -665,7 +665,7 @@ describe('SCR-W02 약속 검토', () => {
     renderAt();
 
     expect(
-      ((await screen.findByRole('button', { name: '승인하기' })) as HTMLButtonElement).disabled,
+      ((await screen.findByRole('button', { name: '수락하기' })) as HTMLButtonElement).disabled,
     ).toBe(true);
 
     await typeAmend('종료일을 다음 달로 바꿔 주세요');
@@ -790,7 +790,7 @@ describe('SCR-W02 약속 검토', () => {
 
     await waitFor(() => expect(decline.disabled).toBe(true));
     const amend = screen.getByRole('button', { name: '수정 제안' }) as HTMLButtonElement;
-    const approve = screen.getByRole('button', { name: '승인하기' }) as HTMLButtonElement;
+    const approve = screen.getByRole('button', { name: '수락하기' }) as HTMLButtonElement;
     expect(amend.disabled).toBe(true);
     expect(approve.disabled).toBe(true);
 

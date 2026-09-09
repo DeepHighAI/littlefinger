@@ -31,7 +31,7 @@ const ko = {
   evidencePhoto: '확인 사진',
   evidenceOpen: '확인 사진 열기',
   evidenceBlinded: '신고 접수로 가려진 이미지입니다',
-  evidenceExpired: '보관 기간이 만료된 증빙입니다',
+  evidenceExpired: '보관 기간이 만료된 확인 사진입니다',
   noComment: '남긴 의견이 없어요',
   answer: {
     KEPT: '지켰어요',

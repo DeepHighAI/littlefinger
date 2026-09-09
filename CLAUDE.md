@@ -69,6 +69,13 @@ Korean copy without increasing its rendered width. PENDING = `수락 대기`, AM
 The underlying codes, policies and immutable legal copy are unchanged. Keep existing design
 tokens and verify changed short labels at 360 dp and font scales 1.0/1.5.
 
+PO public-test follow-up (2026-09-09, ADR 0024): ordinary UI uses `지킴`, `안 지킴`,
+`확인 사진`, `답변 보내기`, `약속 취소`, `변경 요청 취소`, `수락`, and `확인 못함`
+for the approved terminology replacements. Legal copy, status codes and historical records remain
+unchanged. Private counterpart aliases belong to the viewer/target pair across promises and devices;
+never store them in profile nicknames or approval/version records. Remote featured suggestions only
+change available choices, never selected, typed or saved promise contents.
+
 ### 1-3. Code style
 
 Write the shortest code that is still explicit. No speculative abstraction, no cleverness, no
@@ -512,6 +519,7 @@ verbatim in code, DB, and design; screen labels **always** go through `PROMISE_S
 | 약속 | `promise` | 약속 | contract, agreement, 계약 |
 | Promise entity type | `PromiseRecord` | — | `Promise` (collides with the JS global) |
 | 작성자 / 상대방 / 증인 | `creator` / `partner` / `witness` | 작성자 / 상대방 / 증인 | owner, invitee, guest |
+| 나에게만 보이는 상대 이름 | `alias` | 별칭 | 상대 프로필 이름 변경 |
 | 지킬 사람 (obligated party) | `keeper` | 지킬 사람 | obligor, assignee, target |
 | 보상 / 벌칙 | `reward` / `penalty` | 보상 / **벌칙** | 패널티 |
 | 약속 지킴율 | `keepRate` | 약속 지킴율 | 이행률, 성공률 (O-D3) |

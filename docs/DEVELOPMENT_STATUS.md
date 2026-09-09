@@ -2,6 +2,29 @@
 
 Snapshot date: **2026-09-09 KST**.
 
+## Public-test 26 follow-up: 0.3.2 preparation (2026-09-09)
+
+All ten follow-up items and the four PO confirmations are implemented (ADR 0024).
+Private counterpart aliases apply across the owner's promises/devices without changing profiles
+or historical records. Featured reward/penalty suggestions now refresh from operator-owned
+configuration through Realtime; selected and saved values are preserved. Responsive login,
+keyboard scrolling, header alignment, native version display and approved Korean copy are fixed.
+
+Final checks: **121 Vitest files / 2,207 tests**, **90 mobile Jest suites / 953 tests** passed;
+five-project typecheck, instruction sync, diff check and web build passed. The existing web
+chunk-size warning remains. Android emulator visual QA covered 360 dp and font scales 1.0/1.5
+using actual screen components with fixture APIs. No physical Samsung S25+ was connected;
+Samsung Keyboard validation remains outstanding.
+
+Both 20260909 alias/preset migrations and `counterpart-alias-get`, `counterpart-alias-update`,
+and `push-send` are deployed. Live checks verified Realtime delivery, access privileges, and
+viewer-only alias behavior in a rolled-back transaction. Security advisors introduced no warnings.
+Acceptance web is deployed and its JavaScript SHA-256 matches the local build. The new production AAB is being prepared; code 26 remains the
+latest completed artifact below. Google Play publication remains PO-owned.
+
+Details: [follow-up verification](notes/public-test-26-followup.md),
+[operator configuration](setup/promise-suggestions.md).
+
 ## Public-test corrections released as production artifact (2026-09-09)
 
 PO approved all six reported corrections and explicitly required account choice before

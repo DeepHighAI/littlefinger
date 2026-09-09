@@ -16,7 +16,7 @@ const ko = {
   stepReview: '확인',
   nextConditions: '조건 정하기',
   nextReview: '내용 확인하기',
-  reviewNotice: '상대가 승인하면 이 내용으로 확정돼요.',
+  reviewNotice: '상대가 수락하면 이 내용으로 확정돼요.',
   reviewContent: '약속 내용',
   reviewConditions: '약속 조건',
   editSection: (section: string) => `${section} 수정`,

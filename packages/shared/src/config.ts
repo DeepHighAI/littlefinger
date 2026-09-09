@@ -14,6 +14,9 @@ export const INVITE_TTL_HOURS = 72;
 /** 약속별 증인 최대 인원 (작성자 2명 + 상대방 1명). */
 export const WITNESS_MAX = 3;
 
+/** 보상·벌칙별 맨 앞에 노출하는 원격 추천 문구 수. */
+export const FEATURED_PRESET_COUNT = 3;
+
 /** 작성자에게 기본 제공되는 증인 슬롯. 상대방 기본 슬롯은 없다. */
 export const WITNESS_CREATOR_FREE = 1;
 
@@ -184,3 +187,5 @@ export const INVITE_RESOLVE_RATE_LIMIT = { windowSeconds: 600, maxHits: 60 } as 
  * SQL 은 이 파일을 import 할 수 없으므로 `supabase/tests/idempotency.test.ts` 가 두 값을 대조한다.
  */
 export const IDEMPOTENCY_TTL_MIN = 10;
+
+export const COUNTERPART_ALIAS_MAX_LENGTH = 40;

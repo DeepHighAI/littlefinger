@@ -900,6 +900,20 @@ export interface ProfileNicknameUpdateResponse {
   nickname: string;
 }
 
+export interface CounterpartAliasGetRequest {
+  promise_id: string;
+}
+
+export interface CounterpartAliasUpdateRequest extends CounterpartAliasGetRequest {
+  alias: string | null;
+}
+
+export interface CounterpartAliasResponse {
+  target_user_id: string;
+  nickname: string;
+  alias: string | null;
+}
+
 export interface PromiseHideRequest {
   promise_id: string;
   hidden: boolean;
@@ -1064,6 +1078,8 @@ export const ENDPOINT = {
   completionCelebrationShown: 'completion-celebration-shown',
   accountWithdraw: 'account-withdraw',
   profileNicknameUpdate: 'profile-nickname-update',
+  counterpartAliasGet: 'counterpart-alias-get',
+  counterpartAliasUpdate: 'counterpart-alias-update',
   promiseHide: 'promise-hide',
   userBlock: 'user-block',
   userUnblock: 'user-unblock',

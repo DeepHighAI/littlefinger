@@ -18,14 +18,14 @@ const ko = {
   category: '카테고리',
   reward: '보상',
   penalty: '벌칙',
-  approveCta: '승인하기',
+  approveCta: '수락하기',
   amendCta: '수정 제안',
   declineCta: '거절하기',
   // 오수락 방지 확인 시트(§4-3-4 · 상위기획서 F-03). 한 문장을 질문과 결과로 끊어 놓았을 뿐
   // 문구는 명세 원문 그대로다.
   confirmQuestion: (nickname: string) => `${nickname}님이 보낸 약속이 맞나요?`,
-  confirmBody: '승인하면 두 사람의 기록으로 확정돼요.',
-  confirmYes: '네, 승인합니다',
+  confirmBody: '수락하면 두 사람의 기록으로 확정돼요.',
+  confirmYes: '네, 수락할게요',
   confirmNo: '아니에요',
   /**
    * EC-B10 — 대기하는 동안 종료일이 지나 버린 경우.
@@ -37,7 +37,7 @@ const ko = {
    * 않는다.
    */
   endDatePassedMessage:
-    '종료일이 지난 약속은 승인할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.',
+    '종료일이 지난 약속은 수락할 수 없어요. 작성자에게 종료일 변경을 요청해 주세요.',
   endDatePassedCta: '종료일 변경 요청하기',
   // §4-2-1 원문. 증인 사용 **예정** 여부는 §4-3-4 의 표시 요소인데 전용 문구가 없어서,
   // 같은 사실을 말하는 이 문장을 쓴다. 상한은 정책 상수에서 만든다.

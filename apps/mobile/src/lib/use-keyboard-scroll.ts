@@ -3,7 +3,7 @@ import { Keyboard, ScrollView, TextInput, type NativeScrollEvent, type NativeSyn
 
 import { duration, space } from '../theme/tokens.ts';
 
-/** Modal은 작성 화면과 별도 창이므로 자체 키보드 좌표와 스크롤 여백을 사용한다. */
+/** 키보드가 덮는 높이만큼 여백을 확보하고 현재 입력란을 창 좌표로 다시 측정한다. */
 export function useKeyboardScroll(visible: boolean) {
   const scrollRef = useRef<ScrollView>(null);
   const offset = useRef(0);
@@ -27,6 +27,8 @@ export function useKeyboardScroll(visible: boolean) {
     if (!visible) { setInset(0); return; }
     const show = Keyboard.addListener('keyboardDidShow', ({ endCoordinates }) => {
       setInset(endCoordinates.height);
+      // 느린 키보드는 최초 포커스 타이머 뒤에 열리므로 표시 완료 때도 다시 예약한다.
+      onFocus();
     });
     const hide = Keyboard.addListener('keyboardDidHide', () => setInset(0));
     return () => {
@@ -34,7 +36,7 @@ export function useKeyboardScroll(visible: boolean) {
       hide.remove();
       if (timer.current !== null) clearTimeout(timer.current);
     };
-  }, [reveal, visible]);
+  }, [onFocus, visible]);
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>): void => {
     offset.current = event.nativeEvent.contentOffset.y;
   };

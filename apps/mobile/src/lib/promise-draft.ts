@@ -9,6 +9,7 @@ import {
   type Keeper,
   type Locale,
   type Localized,
+  type PromiseFeaturedPresets,
   type PromiseCategory,
   type ValidationResult,
 } from '@littlefinger/shared';
@@ -51,25 +52,29 @@ export const EMPTY_PROMISE_DRAFT: PromiseDraftFields = {
  * 프리셋은 칩 라벨이자 선택 즉시 저장되는 본문이다 — 로케일은 고르는 순간의 문구만
  * 정하고, 저장된 텍스트는 이후 로케일 전환과 무관하게 그대로 남는다.
  */
+export const DEFAULT_FEATURED_PRESETS: PromiseFeaturedPresets = {
+  reward: {
+    ko: ['다음 메뉴 선택권', '주말 계획 결정권', '칭찬 세 가지'],
+    en: ['Pick the next menu', 'Decide the weekend plan', 'Three compliments'],
+  },
+  penalty: {
+    ko: ['설거지 1주일', '소원권 1장 주기', '노래방 한 곡'],
+    en: ['Dishes for a week', 'Give one wish coupon', 'Sing one karaoke song'],
+  },
+};
+
 const REWARD_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
   ko: [
     '커피 한 잔 사주기',
-    '다음 메뉴 선택권',
     '소원권 1장',
-    '주말 계획 결정권',
-    '칭찬 세 가지',
     '스벅쏘기',
     '올영쏘기',
-    '만원',
+    '10,000원',
   ],
   en: [
     'A coffee treat',
-    'Pick the next menu',
     'One wish coupon',
-    'Decide the weekend plan',
-    'Three compliments',
     'Starbucks treat',
-    'Olive Young treat',
     '10$',
   ],
 };
@@ -77,34 +82,33 @@ const REWARD_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
 const PENALTY_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
   ko: [
     '커피 한 잔 사기',
-    '설거지 1주일',
     '다음 데이트 비용',
-    '노래방 한 곡',
-    '소원권 1장 주기',
     '스벅쏘기',
     '올영쏘기',
-    '만원',
+    '10,000원',
     '나의 노예가 되어라',
   ],
   en: [
     'Buy a coffee',
-    'Dishes for a week',
     'Pay for the next date',
-    'Sing one karaoke song',
-    'Give one wish coupon',
     'Starbucks treat',
-    'Olive Young treat',
     '10$',
     'Be my servant',
   ],
 };
 
-export function rewardPresets(locale: Locale = 'ko'): readonly string[] {
-  return REWARD_PRESETS_BY_LOCALE[locale];
+export function rewardPresets(
+  locale: Locale = 'ko',
+  featured: PromiseFeaturedPresets = DEFAULT_FEATURED_PRESETS,
+): readonly string[] {
+  return [...new Set([...featured.reward[locale], ...REWARD_PRESETS_BY_LOCALE[locale]])];
 }
 
-export function penaltyPresets(locale: Locale = 'ko'): readonly string[] {
-  return PENALTY_PRESETS_BY_LOCALE[locale];
+export function penaltyPresets(
+  locale: Locale = 'ko',
+  featured: PromiseFeaturedPresets = DEFAULT_FEATURED_PRESETS,
+): readonly string[] {
+  return [...new Set([...featured.penalty[locale], ...PENALTY_PRESETS_BY_LOCALE[locale]])];
 }
 
 function addResult(

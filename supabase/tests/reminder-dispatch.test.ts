@@ -187,7 +187,7 @@ describe('lf_dispatch_due_reminders — J-01 예약 알림 발송', () => {
       expect.objectContaining({
         user_id: creatorId,
         type: 'NT-15',
-        title: expect.stringContaining('파기를 요청했어요'),
+        title: expect.stringContaining('약속 취소를 요청했어요'),
         deeplink: 'SCR-A05',
       }),
     ]);
