@@ -54,10 +54,19 @@ private-key or full secret-shaped token. A separate production export completed 
 modules; `npm run verify:android-bundle` passed all required-module checks across 2,192 source-map
 entries. The AAB was not uploaded to Google Play; publication remains PO-owned.
 
-Production database migration and web deployment remain pending. Ship them before or with the
-code 26 Play release so invitation-account and public-nickname behavior is consistent across all
-surfaces. Existing approvals and participant identities remain unchanged; past acceptance by
-another account is not transferred by this fix.
+Production migration `20260909030505_explicit_profile_nicknames.sql` was pushed after a dry run
+showed it as the only pending migration. A second migration listing reports matching local/remote
+versions. Read-only production checks confirm the non-null `nickname_is_custom` column, zero active
+email-shaped nicknames after backfill, and the intended RPC boundary: execute is granted to
+`service_role` and denied to `anon` / `authenticated`. Database advisors returned no errors and one
+existing OAuth-irrelevant warning that leaked-password protection is disabled.
+
+The current web build was deployed to Firebase Hosting target `littlefinger-app`. The deployed
+main-JS SHA-256 exactly matches the local production build and contains both invitation account
+confirmation actions; live browser loading produced no page or console errors. The supplied
+September 8 invitation now resolves as expired/used, so it cannot repeat an authenticated
+acceptance. Existing approvals and participant identities remain unchanged; past acceptance by
+another account is not transferred by this fix. Code 26 Google Play publication remains PO-owned.
 
 ## Exposure ads enabled; launch QA resumed (2026-09-07)
 
