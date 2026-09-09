@@ -269,9 +269,10 @@ Date: 2026-09-03. `docs/setup/open-testing-release.md`(엔지니어 런북)의 �
 2. **AdMob** → 앱 → 리틀핑거 → **앱 스토어에 연결** → Play 등록정보를 검색해 연결(스토어에
    노출된 뒤부터 검색된다). 이후 24시간 안에 AdMob의 `app-ads.txt` 크롤 상태가 "확인됨"으로
    바뀐다.
-3. 플래그는 그대로 둔다: `ads_enabled=false`(노출 광고는 F-12 트래픽 게이트에서 켠다),
-   `rewarded_ads_enabled=true`(광고가 안 나오면 앱이 "잠김" 문구를 보여 주는 것이 정상). AdMob 계정
-   승인이 나고 광고가 채워지기 시작하면 엔지니어가 보상형 QA(행 2·6·7·13)를 이어간다.
+3. PO update, 2026-09-07 (ADR 0022): `ads_enabled=true` and
+   `rewarded_ads_enabled=true`. The former traffic threshold is superseded.
+   Actual UMP choice/re-open and rewarded SSV QA remain required; enabled flags
+   do not guarantee fill. Preserve the current flag value after temporary QA overrides.
 4. 매일 한 번: Play Console → **테스트 의견**, **Android vitals → 비정상 종료 및 ANR**, **평점 및
    리뷰**. 새 항목은 엔지니어에게.
 5. 공개 2주 뒤 설문 응답 받기를 끄고 `open-testing-survey.md` §4대로 결과를 옮긴다.

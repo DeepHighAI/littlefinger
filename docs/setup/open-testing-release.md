@@ -78,8 +78,10 @@ next to the build code (listing §7 rule), then hand the AAB and its SHA-256 to 
 
    Then update the memory/docs that still describe the email accounts as usable
    (`docs/setup/email-test-login-removal.md` gets a "executed 2026-09-xx" line).
-2. Flags stay: `ads_enabled=false`, `rewarded_ads_enabled=true`, `min_app_version="0.2.0"` —
-   verify with the §2-10 SQL in `monetization-retention-release.md`.
+2. Current flags (PO, 2026-09-07; ADR 0022): `ads_enabled=true`,
+   `rewarded_ads_enabled=true`; the exposure traffic threshold is superseded.
+   Do not change `min_app_version` as part of ad QA. Verify live values with the
+   §2-10 SQL in `monetization-retention-release.md`.
 3. Nothing is deployed to Supabase for code 21: no migration, no function change.
 
 ## §5 Submission and after

@@ -114,6 +114,6 @@ exercises the whole chain: Play Billing → `purchase-verify` → Google API →
 1. Send the publisher ID (`pub-…`) to the dev side → `apps/web/public/app-ads.txt` is created as
    `google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0` and the web is redeployed.
    AdMob verifies it against the store listing's developer website within a few days.
-2. `ads_enabled` stays `false` until the F-12 threshold call (100 daily confirmations) — flipping
-   it is one Dashboard SQL (`update app_configs …`), done on PO instruction; no app update needed.
+2. PO enabled `ads_enabled=true` on 2026-09-07 for launch and preceding QA (ADR 0022),
+   superseding the F-12 traffic threshold. This remote change needs no app update.
    Debug/dev builds always use Google test ads regardless.

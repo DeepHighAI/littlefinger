@@ -374,9 +374,10 @@ Run `supabase/tests/remote/adr0015-smoke.sql` as described in §6. It must end w
   ```
 
   Existing grants are append-only and unaffected by the flag.
-- **`ads_enabled` stays `false`** until the PO's F-12 traffic gate (100 daily confirmations;
-  `slot-iap-admob-console.md` step 7). The QA row that exercises the A02 banner turns it on for the
-  duration of that row and restores `false`. It also gates the three native bottom slots.
+- **`ads_enabled` is `true` by PO decision on 2026-09-07 (ADR 0022).** The former
+  100-daily-confirmations threshold is superseded. QA must restore the pre-test value
+  (`true`), not the historical `false`. It gates the A02 banner and three native bottom slots;
+  UMP readiness and ad fill remain independent prerequisites.
 - **`min_app_version` is `"0.2.0"`** and is not lowered: a 0.1.x build cannot parse the post-batch
   responses regardless of the flag.
 
