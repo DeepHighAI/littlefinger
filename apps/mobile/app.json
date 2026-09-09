@@ -2,7 +2,7 @@
   "expo": {
     "name": "리틀핑거",
     "slug": "littlefinger",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "littlefinger",

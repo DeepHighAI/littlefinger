@@ -37,7 +37,6 @@ import {
  */
 
 // 문구는 scr-w01-labels.ts 로 옮겼다(첫 이중언어 카탈로그). 헤드라인 출처 주석도 그곳에.
-const KAKAO_SILENT_ATTEMPT_KEY = 'lf:kakao-silent-attempted';
 const KAKAOTALK_USER_AGENT = /KAKAOTALK/iu;
 // 스토어 유도는 안드로이드에서만 의미가 있다 — 아이폰은 앱이 없다(EC-I03, 배너 미노출).
 const ANDROID_USER_AGENT = /Android/iu;
@@ -202,13 +201,13 @@ export function ScrW01InviteLanding(): React.JSX.Element {
     return () => clearInterval(timer);
   }, [phase.kind]);
 
-  const handleKakaoLogin = useCallback(async (prompt?: 'none'): Promise<void> => {
+  const handleKakaoLogin = useCallback(async (): Promise<void> => {
     setSigningIn(true);
     setSignInFailed(false);
     try {
       // **토큰은 복귀 경로에 남는다.** OAuth `state` 는 supabase-js 가 PKCE 검증에 쓰므로
       // 호출자가 끼워 넣을 수 없다. 계정 재접근과 같은 헬퍼를 쓰되 복귀 경로만 다르다.
-      await signInWithKakao(invitePath(token ?? ''), prompt);
+      await signInWithKakao(invitePath(token ?? ''));
     } catch {
       // 로그인 실패로 화면을 갈아치우지 않는다. 여기서 사용자가 할 수 있는 일은
       // 다시 누르는 것뿐인데, 화면을 바꾸면 그 버튼이 사라진다.
@@ -218,6 +217,11 @@ export function ScrW01InviteLanding(): React.JSX.Element {
   }, [token]);
 
   const handleGoogleLogin = useCallback(async (): Promise<void> => {
+    // Google은 내장 WebView 인증을 허용하지 않는다. 거부 페이지로 보내기 전에 복귀 링크를 안내한다.
+    if (KAKAOTALK_USER_AGENT.test(window.navigator.userAgent)) {
+      setSignInFailed(true);
+      return;
+    }
     setSigningIn(true);
     setSignInFailed(false);
     try {
@@ -228,22 +232,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
     }
   }, [token]);
 
-  useEffect(() => {
-    if (
-      phase.kind !== 'READY' ||
-      signedIn !== false ||
-      phase.invite.target_role !== 'PARTNER' ||
-      !KAKAOTALK_USER_AGENT.test(window.navigator.userAgent) ||
-      window.sessionStorage.getItem(KAKAO_SILENT_ATTEMPT_KEY) === '1'
-    ) {
-      return;
-    }
 
-    // 리다이렉트가 실패로 돌아와도 다시 prompt=none 으로 튕기지 않게 탭에서 한 번만 한다.
-    // 초대 토큰은 저장하지 않는다 — 원문 토큰을 브라우저 저장소에 복제할 이유가 없다.
-    window.sessionStorage.setItem(KAKAO_SILENT_ATTEMPT_KEY, '1');
-    void handleKakaoLogin('none');
-  }, [handleKakaoLogin, phase, signedIn]);
 
   if (phase.kind === 'UNAVAILABLE') {
     return <ScrW06LinkExpired reason={phase.reason} />;
@@ -385,6 +374,9 @@ export function ScrW01InviteLanding(): React.JSX.Element {
               : INTERNAL_MESSAGE_BY_LOCALE[locale]
             : ''}
         </p>
+        {signInFailed && KAKAOTALK_USER_AGENT.test(window.navigator.userAgent) ? (
+          <p className="lf-web-note">{L.externalBrowserSteps}</p>
+        ) : null}
         <TestLoginForm />
       </div>
     </div>

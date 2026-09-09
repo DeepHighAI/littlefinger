@@ -55,6 +55,10 @@ export default function ProfileNicknameScreen(): React.JSX.Element {
       setError(LABEL.empty);
       return;
     }
+    if (nickname.includes('@')) {
+      setError(LABEL.email);
+      return;
+    }
     if (codepointLength(nickname) > 40) {
       setError(LABEL.tooLong);
       return;

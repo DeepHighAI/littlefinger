@@ -58,7 +58,7 @@ const ko = {
   invalidToken: '초대 링크를 확인할 수 없어요.',
   // ── 증인 핸드오프 (웹 SCR-W05 로) ──
   handoffTitle: '초대 확인은 웹에서 이어져요',
-  handoffBody: '카카오 로그인과 승인은 기본 브라우저에서 안전하게 진행합니다.',
+  handoffBody: '로그인 수단을 선택하고 기본 브라우저에서 확인해 주세요.',
   handoffAction: '기본 브라우저에서 열기',
   handoffFailure: '기본 브라우저를 열지 못했어요. 다시 시도해 주세요.',
 };

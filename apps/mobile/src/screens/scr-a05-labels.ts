@@ -105,7 +105,7 @@ const scrA05Ko = {
   },
   partnerPending: '상대방 · 초대 대기',
   notifyPartnerHint: '상대는 앱 알림을 받을 수 없어요. 직접 알려주세요.',
-  notifyPartnerAction: '상대에게 카톡으로 알리기',
+  notifyPartnerAction: '링크 공유하기',
   notifyPartnerMessage: (title: string, url: string | null) =>
     [`${title} 약속을 확인해 주세요.`, url].filter((line) => line !== null).join('\n'),
   checkDeadline: '답변 기한',
@@ -266,7 +266,7 @@ const scrA05En = {
   },
   partnerPending: 'Partner · invite pending',
   notifyPartnerHint: "Your partner can't receive app notifications. Let them know directly.",
-  notifyPartnerAction: 'Tell your partner on KakaoTalk',
+  notifyPartnerAction: 'Share link',
   notifyPartnerMessage: (title: string, url: string | null) =>
     [`Please check the promise "${title}".`, url].filter((line) => line !== null).join('\n'),
   checkDeadline: 'Response deadline',

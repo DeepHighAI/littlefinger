@@ -260,7 +260,7 @@ describe('SCR-W01 초대 랜딩', () => {
     await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
     expect(signInWithOAuth).toHaveBeenCalledWith({
       provider: 'kakao',
-      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}` },
+      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}`, queryParams: { prompt: 'login' } },
     });
     // 토큰이 왕복해야 로그인 후 SCR-W02 로 이어진다. OAuth `state` 는 supabase-js 가
     // PKCE 검증에 쓰므로 쓸 수 없다(G10).
@@ -277,7 +277,7 @@ describe('SCR-W01 초대 랜딩', () => {
     await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
     expect(signInWithOAuth).toHaveBeenCalledWith({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}` },
+      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}`, queryParams: { prompt: 'select_account' } },
     });
   });
 
@@ -293,38 +293,16 @@ describe('SCR-W01 초대 랜딩', () => {
     expect(signInWithOAuth).not.toHaveBeenCalled();
   });
 
-  it('EC-I02 카카오톡 인앱 브라우저 OAuth 실패 뒤 기본 브라우저 안내로 돌아온다', async () => {
-    // 자동 시도가 빠지면 카카오톡에 이미 로그인한 상대도 버튼을 한 번 더 눌러야 한다.
-    // 실패 뒤 signingIn 이 풀리지 않으면 일반 로그인으로 폴백할 방법도 사라진다.
-    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
-      'Mozilla/5.0 KAKAOTALK 11.4.0',
-    );
-    signInWithOAuth.mockResolvedValue({
-      data: {},
-      error: new Error('silent login unavailable'),
-    });
+  it('EC-I02 카카오톡 안에서도 계정 자동 선택 없이 Google의 외부 브라우저 경로를 제공한다', async () => {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 KAKAOTALK 11.4.0');
     fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-
     renderAt();
-
-    const button = await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u });
-    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
-    expect(signInWithOAuth).toHaveBeenNthCalledWith(1, {
-      provider: 'kakao',
-      options: {
-        redirectTo: `${window.location.origin}${invitePath(TOKEN)}`,
-        queryParams: { prompt: 'none' },
-      },
-    });
-    expect((button as HTMLButtonElement).disabled).toBe(false);
-    expect(await screen.findByText('기본 브라우저에서 열어 주세요.')).toBeTruthy();
-
+    const button = await screen.findByRole('button', { name: /Google 로그인하고 내용 보기/u });
+    expect(signInWithOAuth).not.toHaveBeenCalled();
     fireEvent.click(button);
-    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(2));
-    expect(signInWithOAuth).toHaveBeenNthCalledWith(2, {
-      provider: 'kakao',
-      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}` },
-    });
+    expect(await screen.findByText('기본 브라우저에서 열어 주세요.')).toBeTruthy();
+    expect(screen.getByText(/Google로 로그인해 주세요/u)).toBeTruthy();
+    expect(signInWithOAuth).not.toHaveBeenCalled();
   });
 
   it('안드로이드에서는 앱으로 계속하기가 스토어 폴백을 품은 인텐트 링크로 뜬다', async () => {

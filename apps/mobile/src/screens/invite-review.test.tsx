@@ -1,3 +1,4 @@
+jest.mock('../components/InviteAccountGate.tsx', () => ({ InviteAccountGate: ({ children }: { children: React.ReactNode }) => children }));
 import { LEGAL_DISCLAIMER } from '@littlefinger/shared';
 import { act, fireEvent, render } from '@testing-library/react-native';
 

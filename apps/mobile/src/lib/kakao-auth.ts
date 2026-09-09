@@ -1,4 +1,5 @@
 import type { Session, User } from '@supabase/supabase-js';
+import { profileNameFromMetadata } from '@littlefinger/shared';
 
 interface OAuthResponse {
   data: { provider: string; url: string | null };
@@ -15,7 +16,7 @@ export type MobileOAuthProvider = 'kakao' | 'google';
 export interface MobileAuthClient {
   signInWithOAuth(input: {
     provider: MobileOAuthProvider;
-    options: { redirectTo: string; skipBrowserRedirect: true };
+    options: { redirectTo: string; skipBrowserRedirect: true; queryParams?: { prompt: string } };
   }): Promise<OAuthResponse>;
   exchangeCodeForSession(code: string): Promise<AuthSessionResponse>;
 }
@@ -65,7 +66,7 @@ export async function completeKakaoSignIn(
   if (sessionData.session === null) throw new Error('Supabase session is missing.');
 
   const metadata = sessionData.session.user.user_metadata;
-  const nickname = metadata['name'];
+  const nickname = profileNameFromMetadata(metadata);
   const profileImageUrl = metadata['avatar_url'];
   try {
     await deps.fetch(deps.functionUrl, {
@@ -97,6 +98,7 @@ async function startOAuthSignIn(
     options: {
       redirectTo: deps.redirectTo,
       skipBrowserRedirect: true,
+      queryParams: { prompt: provider === 'google' ? 'select_account' : 'login' },
     },
   });
   if (oauthError !== null) throw oauthError;

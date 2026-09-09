@@ -9,7 +9,7 @@ const ko = {
   headline: '약속하고, 걸고,\n지키는 재미',
   subcopy: '둘이 정한 약속을 기록하고\n잊지 않게 챙겨드려요',
   stepWrite: '작성',
-  stepInvite: '카톡 초대',
+  stepInvite: '링크 초대',
   stepKeep: '걸고 지키기',
   start: '시작하기',
 };
@@ -20,7 +20,7 @@ const en = {
   headline: 'The fun of promising,\npinky-swearing, and keeping it',
   subcopy: 'We record the promises you two make\nand help you never forget them',
   stepWrite: 'Write',
-  stepInvite: 'KakaoTalk invite',
+  stepInvite: 'Invite link',
   stepKeep: 'Swear and keep',
   start: 'Get started',
 } satisfies typeof ko;

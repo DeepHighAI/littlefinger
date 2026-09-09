@@ -1,6 +1,82 @@
 # Development Status
 
-Snapshot date: **2026-09-07 KST**.
+Snapshot date: **2026-09-09 KST**.
+
+## Public-test corrections implemented locally (2026-09-09)
+
+PO approved all six reported corrections and explicitly required account choice before
+reviewing/accepting invitations (ADR 0023). Invitation landing no longer starts Kakao OAuth
+automatically. App and web recipients confirm the signed-in provider and public nickname, or
+choose another account, before review/witness joining. Google selection in Kakao's embedded
+browser provides regular-browser instructions. Native entry destinations survive onboarding
+and OAuth callbacks in memory.
+
+Fulfillment input preserves spaces and IME composition until validation/submission. Generic
+sharing uses the standard share icon and Korean/English copy. The nickname migration protects
+explicit names across login and backfills email-shaped names with safe provider names or a
+neutral fallback. The amendment sheet measures the focused input and provides keyboard scroll
+space for reason, reward, penalty, title and body.
+
+Verification: `npm test` passed **116 Vitest files / 2,188 tests** and **87 mobile Jest suites /
+935 tests**. Five-project `npm run typecheck`, `npm run check:agents`, `git diff --check`, and
+the acceptance-web production build passed. The build retains its existing >500 kB chunk
+warning. Database tests run the backfill twice and verify custom-name preservation.
+
+Offline-fixture browser QA confirmed account selection -> review and account switching, with
+no browser errors. Korean/English account screens were inspected at 360 x 800, text scales
+1.0/1.5; expanded button text fits after the layout correction. Screenshot comparison against
+the earlier clipped English 1.5x screen reported 22.03% changed pixels (expected layout change).
+Ignored artifacts: `dist/public-test-web-account-*-final-*.png`,
+`dist/public-test-web-account-switch.png`, and `dist/public-test-final-{tests,types}.log`.
+
+Native visual QA passed on the connected Samsung SM-N981N (Android 13, Samsung Korean keyboard).
+The actual input component retained `가 나`, including the space. With the amendment reason
+focused, its lower edge moved to y=1210 while the keyboard began at y=1247, leaving a 37 px gap.
+The generic invite and witness CTAs showed the `share` glyph and `초대 링크 공유하기`; the account
+confirmation screen fit at system font scales 1.0 and 1.5. No Littlefinger React Native error or
+native crash appeared during the final pass. Ignored evidence is under `dist/physical-qa-*.png`
+and `dist/physical-qa-*.xml`. The temporary QA package was uninstalled, font scale restored to
+1.0, and Metro/package overrides restored byte-for-byte.
+
+Production database migration, web deployment and AAB release are still pending at this point in
+the log. Ship the migration and both clients together. Existing approvals and participant identities
+remain unchanged; past acceptance by another account is not transferred by this fix.
+
+## Exposure ads enabled; launch QA resumed (2026-09-07)
+
+PO reports open-testing version 25 (0.3.0) deployed and explicitly authorizes exposure
+ads for launch, superseding the former 100-daily-confirmations gate (ADR 0022).
+At 17:03:55 KST, a key-scoped production update changed only `ads_enabled` from
+false to true. A separate SELECT confirmed `ads_enabled=true` and the unchanged
+`rewarded_ads_enabled=true`. No schema, function, auth configuration or AAB changed.
+This flag also affects existing supported/open-test installations, not only a future
+production release. Play publication remains PO-owned.
+
+Live AdMob console recheck: product app still shows getting ready / under review /
+limited serving, Google Play package `com.littlefinger.app`, and five active units.
+Review tooltip still dates the request to September 5. Two test devices are now
+registered; `갤럭시노트20` matches the phone advertising ID observed in the earlier QA.
+The earlier missing-registration finding is superseded; the disconnected phone's
+current ID and Test Ad delivery still require physical confirmation.
+The European message remains published (English, product app selected, last modified
+September 5); its dashboard currently shows zero displayed messages. This is not
+proof of a successful or failed new SDK request; no message was edited or republished.
+
+At the start of this pass `adb devices -l` returned an empty device list. PO was asked
+to connect/unlock SM-N981N and update through Play to code 25 without deleting it.
+Actual UMP choice/re-open and SSV grant verification remain open. No new real-device
+pass or root-cause fix is claimed from console checks alone.
+Final read-only ledger check found zero `ADMOB_SSV` grants and zero GRANTED intents;
+the latest intent remains the earlier September 7 14:20 KST attempt. A second ADB
+check still found no connected device. Next: connect/unlock the phone, verify Play
+code 25 and its current test-device ID, then retry isolated EEA consent and a
+test-labeled production-unit reward through the real SSV path. Do not fabricate
+callbacks or grant entitlements directly to close QA.
+
+Verification for this configuration/documentation-only pass: five-project typecheck,
+`check:agents` and `git diff --check` passed. Full tests and device QA were not run;
+no product code changed, no commit/push/build/Play release was performed. Existing
+PO store-artwork changes were left untouched.
 
 ## Internal release preparation (2026-09-07)
 

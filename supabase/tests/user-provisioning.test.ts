@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 import { LEGAL_DOCUMENTS } from '../../packages/shared/src/legal.ts';
@@ -508,4 +509,40 @@ describe('서버 전용이다', () => {
     );
     expect(message).not.toBeNull();
   });
+});
+
+
+describe('공개 별명과 제공자 이름의 경계', () => {
+  test('직접 설정한 별명은 다음 제공자 보정에도 유지된다', async () => {
+    const id = await createAuthUser();
+    await linkIdentity(id, 'google', 'custom-name-google');
+    await provision(id, 'APP', '제공자 이름');
+    await db.asAdmin(`select public.lf_profile_nickname_update(gen_random_uuid(), $1, '내 별명')`, [id]);
+    await provision(id, 'WEB', '다른 제공자 이름');
+    expect((await userRow(id))?.nickname).toBe('내 별명');
+  });
+  test('제공자 이메일을 저장하지 않고 직접 이메일 설정도 거절한다', async () => {
+    const id = await createAuthUser();
+    await linkIdentity(id, 'google', 'email-name-google');
+    await provision(id, 'APP', 'private@example.com');
+    expect((await userRow(id))?.nickname).toBe('사용자');
+    expect(await messageOf(() => db.asAdmin(
+      `select public.lf_profile_nickname_update(gen_random_uuid(), $1, 'private@example.com')`, [id],
+    ))).toBe('E_VALIDATION');
+  });
+});
+
+
+test('기존 이메일 이름은 안전한 제공자 이름으로 보정하고 직접 별명은 보존한다', async () => {
+  const emailId = await createAuthUser({ name: 'private@example.com', full_name: '민준' });
+  const customId = await createAuthUser({ name: '제공자 이름' });
+  await db.asAdmin(`update public.users set nickname = 'private@example.com' where id = $1`, [emailId]);
+  await db.asAdmin(`update public.users set nickname = '직접 별명' where id = $1`, [customId]);
+  const migration = readFileSync(new URL('../migrations/20260909030505_explicit_profile_nicknames.sql', import.meta.url), 'utf8');
+  const backfill = migration.slice(migration.indexOf('-- 기존 별명'), migration.indexOf('create or replace function'));
+  await db.execAdmin(backfill);
+  await db.execAdmin(backfill);
+  expect((await userRow(emailId))?.nickname).toBe('민준');
+  await provision(customId, 'WEB', '제공자 이름');
+  expect((await userRow(customId))?.nickname).toBe('직접 별명');
 });

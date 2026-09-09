@@ -90,9 +90,7 @@ describe('App 라우팅', () => {
     witnessPath('11111111-1111-4111-8111-111111111111'),
   ])('증인 결합·계정 경로 %s를 SCR-W05로 연결한다', async (path) => {
     renderAt(path);
-    expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe(
-      '증인으로 약속을 확인해 주세요',
-    );
+    expect(await screen.findByRole('heading', { level: 1, name: '증인으로 약속을 확인해 주세요' })).toBeTruthy();
   });
 
   it('초대 경로가 토큰을 뽑아 SCR-W01 로 넘긴다', () => {

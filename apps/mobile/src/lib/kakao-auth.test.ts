@@ -72,8 +72,7 @@ describe('signInWithKakao', () => {
       provider: 'kakao',
       options: {
         redirectTo: 'littlefinger://auth-callback',
-        skipBrowserRedirect: true,
-      },
+        skipBrowserRedirect: true, queryParams: { prompt: 'login' } },
     });
     expect(d.openAuthSession).toHaveBeenCalledWith(
       'https://project.supabase.co/auth/v1/authorize',
@@ -118,8 +117,7 @@ describe('signInWithGoogle', () => {
       provider: 'google',
       options: {
         redirectTo: 'littlefinger://auth-callback',
-        skipBrowserRedirect: true,
-      },
+        skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
     });
     expect(d.exchangeCodeForSession).toHaveBeenCalledWith('auth-code');
     expect(d.fetch).toHaveBeenCalledTimes(1);

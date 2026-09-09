@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { LocaleSwitch } from './components/LocaleSwitch.tsx';
+import { InviteAccountGate } from './components/InviteAccountGate.tsx';
 import { LocaleProvider } from './lib/locale.tsx';
 import { watchSignInProvision } from './lib/user-provision.ts';
 import { ROUTE } from './routes.ts';
@@ -37,8 +38,8 @@ export function App(): React.JSX.Element {
       <Route path={ROUTE.privacy} element={<LegalDocument kind="PRIVACY" />} />
       <Route path={ROUTE.accountDeletion} element={<AccountDeletion />} />
       <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
-      <Route path={ROUTE.review} element={<ScrW02PromiseReview />} />
-      <Route path={ROUTE.witnessJoin} element={<ScrW05WitnessConfirm />} />
+      <Route path={ROUTE.review} element={<InviteAccountGate><ScrW02PromiseReview /></InviteAccountGate>} />
+      <Route path={ROUTE.witnessJoin} element={<InviteAccountGate><ScrW05WitnessConfirm /></InviteAccountGate>} />
       <Route path={ROUTE.witness} element={<ScrW05WitnessConfirm />} />
       <Route path={ROUTE.approvalComplete} element={<ScrW03ApprovalComplete />} />
       <Route path={ROUTE.promises} element={<ScrW04ParticipantPromises />} />

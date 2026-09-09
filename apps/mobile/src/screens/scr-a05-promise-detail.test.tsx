@@ -995,7 +995,7 @@ describe('SCR-A05 약속 상세', () => {
     await settle();
 
     expect(view.getByText('상대는 앱 알림을 받을 수 없어요. 직접 알려주세요.')).toBeTruthy();
-    await fireEvent.press(view.getByRole('button', { name: '상대에게 카톡으로 알리기' }));
+    await fireEvent.press(view.getByRole('button', { name: '링크 공유하기' }));
     expect(Share.share).toHaveBeenCalledWith({
       message: `${VERSION.title} 약속을 확인해 주세요.\nhttps://littlefinger-app.web.app/promises`,
     });

@@ -1,3 +1,5 @@
+import { InviteAccountGate } from '../../components/InviteAccountGate.tsx';
+import { clearPendingEntry } from '../../lib/pending-entry.ts';
 import {
   KEEPER_LABEL_BY_LOCALE,
   PROMISE_CATEGORY_LABEL_BY_LOCALE,
@@ -97,7 +99,7 @@ const styles = StyleSheet.create({
   actionMain: { flex: 1 },
 });
 
-export default function InviteReviewScreen(): React.JSX.Element {
+function InviteReviewScreen(): React.JSX.Element {
   const { token } = useLocalSearchParams<{ token: string }>();
   const router = useRouter();
   const L = useLabels(INVITE_REVIEW_LABEL);
@@ -302,7 +304,7 @@ export default function InviteReviewScreen(): React.JSX.Element {
       <SafeAreaView style={styles.screen}>
         <View style={[styles.scroll, styles.centered]}>
           <LfText variant="body" align="center">{L.selfInvite}</LfText>
-          <LfButton label={L.goHome} onPress={() => router.replace('/home')} />
+          <LfButton label={L.goHome} onPress={() => { clearPendingEntry(); router.replace('/home'); }} />
         </View>
       </SafeAreaView>
     );
@@ -328,7 +330,7 @@ export default function InviteReviewScreen(): React.JSX.Element {
           <LfText variant="title" align="center">
             {phase.outcome === 'DECLINED' ? L.doneDeclined : L.doneAmendSuggested}
           </LfText>
-          <LfButton label={L.goHome} size="cta" onPress={() => router.replace('/home')} />
+          <LfButton label={L.goHome} size="cta" onPress={() => { clearPendingEntry(); router.replace('/home'); }} />
         </View>
       </SafeAreaView>
     );
@@ -556,4 +558,9 @@ export default function InviteReviewScreen(): React.JSX.Element {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+export default function InviteEntryScreen(): React.JSX.Element {
+  const { token } = useLocalSearchParams<{ token: string }>();
+  return <InviteAccountGate key={token}><InviteReviewScreen /></InviteAccountGate>;
 }

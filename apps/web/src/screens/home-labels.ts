@@ -14,12 +14,12 @@ const ko = {
   motto: '새끼손가락 걸고, 약속!',
   purpose: [
     '리틀핑거는 두 사람이 함께 정한 약속을 하나의 기록으로 남기고, 종료일까지 잊지 않게 챙겨주는 상호 약속 관리 서비스예요.',
-    '약속을 만드는 사람은 Android 앱을 쓰고, 상대는 카카오톡으로 받은 링크에서 앱 설치 없이 내용을 확인하고 승인해요.',
+    '약속을 만드는 사람은 Android 앱을 쓰고, 상대는 받은 초대 링크에서 앱 설치 없이 내용을 확인하고 승인해요.',
   ],
   howTitle: '이렇게 사용해요',
   how: [
     '약속 작성 — 약속 내용, 지킬 사람, 종료일, 보상과 벌칙까지 적어 두면 나중에 말이 엇갈리지 않아요.',
-    '카톡으로 초대 — 링크 하나면 끝. 상대는 앱을 설치하지 않아도, 아이폰에서도 웹으로 열어 승인할 수 있어요.',
+    '초대 링크 공유 — 링크 하나면 끝. 상대는 앱을 설치하지 않아도, 아이폰에서도 웹으로 열어 승인할 수 있어요.',
     '함께 확정 — 두 사람이 모두 승인해야 약속이 시작돼요. 확정된 약속 기록은 그대로 보관됩니다.',
     '리마인드 — D-7 / D-3 / D-1 / 당일에 알려드려요.',
     '이행 확인 — 종료일이 되면 두 사람에게 "약속 지켜졌나요?" 하고 물어봐요.',
@@ -48,12 +48,12 @@ const en = {
   motto: "Pinky swear, it's a promise!",
   purpose: [
     'Littlefinger keeps the promise two people made together as one record and looks after it until the end date.',
-    'The person who writes the promise uses the Android app; the other person opens a KakaoTalk link and approves on the web, with nothing to install.',
+    'The person who writes the promise uses the Android app; the other person opens an invite link and approves on the web, with nothing to install.',
   ],
   howTitle: 'How it works',
   how: [
     'Write it down — the promise, who keeps it, the end date, the reward and the forfeit. Nothing is left to memory.',
-    'Invite by KakaoTalk — one link. The other person approves on the web, with nothing to install, iPhone included.',
+    'Share an invite link — that’s all. The other person approves on the web, with nothing to install, iPhone included.',
     'Confirm together — the promise starts only once you both approve, and the confirmed record stays as it is.',
     'Reminders — D-7 / D-3 / D-1 and the day itself.',
     'Check in — on the end date you both answer "was it kept?".',

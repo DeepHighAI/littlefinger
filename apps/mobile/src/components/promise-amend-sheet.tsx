@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useLabels, useLocale } from '../lib/locale-native';
+import { useKeyboardScroll } from '../lib/use-keyboard-scroll.ts';
 import { MOD_01_LABEL } from '../screens/scr-a05-labels.ts';
 import { space } from '../theme/tokens.ts';
 import { LfButton } from './LfButton.tsx';
@@ -90,6 +91,7 @@ export function PromiseAmendSheet({
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState(false);
   const actionPending = useRef(false);
+  const keyboard = useKeyboardScroll(visible);
 
   useEffect(() => {
     if (!visible) return;
@@ -166,7 +168,13 @@ export function PromiseAmendSheet({
       closeLabel={LABEL.close}
       onClose={onClose}
     >
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        ref={keyboard.scrollRef}
+        keyboardShouldPersistTaps="handled"
+        onScroll={keyboard.onScroll}
+        onContentSizeChange={() => keyboard.reveal()}
+        contentContainerStyle={[styles.content, { paddingBottom: space[5] + keyboard.inset }]}
+      >
             <LfSegmented<Mode>
               accessibilityLabel={LABEL.requestKind}
               items={[
@@ -184,6 +192,7 @@ export function PromiseAmendSheet({
                   <LfInput
                     accessibilityLabel={LABEL.titleField}
                     value={proposal.title}
+                    onFocus={keyboard.onFocus}
                     onChangeText={(value) => update('title', value)}
                   />
                 </LfField>
@@ -191,6 +200,7 @@ export function PromiseAmendSheet({
                   <LfTextarea
                     accessibilityLabel={LABEL.bodyField}
                     value={proposal.body}
+                    onFocus={keyboard.onFocus}
                     onChangeText={(value) => update('body', value)}
                   />
                 </LfField>
@@ -238,6 +248,7 @@ export function PromiseAmendSheet({
                   <LfInput
                     accessibilityLabel={LABEL.rewardField}
                     value={proposal.reward ?? ''}
+                    onFocus={keyboard.onFocus}
                     onChangeText={(value) => update('reward', value === '' ? null : value)}
                   />
                 </LfField>
@@ -245,6 +256,7 @@ export function PromiseAmendSheet({
                   <LfInput
                     accessibilityLabel={LABEL.penaltyField}
                     value={proposal.penalty ?? ''}
+                    onFocus={keyboard.onFocus}
                     onChangeText={(value) => update('penalty', value === '' ? null : value)}
                   />
                 </LfField>
@@ -259,6 +271,7 @@ export function PromiseAmendSheet({
                 accessibilityLabel={LABEL.reasonField}
                 placeholder={LABEL.reasonPlaceholder}
                 value={reason}
+                onFocus={keyboard.onFocus}
                 onChangeText={setReason}
               />
             </LfField>

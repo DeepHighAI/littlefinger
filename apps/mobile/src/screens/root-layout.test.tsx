@@ -1,3 +1,4 @@
+import { clearPendingEntry, rememberEntry } from '../lib/pending-entry.ts';
 import type { Session } from '@supabase/supabase-js';
 import { act, render } from '@testing-library/react-native';
 import * as SplashScreen from 'expo-splash-screen';
@@ -118,6 +119,7 @@ describe('루트 인증 게이트', () => {
     jest.spyOn(AppState, 'addEventListener').mockImplementation(() => ({ remove: jest.fn() }));
     capturedEvents = null;
     mockAndroidPushEvents = null;
+    clearPendingEntry();
     mockOnboardingCompleted = undefined;
     mockRootNavigationReady = false;
     mockStoredPushValue = null;
@@ -158,6 +160,34 @@ describe('루트 인증 게이트', () => {
     expect(view.queryByText('screen:profile')).toBeNull();
     expect(mockStartMobileSessionGateNative).toHaveBeenCalledTimes(1);
     expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
+  });
+
+  test('첫 온보딩 뒤 원래 초대로 돌아오고 로그인 뒤에도 홈으로 덮지 않는다', async () => {
+    rememberEntry('/i/first-invite');
+    mockRootNavigationReady = true;
+    mockReadOnboardingCompletionNative.mockResolvedValue(false);
+    await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    await act(async () => { await new Promise<void>((resolve) => setImmediate(resolve)); });
+    expect(mockReplace).toHaveBeenCalledWith('/onboarding');
+    mockPathname = '/onboarding';
+    mockReplace.mockClear();
+    await act(async () => mockOnboardingCompleted?.());
+    expect(mockReplace).toHaveBeenCalledWith('/i/first-invite');
+    mockPathname = '/i/first-invite';
+    mockReplace.mockClear();
+    await act(async () => capturedEvents?.onSession(SESSION));
+    expect(mockReplace).not.toHaveBeenCalledWith('/home');
+  });
+
+  test('인증이 필요한 약속 상세 딥링크를 로그인 뒤 복구한다', async () => {
+    rememberEntry('littlefinger://promise/abc-123');
+    mockRootNavigationReady = true;
+    await render(<RootLayout />);
+    await act(async () => capturedEvents?.onReady());
+    await act(async () => capturedEvents?.onSession(SESSION));
+    expect(mockReplace).toHaveBeenCalledWith('/promise/abc-123');
+    expect(mockReplace).not.toHaveBeenCalledWith('/home');
   });
 
   test('최초 비로그인 실행은 SCR-A00으로 한 번 교체한다', async () => {

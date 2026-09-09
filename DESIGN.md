@@ -189,9 +189,9 @@ of ADR 0018.
   section cards; the CTA right-aligned in a paper action bar with 임시저장 as a text link. The
   reward and penalty presets (Starbucks, Olive Young, 10,000 won / 10 dollars, 나의 노예가 되어라
   penalty-only) stay.
-- **Invite:** stamp with yellow corner blobs; Kakao share (3 px) + outlined link copy; the KakaoTalk
-  preview bubble (2 px ink, r 4 / 14); the countdown card with a yellow `schedule` tile and a sky
-  progress bar.
+- **Invite:** stamp with yellow corner blobs; standard yellow share CTA with the `share` icon +
+  outlined link copy; a neutral flat preview card; the countdown card with a yellow `schedule`
+  tile and a sky progress bar (PO 2026-09-09, ADR 0023).
 - **Detail:** status chip + date line + 24 / 30 title (+ the D-Day square on ACTIVE and the invite
   review); content card, people list, approvals; a compact stamp on the non-ACTIVE statuses;
   bottom actions = outlined secondary + yellow primary; 숨기기 / 신고 / 차단 as a text / danger row.
@@ -246,6 +246,9 @@ oval radii, the A00 / A01 entry values and the handful of README sizes without a
 grow that table without a PO decision.
 
 ## Decision log
+
+- 2026-09-09: PO approved messenger-neutral invitation buttons and previews, explicit account
+  confirmation before invitation review/acceptance, and keyboard visibility corrections (ADR 0023).
 
 - 2026-09-07: 잉크 & 블록 applied to every RN screen and the acceptance web; the web deployed to
   `littlefinger-app.web.app`; ADR 0020 records this baseline and the 2026-09-03 pastel one.

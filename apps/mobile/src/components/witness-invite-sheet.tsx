@@ -24,7 +24,6 @@ import { LfButton } from './LfButton.tsx';
 import { LfChip } from './LfChip.tsx';
 import { LfHint } from './LfHint.tsx';
 import { LfIcon } from './LfIcon.tsx';
-import { KakaoMark } from './KakaoMark.tsx';
 import { LfRow } from './LfRow.tsx';
 import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
@@ -328,10 +327,10 @@ export function WitnessInviteSheet({
           <LfButton
             testID="witness-invite-button"
             label={LABEL.invite}
-            variant="kakao"
+            variant="filled"
             size="cta"
             block
-            leading={<KakaoMark />}
+            trailing="share"
             disabled={busy || atCapacity}
             onPress={() => void share(null)}
           />

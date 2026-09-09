@@ -15,7 +15,6 @@ import { LfStack } from '../components/LfStack';
 import { LfStamp } from '../components/LfStamp';
 import { LfStatusTile } from '../components/LfStatusTile';
 import { LfText } from '../components/LfText';
-import { KakaoMark } from '../components/KakaoMark';
 import { SlotPaywallSheet } from '../components/slot-paywall-sheet.tsx';
 import { WitnessInviteSheet } from '../components/witness-invite-sheet.tsx';
 import {
@@ -56,20 +55,7 @@ const styles = StyleSheet.create({
     gap: space[6],
   },
   eyebrow: { paddingHorizontal: space[1] },
-  // 카톡 말풍선 — 왼쪽 위만 각지고 나머지는 둥근 채팅 말풍선, 2px 잉크 (`.lf-kakao-bubble`)
-  bubble: {
-    borderWidth: border.chip,
-    borderColor: colors.text,
-    borderTopLeftRadius: space[1],
-    borderTopRightRadius: radius.md,
-    borderBottomRightRadius: radius.md,
-    borderBottomLeftRadius: radius.md,
-    backgroundColor: colors.surface,
-    paddingVertical: space[5],
-    paddingHorizontal: space[6],
-    gap: space[1],
-  },
-  // 말풍선 마지막 줄 "약속 확인하기" — 점선으로 나뉜 텍스트일 뿐 버튼이 아니다
+  // 미리보기 마지막 줄 "약속 확인하기" — 점선으로 나뉜 텍스트일 뿐 버튼이 아니다
   bubbleCta: {
     marginTop: space[2],
     paddingTop: space[3],
@@ -321,9 +307,9 @@ export default function InviteScreen(): React.JSX.Element {
           <>
             <LfButton
               label={shared ? LABEL.shareAgain : LABEL.share}
-              variant="kakao"
+              variant="filled"
               block
-              leading={<KakaoMark />}
+              trailing="share"
               disabled={busy}
               onPress={() => void shareCurrent()}
             />
@@ -337,12 +323,12 @@ export default function InviteScreen(): React.JSX.Element {
 
             <LfStack gap={3}>
               <View style={styles.eyebrow}><LfText variant="eyebrow">{LABEL.preview}</LfText></View>
-              <View style={styles.bubble}>
+              <LfCard flat>
                 <LfText variant="label">{LABEL.previewTitle(invite.title)}</LfText>
                 <View style={styles.bubbleCta}>
                   <LfText variant="note" align="center">{LABEL.linkCta}</LfText>
                 </View>
-              </View>
+              </LfCard>
             </LfStack>
 
             <LfCard>

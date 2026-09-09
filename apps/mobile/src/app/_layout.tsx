@@ -17,6 +17,7 @@ import { startMobileSessionGateNative } from '../lib/session-gate-native.ts';
 import { loadMinimumAppVersionNative } from '../lib/minimum-app-version-native.ts';
 import { readOnboardingCompletionNative } from '../lib/onboarding-native.ts';
 import { FONT_ASSETS } from '../theme/fontAssets';
+import { clearPendingEntry, readPendingEntry } from '../lib/pending-entry.ts';
 
 // 폰트가 준비되기 전에 화면이 뜨면 시스템 폰트로 한 번 그렸다가 바뀌어 깜빡인다.
 void SplashScreen.preventAutoHideAsync();
@@ -112,6 +113,12 @@ export default function RootLayout(): React.JSX.Element {
       if (pathname !== '/update-required') router.replace('/update-required');
       return;
     }
+    const entry = readPendingEntry();
+    if (entry !== null && onboardingComplete && (session !== null || entry.startsWith('/i/'))) {
+      if (pathname !== entry) router.replace(entry as `/i/${string}` | `/promise/${string}`);
+      if (session !== null && pathname === entry && !entry.startsWith('/i/')) clearPendingEntry();
+      return;
+    }
     if (session === null && !onboardingComplete && pathname !== '/onboarding') {
       router.replace('/onboarding');
     }
@@ -160,6 +167,10 @@ export default function RootLayout(): React.JSX.Element {
     if (!authenticatedRoutesReady) {
       setPushRestoreSettled(false);
       restoredToPushRef.current = false;
+      return;
+    }
+    if (readPendingEntry() !== null) {
+      setPushRestoreSettled(true);
       return;
     }
 

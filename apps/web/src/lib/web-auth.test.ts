@@ -25,7 +25,7 @@ describe('웹 카카오 로그인', () => {
 
     expect(signInWithOAuth).toHaveBeenCalledWith({
       provider: 'kakao',
-      options: { redirectTo: `${window.location.origin}/promises` },
+      options: { redirectTo: `${window.location.origin}/promises`, queryParams: { prompt: 'login' } },
     });
   });
 
@@ -45,7 +45,7 @@ describe('웹 Google 로그인', () => {
 
     expect(signInWithOAuth).toHaveBeenCalledWith({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/promises` },
+      options: { redirectTo: `${window.location.origin}/promises`, queryParams: { prompt: 'select_account' } },
     });
   });
 

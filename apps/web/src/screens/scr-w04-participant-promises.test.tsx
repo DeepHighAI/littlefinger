@@ -394,7 +394,7 @@ describe('SCR-W04 참여 약속', () => {
     await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
     expect(signInWithOAuth).toHaveBeenCalledWith({
       provider: 'kakao',
-      options: { redirectTo: `${window.location.origin}/promises` },
+      options: { redirectTo: `${window.location.origin}/promises`, queryParams: { prompt: 'login' } },
     });
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -408,7 +408,7 @@ describe('SCR-W04 참여 약속', () => {
     await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
     expect(signInWithOAuth).toHaveBeenCalledWith({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/promises` },
+      options: { redirectTo: `${window.location.origin}/promises`, queryParams: { prompt: 'select_account' } },
     });
   });
 

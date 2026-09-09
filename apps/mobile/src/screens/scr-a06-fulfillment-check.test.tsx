@@ -181,6 +181,22 @@ describe('SCR-A06 이행 확인', () => {
     });
   });
 
+  test('타이핑 중 공백·줄바꿈·한글 조합을 유지하고 제출할 때만 정규화한다', async () => {
+    const view = await render(<FulfillmentScreen />);
+    await settle();
+    const input = view.getByLabelText('한 줄 의견');
+    let value = '';
+    for (const key of ['약', '속', ' ', '지', '킴', '\n', 'ᄀ', 'ᅡ', ' ']) {
+      value += key;
+      await fireEvent.changeText(input, value);
+      expect(view.getByLabelText('한 줄 의견').props.value).toBe(value);
+    }
+    await fireEvent.press(view.getByRole('button', { name: '지켰어요' }));
+    await fireEvent.press(view.getByRole('button', { name: '제출' }));
+    await settle();
+    expect(submitMock.mock.calls[0]?.[0]).toMatchObject({ comment: '약속 지킴\n가' });
+  });
+
   test('promise_id가 없으면 네트워크를 호출하지 않고 찾을 수 없음 상태를 보여준다', async () => {
     jest.mocked(useLocalSearchParams).mockReturnValue({});
 
@@ -745,7 +761,7 @@ describe('SCR-A06 이행 확인', () => {
 
     const input = view.getByLabelText('한 줄 의견');
     await fireEvent.changeText(input, `가${'🙂'.repeat(199)}`);
-    expect(input.props.value).toBe(`가${'🙂'.repeat(199)}`);
+    expect(input.props.value).toBe(`가${'🙂'.repeat(199)}`);
     expect(view.getByText('200/200')).toBeTruthy();
     expect(
       view.getByRole('button', { name: '제출' }).props.accessibilityState,

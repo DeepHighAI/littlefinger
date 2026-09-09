@@ -645,7 +645,8 @@ export default function FulfillmentScreen(): React.JSX.Element {
     uploads,
   ]);
 
-  const commentLength = codepointLength(comment);
+  const normalizedComment = normalizeInput(comment);
+  const commentLength = codepointLength(normalizedComment);
   const commentInvalid = commentLength > FULFILLMENT_COMMENT_MAX;
 
   function startRevision(): void {
@@ -802,7 +803,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
         {
           promise_id: promiseId,
           answer,
-          ...(comment.length > 0 ? { comment } : {}),
+          ...(normalizedComment.length > 0 ? { comment: normalizedComment } : {}),
           ...(editing ? { revise: true } : {}),
           ...(evidenceUploadIds.length > 0
             ? { evidence_upload_ids: evidenceUploadIds }
@@ -842,7 +843,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
         const nextDetail = await refresh();
         if (
           nextDetail?.my_check?.answer === answer &&
-          (nextDetail.my_check.comment ?? '') === comment
+          (nextDetail.my_check.comment ?? '') === normalizedComment
         ) {
           submitIdempotencyKey.current = null;
         }
@@ -1012,9 +1013,8 @@ export default function FulfillmentScreen(): React.JSX.Element {
                 placeholder={LABEL.commentPlaceholder}
                 value={comment}
                 onChangeText={(value) => {
-                  const normalized = normalizeInput(value);
-                  if (comment !== normalized) submitIdempotencyKey.current = null;
-                  setComment(normalized);
+                  if (comment !== value) submitIdempotencyKey.current = null;
+                  setComment(value);
                 }}
               />
               <View style={styles.counter}>

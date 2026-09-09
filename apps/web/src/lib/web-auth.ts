@@ -8,13 +8,12 @@ import { getSupabase } from './supabase.ts';
  */
 export async function signInWithKakao(
   redirectPath: string,
-  prompt?: 'none',
 ): Promise<void> {
   const { error } = await getSupabase().auth.signInWithOAuth({
     provider: 'kakao',
     options: {
       redirectTo: `${window.location.origin}${redirectPath}`,
-      ...(prompt === undefined ? {} : { queryParams: { prompt } }),
+      queryParams: { prompt: /KAKAOTALK/iu.test(window.navigator.userAgent) ? 'select_account' : 'login' },
     },
   });
   if (error) throw error;
@@ -22,13 +21,14 @@ export async function signInWithKakao(
 
 /**
  * Google OAuth 시작점 — 리다이렉트·세션 감지·프로비저닝 경로 전부 카카오와 같다.
- * prompt:'none' 사일런트 재인증은 카카오톡 인앱 브라우저 전용이라 이식하지 않는다.
+ * 계정 전환 버튼을 누르면 제공자에서도 계정을 다시 선택할 수 있어야 한다.
  */
 export async function signInWithGoogle(redirectPath: string): Promise<void> {
   const { error } = await getSupabase().auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: `${window.location.origin}${redirectPath}`,
+      queryParams: { prompt: 'select_account' },
     },
   });
   if (error) throw error;

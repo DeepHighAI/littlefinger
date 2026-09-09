@@ -1,4 +1,4 @@
-import { ENDPOINT, type UserProvisionRequest } from '@littlefinger/shared';
+import { ENDPOINT, profileNameFromMetadata, type UserProvisionRequest } from '@littlefinger/shared';
 import type { Session } from '@supabase/supabase-js';
 
 import { functionUrl, getSupabase } from './supabase.ts';
@@ -26,7 +26,7 @@ import { functionUrl, getSupabase } from './supabase.ts';
  */
 function provisionBody(session: Session): UserProvisionRequest {
   const metadata: Record<string, unknown> = session.user.user_metadata ?? {};
-  const nickname = metadata['name'];
+  const nickname = profileNameFromMetadata(metadata);
   const profileImageUrl = metadata['avatar_url'];
   return {
     ...(typeof nickname === 'string' ? { nickname } : {}),
