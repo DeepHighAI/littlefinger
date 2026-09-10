@@ -13,6 +13,8 @@
 
 # 빌드·테스트 산출물
 dist/
+# 이전 산출물에는 빌드 자격 증명이 포함될 수 있어 보관 폴더 전체를 제외한다.
+/release-archive/
 coverage/
 .expo/
 .vite/
