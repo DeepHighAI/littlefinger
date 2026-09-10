@@ -85,7 +85,8 @@ and physical-device validation. The two dev-only Vitest findings also remain ope
 No production AAB is created or submitted by this cleanup.
 
 Local evidence: `dist/dependency-cleanup-*.log` and audit JSON files. The final AAB
-must still pass its own module, native-library and Play-delivered device checks in the
+must still pass its own module and native-library checks. The PO subsequently accepted
+advertising, Play-installed device verification and console review; see the updated
 [production release review](../qa/PRODUCTION_RELEASE_REVIEW_2026-09-10.md).
 
 ## Sources and maintenance triggers

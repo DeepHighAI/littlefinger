@@ -8,9 +8,13 @@ including keeping witness invitation in the scrolling detail body (ADR 0025).
 The exact device/font-scale matrix was not separately supplied by the PO.
 
 No additional missing product feature was established in this bounded release review.
-One reproducible CI test-environment defect was found and corrected. Production release
-is still conditional on the advertising checks and a new production AAB described below.
-The preview APK uses Google test ad units; its acceptance is not production ad evidence.
+One reproducible CI test-environment defect was found and corrected. In a subsequent
+September 10 message, the PO confirmed completion of the previously numbered items
+2 (advertising), 3 (Play-installed verification), and 4 (console review). These gates
+are closed based on the PO's report; do not reopen them based on the earlier snapshot.
+The outstanding release artifact is a new production AAB and its technical inspection.
+The preview APK uses Google test ad units; advertising acceptance comes from the PO's
+separate confirmation, not from that preview artifact.
 The previous production code 27 AAB predates these UI corrections and must not be reused.
 
 ## Git and verification
@@ -33,10 +37,11 @@ Logs: `dist/release-review-final-*.log`; isolated CI reproduction/retest logs:
 `dist/release-review-ci-{repro,retest}.log`. Native visual evidence and APK signature,
 ABI, installation and startup checks are in [the test-27 record](../notes/public-test-27-followup.md).
 
-## Current read-only service evidence
+## Earlier read-only service snapshot
 
 Observed September 10, project `vepnrrmxvsytguocicfe`; no service configuration or
-business records were changed.
+business records were changed. This snapshot predates the PO's later verification
+confirmation. Counts below are historical observations, not current release blockers.
 
 - All **79** local migration versions match remote; no local-only or remote-only version.
 - All **59** listed Edge Functions are ACTIVE. The September 9 alias functions and
@@ -57,15 +62,28 @@ business records were changed.
   succeeded September 9; latest [weekly backup](https://github.com/DeepHighAI/littlefinger/actions/runs/34059645197)
   succeeded September 6. No restore drill was performed here.
 
-## Remaining release work
+## Release checklist after PO confirmation
 
 | Priority | Work | Required completion evidence |
 |---|---|---|
-| Release gate | Actual UMP consent and privacy-options reopening | Current production AdMob app/message configuration; registered QA device with forced EEA test geography; actual form choice and reopening, with ad requests respecting consent. A Korean NOT_REQUIRED result or a published message alone does not close this check. |
-| Release gate | Production-unit rewarded ad and server grant | Current test-device registration, a test-labeled ad from a production unit, actual SSV callback, exactly one grant and resulting entitlement. Repeated callback coverage must preserve one grant. No fabricated callback or direct grant write. Current live grant count is zero. |
+| Complete — PO report | Actual UMP consent and privacy-options reopening | PO confirmed verification of the previously numbered advertising item 2 on September 10. No new agent-run device check is claimed. |
+| Complete — PO report | Production-unit rewarded ad and server grant | Included in the same PO confirmation of item 2. The earlier zero-grant snapshot is not used to reopen this accepted check. |
 | Release artifact | Build a new AAB from committed main using EAS `production` | A new unused versionCode (28 if remote remains 27), expected upload certificate, correct production ad IDs, min/target SDK, App Links, ARM64, release bundle/module checks, no QA entry or secrets, and 16 KB native-library/ZIP alignment. Keep versionName 0.3.2 unless a separate version decision is made. |
-| Final installation | Verify the candidate delivered by Play internal testing | Installer `com.android.vending`, exact candidate version, upgrade/session preservation, Kakao/Google login and invite flow, plus the three accepted UI corrections. The locally sideloaded preview signature differs from Play signing. Prior Billing/refund evidence remains valid historical evidence, but is not an exact-candidate installation check. |
-| Console release | Review and submit through the intended Play track | Current AdMob readiness/serving state, Play blocking errors/pre-launch report, target audience/regions, app access instructions, Data safety/ads/account-deletion declarations, localized notes and screenshots. Console state was not re-opened during this pass. Existing `eas submit --profile production` targets **internal / draft**, despite its profile name. PO retains Play upload/publication ownership. |
+| Complete — PO report | Play internal-testing installation and core flows | PO confirmed verification of the previously numbered item 3 on September 10. The PO did not identify an additional artifact in that message; do not invent a build ID or mark the unbuilt new AAB as tested. |
+| Complete — PO report | Console readiness and declarations | PO confirmed verification of the previously numbered item 4 on September 10. This is verification acceptance, not an assertion that publication occurred. Existing `eas submit --profile production` targets **internal / draft**; PO retains Play upload/publication ownership. |
+
+A fresh EAS inventory check after that confirmation found the latest production build
+still at 0.3.2 / code 27, created September 9 (`7c9cc306-3605-4a55-aa45-b981c035203d`,
+source `15202b6`). The September 10 build is the accepted preview APK. Neither is a
+production AAB from dependency-fix commit `8a017cd`. Before building, verify the remote
+version counter and use the next unused versionCode; do not reuse the old AAB.
+
+The current source commit `8a017cd` passed [remote CI](https://github.com/DeepHighAI/littlefinger/actions/runs/34435403977).
+The production-environment JavaScript export already passed 2,201-source module
+verification. Remaining artifact checks are native AAB validation, package/version,
+upload signature, actual production configuration, ARM64/16 KB compatibility, and
+confirmation that install-time patches and the normal application entry reached the
+build. No additional blocking code defect was established by this review.
 
 Google's current guidance confirms [UMP test geography and privacy-options behavior](https://developers.google.com/admob/android/privacy),
 [16 KB compatibility checks](https://developer.android.com/guide/practices/page-sizes), and
@@ -104,6 +122,7 @@ have later completion evidence. The old 100-daily-confirmations ad gate was supe
 by ADR 0022; exposure ads are enabled. Do not reopen these solely because older sections
 of the status history or the August device matrix still say pending.
 
-The exact APK's physical acceptance closes the September 10 UI reports. It does not
-close UMP/SSV, prove current AdMob console approval, or constitute authorization to
-publish a production-track release during this review.
+The exact APK's physical acceptance closes the September 10 UI reports. The PO's
+subsequent explicit verification closes advertising, Play-installation and console
+review items. The new production AAB remains outstanding; this review does not
+publish a production-track release.

@@ -2,6 +2,21 @@
 
 Snapshot date: **2026-09-10 KST**.
 
+## PO release verification confirmation (2026-09-10)
+
+The PO confirmed completion of the previously numbered items 2 (UMP/rewarded-ad
+verification), 3 (Play-installed device verification), and 4 (console review).
+Treat these checks as accepted; the earlier service snapshot does not reopen them.
+This is PO-reported verification, not a new agent observation or publication record.
+
+The remaining release step is a new production AAB from current main and its technical
+artifact checks. Fresh EAS inventory still shows the September 9 production 0.3.2 /
+code 27 AAB and the September 10 preview APK; the production AAB containing current
+UI/dependency fixes has not been built through EAS. Source commit `8a017cd` has passing
+remote CI and a verified production-environment Android JavaScript export.
+No new blocking code defect was found. Broader QA evidence gaps and dependency/SDK
+maintenance remain listed in the [release checklist](qa/PRODUCTION_RELEASE_REVIEW_2026-09-10.md).
+
 ## Dependency security cleanup (2026-09-10)
 
 The production dependency audit is now **5 high / 0 moderate**, down from 5 high /
@@ -17,7 +32,8 @@ two dev-only Vitest entries, and Expo's version check still recommends SDK 57 pa
 updates. Production-environment Android Hermes export and module verification passed
 (2,201 sources). See [the dependency record](notes/dependency-security-2026-09-10.md) for
 evidence, patch maintenance and the distinction between fixes and residual audit counts.
-The production AAB and advertising/device release gates below remain outstanding.
+The production AAB remains outstanding. Advertising/device checks were subsequently
+accepted by the PO, as recorded above.
 
 ## Production release review (2026-09-10)
 
@@ -28,12 +44,12 @@ reproduced without local environment values and the corrected 12 cases pass.
 Full local verification passes: 2,207 Vitest tests, 956 mobile tests, five-project
 typecheck and instruction synchronization.
 
-Live inventory: all 79 migrations match, all 59 Edge Functions are ACTIVE, exposure
-and rewarded flags are enabled, and actual SSV grants are still zero. Remaining
-release gates are real UMP/SSV evidence and a newly built production AAB with final
-Play-delivered checks. The prior code 27 AAB does not contain these UI corrections.
-The preview APK acceptance does not cover production-unit ads. Current console
-readiness and release declarations still need their final review.
+Earlier inventory: all 79 migrations matched, all 59 Edge Functions were ACTIVE,
+exposure/rewarded flags were enabled, and the SSV grant count was zero at that time.
+The PO subsequently confirmed UMP/SSV, Play-installed verification and console review.
+The remaining artifact is a newly built production AAB; the prior code 27 AAB does
+not contain these UI corrections. The preview APK and later PO advertising acceptance
+are separate verification records.
 
 Current checklist and maintenance/evidence gaps:
 [September 10 production release review](qa/PRODUCTION_RELEASE_REVIEW_2026-09-10.md).
