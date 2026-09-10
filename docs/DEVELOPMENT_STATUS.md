@@ -2,6 +2,24 @@
 
 Snapshot date: **2026-09-10 KST**.
 
+## Production AAB ready (2026-09-10)
+
+**0.3.2 / code 28** is built and technically verified from clean source `70e47af`.
+EAS production build `2b788a13-38cf-48c5-a89f-9bd9afdba0df` finished successfully.
+File: `dist/littlefinger-production-v0.3.2-code28.aab` (85,602,977 bytes).
+SHA-256: `53aab607ace1071c310eb1cfc7fb64fd5328399cdf6a13d1ef96238264f99f2a`.
+
+Bundle validation, established upload signature, version/SDK/permission/App Link and
+production-ad/backend checks passed. All 46 64-bit native libraries and a derived
+APK pass 16 KB alignment checks. Actual Hermes runtime bytes match the verified
+2,201-source export apart from source-hash/footer metadata; credential/QA scans pass.
+Cloud logs confirm both dependency patches applied. See the
+[artifact record and download](qa/PRODUCTION_BUILD_CODE28_2026-09-10.md).
+
+The PO's advertising/device/console acceptance remains closed. AAB generation and
+artifact inspection are now also complete. Play upload/publication remains with the
+PO; no submission or production-track publication was performed by this task.
+
 ## PO release verification confirmation (2026-09-10)
 
 The PO confirmed completion of the previously numbered items 2 (UMP/rewarded-ad
@@ -9,10 +27,9 @@ verification), 3 (Play-installed device verification), and 4 (console review).
 Treat these checks as accepted; the earlier service snapshot does not reopen them.
 This is PO-reported verification, not a new agent observation or publication record.
 
-The remaining release step is a new production AAB from current main and its technical
-artifact checks. Fresh EAS inventory still shows the September 9 production 0.3.2 /
-code 27 AAB and the September 10 preview APK; the production AAB containing current
-UI/dependency fixes has not been built through EAS. Source commit `8a017cd` has passing
+At that confirmation, the remaining step was a new production AAB and its technical
+artifact checks. The subsequent code 28 build above closes that work and replaces
+the September 9 production code 27 AAB. Source commit `8a017cd` has passing
 remote CI and a verified production-environment Android JavaScript export.
 No new blocking code defect was found. Broader QA evidence gaps and dependency/SDK
 maintenance remain listed in the [release checklist](qa/PRODUCTION_RELEASE_REVIEW_2026-09-10.md).
@@ -32,7 +49,7 @@ two dev-only Vitest entries, and Expo's version check still recommends SDK 57 pa
 updates. Production-environment Android Hermes export and module verification passed
 (2,201 sources). See [the dependency record](notes/dependency-security-2026-09-10.md) for
 evidence, patch maintenance and the distinction between fixes and residual audit counts.
-The production AAB remains outstanding. Advertising/device checks were subsequently
+The subsequent production code 28 AAB is complete. Advertising/device checks were
 accepted by the PO, as recorded above.
 
 ## Production release review (2026-09-10)
@@ -47,8 +64,8 @@ typecheck and instruction synchronization.
 Earlier inventory: all 79 migrations matched, all 59 Edge Functions were ACTIVE,
 exposure/rewarded flags were enabled, and the SSV grant count was zero at that time.
 The PO subsequently confirmed UMP/SSV, Play-installed verification and console review.
-The remaining artifact is a newly built production AAB; the prior code 27 AAB does
-not contain these UI corrections. The preview APK and later PO advertising acceptance
+Production code 28 now contains the UI/dependency corrections; the prior code 27 AAB
+must not be reused. The preview APK and later PO advertising acceptance
 are separate verification records.
 
 Current checklist and maintenance/evidence gaps:

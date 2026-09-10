@@ -84,6 +84,10 @@ maintenance, not a passed check; upgrading the native stack needs a separate can
 and physical-device validation. The two dev-only Vitest findings also remain open.
 No production AAB is created or submitted by this cleanup.
 
+Subsequent artifact work completed the production **0.3.2 / code 28** AAB, including
+cloud patch application and actual runtime correspondence checks. See the
+[code 28 artifact record](../qa/PRODUCTION_BUILD_CODE28_2026-09-10.md).
+
 Local evidence: `dist/dependency-cleanup-*.log` and audit JSON files. The final AAB
 must still pass its own module and native-library checks. The PO subsequently accepted
 advertising, Play-installed device verification and console review; see the updated
