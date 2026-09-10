@@ -1,6 +1,23 @@
 # Development Status
 
-Snapshot date: **2026-09-10 KST**.
+Snapshot date: **2026-09-11 KST**.
+
+## Code 30 production AAB ready for PO upload (2026-09-11)
+
+The Android system-bar fix is committed/pushed on `main` as `1454e73`; its GitHub
+CI passed. The existing work branch is already merged. EAS remote version was
+advanced from 29 to 30, and an isolated local production build completed with the
+existing upload key, production environment and R8/all-four-ABI configuration.
+
+Use **`dist/littlefinger-production-v0.3.2-code30.aab`**, **82,581,158 bytes**.
+SHA-256: `87b542b34410b73087458b3def758f9e0ae491479bf96d3518147d3b6c625e85`.
+**Code 30 supersedes code 29.** Bundle/signature, source-to-runtime provenance,
+production config, unchanged permission list and 16 KB compatibility checks passed.
+Local source checks remain 2,220 Vitest / 960 Jest tests and five typechecks passed.
+See [the complete artifact record](qa/PRODUCTION_BUILD_CODE30_2026-09-11.md).
+
+Play registration/upload remains PO-owned. No Play/server/web publication or
+runtime setting was changed. The reported Samsung device check remains unverified.
 
 ## Android navigation-bar overlap fixed in source (2026-09-10)
 
@@ -14,8 +31,8 @@ Native visual/touch checks passed at 360x800 dp with three-button and gesture
 navigation, font scales 1.0/1.5, and an in-app navigation-mode change. All 2,220
 Vitest and 960 Jest tests passed; all five typechecks passed. Evidence and limits:
 [`ANDROID_SYSTEM_BAR_INSETS_2026-09-10.md`](qa/ANDROID_SYSTEM_BAR_INSETS_2026-09-10.md).
-The existing code 29 AAB predates this fix. A new production build and the reported
-Samsung device check remain before delivery; no Play upload occurred in this fix.
+The fix is packaged in code 30 above. The reported Samsung device check remains;
+no Play upload occurred in this fix.
 
 ## Code 29 Play upload handoff (2026-09-10)
 
