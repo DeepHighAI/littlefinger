@@ -1,5 +1,9 @@
 # Production readiness review
 
+Current release checklist: [September 10 review](PRODUCTION_RELEASE_REVIEW_2026-09-10.md).
+The dated sections below are historical evidence; later completion records supersede
+older pending items and artifact recommendations.
+
 Snapshot: 2026-09-06 KST. **NOT READY: implementation and final Play-delivered artifact gates pass,
 but actual AdMob UMP choice/re-open and rewarded SSV grant evidence remain open.**
 

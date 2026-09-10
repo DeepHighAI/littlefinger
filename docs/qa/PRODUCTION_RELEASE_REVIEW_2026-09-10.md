@@ -1,0 +1,107 @@
+# Production release review — September 10, 2026
+
+## Outcome
+
+The PO accepted `littlefinger-v0.3.2-code27-fixes-20260910.apk` on a physical device.
+The reported back-navigation, login-copy and acceptance-action corrections are closed,
+including keeping witness invitation in the scrolling detail body (ADR 0025).
+The exact device/font-scale matrix was not separately supplied by the PO.
+
+No additional missing product feature was established in this bounded release review.
+One reproducible CI test-environment defect was found and corrected. Production release
+is still conditional on the advertising checks and a new production AAB described below.
+The preview APK uses Google test ad units; its acceptance is not production ad evidence.
+The previous production code 27 AAB predates these UI corrections and must not be reused.
+
+## Git and verification
+
+Both `codex/supabase-e2e` and `origin/feature/ui-restyle-codex` are already ancestors
+of `main`. Fetch found no new upstream commits before this pass; no merge is needed.
+The accepted native corrections and APK/device record are committed as `c288c7c`.
+
+The prior main CI run [34328641235](https://github.com/DeepHighAI/littlefinger/actions/runs/34328641235)
+failed in the witness route case of `apps/web/src/App.test.tsx`: its URL was stubbed,
+but the anonymous client key came implicitly from the developer's ignored environment.
+With both Supabase environment values empty, this reproduced locally as **1 failed /
+11 passed**. Explicitly supplying `test-anon-key` in the existing test setup produces
+**12 passed** under the same empty-environment condition. Fetch remains mocked; no
+production credential or service is needed. No product runtime was changed by this fix.
+
+Full pre-commit checks: 121 Vitest files / 2,207 tests, 91 mobile Jest suites / 956
+tests, five-project typecheck, instruction synchronization and whitespace validation.
+Logs: `dist/release-review-final-*.log`; isolated CI reproduction/retest logs:
+`dist/release-review-ci-{repro,retest}.log`. Native visual evidence and APK signature,
+ABI, installation and startup checks are in [the test-27 record](../notes/public-test-27-followup.md).
+
+## Current read-only service evidence
+
+Observed September 10, project `vepnrrmxvsytguocicfe`; no service configuration or
+business records were changed.
+
+- All **79** local migration versions match remote; no local-only or remote-only version.
+- All **59** listed Edge Functions are ACTIVE. The September 9 alias functions and
+  `push-send` deployment are present. This is deployment inventory evidence, not a
+  byte-for-byte audit of every deployed function.
+- `ads_enabled=true`, `rewarded_ads_enabled=true`, `min_app_version=0.2.0`.
+- `ADMOB_SSV` grants: **0**; GRANTED reward intents: **0**. Current intents are
+  7 PENDING and 3 REJECTED; the latest pending intent is September 9, 06:41:55 UTC.
+  These aggregates establish no successful grant evidence; they do not identify the
+  cause of an unsuccessful ad load or callback.
+- Security Advisor: 18 INFO findings for intentionally server-only, RLS-enabled
+  tables without client policies; one existing leaked-password-protection WARN;
+  no ERROR. Email/password is recorded as disabled in prior operational evidence,
+  but Dashboard Auth configuration was not freshly fetched in this pass.
+  [Advisor explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy),
+  [password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+- Latest [keep-alive run](https://github.com/DeepHighAI/littlefinger/actions/runs/34311617579)
+  succeeded September 9; latest [weekly backup](https://github.com/DeepHighAI/littlefinger/actions/runs/34059645197)
+  succeeded September 6. No restore drill was performed here.
+
+## Remaining release work
+
+| Priority | Work | Required completion evidence |
+|---|---|---|
+| Release gate | Actual UMP consent and privacy-options reopening | Current production AdMob app/message configuration; registered QA device with forced EEA test geography; actual form choice and reopening, with ad requests respecting consent. A Korean NOT_REQUIRED result or a published message alone does not close this check. |
+| Release gate | Production-unit rewarded ad and server grant | Current test-device registration, a test-labeled ad from a production unit, actual SSV callback, exactly one grant and resulting entitlement. Repeated callback coverage must preserve one grant. No fabricated callback or direct grant write. Current live grant count is zero. |
+| Release artifact | Build a new AAB from committed main using EAS `production` | A new unused versionCode (28 if remote remains 27), expected upload certificate, correct production ad IDs, min/target SDK, App Links, ARM64, release bundle/module checks, no QA entry or secrets, and 16 KB native-library/ZIP alignment. Keep versionName 0.3.2 unless a separate version decision is made. |
+| Final installation | Verify the candidate delivered by Play internal testing | Installer `com.android.vending`, exact candidate version, upgrade/session preservation, Kakao/Google login and invite flow, plus the three accepted UI corrections. The locally sideloaded preview signature differs from Play signing. Prior Billing/refund evidence remains valid historical evidence, but is not an exact-candidate installation check. |
+| Console release | Review and submit through the intended Play track | Current AdMob readiness/serving state, Play blocking errors/pre-launch report, target audience/regions, app access instructions, Data safety/ads/account-deletion declarations, localized notes and screenshots. Console state was not re-opened during this pass. Existing `eas submit --profile production` targets **internal / draft**, despite its profile name. PO retains Play upload/publication ownership. |
+
+Google's current guidance confirms [UMP test geography and privacy-options behavior](https://developers.google.com/admob/android/privacy),
+[16 KB compatibility checks](https://developer.android.com/guide/practices/page-sizes), and
+[bundle preparation / release-error review](https://support.google.com/googleplay/android-developer/answer/9859348?hl=en).
+Do not add new settings or republish an already-correct message merely to force a form.
+
+## Broader QA and maintenance
+
+These are evidence gaps or maintenance work, not newly demonstrated runtime defects.
+
+- Final release-device coverage should include evidence upload, cold-start push/link
+  handling and actual push delivery/quiet hours. Existing historical checklists do not
+  establish that every variant was exercised on the newest candidate.
+- Retention notification/expiry/purge scenarios (ADR0015 device rows 16–18) still lack
+  a consolidated populated-workflow acceptance record. Use isolated staging fixtures;
+  ordinary production records must not be fast-forwarded or purged to complete a checklist.
+- Creator-side permanent purchase and two-party FINISH were explicitly classified as
+  optional broader coverage in the September 6 review. Do not reclassify the PO's prior
+  skipped account switch as a proven product failure.
+- `npm audit --omit=dev --json`: **21 findings (5 high, 16 moderate, 0 critical)**.
+  Direct advisory roots remain `image-size`, `decode-uri-component` and `uuid`.
+  Prior reachability review puts image-size/uuid in build tooling and replaces the
+  vulnerable runtime query parser through Metro. Verify that substitution in the new
+  production bundle and plan supported dependency upgrades; do not use a blanket
+  `npm audit fix --force` or infer 21 distinct exploitable product defects.
+- Existing web chunk-size/CLS work and font-asset size cleanup are optimization backlog.
+  No fresh performance benchmark or full remote concurrency/worker replay was run here.
+
+## Superseded checklist items
+
+P6/P7 redesign, startup AppState retry, partner permanent-purchase interruption recovery,
+refund/reconcile revocation, single-page onboarding and app-ads.txt file setup already
+have later completion evidence. The old 100-daily-confirmations ad gate was superseded
+by ADR 0022; exposure ads are enabled. Do not reopen these solely because older sections
+of the status history or the August device matrix still say pending.
+
+The exact APK's physical acceptance closes the September 10 UI reports. It does not
+close UMP/SSV, prove current AdMob console approval, or constitute authorization to
+publish a production-track release during this review.

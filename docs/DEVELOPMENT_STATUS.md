@@ -2,6 +2,26 @@
 
 Snapshot date: **2026-09-10 KST**.
 
+## Production release review (2026-09-10)
+
+PO device acceptance closes the public-test 27 UI corrections (implementation
+`c288c7c`). No branch merge remains. The review also fixed the existing remote CI
+failure by making the web routing test's anonymous-key fixture explicit; the failure
+reproduced without local environment values and the corrected 12 cases pass.
+Full local verification passes: 2,207 Vitest tests, 956 mobile tests, five-project
+typecheck and instruction synchronization.
+
+Live inventory: all 79 migrations match, all 59 Edge Functions are ACTIVE, exposure
+and rewarded flags are enabled, and actual SSV grants are still zero. Remaining
+release gates are real UMP/SSV evidence and a newly built production AAB with final
+Play-delivered checks. The prior code 27 AAB does not contain these UI corrections.
+The preview APK acceptance does not cover production-unit ads. Current console
+readiness and release declarations still need their final review.
+
+Current checklist and maintenance/evidence gaps:
+[September 10 production release review](qa/PRODUCTION_RELEASE_REVIEW_2026-09-10.md).
+Use it instead of treating every historical pending item below as current work.
+
 ## Public-test 27 native corrections (2026-09-10)
 
 PO-approved home fallback, full-width login notice layout, fixed acceptance actions,
