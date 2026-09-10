@@ -339,80 +339,83 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
 
   return (
     <SafeAreaView style={styles.screen}>
-      <LfAppBar
-        title={LABEL.brand}
-        brand
-        menu={{
-          label: LABEL.menu,
-          accessibilityLabel: unread > 0 ? LABEL.menuUnread(unread) : LABEL.menu,
-          badge: unread > 0,
-          onPress: () => {
-            menu.refresh();
-            setMenuOpen(true);
-          },
-        }}
-      />
-      <HomeMenuSheet
-        visible={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        onNavigate={(route) => router.push(route)}
-        nickname={profileNickname}
-        trustRate={trustRate}
-        unreadCount={menu.unreadCount}
-        slots={menu.slots}
-      />
-      <View style={styles.body}>
-        {selected.loading || selected.items === null ? (
-          <View style={styles.centered}><LfText secondary>{LABEL.loading}</LfText></View>
-        ) : selected.loadFailed && hero === null && rows.length === 0 ? (
-          <LfStack grow center gap={4}>
-            <LfText variant="error" align="center">{LABEL.loadError}</LfText>
-            <LfButton
-              accessibilityLabel={LABEL.retryListAccessibility}
-              label={LABEL.retry}
-              variant="text"
-              onPress={() => void loadFirstPage(state.selectedTab, false)}
+      {/* 절대 위치 CTA와 페이드도 OS 안전 영역 안의 경계를 기준으로 배치해야 한다. */}
+      <View style={styles.screen}>
+        <LfAppBar
+          title={LABEL.brand}
+          brand
+          menu={{
+            label: LABEL.menu,
+            accessibilityLabel: unread > 0 ? LABEL.menuUnread(unread) : LABEL.menu,
+            badge: unread > 0,
+            onPress: () => {
+              menu.refresh();
+              setMenuOpen(true);
+            },
+          }}
+        />
+        <HomeMenuSheet
+          visible={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          onNavigate={(route) => router.push(route)}
+          nickname={profileNickname}
+          trustRate={trustRate}
+          unreadCount={menu.unreadCount}
+          slots={menu.slots}
+        />
+        <View style={styles.body}>
+          {selected.loading || selected.items === null ? (
+            <View style={styles.centered}><LfText secondary>{LABEL.loading}</LfText></View>
+          ) : selected.loadFailed && hero === null && rows.length === 0 ? (
+            <LfStack grow center gap={4}>
+              <LfText variant="error" align="center">{LABEL.loadError}</LfText>
+              <LfButton
+                accessibilityLabel={LABEL.retryListAccessibility}
+                label={LABEL.retry}
+                variant="text"
+                onPress={() => void loadFirstPage(state.selectedTab, false)}
+              />
+            </LfStack>
+          ) : (
+            <FlatList
+              testID="home-list"
+              style={styles.list}
+              data={listItems}
+              keyExtractor={(item) => item.kind === 'BANNER'
+                ? `banner-${state.selectedTab}`
+                : item.promise.promise_id}
+              renderItem={({ item }) => item.kind === 'BANNER' ? (
+                <LfBannerAd enabled={adsEnabled} />
+              ) : (
+                <PromiseListRow
+                  item={item.promise}
+                  now={now}
+                  onOpen={openPromise}
+                  {...(isActiveTab ? {} : { onDelete: confirmDelete })}
+                />
+              )}
+              contentContainerStyle={styles.content}
+              ListHeaderComponent={listHeader}
+              ListEmptyComponent={hero === null ? (
+                <View style={styles.empty}>
+                  <LfEmpty title={LABEL.empty} description={LABEL.emptyDescription} />
+                </View>
+              ) : null}
+              ListFooterComponent={listFooter}
+              onEndReached={() => void loadNextPage(state.selectedTab)}
+              onEndReachedThreshold={0.4}
+              refreshControl={(
+                <RefreshControl
+                  refreshing={selected.refreshing}
+                  onRefresh={() => void loadFirstPage(state.selectedTab, true)}
+                />
+              )}
             />
-          </LfStack>
-        ) : (
-          <FlatList
-            testID="home-list"
-            style={styles.list}
-            data={listItems}
-            keyExtractor={(item) => item.kind === 'BANNER'
-              ? `banner-${state.selectedTab}`
-              : item.promise.promise_id}
-            renderItem={({ item }) => item.kind === 'BANNER' ? (
-              <LfBannerAd enabled={adsEnabled} />
-            ) : (
-              <PromiseListRow
-                item={item.promise}
-                now={now}
-                onOpen={openPromise}
-                {...(isActiveTab ? {} : { onDelete: confirmDelete })}
-              />
-            )}
-            contentContainerStyle={styles.content}
-            ListHeaderComponent={listHeader}
-            ListEmptyComponent={hero === null ? (
-              <View style={styles.empty}>
-                <LfEmpty title={LABEL.empty} description={LABEL.emptyDescription} />
-              </View>
-            ) : null}
-            ListFooterComponent={listFooter}
-            onEndReached={() => void loadNextPage(state.selectedTab)}
-            onEndReachedThreshold={0.4}
-            refreshControl={(
-              <RefreshControl
-                refreshing={selected.refreshing}
-                onRefresh={() => void loadFirstPage(state.selectedTab, true)}
-              />
-            )}
-          />
-        )}
+          )}
+        </View>
+        <LfBottomFade />
+        <LfFab label={CHROME.create} onPress={() => router.push('/promise/edit')} />
       </View>
-      <LfBottomFade />
-      <LfFab label={CHROME.create} onPress={() => router.push('/promise/edit')} />
     </SafeAreaView>
   );
 }

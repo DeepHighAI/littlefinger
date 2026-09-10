@@ -1,4 +1,5 @@
 import { Modal, Pressable, StyleSheet, View, type ModalProps } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, border, elevation, radius, size, space } from '../theme/tokens';
 import { LfIconButton } from './LfIconButton';
@@ -47,7 +48,8 @@ export function LfSheet({
       onShow={onShow}
       onRequestClose={onClose}
     >
-      <View style={styles.scrim}>
+      {/* Modal은 별도 창이므로 본문과 다른 시스템 바 여백을 직접 측정한다. */}
+      <SafeAreaProvider style={styles.scrim}>
         <Pressable
           testID={scrimTestID}
           style={StyleSheet.absoluteFill}
@@ -55,8 +57,9 @@ export function LfSheet({
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         />
-        <View
+        <SafeAreaView
           testID={sheetTestID}
+          edges={['bottom', 'left', 'right']}
           style={[styles.sheet, centered && styles.centered]}
           accessibilityViewIsModal
         >
@@ -77,8 +80,8 @@ export function LfSheet({
             </View>
           )}
           {children}
-        </View>
-      </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

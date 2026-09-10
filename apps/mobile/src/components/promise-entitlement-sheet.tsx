@@ -9,7 +9,6 @@ import {
 } from '@littlefinger/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useLabels, useLocale } from '../lib/locale-native';
 import { getPromiseEntitlements, unlockWithRewardedAd } from '../lib/monetization-native.ts';
@@ -43,7 +42,7 @@ type BusyAction = 'REWARD' | 'PURCHASE' | null;
 
 const styles = StyleSheet.create({
   scroll: { flexShrink: 1 },
-  content: { gap: space[6] },
+  content: { gap: space[6], paddingBottom: space[9] },
   // 막힌 이유 안내 — 핑크 flat 상자 (`.lf-slot-sheet__notice` 12 14 · 2px 잉크 r10)
   notice: {
     paddingVertical: space[5],
@@ -67,7 +66,6 @@ export function PromiseEntitlementSheet({
 }: PromiseEntitlementSheetProps): React.JSX.Element {
   const LABEL = useLabels(PROMISE_ENTITLEMENT_LABEL);
   const { locale } = useLocale();
-  const insets = useSafeAreaInsets();
   const [value, setValue] = useState<PromiseEntitlementsView | null>(null);
   const [price, setPrice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -180,7 +178,7 @@ export function PromiseEntitlementSheet({
       <ScrollView
         testID="entitlement-scroll"
         style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space[9] }]}
+        contentContainerStyle={styles.content}
       >
         {loading ? <LfText variant="caption">{LABEL.loading}</LfText> : null}
         {failed ? (

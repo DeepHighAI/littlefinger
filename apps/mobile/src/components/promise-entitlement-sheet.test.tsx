@@ -1,11 +1,6 @@
 import type { PromiseEntitlementsView } from '@littlefinger/shared';
 import { act, fireEvent, render } from '@testing-library/react-native';
 
-jest.mock('react-native-safe-area-context', () => ({
-  ...jest.requireActual<typeof import('react-native-safe-area-context')>('react-native-safe-area-context'),
-  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 24, left: 0 }),
-}));
-
 jest.mock('../lib/monetization-native.ts', () => ({
   getPromiseEntitlements: jest.fn(),
   unlockWithRewardedAd: jest.fn(),

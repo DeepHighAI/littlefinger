@@ -299,6 +299,14 @@ concurrency test on PGlite — it will pass vacuously.
 
 ## uiautomator under-reports the bottom of the screen (2026-09-02)
 
+**September 10 clarification:** a clipped accessibility bound alone is inconclusive,
+but successful taps in gesture mode do not establish safety in three-button mode.
+The code 29 report reproduced real overlap in both the absolute home CTA and the
+modal menu. `SafeAreaView` padding does not move its direct absolute descendants:
+put those descendants inside a normal flex content view. Native modals need a
+provider in their own window and safe-area padding on the sheet. Compare both OS
+navigation modes; see [the verification report](../qa/ANDROID_SYSTEM_BAR_INSETS_2026-09-10.md).
+
 On the SM-N981N the app window is `[0,0][1080,2266]` while the display is 1080×2400, and
 `uiautomator dump` **clips every node's bounds to that window**. Anything near the bottom therefore
 measures short: a 48 dp button reads as 39 dp, a 54 dp CTA as 45 dp. During the ADR 0015 second QA

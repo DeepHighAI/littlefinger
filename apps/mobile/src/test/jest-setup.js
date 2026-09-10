@@ -1,3 +1,8 @@
+// 모달 내부 Provider는 네이티브 측정 이벤트가 없으므로 공식 mock으로 창 여백을 제공한다.
+jest.mock('react-native-safe-area-context', () =>
+  require('react-native-safe-area-context/jest/mock').default,
+);
+
 // LfIcon 은 createIconSet 으로 자체 서브셋 폰트(Material Symbols Rounded)를 등록한다. 테스트에서
 // 실제 폰트 asset 을 읽으려 하면 네이티브 registry 가 없어 실패하므로, 아이콘 세트를 이름을 그대로
 // 찍는 Text 로 바꿔 끼운다. 화면 테스트는 글리프 파일이 아니라 wrapper 계약을 검증한다.

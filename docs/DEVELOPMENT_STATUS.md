@@ -2,6 +2,21 @@
 
 Snapshot date: **2026-09-10 KST**.
 
+## Android navigation-bar overlap fixed in source (2026-09-10)
+
+The PO's production 0.3.2 / code 29 report was reproduced: the home CTA and
+home-menu bottom row overlap Android three-button navigation. The home now anchors
+absolute children inside its safe-area content bounds; the common modal sheet
+measures and applies its own window insets. Entitlement sheets no longer add the
+activity inset a second time.
+
+Native visual/touch checks passed at 360x800 dp with three-button and gesture
+navigation, font scales 1.0/1.5, and an in-app navigation-mode change. All 2,220
+Vitest and 960 Jest tests passed; all five typechecks passed. Evidence and limits:
+[`ANDROID_SYSTEM_BAR_INSETS_2026-09-10.md`](qa/ANDROID_SYSTEM_BAR_INSETS_2026-09-10.md).
+The existing code 29 AAB predates this fix. A new production build and the reported
+Samsung device check remain before delivery; no Play upload occurred in this fix.
+
 ## Code 29 Play upload handoff (2026-09-10)
 
 The PO requested commit/merge/push preparation and will upload the file in Play
