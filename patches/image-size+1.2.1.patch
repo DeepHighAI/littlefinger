@@ -1,0 +1,53 @@
+diff --git a/node_modules/image-size/dist/types/icns.js b/node_modules/image-size/dist/types/icns.js
+index f2bfafe..4fb4178 100644
+--- a/node_modules/image-size/dist/types/icns.js
++++ b/node_modules/image-size/dist/types/icns.js
+@@ -64,10 +64,16 @@ const ICON_TYPE_SIZE = {
+     ic10: 1024,
+ };
+ function readImageHeader(input, imageOffset) {
++    if (imageOffset + SIZE_HEADER > input.length)
++        throw new TypeError('Invalid ICNS image header');
+     const imageLengthOffset = imageOffset + ENTRY_LENGTH_OFFSET;
++    const imageLength = (0, utils_1.readUInt32BE)(input, imageLengthOffset);
++    // 크기 판별은 파일 앞부분만 읽으므로 본문 길이 대신 전진 가능한 헤더 길이를 확인한다.
++    if (imageLength < SIZE_HEADER)
++        throw new TypeError('Invalid ICNS image length');
+     return [
+         (0, utils_1.toUTF8String)(input, imageOffset, imageLengthOffset),
+-        (0, utils_1.readUInt32BE)(input, imageLengthOffset),
++        imageLength,
+     ];
+ }
+ function getImageSize(type) {
+diff --git a/node_modules/image-size/dist/types/utils.js b/node_modules/image-size/dist/types/utils.js
+index 5224bba..19c81fd 100644
+--- a/node_modules/image-size/dist/types/utils.js
++++ b/node_modules/image-size/dist/types/utils.js
+@@ -49,10 +49,12 @@ function readUInt(input, bits, offset, isBigEndian) {
+ }
+ exports.readUInt = readUInt;
+ function readBox(input, offset) {
+-    if (input.length - offset < 4)
++    if (input.length - offset < 8)
+         return;
+-    const boxSize = (0, exports.readUInt32BE)(input, offset);
+-    if (input.length - offset < boxSize)
++    const declaredSize = (0, exports.readUInt32BE)(input, offset);
++    // ISO 컨테이너의 0 길이는 파일 끝까지이며 모든 호출자에게 양수 길이를 돌려준다.
++    const boxSize = declaredSize === 0 ? input.length - offset : declaredSize;
++    if (boxSize < 8 || input.length - offset < boxSize)
+         return;
+     return {
+         name: (0, exports.toUTF8String)(input, 4 + offset, 8 + offset),
+@@ -67,9 +69,7 @@ function findBox(input, boxName, offset) {
+             break;
+         if (box.name === boxName)
+             return box;
+-        // Fix the infinite loop by ensuring offset always increases
+-        // If box.size is 0, advance by at least 8 bytes (the size of the box header)
+-        offset += box.size > 0 ? box.size : 8;
++        offset += box.size;
+     }
+ }
+ exports.findBox = findBox;

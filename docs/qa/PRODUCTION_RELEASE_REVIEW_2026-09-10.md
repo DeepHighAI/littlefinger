@@ -85,12 +85,14 @@ These are evidence gaps or maintenance work, not newly demonstrated runtime defe
 - Creator-side permanent purchase and two-party FINISH were explicitly classified as
   optional broader coverage in the September 6 review. Do not reclassify the PO's prior
   skipped account switch as a proven product failure.
-- `npm audit --omit=dev --json`: **21 findings (5 high, 16 moderate, 0 critical)**.
-  Direct advisory roots remain `image-size`, `decode-uri-component` and `uuid`.
-  Prior reachability review puts image-size/uuid in build tooling and replaces the
-  vulnerable runtime query parser through Metro. Verify that substitution in the new
-  production bundle and plan supported dependency upgrades; do not use a blanket
-  `npm audit fix --force` or infer 21 distinct exploitable product defects.
+- The [September 10 dependency cleanup](../notes/dependency-security-2026-09-10.md)
+  reduces `npm audit --omit=dev --json` from 21 findings to **5 high / 0 moderate**.
+  Decoder and UUID receive fixed versions with consumer compatibility checks.
+  Remaining findings are the locally patched `image-size` version and its Metro
+  parents; npm does not recognize local patches. Install scripts must apply the
+  committed patches, and the final AAB must pass module verification. No framework
+  downgrade or audit suppression is used. The full audit separately retains two
+  existing development-only Vitest findings.
 - Existing web chunk-size/CLS work and font-asset size cleanup are optimization backlog.
   No fresh performance benchmark or full remote concurrency/worker replay was run here.
 

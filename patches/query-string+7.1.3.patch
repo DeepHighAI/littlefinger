@@ -1,0 +1,14 @@
+diff --git a/node_modules/query-string/index.js b/node_modules/query-string/index.js
+index d45e67d..f1c825f 100644
+--- a/node_modules/query-string/index.js
++++ b/node_modules/query-string/index.js
+@@ -1,6 +1,8 @@
+ 'use strict';
+ const strictUriEncode = require('strict-uri-encode');
+-const decodeComponent = require('decode-uri-component');
++const decodeUriComponent = require('decode-uri-component').default;
++// 수정 버전의 ESM 내보내기를 연결하면서 기존 + 디코딩 동작을 유지한다.
++const decodeComponent = value => decodeUriComponent(value.replace(/\+/g, ' '));
+ const splitOnFirst = require('split-on-first');
+ const filterObject = require('filter-obj');
+ 

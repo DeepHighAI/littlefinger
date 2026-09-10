@@ -2,6 +2,23 @@
 
 Snapshot date: **2026-09-10 KST**.
 
+## Dependency security cleanup (2026-09-10)
+
+The production dependency audit is now **5 high / 0 moderate**, down from 5 high /
+16 moderate. Parent-scoped overrides install fixed decoder/UUID releases; versioned
+patches preserve query-string compatibility and prevent image-size parser loops.
+Root postinstall applies patches with failure treated as an installation error.
+The remaining audit entries are the locally patched image-size release and its Metro
+parents; npm does not recognize local fixes. No SDK/native-package version changed.
+
+Verification: 2,220 Vitest tests, 956 mobile tests, five-project typecheck and fresh
+installation with automatic patch application passed. The full audit separately retains
+two dev-only Vitest entries, and Expo's version check still recommends SDK 57 patch
+updates. Production-environment Android Hermes export and module verification passed
+(2,201 sources). See [the dependency record](notes/dependency-security-2026-09-10.md) for
+evidence, patch maintenance and the distinction between fixes and residual audit counts.
+The production AAB and advertising/device release gates below remain outstanding.
+
 ## Production release review (2026-09-10)
 
 PO device acceptance closes the public-test 27 UI corrections (implementation

@@ -21,9 +21,9 @@ function verifyAndroidBundle(sourceMap) {
     }
   }
   // 번들 원문에는 SDK의 테스트 상수도 있으므로 실행 여부를 문자열 검색으로 판단하지 않는다.
-  const forbidden = /(?:^|\/)(?:node_modules\/(?:decode-uri-component|query-string)\/|dist\/readiness-|__mocks__\/)/u;
+  const forbidden = /(?:^|\/)(?:node_modules\/(?:decode-uri-component|query-string|image-size|uuid)\/|dist\/readiness-|__mocks__\/)/u;
   if (sources.some((source) => forbidden.test(source))) {
-    throw new Error('구형 쿼리 파서 또는 QA 대체 모듈이 번들에 포함되어 있습니다.');
+    throw new Error('빌드 전용 모듈, 구형 쿼리 파서 또는 QA 대체 모듈이 번들에 포함되어 있습니다.');
   }
   return { sourceCount: sources.length };
 }

@@ -32,6 +32,8 @@ describe('Android bundle module verification', () => {
   test.each([
     '../../node_modules/decode-uri-component/index.js',
     '../../node_modules/expo-router/node_modules/query-string/index.js',
+    '../../node_modules/image-size/dist/index.js',
+    '../../node_modules/xcode/node_modules/uuid/dist/cjs/index.js',
     '../../dist/readiness-qa.entry.js',
     '../../apps/mobile/__mocks__/admob.js',
   ])('rejects unsafe or fixture modules: %s', (extra) => {
