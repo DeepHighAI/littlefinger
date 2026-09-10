@@ -44,7 +44,8 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "react-native-google-mobile-ads"
+      "react-native-google-mobile-ads",
+      "./config/with-android-optimization.js"
     ],
     "experiments": {
       "typedRoutes": true

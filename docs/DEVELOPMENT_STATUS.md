@@ -2,6 +2,89 @@
 
 Snapshot date: **2026-09-10 KST**.
 
+## Code 29 Play upload handoff (2026-09-10)
+
+The PO requested commit/merge/push preparation and will upload the file in Play
+Console. The upload artifact is **0.3.2 / code 29**, package `com.littlefinger.app`:
+`dist/littlefinger-production-v0.3.2-code29.aab`, **82,578,757 bytes**.
+SHA-256: `79ac0d8644ce0c45bb208c432583c2c33464869eed965bddf9f3b007088ea34a`.
+It replaces code 28 as the upload candidate; the unoptimized local control is only
+measurement evidence. The AAB and its adjacent `.sha256` file remain ignored local
+artifacts. No rebuild or benchmark rerun is needed for repository preparation.
+
+The checkout is on `main`; the existing `codex/supabase-e2e` branch is already an
+ancestor, so no additional branch merge is required. The source changes for this
+candidate are the persistent optimization plugin and its app configuration
+registration, recorded with the measurements below. Full local tests/typecheck are
+run before the preparation commit; remote CI is checked on the pushed commit.
+Play upload/publication remains PO-owned, with no server or web deployment change.
+
+Full code 29 permission list, extracted from its verified manifest:
+
+```text
+android.permission.INTERNET
+android.permission.READ_EXTERNAL_STORAGE (maxSdkVersion 32)
+android.permission.VIBRATE
+android.permission.WRITE_EXTERNAL_STORAGE (maxSdkVersion 32)
+android.permission.WAKE_LOCK
+android.permission.ACCESS_NETWORK_STATE
+com.android.vending.BILLING
+android.permission.RECEIVE_BOOT_COMPLETED
+android.permission.POST_NOTIFICATIONS
+android.permission.USE_BIOMETRIC
+android.permission.USE_FINGERPRINT
+com.google.android.gms.permission.AD_ID
+android.permission.ACCESS_ADSERVICES_AD_ID
+android.permission.ACCESS_ADSERVICES_ATTRIBUTION
+android.permission.ACCESS_ADSERVICES_TOPICS
+com.google.android.c2dm.permission.RECEIVE
+android.permission.FOREGROUND_SERVICE
+com.littlefinger.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE
+com.sec.android.provider.badge.permission.READ
+com.sec.android.provider.badge.permission.WRITE
+com.htc.launcher.permission.READ_SETTINGS
+com.htc.launcher.permission.UPDATE_SHORTCUT
+com.sonyericsson.home.permission.BROADCAST_BADGE
+com.sonymobile.home.permission.PROVIDER_INSERT_BADGE
+com.anddoes.launcher.permission.UPDATE_COUNT
+com.majeur.launcher.permission.UPDATE_BADGE
+com.huawei.android.launcher.permission.CHANGE_BADGE
+com.huawei.android.launcher.permission.READ_SETTINGS
+com.huawei.android.launcher.permission.WRITE_SETTINGS
+android.permission.READ_APP_BADGE
+com.oppo.launcher.permission.READ_SETTINGS
+com.oppo.launcher.permission.WRITE_SETTINGS
+me.everything.badger.permission.BADGE_COUNT_READ
+me.everything.badger.permission.BADGE_COUNT_WRITE
+```
+
+## R8 optimized AAB measurement complete (2026-09-10)
+
+The local production candidate `dist/littlefinger-production-v0.3.2-code29.aab`
+is built and artifact-verified with the established upload certificate. Existing
+AGP 8.12 now enables R8, resource shrinking and optimized default ProGuard rules
+through a persistent Expo config plugin. No SDK/dependency or ABI changes were made.
+Compared with code 28, AAB bytes fell 3.53%, DEX bytes 72.66%, and the ARM64/ko-KR
+bundletool download estimate 35.38%. Tests pass: 2,220 Vitest and 960 mobile tests,
+five-project typecheck, instruction synchronization and artifact checks.
+
+The cloud attempt assigned code 29 before failing on free monthly build quota;
+the signed local fallback succeeded. Six emulator blocks completed with 16 measured
+process-cold launches per variant. Median initial-display time fell from 4,421 to
+3,797 ms (-14.11% vs code 28; -10.97% vs the local unoptimized control), and
+fixed-delay median PSS fell from 257.67 to 219.59 MiB (-14.78%; -14.16% vs control).
+All 60 raw launch/memory records including warmups match the summary; six captured
+AndroidRuntime logs are empty and final onboarding screenshots passed visual review.
+These are AOT-compiled, warm-cache emulator observations, not physical-device,
+interactive-readiness, FPS/ANR or authenticated auth/ads/IAP verification.
+Temporary generated build overrides were restored and the owned emulator stopped.
+The measurement phase preserved all uncommitted changes and ignored artifacts;
+no rebuild or repeated measurement was needed during finalization. That phase made
+no commit or Play upload/publication; repository preparation was requested afterward
+as recorded above. Existing PO acceptance below remains recorded.
+See [measurement evidence](qa/ANDROID_R8_COMPARISON_2026-09-10.md).
+
 ## Production AAB ready (2026-09-10)
 
 **0.3.2 / code 28** is built and technically verified from clean source `70e47af`.

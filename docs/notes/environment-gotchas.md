@@ -508,3 +508,21 @@ rules, so Android's restore-at-install apparently put the session back. Useful f
 but it also means an uninstall does not log the account out on that device; treat a "fresh install" on a phone
 that once had the app as an already-authenticated state, and use the app's 로그아웃 when a signed-out state is the
 point of the test.
+
+## Android R8 local build and animated-screen measurement (2026-09-10)
+
+EAS can increment the remote versionCode before rejecting a build for exhausted free
+monthly quota. The failed code 29 request consumed the version, not a successful
+cloud build. A local production fallback must use the EAS production environment,
+disable local dotenv loading, and verify the actual AAB upload certificate and
+embedded configuration. Preserve native compilation outputs when resuming an
+interrupted all-ABI build; prebuild can invalidate them. Windows Gradle JVM argument
+quoting was avoided by putting memory settings in generated gradle.properties.
+Temporary signing/version/memory overrides were restored after artifact capture.
+
+On continuously animated onboarding, `uiautomator dump` can exit zero while saying
+`ERROR: could not get idle state`. Never read an existing XML file as fresh evidence:
+use unique paths, require the dump success message, and capture screenshots
+independently. Record extraction failures separately from app crashes. Benchmark
+restart must discard partial rows from the restarted block to avoid duplicate samples.
+See `docs/qa/ANDROID_R8_COMPARISON_2026-09-10.md` for the protocol and evidence.
