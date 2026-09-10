@@ -1,7 +1,9 @@
 # Production AAB — 0.3.2 / code 30
 
-**Ready for PO upload.** This candidate supersedes code 29 and contains the
-Android bottom-button/menu safe-area fix.
+**Superseded — do not upload.** Use the final **0.3.3 / code 30** candidate in
+[the replacement report](PRODUCTION_BUILD_V033_CODE30_2026-09-11.md). The historical
+0.3.2 artifact and its inspection files were moved from `dist/` to
+`release-archive/2026-09-11-v033-code30/`. The record below describes the earlier build.
 
 File: `dist/littlefinger-production-v0.3.2-code30.aab`, **82,581,158 bytes**.
 SHA-256: `87b542b34410b73087458b3def758f9e0ae491479bf96d3518147d3b6c625e85`.

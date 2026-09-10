@@ -2,22 +2,32 @@
 
 Snapshot date: **2026-09-11 KST**.
 
-## Code 30 production AAB ready for PO upload (2026-09-11)
+## Final 0.3.3 / code 30 AAB ready for PO upload (2026-09-11)
 
-The Android system-bar fix is committed/pushed on `main` as `1454e73`; its GitHub
-CI passed. The existing work branch is already merged. EAS remote version was
-advanced from 29 to 30, and an isolated local production build completed with the
-existing upload key, production environment and R8/all-four-ABI configuration.
+Upload **`dist/littlefinger-production-v0.3.3-code30.aab`** — the only file left in
+`dist/`. It is **82,581,163 bytes**, SHA-256
+`7f171a2cc357c32bd965f3a190348a85fc9df5b626896e20d8487227869068c6`.
 
-Use **`dist/littlefinger-production-v0.3.2-code30.aab`**, **82,581,158 bytes**.
-SHA-256: `87b542b34410b73087458b3def758f9e0ae491479bf96d3518147d3b6c625e85`.
-**Code 30 supersedes code 29.** Bundle/signature, source-to-runtime provenance,
-production config, unchanged permission list and 16 KB compatibility checks passed.
-Local source checks remain 2,220 Vitest / 960 Jest tests and five typechecks passed.
-See [the complete artifact record](qa/PRODUCTION_BUILD_CODE30_2026-09-11.md).
+The PO confirmed Play serves 0.3.2 / code 29. The new version name makes existing
+clients enforce the requested update once the minimum is raised to 0.3.3; their
+gate cannot distinguish version codes within 0.3.2. **The earlier 0.3.2 / code 30
+candidate is superseded.** The safe-area fix is unchanged.
 
-Play registration/upload remains PO-owned. No Play/server/web publication or
-runtime setting was changed. The reported Samsung device check remains unverified.
+Source `80d0786` is committed/pushed to `main`; local 2,220 Vitest / 960 Jest tests,
+five typechecks and source CI passed. The local production build completed in
+4m 34s with the existing upload key, R8 and all four ABIs. Bundle, signature,
+packaged version/config, source provenance, permissions and 16 KB checks passed.
+See [the final artifact record](qa/PRODUCTION_BUILD_V033_CODE30_2026-09-11.md).
+
+All other output was moved without deletion to
+`release-archive/2026-09-11-v033-code30/`; the archive includes prior candidates,
+verification evidence, checksum and release notes and is ignored by Git.
+
+Play upload/publication remains PO-owned. The live minimum remains 0.2.0, verified
+with an anonymous HTTP 200 read. After 0.3.3 / code 30 is available to affected
+users, apply the already requested update gate using
+[the minimum-version runbook](setup/minimum-app-version.md). No Play/server/web
+publication occurred. The reported Samsung device check remains unverified.
 
 ## Android navigation-bar overlap fixed in source (2026-09-10)
 
