@@ -385,7 +385,7 @@ describe('SCR-A05 약속 상세', () => {
   beforeEach(() => {
     push.mockReset();
     back.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ push, back } as never);
+    jest.mocked(useRouter).mockReturnValue({ push, back, canGoBack: () => true } as never);
     jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: PROMISE_ID });
     loadDetailMock.mockReset();
     loadDetailMock.mockResolvedValue(makeDetail());
@@ -608,6 +608,16 @@ describe('SCR-A05 약속 상세', () => {
     expect(loadDetailMock).toHaveBeenCalledTimes(2);
   });
 
+  test('초대 수락 후 이전 화면이 없으면 상세의 뒤로가기는 홈으로 이동한다', async () => {
+    const replace = jest.fn();
+    jest.mocked(useRouter).mockReturnValue({ push, back, replace, canGoBack: () => false } as never);
+    const view = await render(<PromiseDetailScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '뒤로' }));
+    expect(replace).toHaveBeenCalledWith('/home');
+    expect(back).not.toHaveBeenCalled();
+  });
+
   test('E_NOT_FOUND와 뒤로 가기는 내부 식별자를 드러내지 않는다', async () => {
     loadDetailMock.mockRejectedValue(new MobileApiError('E_NOT_FOUND', 'not found'));
     const view = await render(<PromiseDetailScreen />);
@@ -675,7 +685,8 @@ describe('SCR-A05 약속 상세', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    await fireEvent.press(view.getByRole('button', { name: '증인 초대' }));
+    expect(within(view.getByTestId('promise-detail-actions')).queryByRole('button', { name: '증인 초대' })).toBeNull();
+    await fireEvent.press(within(view.getByTestId('promise-detail-body')).getByRole('button', { name: '증인 초대' }));
     expect(view.getByText(`증인 초대 시트 ${PROMISE_ID}`)).toBeTruthy();
   });
 
@@ -813,7 +824,9 @@ describe('SCR-A05 약속 상세', () => {
     const view = await render(<PromiseDetailScreen />);
     await settle();
 
-    const approve = view.getByRole('button', { name: '변경 수락' });
+    const footer = within(view.getByTestId('promise-detail-actions'));
+    expect(within(view.getByTestId('promise-detail-body')).queryByRole('button', { name: '변경 수락' })).toBeNull();
+    const approve = footer.getByRole('button', { name: '변경 수락' });
     expect(StyleSheet.flatten(approve.props.style).minHeight).toBeGreaterThanOrEqual(size.touchMin);
     expect(view.getByRole('button', { name: '거절' })).toBeTruthy();
     await fireEvent.press(view.getByRole('button', { name: '변경 수락' }));
@@ -874,7 +887,7 @@ describe('SCR-A05 약속 상세', () => {
     await settle();
     expect(view.getByText('지우님이 약속 취소를 요청했어요')).toBeTruthy();
     expect(view.queryByText('변경 전 · 종료일')).toBeNull();
-    expect(view.getByRole('button', { name: '약속 취소 수락' })).toBeTruthy();
+    expect(within(view.getByTestId('promise-detail-actions')).getByRole('button', { name: '약속 취소 수락' })).toBeTruthy();
   });
 
   test('버전 이력은 메타데이터와 각 버전 전문을 읽기 전용으로 표시한다', async () => {

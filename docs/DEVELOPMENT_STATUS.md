@@ -1,6 +1,29 @@
 # Development Status
 
-Snapshot date: **2026-09-09 KST**.
+Snapshot date: **2026-09-10 KST**.
+
+## Public-test 27 native corrections (2026-09-10)
+
+PO-approved home fallback, full-width login notice layout, fixed acceptance actions,
+and witness invitation relocation are implemented (ADR 0025). Expanded text scales
+stack acceptance/decline to preserve the complete localized labels.
+
+Verification: 121 Vitest files / 2,207 tests and 91 mobile Jest suites / 956 tests
+passed; final affected-screen checks passed 75 response-flow tests and 120 login/
+component tests. Five-project typecheck and instruction sync passed. Native emulator
+visual QA covered 1440 x 3120 and 1080 x 2400 at 360 dp and the relevant font scales
+1.0/1.5. The fixed footer is pixel-identical before/after scrolling. On September 10
+the PO confirmed the exact preview APK passes the physical-device retest.
+A new Play production build and the remaining launch checks are still outstanding.
+
+Device-test APK is ready: `dist/littlefinger-v0.3.2-code27-fixes-20260910.apk`
+(119,216,553 bytes), EAS preview build `38f69be8-39eb-4d59-9967-3b1951332e74`,
+version **0.3.2 / code 27**. Signature, four ABIs including ARM64, manifest and
+bundled correction markers passed verification. Emulator installation and standalone
+launch to login passed. Preview uses test ads and its EAS signer differs from the
+Play app signer, so it cannot update a Play installation in place.
+
+Details: [public-test 27 verification](notes/public-test-27-followup.md).
 
 ## Public-test 26 follow-up: 0.3.2 artifact ready (2026-09-09)
 

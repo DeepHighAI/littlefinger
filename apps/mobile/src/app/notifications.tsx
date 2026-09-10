@@ -4,6 +4,7 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { backOrHome } from '../lib/back-or-home.ts';
 import { LfAdSlot } from '../components/LfAdSlot';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfButton } from '../components/LfButton';
@@ -305,7 +306,7 @@ export default function NotificationInboxScreen(): React.JSX.Element {
         title={LABEL.title}
         leading="back"
         leadingAccessibilityLabel={LABEL.back}
-        onLeadingPress={() => router.back()}
+        onLeadingPress={() => backOrHome(router)}
         actions={action}
       />
       {items === null ? (

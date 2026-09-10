@@ -247,6 +247,11 @@ grow that table without a PO decision.
 
 ## Decision log
 
+- 2026-09-10: Native acceptance actions and their confirmation stay in the fixed footer;
+  detail amendment/cancellation/finish responses take priority there. Witness invitations
+  move below the participant list in the scrolling body, retaining the existing sheet.
+  Login notices wrap within the available body width (PO public-test 27, ADR 0025).
+
 - 2026-09-09: PO approved messenger-neutral invitation buttons and previews, explicit account
   confirmation before invitation review/acceptance, and keyboard visibility corrections (ADR 0023).
 

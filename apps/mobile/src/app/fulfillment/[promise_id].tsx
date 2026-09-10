@@ -28,6 +28,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { backOrHome } from '../../lib/back-or-home.ts';
 import { LfAppBar } from '../../components/LfAppBar';
 import { LfAvatar } from '../../components/LfAvatar';
 import { LfButton } from '../../components/LfButton';
@@ -888,7 +889,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
 
   if (phase === 'loading') {
     return (
-      <ScreenFrame onBack={() => router.back()}>
+      <ScreenFrame onBack={() => backOrHome(router)}>
         <View style={styles.centered}>
           <LfText secondary>{LABEL.loading}</LfText>
         </View>
@@ -898,7 +899,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
 
   if (phase === 'not-found') {
     return (
-      <ScreenFrame onBack={() => router.back()}>
+      <ScreenFrame onBack={() => backOrHome(router)}>
         <View style={styles.centered}>
           <LfText secondary align="center">
             {LABEL.notFound}
@@ -910,7 +911,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
 
   if (phase === 'error' || detail === null) {
     return (
-      <ScreenFrame onBack={() => router.back()}>
+      <ScreenFrame onBack={() => backOrHome(router)}>
         <View style={styles.centered}>
           <LfStack gap={5} center>
             <LfText variant="error" align="center">
@@ -956,7 +957,7 @@ export default function FulfillmentScreen(): React.JSX.Element {
   );
 
   return (
-    <ScreenFrame onBack={() => router.back()}>
+    <ScreenFrame onBack={() => backOrHome(router)}>
       <ScrollView
         ref={keyboard.scrollRef}
         keyboardShouldPersistTaps="handled"

@@ -90,7 +90,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontFamily: textFontFamily(weight.regular),
   },
-  hook: { marginTop: space[7], maxWidth: '100%' },
+  // Android의 내용 폭 재측정에 기대지 않고 안내 문구에 실제 본문 폭을 준다.
+  hook: { marginTop: space[7], alignSelf: 'stretch', alignItems: 'center' },
   actions: {
     paddingHorizontal: space[9],
     paddingBottom: ACTIONS_BOTTOM,

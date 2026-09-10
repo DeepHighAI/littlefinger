@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { backOrHome } from '../lib/back-or-home.ts';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfAvatar } from '../components/LfAvatar';
 import { LfButton } from '../components/LfButton';
@@ -96,7 +97,7 @@ export default function BlockedUsersScreen(): React.JSX.Element {
         title={LABEL.title}
         leading="back"
         leadingAccessibilityLabel={LABEL.back}
-        onLeadingPress={() => router.back()}
+        onLeadingPress={() => backOrHome(router)}
       />
       {items === null && !loadFailed ? (
         <View style={styles.centered}>

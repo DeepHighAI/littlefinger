@@ -61,7 +61,7 @@ describe('SCR-A09 지난 약속 히스토리', () => {
   beforeEach(() => {
     push.mockReset();
     back.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ push, back } as never);
+    jest.mocked(useRouter).mockReturnValue({ push, back, canGoBack: () => true } as never);
     jest.mocked(listHomePromises).mockReset().mockResolvedValue(response());
   });
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { backOrHome } from '../lib/back-or-home.ts';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfButton } from '../components/LfButton';
 import { LfChip } from '../components/LfChip';
@@ -176,7 +177,7 @@ export default function HistoryScreen({ now = new Date() }: HistoryScreenProps):
         title={LABEL.title}
         leading="back"
         leadingAccessibilityLabel={LABEL.back}
-        onLeadingPress={() => router.back()}
+        onLeadingPress={() => backOrHome(router)}
       />
       <View accessibilityRole="tablist" style={styles.tabs}>
         {HISTORY_TABS.map((tab) => {

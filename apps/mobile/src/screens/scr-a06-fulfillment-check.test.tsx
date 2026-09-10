@@ -131,7 +131,7 @@ describe('SCR-A06 지킴 확인', () => {
     push.mockReset();
     replace.mockReset();
     back.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ push, replace, back } as never);
+    jest.mocked(useRouter).mockReturnValue({ push, replace, back, canGoBack: () => true } as never);
     jest.mocked(useLocalSearchParams).mockReturnValue({ promise_id: 'promise-1' });
     loadDetailMock.mockReset();
     loadDetailMock.mockResolvedValue(makeDetail());

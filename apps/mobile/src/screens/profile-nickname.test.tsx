@@ -20,7 +20,7 @@ afterEach(async () => {
 });
 
 test('EC-A04 닉네임은 NFC 정규화·40자 제한 뒤 저장하고 돌아간다', async () => {
-  jest.mocked(useRouter).mockReturnValue({ back } as never);
+  jest.mocked(useRouter).mockReturnValue({ back, canGoBack: () => true } as never);
   updateMock.mockResolvedValue({ nickname: '가속' });
   const view = await render(<ProfileNicknameScreen />);
 
@@ -31,7 +31,7 @@ test('EC-A04 닉네임은 NFC 정규화·40자 제한 뒤 저장하고 돌아간
 });
 
 test('빈 값은 서버 호출 전에 안내한다', async () => {
-  jest.mocked(useRouter).mockReturnValue({ back } as never);
+  jest.mocked(useRouter).mockReturnValue({ back, canGoBack: () => true } as never);
   const view = await render(<ProfileNicknameScreen />);
   await fireEvent.press(view.getByRole('button', { name: '저장' }));
   expect(view.getByText('닉네임을 입력해 주세요.')).toBeTruthy();

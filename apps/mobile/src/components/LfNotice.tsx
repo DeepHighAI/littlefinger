@@ -17,9 +17,8 @@ const NOTICE_HEIGHT = 32;
 /** 글자 배율과 가용 폭에 따라 높이를 늘려 안내 문구를 모두 보여준다. */
 const styles = StyleSheet.create({
   notice: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignSelf: 'stretch',
+    width: '100%',
     gap: space[2],
     minHeight: NOTICE_HEIGHT,
     maxWidth: '100%',
@@ -32,7 +31,8 @@ const styles = StyleSheet.create({
   },
   pink: { backgroundColor: colors.attentionContainer, ...elevation.sm },
   label: {
-    flexShrink: 1,
+    alignSelf: 'stretch',
+    textAlign: 'center',
     fontSize: type.caption,
     color: colors.text,
     fontFamily: textFontFamily(weight.bold),

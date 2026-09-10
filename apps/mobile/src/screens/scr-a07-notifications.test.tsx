@@ -106,7 +106,7 @@ describe('SCR-A07 알림함', () => {
     jest.setSystemTime(NOW);
     push.mockReset();
     back.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ push, back } as never);
+    jest.mocked(useRouter).mockReturnValue({ push, back, canGoBack: () => true } as never);
     listNotificationInboxMock.mockReset();
     listNotificationInboxMock.mockResolvedValue({
       items: [],

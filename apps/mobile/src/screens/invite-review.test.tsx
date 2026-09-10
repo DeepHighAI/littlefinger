@@ -1,6 +1,6 @@
 jest.mock('../components/InviteAccountGate.tsx', () => ({ InviteAccountGate: ({ children }: { children: React.ReactNode }) => children }));
 import { LEGAL_DISCLAIMER } from '@littlefinger/shared';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 
 import InviteReviewScreen from '../app/i/[token]';
 import { openInviteInBrowserNative } from '../lib/invite-link-native.ts';
@@ -122,9 +122,9 @@ describe('EC-I01 앱 내 초대 검토', () => {
     expect(view.getByText('커피 한 잔')).toBeTruthy();
     expect(view.getByText(LEGAL_DISCLAIMER)).toBeTruthy();
 
-    await fireEvent.press(view.getByRole('button', { name: '수락하기' }));
+    await fireEvent.press(within(view.getByTestId('invite-review-actions')).getByRole('button', { name: '수락하기' }));
     expect(view.getByText('지우님이 보낸 약속이 맞나요?')).toBeTruthy();
-    await fireEvent.press(view.getByRole('button', { name: '네, 수락할게요' }));
+    await fireEvent.press(within(view.getByTestId('invite-review-actions')).getByRole('button', { name: '네, 수락할게요' }));
     await settle();
 
     expect(approveMock).toHaveBeenCalledWith('a-b_c', 'key-1');

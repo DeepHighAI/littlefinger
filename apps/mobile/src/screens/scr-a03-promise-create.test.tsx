@@ -101,7 +101,7 @@ describe('SCR-A03 3단계 약속 작성', () => {
     jest.setSystemTime(TEST_NOW);
     push.mockReset();
     back.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ push, back } as never);
+    jest.mocked(useRouter).mockReturnValue({ push, back, canGoBack: () => true } as never);
     jest.mocked(useLocalSearchParams).mockReturnValue({});
     jest.mocked(loadEditorDraft).mockReset().mockResolvedValue(EMPTY_PROMISE_DRAFT);
     jest.mocked(loadAmendSuggestComment).mockReset().mockResolvedValue(null);

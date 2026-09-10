@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { backOrHome } from '../lib/back-or-home.ts';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfButton } from '../components/LfButton';
 import { LfCard } from '../components/LfCard';
@@ -67,7 +68,7 @@ export default function ProfileNicknameScreen(): React.JSX.Element {
     setError(undefined);
     try {
       await updateProfileNicknameNative(nickname);
-      router.back();
+      backOrHome(router);
     } catch {
       setSaving(false);
       setError(LABEL.saveError);
@@ -80,7 +81,7 @@ export default function ProfileNicknameScreen(): React.JSX.Element {
         title={LABEL.title}
         leading="back"
         leadingAccessibilityLabel={LABEL.back}
-        onLeadingPress={() => router.back()}
+        onLeadingPress={() => backOrHome(router)}
       />
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <LfCard>

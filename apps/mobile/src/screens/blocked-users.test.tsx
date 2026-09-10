@@ -46,7 +46,7 @@ async function settle(): Promise<void> {
 describe('차단 목록 관리 (F3)', () => {
   beforeEach(() => {
     back.mockReset();
-    jest.mocked(useRouter).mockReturnValue({ back } as never);
+    jest.mocked(useRouter).mockReturnValue({ back, canGoBack: () => true } as never);
     listMock.mockReset().mockResolvedValue({ items: ITEMS });
     unblockMock.mockReset();
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});

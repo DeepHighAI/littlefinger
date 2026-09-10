@@ -25,6 +25,7 @@ import {
 import Animated, { FadeInLeft, FadeInRight, useReducedMotion } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { backOrHome } from '../../lib/back-or-home.ts';
 import { LfAppBar } from '../../components/LfAppBar';
 import { LfButton } from '../../components/LfButton';
 import { LfCard } from '../../components/LfCard';
@@ -319,7 +320,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const closeEditor = useCallback(async (): Promise<void> => {
     await autosave.flush();
     ToastAndroid.show(LABEL.saved, ToastAndroid.SHORT);
-    router.back();
+    backOrHome(router);
   }, [LABEL.saved, autosave, router]);
 
   const previousStep = useCallback((): void => {

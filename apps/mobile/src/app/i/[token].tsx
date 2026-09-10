@@ -11,7 +11,7 @@ import {
 } from '@littlefinger/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GoogleMark } from '../../components/GoogleMark';
@@ -94,12 +94,16 @@ const styles = StyleSheet.create({
   content: { gap: space[4] },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
   actions: { gap: space[3], marginTop: space[4] },
+  footer: { padding: space[8], paddingTop: space[3], backgroundColor: colors.background },
   // 보조 outlined(내용 폭) + 주 CTA(남는 폭) (`.lf-detail__actions`)
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
-  actionMain: { flex: 1 },
+  actionMain: { flex: 1, minWidth: 0 },
+  actionRowLarge: { flexDirection: 'column-reverse', alignItems: 'stretch' },
 });
 
 function InviteReviewScreen(): React.JSX.Element {
+  const { fontScale } = useWindowDimensions();
+  const stackResponses = fontScale > 1;
   const { token } = useLocalSearchParams<{ token: string }>();
   const router = useRouter();
   const L = useLabels(INVITE_REVIEW_LABEL);
@@ -425,7 +429,7 @@ function InviteReviewScreen(): React.JSX.Element {
         title={L.appTitle}
         actions={<LfOval variant="tile"><LfMascotFace size="sm" /></LfOval>}
       />
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView testID="invite-review-body" contentContainerStyle={styles.body}>
         <View style={styles.head}>
           <View style={styles.headMain}>
             <LfText variant="eyebrow">{L.reviewEyebrow}</LfText>
@@ -471,33 +475,7 @@ function InviteReviewScreen(): React.JSX.Element {
           <LfText variant="error" accessibilityRole="alert">{actionError}</LfText>
         )}
 
-        {confirming ? (
-          <View style={styles.actions}>
-            <LfText variant="subtitle" align="center">
-              {L.confirmQuestion(preview.creator.nickname)}
-            </LfText>
-            <LfText variant="bodySm" secondary align="center">{L.confirmBody}</LfText>
-            <View style={styles.actionRow}>
-              <LfButton
-                variant="outlined"
-                size="cta"
-                label={L.confirmNo}
-                disabled={busy}
-                onPress={() => setConfirming(false)}
-              />
-              <View style={styles.actionMain}>
-                <LfButton
-                  size="cta"
-                  block
-                  trailing="check"
-                  label={L.confirmYes}
-                  disabled={busy}
-                  onPress={() => void handleApprove()}
-                />
-              </View>
-            </View>
-          </View>
-        ) : amending ? (
+        {amending ? (
           <View style={styles.actions}>
             <LfText variant="eyebrow">{L.amendFieldLabel}</LfText>
             <LfTextarea
@@ -505,7 +483,7 @@ function InviteReviewScreen(): React.JSX.Element {
               onChangeText={setAmendComment}
               accessibilityLabel={L.amendFieldLabel}
             />
-            <View style={styles.actionRow}>
+            <View style={[styles.actionRow, stackResponses && styles.actionRowLarge]}>
               <LfButton
                 variant="outlined"
                 size="cta"
@@ -513,7 +491,7 @@ function InviteReviewScreen(): React.JSX.Element {
                 disabled={busy}
                 onPress={() => setAmending(false)}
               />
-              <View style={styles.actionMain}>
+              <View style={stackResponses ? undefined : styles.actionMain}>
                 <LfButton
                   size="cta"
                   block
@@ -525,7 +503,36 @@ function InviteReviewScreen(): React.JSX.Element {
               </View>
             </View>
           </View>
-        ) : (
+        ) : null}
+      </ScrollView>
+      <View testID="invite-review-actions" style={!amending && styles.footer}>
+        {confirming ? (
+          <View style={styles.actions}>
+            <LfText variant="subtitle" align="center">
+              {L.confirmQuestion(preview.creator.nickname)}
+            </LfText>
+            <LfText variant="bodySm" secondary align="center">{L.confirmBody}</LfText>
+            <View style={[styles.actionRow, stackResponses && styles.actionRowLarge]}>
+              <LfButton
+                variant="outlined"
+                size="cta"
+                label={L.confirmNo}
+                disabled={busy}
+                onPress={() => setConfirming(false)}
+              />
+              <View style={stackResponses ? undefined : styles.actionMain}>
+                <LfButton
+                  size="cta"
+                  block
+                  trailing="check"
+                  label={L.confirmYes}
+                  disabled={busy}
+                  onPress={() => void handleApprove()}
+                />
+              </View>
+            </View>
+          </View>
+        ) : amending ? null : (
           <View style={styles.actions}>
             <LfButton
               variant="tonal"
@@ -534,7 +541,7 @@ function InviteReviewScreen(): React.JSX.Element {
               disabled={busy}
               onPress={() => setAmending(true)}
             />
-            <View style={styles.actionRow}>
+            <View style={[styles.actionRow, stackResponses && styles.actionRowLarge]}>
               <LfButton
                 variant="outlined"
                 size="cta"
@@ -542,7 +549,7 @@ function InviteReviewScreen(): React.JSX.Element {
                 disabled={busy}
                 onPress={() => void handleDecline()}
               />
-              <View style={styles.actionMain}>
+              <View style={stackResponses ? undefined : styles.actionMain}>
                 <LfButton
                   size="cta"
                   block
@@ -555,7 +562,7 @@ function InviteReviewScreen(): React.JSX.Element {
             </View>
           </View>
         )}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

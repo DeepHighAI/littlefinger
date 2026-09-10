@@ -26,6 +26,7 @@ import {
   Linking,
   Pressable,
   ScrollView,
+  useWindowDimensions,
   Share,
   StyleSheet,
   Text,
@@ -33,6 +34,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { backOrHome } from '../../lib/back-or-home.ts';
 import { LfAppBar } from '../../components/LfAppBar';
 import { LfAvatar } from '../../components/LfAvatar';
 import { LfButton } from '../../components/LfButton';
@@ -285,6 +287,7 @@ const styles = StyleSheet.create({
   },
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: space[5] },
   actionMain: { flex: 1, minWidth: 0 },
+  actionRowLarge: { flexDirection: 'column-reverse', alignItems: 'stretch' },
   safetyRow: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   historyContent: { gap: space[5], paddingBottom: space[5] },
 });
@@ -818,6 +821,7 @@ function compactStampOf(
 }
 
 export default function PromiseDetailScreen(): React.JSX.Element {
+  const { fontScale } = useWindowDimensions();
   const LABEL = useLabels(SCR_A05_LABEL);
   const MOD01_LABEL = useLabels(MOD_01_LABEL);
   const { locale } = useLocale();
@@ -920,7 +924,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           ? LABEL.notFound
           : LABEL.loadError;
     return (
-      <ScreenFrame onBack={() => router.back()}>
+      <ScreenFrame onBack={() => backOrHome(router)}>
         <View style={styles.centered}>
           <LfText align="center">{label}</LfText>
           {phase === 'error' && (
@@ -1108,7 +1112,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     setActionError(false);
     try {
       await hidePromiseNative(detailId, true);
-      router.back();
+      backOrHome(router);
     } catch {
       setActionError(true);
     } finally {
@@ -1269,6 +1273,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
     : pendingAmend?.type === 'FINISH'
       ? LABEL.finishApproveAction
       : LABEL.cancelApproveAction;
+  const stackResponses = isAmendResponder && fontScale > 1;
   const ddayText = formatDetailDday(detail.end_date, now, locale);
   const showOutcomes = ['ACTIVE', 'AMEND_PENDING', 'CHECKING', 'BROKEN'].includes(detail.status);
   const openWitness = () => setWitnessSheetOpen(true);
@@ -1277,7 +1282,9 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   });
   // 하단 한 줄 — 보조(outlined, 내용 폭) + 주 CTA(옐로, 남는 폭). 상태마다 한 쌍만 둔다
   const secondaryAction: { label: string; onPress(): void } | null =
-    detail.status === 'ACTIVE' && canRequestAmend
+    isAmendResponder
+      ? { label: LABEL.amendDeclineAction, onPress: () => void respondAmend('DECLINE') }
+      : detail.status === 'ACTIVE' && canRequestAmend
       ? { label: LABEL.amendRequestAction, onPress: () => setAmendSheetOpen(true) }
       : detail.status === 'PENDING'
         ? {
@@ -1286,11 +1293,11 @@ export default function PromiseDetailScreen(): React.JSX.Element {
           }
         : detail.status === 'COMPLETED'
           ? { label: LABEL.shareAction, onPress: shareCompleted }
-          : detail.status === 'CHECKING' && canInviteWitness
-            ? { label: LABEL.witnessInviteAction, onPress: openWitness }
-            : null;
+          : null;
   const primaryAction: { label: string; trailing: LfIconName | null; busy: boolean; onPress(): void } | null =
-    detail.status === 'CHECKING'
+    isAmendResponder
+      ? { label: amendApproveLabel, trailing: 'check', busy, onPress: () => void respondAmend('APPROVE') }
+      : detail.status === 'CHECKING'
       ? {
           label: LABEL.checkingAction,
           trailing: 'check',
@@ -1301,13 +1308,11 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         ? { label: LABEL.disputedAction, trailing: null, busy, onPress: () => void reopen() }
         : detail.status === 'COMPLETED'
           ? { label: LABEL.newPromiseAction, trailing: 'add', busy: false, onPress: () => router.push('/promise/edit') }
-          : canInviteWitness
-            ? { label: LABEL.witnessInviteAction, trailing: 'person_add', busy: false, onPress: openWitness }
-            : null;
+          : null;
 
   return (
-    <ScreenFrame onBack={() => router.back()} mode={visualMode}>
-      <ScrollView contentContainerStyle={styles.body}>
+    <ScreenFrame onBack={() => backOrHome(router)} mode={visualMode}>
+      <ScrollView testID="promise-detail-body" contentContainerStyle={styles.body}>
         <View style={styles.head}>
           <View style={styles.headMain}>
             <View style={styles.statusRow}>
@@ -1435,27 +1440,6 @@ export default function PromiseDetailScreen(): React.JSX.Element {
                   onPress={() => void withdrawAmend()}
                 />
               ) : null}
-              {isAmendResponder ? (
-                <View style={styles.actionRow}>
-                  <LfButton
-                    label={LABEL.amendDeclineAction}
-                    variant="outlined"
-                    size="cta"
-                    disabled={busy}
-                    onPress={() => void respondAmend('DECLINE')}
-                  />
-                  <View style={styles.actionMain}>
-                    <LfButton
-                      label={amendApproveLabel}
-                      size="cta"
-                      block
-                      trailing="check"
-                      disabled={busy}
-                      onPress={() => void respondAmend('APPROVE')}
-                    />
-                  </View>
-                </View>
-              ) : null}
             </LfStack>
           </LfCard>
         ) : null}
@@ -1536,6 +1520,16 @@ export default function PromiseDetailScreen(): React.JSX.Element {
             </View>
           </LfCard>
         </LfStack>
+
+        {canInviteWitness ? (
+          <LfButton
+            label={LABEL.witnessInviteAction}
+            variant="outlined"
+            block
+            trailing="person_add"
+            onPress={openWitness}
+          />
+        ) : null}
 
         <FulfillmentSection detail={detail} headline={status.headline} onReportEvidence={confirmEvidenceReport} />
 
@@ -1641,22 +1635,23 @@ export default function PromiseDetailScreen(): React.JSX.Element {
         )}
       </ScrollView>
 
-      <View style={styles.actions}>
+      <View testID="promise-detail-actions" style={styles.actions}>
         {primaryAction !== null || secondaryAction !== null ? (
-          <View style={styles.actionRow}>
+          <View style={[styles.actionRow, stackResponses && styles.actionRowLarge]}>
             {secondaryAction !== null ? (
-              <View style={styles.actionMain}>
+              <View style={isAmendResponder ? undefined : styles.actionMain}>
               <LfButton
                 label={secondaryAction.label}
                 variant="outlined"
                 size="cta"
-                block
+                block={!isAmendResponder || stackResponses}
+                disabled={busy}
                 onPress={secondaryAction.onPress}
               />
               </View>
             ) : null}
             {primaryAction !== null ? (
-              <View style={styles.actionMain}>
+              <View style={stackResponses ? undefined : styles.actionMain}>
                 <LfButton
                   label={primaryAction.label}
                   size="cta"

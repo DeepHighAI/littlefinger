@@ -10,6 +10,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { backOrHome } from '../lib/back-or-home.ts';
 import { LfAdSlot } from '../components/LfAdSlot';
 import { LfAppBar } from '../components/LfAppBar';
 import { LfAvatar } from '../components/LfAvatar';
@@ -151,11 +152,7 @@ export default function ProfileScreen(): React.JSX.Element {
   const [adsEnabled, setAdsEnabled] = useState(false);
 
   function handleBack(): void {
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace('/home');
+    backOrHome(router);
   }
 
   useFocusEffect(useCallback(() => {
