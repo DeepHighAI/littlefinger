@@ -10,6 +10,8 @@
 !docs/디자인/icon-proposals/*.png
 !docs/디자인/store/**/*.png
 !docs/qa/assets/android-system-bars-2026-09-10/*.png
+!docs/qa/assets/production30-feedback-2026-09-14/*.png
+!docs/qa/assets/calendar-fix-2026-09-14/*.png
 
 # 빌드·테스트 산출물
 dist/

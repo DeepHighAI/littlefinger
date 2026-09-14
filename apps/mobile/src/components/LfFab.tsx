@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import { Pressable, StyleSheet, Text, View, type PressableProps } from 'react-native';
 
 import { textFontFamily } from '../theme/fonts';
@@ -6,6 +7,7 @@ import { LfIcon } from './LfIcon';
 
 export interface LfFabProps extends Omit<PressableProps, 'style' | 'children'> {
   label: string;
+  targetRef?: Ref<View>;
 }
 
 /** README 눌림 — translate 3 · 그림자 5→2. 번들 토큰 없음, ADR 0020 예외 */
@@ -15,10 +17,11 @@ const PRESSED_SHADOW = { boxShadow: [{ offsetX: 2, offsetY: 2, blurRadius: 0, sp
 const ADD_ICON = 26;
 
 /** 홈 하단 좌우 16 풀폭 CTA — 옐로 면 + 잉크 글자 + 종이 사각 40 */
-export function LfFab({ label, disabled, ...rest }: LfFabProps): React.JSX.Element {
+export function LfFab({ label, disabled, targetRef, ...rest }: LfFabProps): React.JSX.Element {
   const isDisabled = disabled ?? false;
   return (
     <Pressable
+      ref={targetRef}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: isDisabled }}

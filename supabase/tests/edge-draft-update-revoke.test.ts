@@ -178,7 +178,7 @@ describe('promise-draft-update Edge Function', () => {
     ['body', { body: '짧음' }],
     ['category', { category: 'UNKNOWN' }],
     ['keeper', { keeper: 'WITNESS' }],
-    ['end_date', { end_date: '2026-07-30' }],
+    ['end_date', { end_date: '2026-07-29' }],
     ['reward', { reward: '가'.repeat(101) }],
     ['penalty', { penalty: '가'.repeat(101) }],
   ])('%s 위반은 필드 오류이고 RPC를 부르지 않는다', async (field, override) => {

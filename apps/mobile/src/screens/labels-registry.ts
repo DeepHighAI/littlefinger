@@ -1,3 +1,5 @@
+import { PROMISE_TUTORIAL_LABEL } from './promise-tutorial-labels.ts';
+import { END_DATE_PICKER_LABEL } from './end-date-picker-labels';
 import type { Localized } from '@littlefinger/shared';
 
 import { APP_VERSION_LABEL } from './app-version-labels.ts';
@@ -29,6 +31,8 @@ import { UPDATE_REQUIRED_LABEL } from './update-required-labels.ts';
  * 웹 `apps/web/src/labels-registry.ts` 와 같은 규칙의 앱 쪽 거울이다.
  */
 export const MOBILE_LABEL_CATALOGS = {
+  END_DATE_PICKER_LABEL,
+  PROMISE_TUTORIAL_LABEL,
   APP_VERSION_LABEL,
   COUNTERPART_ALIAS_LABEL,
   BLOCKED_USERS_LABEL,

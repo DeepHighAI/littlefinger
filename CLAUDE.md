@@ -76,6 +76,11 @@ unchanged. Private counterpart aliases belong to the viewer/target pair across p
 never store them in profile nicknames or approval/version records. Remote featured suggestions only
 change available choices, never selected, typed or saved promise contents.
 
+PO production-30 follow-up (2026-09-14, ADR 0026): profile keepRate uses `못 지킴`;
+reward suggestions use receiving language. Creation, draft updates and amendment requests allow
+KST today. The first-promise tutorial stores completion on the installation only, in Android
+backup-excluded storage, and repeats after reinstall. No account completion field.
+
 ### 1-3. Code style
 
 Write the shortest code that is still explicit. No speculative abstraction, no cleverness, no

@@ -10,6 +10,9 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LfSheet } from '../components/LfSheet';
+import { LfChoice } from '../components/LfChoice';
+
 import { backOrHome } from '../lib/back-or-home.ts';
 import { LfAdSlot } from '../components/LfAdSlot';
 import { LfAppBar } from '../components/LfAppBar';
@@ -231,20 +234,10 @@ export default function ProfileScreen(): React.JSX.Element {
     }
   }, []);
 
+  const [hourSheetOpen, setHourSheetOpen] = useState(false);
   const chooseHour = useCallback(() => {
-    if (state.saving || state.displayedReminders === null) return;
-    Alert.alert(
-      LABEL.reminderHourTitle,
-      undefined,
-      [
-        ...REMINDER_HOURS.map((hour) => ({
-          text: LABEL.reminderHourChoice(hour),
-          onPress: () => void save({ ...state.displayedReminders!, remind_hour: hour }),
-        })),
-        { text: LABEL.cancel, style: 'cancel' as const },
-      ],
-    );
-  }, [LABEL, save, state.displayedReminders, state.saving]);
+    if (!state.saving && state.displayedReminders !== null) setHourSheetOpen(true);
+  }, [state.saving, state.displayedReminders]);
 
   const confirmLogout = useCallback(() => {
     Alert.alert(LABEL.logoutTitle, LABEL.logoutBody, [
@@ -476,6 +469,21 @@ export default function ProfileScreen(): React.JSX.Element {
         onClose={() => setSlotSheetOpen(false)}
         onPurchased={setSlot}
       />
+      <LfSheet visible={hourSheetOpen} title={LABEL.reminderHourTitle}
+        closeLabel={LABEL.reminderHourClose} onClose={() => setHourSheetOpen(false)}>
+        <LfStack gap={3}>
+          {REMINDER_HOURS.map((hour) => (
+            <LfChoice key={hour} label={state.displayedReminders?.remind_hour === hour
+                ? LABEL.reminderHourSelected(LABEL.reminderHourChoice(hour)) : LABEL.reminderHourChoice(hour)}
+              selected={state.displayedReminders?.remind_hour === hour}
+              onPress={() => {
+                if (state.saving || state.displayedReminders === null) return;
+                setHourSheetOpen(false);
+                void save({ ...state.displayedReminders, remind_hour: hour });
+              }} />
+          ))}
+        </LfStack>
+      </LfSheet>
     </SafeAreaView>
   );
 }

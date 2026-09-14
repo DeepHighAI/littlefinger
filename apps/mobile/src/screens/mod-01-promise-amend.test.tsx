@@ -171,11 +171,11 @@ describe('MOD-01 변경·취소 요청', () => {
 
   test('종료일 선택은 KST 오늘 이후 규칙을 적용하고 유효한 변경만 제출한다', async () => {
     const onSubmit = jest.fn().mockResolvedValue(undefined);
-    const pickEndDate = jest.fn((_value: string, select: (value: string) => void) => select('2026-08-17'));
+    const pickEndDate = jest.fn((_value: string, select: (value: string) => void) => select('2026-08-16'));
     const view = await render(<PromiseAmendSheet {...props({ onSubmit, pickEndDate })} />);
 
     await fireEvent.press(view.getByRole('button', { name: '종료일 선택' }));
-    expect(view.getByText('종료일은 내일 이후의 날짜로 정해주세요.')).toBeTruthy();
+    expect(view.getByText('종료일은 오늘 이후의 날짜로 정해주세요.')).toBeTruthy();
     expect(view.getByRole('button', { name: '요청 보내기' }).props.accessibilityState).toMatchObject({ disabled: true });
   });
 

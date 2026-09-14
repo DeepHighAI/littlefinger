@@ -118,6 +118,14 @@ afterAll(async () => {
 });
 
 describe('DRAFT 수정 (§4-2-2.4)', () => {
+  test('오늘 종료하는 초안 수정도 허용한다', async () => {
+    const creator = await createUser(db, '오늘초안수정');
+    const promiseId = await createPromise(db, { creatorId: creator });
+    await expect(updateDraft(creator, promiseId, { endDate: kstToday(0) })).resolves.toBeTruthy();
+    const result = await db.asAdmin('select end_date::text from public.promises where id=$1', [promiseId]);
+    expect(result.rows[0]?.end_date).toBe(kstToday(0));
+  });
+
   test('버전 1과 조회 캐시를 NFC 정규화된 같은 값으로 덮어쓴다', async () => {
     const creator = await createUser(db, '초안수정');
     const promiseId = await createPromise(db, { creatorId: creator });
@@ -195,7 +203,7 @@ describe('DRAFT 수정 (§4-2-2.4)', () => {
 
     expect(
       await codeOf(() =>
-        updateDraft(creator, promiseId, { title: '바뀌면 안 됨', endDate: kstToday(0) }),
+        updateDraft(creator, promiseId, { title: '바뀌면 안 됨', endDate: kstToday(-1) }),
       ),
     ).toBe('E_VALIDATION');
 

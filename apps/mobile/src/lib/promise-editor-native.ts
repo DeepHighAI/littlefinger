@@ -1,9 +1,6 @@
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import {
-  END_DATE_MAX_DAYS,
   ENDPOINT,
   ERROR_MESSAGE,
-  toKstDate,
   type PromiseInviteResponse,
 } from '@littlefinger/shared';
 
@@ -27,8 +24,7 @@ import {
   getMobileSupabaseClient,
 } from './supabase-native.ts';
 
-const KST_TIME_ZONE = 'Asia/Seoul';
-const DAY_MS = 24 * 60 * 60 * 1000;
+export { openEndDatePicker } from './end-date-picker.ts';
 
 function repository(): PromiseDraftRepository {
   return new PromiseDraftRepository(getMobileEncryptedStorage());
@@ -128,27 +124,3 @@ export async function submitEditorDraft(
   return response;
 }
 
-function isoDateAtKstMidnight(value: string): Date {
-  return new Date(`${value}T00:00:00+09:00`);
-}
-
-export function openEndDatePicker(
-  value: string | null,
-  onSelect: (isoDate: string) => void,
-): void {
-  const today = isoDateAtKstMidnight(toKstDate(new Date()));
-  const minimumDate = new Date(today.getTime() + DAY_MS);
-  const maximumDate = new Date(today.getTime() + END_DATE_MAX_DAYS * DAY_MS);
-  const selected = value === '' || value === null ? minimumDate : isoDateAtKstMidnight(value);
-
-  DateTimePickerAndroid.open({
-    value: selected,
-    mode: 'date',
-    minimumDate,
-    maximumDate,
-    timeZoneName: KST_TIME_ZONE,
-    onChange: (event, nextDate) => {
-      if (event.type === 'set' && nextDate !== undefined) onSelect(toKstDate(nextDate));
-    },
-  });
-}

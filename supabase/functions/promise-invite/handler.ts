@@ -22,7 +22,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
  */
 export const INVITE_VALIDATION = {
   field: 'end_date',
-  message: '종료일은 내일 이후의 날짜로 정해주세요.',
+  message: '종료일은 오늘 이후의 날짜로 정해주세요.',
 } as const;
 
 export function createPromiseInviteHandler(deps: Deps) {

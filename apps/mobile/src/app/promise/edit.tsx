@@ -25,6 +25,9 @@ import {
 import Animated, { FadeInLeft, FadeInRight, useReducedMotion } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PromiseTutorial } from '../../components/PromiseTutorial';
+import { usePromiseTutorial } from '../../lib/promise-tutorial';
+
 import { backOrHome } from '../../lib/back-or-home.ts';
 import { LfAppBar } from '../../components/LfAppBar';
 import { LfButton } from '../../components/LfButton';
@@ -153,6 +156,12 @@ export default function PromiseEditorScreen(): React.JSX.Element {
   const { locale } = useLocale();
   const featuredPresets = usePromisePresets();
   const router = useRouter();
+  const tutorial = usePromiseTutorial();
+  const contentTarget = useRef<View>(null);
+  const conditionsTarget = useRef<View>(null);
+  const reviewTarget = useRef<View>(null);
+  const [tutorialDismissed, setTutorialDismissed] = useState<readonly number[]>([]);
+
   const params = useLocalSearchParams<{ promise_id?: string | string[] }>();
   const promiseId = routePromiseId(params.promise_id);
   const [serverPromiseId, setServerPromiseId] = useState(promiseId);
@@ -403,6 +412,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       } else if (error instanceof MobileApiError && error.field !== undefined) {
         const field = error.field as PromiseDraftField;
         setServerErrors((current) => ({ ...current, [field]: error.message }));
+        setFormNotice(LABEL.formNotice(FIELD_LABELS[field] ?? LABEL.checkField, error.message));
         setDirection(-1);
         setStep(editorStepForField(field));
       } else if (error instanceof MobileApiError) {
@@ -457,10 +467,11 @@ export default function PromiseEditorScreen(): React.JSX.Element {
     : (direction === 1 ? FadeInRight : FadeInLeft).duration(duration.medium);
 
   const stepOne = (
-    <LfCard><LfStack gap={7}>
+    <View ref={contentTarget} collapsable={false}><LfCard><LfStack gap={7}>
       <LfField label={LABEL.titleField} required error={errorFor('title')}>
         <LfInput
           accessibilityLabel={LABEL.titleField}
+              placeholder={LABEL.manualInput}
           value={draft.title}
           maxLength={40}
           onBlur={() => touch('title')}
@@ -470,6 +481,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
       <LfField label={LABEL.bodyField} required error={errorFor('body')}>
         <LfTextarea
           accessibilityLabel={LABEL.bodyField}
+              placeholder={LABEL.manualInput}
           value={draft.body}
           maxLength={1000}
           onBlur={() => touch('body')}
@@ -489,12 +501,12 @@ export default function PromiseEditorScreen(): React.JSX.Element {
         </View>
         {draft.category === 'MONEY' && <LfText variant="caption">{LABEL.moneyNotice}</LfText>}
       </LfField>
-    </LfStack></LfCard>
+    </LfStack></LfCard></View>
   );
 
   const stepTwo = (
     <LfStack gap={7}>
-      <LfCard><LfStack gap={7}>
+      <View ref={conditionsTarget} collapsable={false}><LfCard><LfStack gap={7}>
         <LfField label={LABEL.endDate} required error={errorFor('end_date')}>
           <LfPicker
             accessibilityLabel={LABEL.endDatePicker}
@@ -519,7 +531,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             ))}
           </View>
         </LfField>
-      </LfStack></LfCard>
+      </LfStack></LfCard></View>
       <LfCard><LfStack gap={7}>
         <LfField label={LABEL.reward} optional error={errorFor('reward')}>
           <View style={styles.choices}>
@@ -535,6 +547,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           <View ref={rewardInputAnchorRef} collapsable={false} testID="reward-input-anchor">
             <LfInput
               accessibilityLabel={LABEL.reward}
+              placeholder={LABEL.manualInput}
               value={draft.reward}
               maxLength={100}
               onFocus={() => focusConditionInput('reward')}
@@ -557,6 +570,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
           <View ref={penaltyInputAnchorRef} collapsable={false} testID="penalty-input-anchor">
             <LfInput
               accessibilityLabel={LABEL.penalty}
+              placeholder={LABEL.manualInput}
               value={draft.penalty}
               maxLength={100}
               onFocus={() => focusConditionInput('penalty')}
@@ -659,7 +673,7 @@ export default function PromiseEditorScreen(): React.JSX.Element {
             </LfStack>
           </LfCard>
         )}
-        <Animated.View key={step} {...(entering === undefined ? {} : { entering })}>
+        <Animated.View key={step} {...(entering === undefined || tutorial.started ? {} : { entering })}>
           {step === 1 ? stepOne : step === 2 ? stepTwo : stepThree}
         </Animated.View>
       </ScrollView>
@@ -682,16 +696,24 @@ export default function PromiseEditorScreen(): React.JSX.Element {
               onPress={nextStep}
             />
           ) : (
-            <LfButton
+            <View ref={reviewTarget} collapsable={false}><LfButton
               label={LABEL.send}
               size="cta"
               trailing="send"
               disabled={submitting}
               onPress={() => submit(true)}
-            />
+            /></View>
           )}
         </View>
       </View>
+      {tutorial.started && !tutorialDismissed.includes(step) && !submitting && (
+        <PromiseTutorial key={step} step={(step + 1) as 2 | 3 | 4}
+          target={step === 1 ? contentTarget : step === 2 ? conditionsTarget : reviewTarget}
+          onPress={() => {
+            setTutorialDismissed((current) => [...current, step]);
+            if (step === 3) submit(true);
+          }} />
+      )}
       <SlotPaywallSheet
         visible={slotSheetOpen}
         reason="limit"

@@ -15,6 +15,10 @@ import {
 import type { InviteWithToken } from '../lib/invite-flow.ts';
 
 jest.mock('expo-router', () => ({
+  useFocusEffect: (effect: () => void | (() => void)) => {
+    const { useEffect } = jest.requireActual<typeof import('react')>('react');
+    useEffect(effect, [effect]);
+  },
   useLocalSearchParams: jest.fn(),
   useRouter: jest.fn(),
 }));

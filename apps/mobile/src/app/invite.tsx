@@ -7,6 +7,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PromiseTutorial } from '../components/PromiseTutorial';
+import { usePromiseTutorial } from '../lib/promise-tutorial';
+
 import { LfAppBar } from '../components/LfAppBar';
 import { LfButton } from '../components/LfButton';
 import { LfCard } from '../components/LfCard';
@@ -85,6 +88,8 @@ function promiseIdOf(value: string | string[] | undefined): string | null {
 export default function InviteScreen(): React.JSX.Element {
   const LABEL = useLabels(INVITE_LABEL);
   const router = useRouter();
+  const tutorial = usePromiseTutorial();
+  const shareTarget = useRef<View>(null);
   const params = useLocalSearchParams<{
     promise_id?: string | string[];
     witness_enabled?: string | string[];
@@ -305,14 +310,14 @@ export default function InviteScreen(): React.JSX.Element {
 
         {!needsIssue && invite !== null && (
           <>
-            <LfButton
+            <View ref={shareTarget} collapsable={false}><LfButton
               label={shared ? LABEL.shareAgain : LABEL.share}
               variant="filled"
               block
               trailing="share"
               disabled={busy}
               onPress={() => void shareCurrent()}
-            />
+            /></View>
             <LfButton
               label={copied ? LABEL.copied : LABEL.copy}
               variant="outlined"
@@ -433,6 +438,11 @@ export default function InviteScreen(): React.JSX.Element {
           void issueAndShare();
         }}
       />
+      {tutorial.started && !needsIssue && invite !== null && (
+        <PromiseTutorial target={shareTarget} step={5}
+          onComplete={() => void tutorial.complete()}
+          onPress={() => { void tutorial.complete(); void shareCurrent(); }} />
+      )}
     </SafeAreaView>
   );
 }

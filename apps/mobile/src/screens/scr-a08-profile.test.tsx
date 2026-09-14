@@ -271,7 +271,7 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.getByText('75%')).toBeTruthy();
     expect(view.getByRole('progressbar', { name: '약속 지킴율' }).props.accessibilityValue)
       .toEqual({ min: 0, max: 100, now: 75 });
-    for (const text of ['완료 3건 · 안 지킴 1건', '답이 달라요 2건 · 확인 못함 4건', '진행 중 5건']) {
+    for (const text of ['완료 3건 · 못 지킴 1건', '답이 달라요 2건 · 확인 못함 4건', '진행 중 5건']) {
       expect(view.getByText(text)).toBeTruthy();
     }
     expect(view.queryByText('이메일 리마인드')).toBeNull();
@@ -301,6 +301,16 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     expect(view.getByRole('button', { name: '약속 알림 시간 12:00' }).props.accessibilityState.disabled).toBe(true);
   });
 
+  test('알림 시간 선택을 닫으면 설정을 저장하지 않는다', async () => {
+    loadMock.mockResolvedValue(PROFILE);
+    const view = await render(<ProfileScreen />);
+    await settle();
+    await fireEvent.press(view.getByRole('button', { name: '약속 알림 시간 12:00' }));
+    await fireEvent.press(view.getByRole('button', { name: '알림 시간 선택 닫기' }));
+    expect(updateMock).not.toHaveBeenCalled();
+    expect(view.queryByText('12:00 · 선택됨')).toBeNull();
+  });
+
   test('발송 시각 picker는 정확히 세 KST 선택지를 저장한다', async () => {
     loadMock.mockResolvedValue(PROFILE);
     updateMock.mockResolvedValue({ reminders: { ...REMINDERS, remind_hour: '20' }, updated_at: PROFILE.updated_at });
@@ -309,8 +319,9 @@ describe('SCR-A08 마이·신뢰 프로필', () => {
     await settle();
 
     await fireEvent.press(view.getByRole('button', { name: '약속 알림 시간 12:00' }));
-    expect(alert.mock.calls[0]?.[2]?.map((button) => button.text)).toEqual(['09:00', '12:00', '20:00', '취소']);
-    await act(async () => alert.mock.calls[0]?.[2]?.find((button) => button.text === '20:00')?.onPress?.());
+    expect(alert).not.toHaveBeenCalled();
+    expect(view.getByRole('button', { name: '12:00 · 선택됨' }).props.accessibilityState.selected).toBe(true);
+    await fireEvent.press(view.getByRole('button', { name: '20:00' }));
     expect(updateMock).toHaveBeenCalledWith({ ...REMINDERS, remind_hour: '20' });
   });
 

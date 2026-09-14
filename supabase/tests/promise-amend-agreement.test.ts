@@ -163,6 +163,16 @@ afterAll(async () => {
   await db.close();
 });
 
+test('same-day amendment can be requested and approved in KST', async () => {
+  const fixture = await seed();
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const proposal = { ...await currentProposal(fixture.promiseId), end_date: today };
+  const pending = await request({ actor: fixture.creator, promiseId: fixture.promiseId, proposal });
+  await respond({ actor: fixture.partner, promiseId: fixture.promiseId,
+    requestId: String(pending['request_id']), decision: 'APPROVE' });
+  expect((await currentProposal(fixture.promiseId)).end_date).toBe(today);
+});
+
 describe('F-11 amend agreement schema boundary', () => {
   test('proposal versions are nullable only while inactive and all mutations use fenced locks', () => {
     const source = migrationSource().toLowerCase();

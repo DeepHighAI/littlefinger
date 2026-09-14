@@ -310,7 +310,6 @@ describe('T-01 — DRAFT 생성 (§4-2-2)', () => {
   });
 
   test.each([
-    ['오늘', 0],
     ['어제', -1],
     ['오늘+366', END_DATE_MAX_DAYS + 1],
   ])('종료일 %s 는 E_VALIDATION 이다 (§5-1 내일~오늘+365)', async (_label, offset) => {
@@ -319,6 +318,7 @@ describe('T-01 — DRAFT 생성 (§4-2-2)', () => {
   });
 
   test.each([
+    ['오늘', 0],
     ['내일', 1],
     ['오늘+365', END_DATE_MAX_DAYS],
   ])('종료일 %s 는 통과한다', async (_label, offset) => {

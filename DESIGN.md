@@ -245,6 +245,16 @@ tested. The only literals allowed are the ones in the ADR 0020 exception table (
 oval radii, the A00 / A01 entry values and the handful of README sizes without a token) — do not
 grow that table without a PO decision.
 
+## First-promise guidance and reminder selection
+
+PO-approved 2026-09-14 (ADR 0026): use the existing scrim and paper/ink tokens for a
+single-target highlight with a pointed callout and five progress marks. The highlighted real
+control remains visible; only its transparent overlay target is actionable during each callout.
+Dismiss content/conditions guidance before keyboard input. Long callouts scroll within the
+available space at large font scales. The reminder-hour sheet uses `LfSheet`, selected yellow
+choices with explicit selected text, and a visible close icon. Empty wizard text fields show the
+localized manual-input hint. Profile keepRate uses `못 지킴`.
+
 ## Decision log
 
 - 2026-09-10: Native acceptance actions and their confirmation stay in the fixed footer;
@@ -274,6 +284,10 @@ grow that table without a PO decision.
 - 2026-08-31: PO selected the butter-field / solid-ink Type A launcher and ink/butter in-product
   pair. The shared silhouette remains unchanged; the white outlined treatments of ADR 0016/0017
   are superseded (ADR 0018).
+- 2026-09-14: PO approved replacing the default Android date dialog with an Ink & Block
+  calendar (ADR 0027): paper sheet, ink borders, yellow selection, equal seven-column
+  day grid, month navigation, Today shortcut, explicit close/cancel/confirm. Reuse
+  existing tokens and keep the calendar body scrollable at enlarged font sizes.
 - 2026-08-30: PO approved the seven ADR 0015 surfaces as design-reference baselines (ADR 0015):
   MOD-05 혜택 시트 (rewarded 30-day extension + ₩2,000 permanent retention, plus its locked
   state), MOD-02 role-based witness capacity (free 1 + rewarded 1, locked slot), the SCR-A02

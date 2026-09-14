@@ -67,8 +67,8 @@ const REWARD_PRESETS_BY_LOCALE: Localized<readonly string[]> = {
   ko: [
     '커피 한 잔 사주기',
     '소원권 1장',
-    '스벅쏘기',
-    '올영쏘기',
+    '스벅 얻어먹기',
+    '올영 선물 받기',
     '10,000원',
   ],
   en: [

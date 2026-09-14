@@ -1,6 +1,62 @@
 # Development Status
 
-Snapshot date: **2026-09-11 KST**.
+Snapshot date: **2026-09-14 KST**.
+
+## PO accepted internal-test code 32; production candidate unchanged (2026-09-14)
+
+The PO reports all requested fixes working in Internal testing and authorized committing
+and pushing the accepted changes. Promote the existing **0.3.5 / code 32** bundle to
+Production; no rebuild or new version code is required. The 363 archived shipping-input
+hashes still match the working source, and the AAB SHA-256 remains
+`8e99143ad27d10a805901df7df192f6e5c9d895f56157c91f158ce2ebcd6cd99`.
+
+This source integration covers ADR 0026/0027, their server migration and verification
+records. Concurrent acceptance-web/privacy changes remain outside this commit. The work
+is already on `main`, so no separate feature-branch merge is needed. Production rollout
+remains PO-owned; internal-test acceptance is PO-reported, not a new agent device test.
+
+## Same-day server fix deployed; 0.3.5 / code 32 ready (2026-09-14)
+
+The PO approved the diagnosed code-31 failure: production still rejected today's
+date, returning the editor to Terms. The same-day migration and four Edge Functions
+are now deployed and verified with a rollback-only production create/invite smoke
+check. Yesterday remains rejected. No auth, minimum-version or Play setting changed.
+
+Use **`dist/littlefinger-production-v0.3.5-code32.aab`**, 82,585,845 bytes,
+SHA-256 `8e99143ad27d10a805901df7df192f6e5c9d895f56157c91f158ce2ebcd6cd99`. It replaces code 31 as the next Internal-testing upload.
+Includes the Ink & Block calendar and persistent server-field error explanation,
+plus all ADR 0026 feedback changes. Tests, five typechecks, native 360dp/font 1.0–1.5
+visual/interaction checks, production signature/configuration, source provenance and
+16 KB verification passed. See [the code-32 record](qa/INTERNAL_TEST_BUILD_V035_CODE32_2026-09-14.md)
+for exact outputs and isolated-environment/concurrent-web check limitations.
+
+At build handoff, upload and device acceptance were pending. The PO has since completed
+Internal testing as recorded above. Production promotion remains PO-owned.
+
+## Superseded internal-test 0.3.4 / code 31 record (2026-09-14)
+
+Use `dist/littlefinger-production-v0.3.4-code31.aab`: **82,586,997 bytes**,
+SHA-256 `fd008f6b9ecd43959830415333075586c2aee81ac15968c7b18b152b713ec034`. Includes all approved ADR 0026 mobile feedback fixes.
+Source/tests/typecheck, production configuration, upload certificate, bundle contents,
+permissions and 16 KB checks passed. EAS remote code is reserved at 31.
+
+The PO owns Play steps 2–5: upload to Internal testing, tester setup, device acceptance
+and promotion. **No Play upload or server deployment was performed.** Same-day persistence
+was pending at that handoff; it is now deployed as recorded above. Details and exact
+source provenance: [candidate record](qa/INTERNAL_TEST_BUILD_V034_CODE31_2026-09-14.md).
+
+## Production code 30 feedback implemented locally (2026-09-14)
+
+PO-approved ADR 0026 adds installation-scoped first-promise guidance (repeats after reinstall),
+receiving-language reward presets, manual-input hints, `못 지킴` in the profile breakdown, and an
+Ink & Block reminder-time sheet with explicit close. KST today is allowed in the native calendar,
+shared validation, draft creation/update and amendment requests. The Android date-only adapter
+also fixes yesterday appearing selectable on non-Korean device timezones.
+
+Tests and native 360dp / font 1.0–1.5 verification are recorded in
+[the feedback QA report](qa/PRODUCTION_30_FEEDBACK_2026-09-14.md). This is a local implementation;
+server deployment is now complete, while Play release remains PO-owned. Code 32 supersedes code 31. The code-30 artifact
+below is unchanged and does not contain these improvements.
 
 ## Final 0.3.3 / code 30 AAB ready for PO upload (2026-09-11)
 

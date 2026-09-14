@@ -142,7 +142,7 @@ describe('promise-create — T-01 (§4-2-2)', () => {
   test.each([
     ['title', { title: '가' }, '제목을 2자 이상 입력해 주세요.'],
     ['body', { body: '네글자다' }, '어떤 약속인지 5자 이상 적어주세요.'],
-    ['end_date', { end_date: '2020-01-01' }, '종료일은 내일 이후의 날짜로 정해주세요.'],
+    ['end_date', { end_date: '2020-01-01' }, '종료일은 오늘 이후의 날짜로 정해주세요.'],
   ])('%s 위반은 필드와 §5 문구를 함께 돌려준다', async (field, override, message) => {
     const s = spy();
     const response = await createPromiseCreateHandler(s.deps)(
@@ -175,11 +175,11 @@ describe('promise-create — T-01 (§4-2-2)', () => {
   test('기기 시계가 아니라 deps.now() 로 종료일 경계를 판정한다', async () => {
     // §2-2 — 날짜 경계는 서버가 KST 로 판단한다.
     expect(
-      (await createPromiseCreateHandler(spy().deps)(request({ ...CREATE_BODY, end_date: '2026-07-27' })))
+      (await createPromiseCreateHandler(spy().deps)(request({ ...CREATE_BODY, end_date: '2026-07-26' })))
         .status,
     ).toBe(422);
     expect(
-      (await createPromiseCreateHandler(spy().deps)(request({ ...CREATE_BODY, end_date: '2026-07-28' })))
+      (await createPromiseCreateHandler(spy().deps)(request({ ...CREATE_BODY, end_date: '2026-07-27' })))
         .status,
     ).toBe(200);
   });
@@ -255,7 +255,7 @@ describe('promise-invite — T-02 (§4-3-1)', () => {
 
     expect(response.status).toBe(422);
     expect(body['field']).toBe('end_date');
-    expect(body['message']).toBe('종료일은 내일 이후의 날짜로 정해주세요.');
+    expect(body['message']).toBe('종료일은 오늘 이후의 날짜로 정해주세요.');
   });
 
   test.each([

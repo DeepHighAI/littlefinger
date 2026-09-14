@@ -10,6 +10,9 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PromiseTutorial } from '../components/PromiseTutorial';
+import { usePromiseTutorial } from '../lib/promise-tutorial';
+
 import { LfAdSlot } from '../components/LfAdSlot';
 import { LfBannerAd } from '../components/LfBannerAd.tsx';
 import { LfAppBar } from '../components/LfAppBar';
@@ -94,6 +97,13 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
   const CHROME = useLabels(MOBILE_CHROME_LABEL);
   const { locale } = useLocale();
   const router = useRouter();
+  const tutorial = usePromiseTutorial();
+  const createTarget = useRef<View>(null);
+  function startPromise(): void {
+    if (tutorial.available) tutorial.start();
+    router.push('/promise/edit');
+  }
+
   const [state, dispatch] = useReducer(promiseHomeReducer, undefined, createInitialHomeState);
   const [adsEnabled, setAdsEnabled] = useState(false);
   const [trustRate, setTrustRate] = useState<number | null | undefined>(undefined);
@@ -414,7 +424,8 @@ export default function HomeScreen({ now = new Date() }: HomeScreenProps): React
           )}
         </View>
         <LfBottomFade />
-        <LfFab label={CHROME.create} onPress={() => router.push('/promise/edit')} />
+        <LfFab targetRef={createTarget} label={CHROME.create} onPress={startPromise} />
+        {tutorial.available && !tutorial.started && <PromiseTutorial target={createTarget} step={1} onPress={startPromise} />}
       </View>
     </SafeAreaView>
   );

@@ -21,7 +21,7 @@ import * as validationRuntime from './validation.ts';
 // 길이 제한을 통과하지 못하고, 한글 조합형 자모도 NFC 로 합쳐진 뒤 세어진다.
 // 실패 문구는 명세 원문 그대로 쓴다 — 지어내지 않는다.
 
-const MAX_DATE_MSG = '종료일은 내일 이후의 날짜로 정해주세요.';
+const MAX_DATE_MSG = '종료일은 오늘 이후의 날짜로 정해주세요.';
 
 /** 편의: 유효하면 true */
 const ok = (result: { valid: boolean }) => result.valid;
@@ -155,7 +155,7 @@ describe('validateKeeper', () => {
   });
 });
 
-describe('validateEndDate — 내일부터 오늘+365일까지, KST 기준', () => {
+describe('validateEndDate — 오늘부터 정책 상한까지, KST 기준', () => {
   // 2026-07-25T15:00:00Z = KST 2026-07-26 00:00. 오늘(KST)은 2026-07-26.
   const now = new Date('2026-07-25T15:00:00Z');
 
@@ -163,10 +163,8 @@ describe('validateEndDate — 내일부터 오늘+365일까지, KST 기준', () 
     expect(ok(validateEndDate('2026-07-27', now))).toBe(true);
   });
 
-  test('오늘은 거절한다 — 종료일은 최소 내일이다', () => {
-    const result = validateEndDate('2026-07-26', now);
-    expect(result.valid).toBe(false);
-    expect(result.message).toBe(MAX_DATE_MSG);
+  test('오늘도 통과한다', () => {
+    expect(ok(validateEndDate('2026-07-26', now))).toBe(true);
   });
 
   test('어제는 거절한다', () => {
@@ -196,8 +194,10 @@ describe('validateEndDate — 내일부터 오늘+365일까지, KST 기준', () 
     // UTC 14:59:59 는 아직 KST 07-25 이므로 07-26 이 "내일"이다.
     const beforeMidnightKst = new Date('2026-07-25T14:59:59Z');
     expect(ok(validateEndDate('2026-07-26', beforeMidnightKst))).toBe(true);
-    // 1초 뒤 KST 로 07-26 이 되면 같은 날짜가 "오늘"이 되어 거절된다.
-    expect(ok(validateEndDate('2026-07-26', now))).toBe(false);
+    expect(ok(validateEndDate('2026-07-25', beforeMidnightKst))).toBe(true);
+    expect(ok(validateEndDate('2026-07-25', now))).toBe(false);
+    // KST 자정 이후에도 오늘은 허용하고, 어제가 된 날짜만 거절한다.
+    expect(ok(validateEndDate('2026-07-26', now))).toBe(true);
   });
 
   test('날짜 형식이 아니면 거절한다', () => {

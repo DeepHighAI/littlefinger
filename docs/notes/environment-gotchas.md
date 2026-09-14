@@ -534,3 +534,33 @@ use unique paths, require the dump success message, and capture screenshots
 independently. Record extraction failures separately from app crashes. Benchmark
 restart must discard partial rows from the restarted block to avoid duplicate samples.
 See `docs/qa/ANDROID_R8_COMPARISON_2026-09-10.md` for the protocol and evidence.
+
+
+## Android date-only picker boundaries with a non-Korean device timezone (2026-09-14)
+
+`DateTimePickerAndroid` calendar min/max dates are interpreted in the device timezone by the
+Android widget. Passing a KST-midnight timestamp with `timeZoneName: Asia/Seoul` left yesterday
+selectable on a UTC emulator: September 14 KST midnight is September 13 UTC. Keep policy math
+in KST, then construct the picker value/min/max from the KST calendar year/month/day in the
+widget's local calendar representation; omit its timezone override and serialize the selected
+local calendar fields directly. Do not convert that date-only selection through `toKstDate`.
+The shared/server validators still use the real KST instant. ADR 0026 includes the regression.
+
+For isolated native QA, a background `Start-Process` emulator launch was rejected by automatic
+approval review without a specific reason. Direct execution of the emulator with `-read-only
+-no-window -no-audio -no-snapshot` was allowed and kept the original AVD unchanged. Changing
+Android `font_scale` can recreate the activity; re-enter the intended fixture route before
+capturing. The home mascot prevents UIAutomator from reaching idle after tutorial completion;
+use a raw screenshot there, not a stale XML dump.
+
+The 2026-09-14 code-32 follow-up replaces the native date-only adapter with an
+application calendar (ADR 0027); its calendar arithmetic uses UTC fields and its
+selectable lower bound uses KST today. The native adapter advice above remains
+historical. The same-day mobile change must be deployed with its database migration
+and Edge validation: code 31 initially returned to Terms because production still
+rejected today, even though its client allowed it.
+
+An isolated source copy needs Git metadata for the Firebase asset `git check-ignore`
+test, plus each workspace's nested dependency junction for all-project typecheck.
+Missing either can fail checks without any application-code failure. Do not copy
+concurrent acceptance-web changes into an Android snapshot just to satisfy checks.

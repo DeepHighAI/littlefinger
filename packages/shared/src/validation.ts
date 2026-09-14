@@ -100,8 +100,8 @@ export function validateKeeper(value: string): ValidationResult {
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const END_DATE_MESSAGE: Localized<string> = {
-  ko: '종료일은 내일 이후의 날짜로 정해주세요.',
-  en: 'Choose an end date from tomorrow onward.',
+  ko: '종료일은 오늘 이후의 날짜로 정해주세요.',
+  en: 'Choose an end date from today onward.',
 };
 
 /** `YYYY-MM-DD` 가 실제로 존재하는 날짜인지 — 2026-13-01 같은 값을 거른다. */
@@ -117,7 +117,7 @@ function isRealIsoDate(value: string): boolean {
 }
 
 /**
- * 종료일 — **내일**부터 오늘 + `END_DATE_MAX_DAYS` 까지 (S-7). 기준은 KST.
+ * 종료일 — **오늘**부터 오늘 + `END_DATE_MAX_DAYS` 까지 (S-7). 기준은 KST.
  *
  * `now` 를 인자로 받는 이유: 기기 시계를 신뢰하지 않고, 승인 시점에 서버가
  * 같은 함수로 재검증할 수 있어야 하기 때문이다(T-03·T-08).
@@ -134,7 +134,7 @@ export function validateEndDate(
   const endDate = Date.parse(`${value}T00:00:00Z`);
   const daysFromToday = Math.round((endDate - todayKst) / DAY_MS);
 
-  return daysFromToday >= 1 && daysFromToday <= END_DATE_MAX_DAYS
+  return daysFromToday >= 0 && daysFromToday <= END_DATE_MAX_DAYS
     ? VALID
     : invalid(END_DATE_MESSAGE[locale]);
 }

@@ -5,6 +5,9 @@ import type { Session } from '@supabase/supabase-js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
+import { PromiseTutorialProvider } from '../lib/promise-tutorial';
+import { EndDatePickerHost } from '../components/EndDatePicker';
+
 import { LocaleProvider } from '../lib/locale-native';
 import { MobileAuthGateContext } from '../lib/mobile-auth-gate.ts';
 import { consumeIntentionalSignOut } from '../lib/intentional-sign-out.ts';
@@ -201,6 +204,7 @@ export default function RootLayout(): React.JSX.Element {
   return (
     <MobileAuthGateContext.Provider value={{ callbackFailed, sessionExpired, onOnboardingCompleted }}>
       <LocaleProvider onReady={() => setLocaleReady(true)}>
+      <PromiseTutorialProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="update-required" />
         <Stack.Screen name="i/[token]" />
@@ -224,6 +228,8 @@ export default function RootLayout(): React.JSX.Element {
           <Stack.Screen name="blocked-users" />
         </Stack.Protected>
       </Stack>
+      <EndDatePickerHost />
+      </PromiseTutorialProvider>
       </LocaleProvider>
     </MobileAuthGateContext.Provider>
   );
