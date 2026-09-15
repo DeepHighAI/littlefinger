@@ -7,6 +7,7 @@ const { resolve } = require('node:path');
 const root = resolve(__dirname, '..');
 const images = resolve(root, 'apps/mobile/assets/images');
 const face = resolve(images, 'mascot-face-e1.png');
+const launcher = resolve(root, 'docs/디자인/store/app-icon/littlefinger-icon-new.png');
 const eyes = resolve(images, 'eyes-e1.png');
 const webBrand = resolve(root, 'apps/web/public/brand');
 const launcherButter = '#FFE59A';
@@ -14,18 +15,28 @@ const canvasCream = '#F3ECDC';
 const magick = (args) => execFileSync('magick', args, { cwd: root, encoding: 'utf8' });
 const png = (path) => ['-strip', '-depth', '8', `PNG32:${path}`];
 
-// E-1 얼굴은 런처 전용이다. 플랫폼 마스크가 바깥 모서리를 마지막에 자른다.
+// 승인된 새 원본의 구도는 일반 아이콘에 보존하고 적응형 레이어는 별도로 내보낸다.
 magick([
-  '-size', '1024x1024', `xc:${launcherButter}`,
-  '(', face, '-filter', 'Lanczos', '-resize', '1024x1024', ')',
-  '-gravity', 'center', '-compose', 'over', '-composite', '-alpha', 'remove',
+  launcher, '-filter', 'Lanczos', '-resize', '1024x1024',
   ...png(resolve(images, 'icon.png')),
 ]);
 magick(['-size', '1024x1024', `xc:${launcherButter}`, ...png(resolve(images, 'android-icon-background.png'))]);
 
-// 108dp 레이어 안의 66dp 안전 원에 흰 얼굴과 손을 함께 넣어 마스크에서 표정이 잘리지 않게 한다.
+// 실제 알파 픽셀의 반경을 재서 108dp 안의 66dp 안전 원에 맞춘다.
+const alpha = execFileSync('magick', [face, '-alpha', 'extract', '-depth', '8', 'gray:-']);
+const masterEdge = 512;
+let artworkRadius = 0;
+for (let y = 0; y < masterEdge; y += 1) {
+  for (let x = 0; x < masterEdge; x += 1) {
+    if (alpha[y * masterEdge + x] > 0) {
+      artworkRadius = Math.max(artworkRadius, Math.hypot(x - (masterEdge - 1) / 2, y - (masterEdge - 1) / 2));
+    }
+  }
+}
+const safeRadius = 1024 * 33 / 108;
+const foregroundEdge = Math.floor(masterEdge * (safeRadius - 4) / artworkRadius);
 magick([
-  face, '-filter', 'Lanczos', '-resize', '668x668', '-background', 'none',
+  face, '-filter', 'Lanczos', '-resize', `${foregroundEdge}x${foregroundEdge}`, '-background', 'none',
   '-gravity', 'center', '-extent', '1024x1024',
   ...png(resolve(images, 'android-icon-foreground.png')),
 ]);
@@ -57,4 +68,4 @@ magick([
   ...png(resolve(webBrand, 'og-image.png')),
 ]);
 
-console.log('E-1 launcher, splash and web brand exports regenerated; Play listing assets remain PO-curated files.');
+console.log(`PO mascot launcher, splash and web brand exports regenerated; adaptive foreground ${foregroundEdge}px inside the 66dp safe circle.`);

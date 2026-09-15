@@ -1,0 +1,27 @@
+{
+  "mascot-face-e1.png": {
+    "width": 512,
+    "height": 512,
+    "sha256": "953412d85ec50c6085b81c4597890cad9a6b00810c52d6509dbf56cf830e543c"
+  },
+  "eyes-e1.png": {
+    "width": 200,
+    "height": 80,
+    "sha256": "a620538de1c3b8272f7435ceae62d79cf45ddef5e5637d27ffc1640ee700f840"
+  },
+  "hand-color.png": {
+    "width": 804,
+    "height": 763,
+    "sha256": "d1e12aac277951dc3c3cd0b94363d8492cf0ba29beb3fb1371ffa15693f75bf1"
+  },
+  "hand-solid.png": {
+    "width": 804,
+    "height": 763,
+    "sha256": "d1e12aac277951dc3c3cd0b94363d8492cf0ba29beb3fb1371ffa15693f75bf1"
+  },
+  "icon-face-e1.png": {
+    "width": 512,
+    "height": 512,
+    "sha256": "0fc3725cc58e2c25f14973203e46bce8911be470198f02393bd57fcfaa1fd976"
+  }
+}

@@ -52,15 +52,15 @@ test('Expo 네이티브 빌드 이미지가 존재하고 EAS 업로드에서 제
 
 test('Android 배포 이미지는 승인된 브랜드 내보내기와 일치한다', () => {
   const approvedHashes = {
-    'assets/images/icon.png': 'ed0e202bc0b4405b290dd6232eb18b0cc8ab71ec3ef25a5c71f1e7d7a5c6b127',
+    'assets/images/icon.png': 'b87564cfe2f28ace0e98e30eccab59ba13c7bca794eb3f811c6f91d1e5281072',
     'assets/images/android-icon-foreground.png':
-      'fb33bec0d0a5bc5b49028444027f4c6b02855bcf5fbe76c9a11adf339f243ac2',
+      'ff66921ed7d5cd3743310f1a12855230b5e671ec18b1aafcb8a1ff772c5d0f16',
     'assets/images/android-icon-background.png':
       'c9b29551a25aa3ee9361eeea19c80d5b9fd8e05aa224999fe16de24288518d0e',
     'assets/images/android-icon-monochrome.png':
-      '3bf8be742fb62f437e2b427a0d859cebb4fd13e0a96f7eb20a9b635b1b187ffa',
+      '7ea8e2309be89969854956c3a90c7e932b4e28c2e2c962135a063581b977efe8',
     'assets/images/splash-icon.png':
-      '66d76badca6b915833ec119f32e9c65c9b18cba5c68ce381b5818d745bdd547f',
+      '10b2c437bc7b83a602701535c2ea8a20a2872d16596dca190da790c8ea053c49',
   };
 
   for (const [relativePath, expectedHash] of Object.entries(approvedHashes)) {
@@ -78,7 +78,7 @@ test('Play 스토어 아이콘은 PO가 저장한 512×512 불투명 RGBA 원본
   expect(png.readUInt32BE(20)).toBe(512);
   expect(png[25]).toBe(6);
   expect(createHash('sha256').update(png).digest('hex')).toBe(
-    '657517bed18910cb1c7927607a8be02ded7f86be767d8291056f521ca83ef6de',
+    '0fc3725cc58e2c25f14973203e46bce8911be470198f02393bd57fcfaa1fd976',
   );
 });
 

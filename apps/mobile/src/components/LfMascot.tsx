@@ -45,7 +45,7 @@ function accessibilityProps(accessibilityLabel: string | undefined): Pick<
   };
 }
 
-/** 승인된 E-1 얼굴 PNG. 크기만 바꾸고 색상 가공은 하지 않는다. */
+/** PO 원본의 입체감이 화면마다 달라지지 않도록 크기만 바꾼다 (ADR 0028). */
 export function LfMascotFace({
   size = 'md',
   accessibilityLabel,
@@ -63,7 +63,7 @@ export function LfMascotFace({
   );
 }
 
-/** 승인된 E-1 눈 PNG. 원본 5:2 비율을 유지한다. */
+/** 얼굴에서 분리한 눈은 기존 슬롯의 5:2 비율을 유지한다. */
 export function LfEyes({
   size = 'row',
   accessibilityLabel,

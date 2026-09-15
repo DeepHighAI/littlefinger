@@ -1,5 +1,27 @@
 # Littlefinger Design System
 
+## Mascot replacement (2026-09-15, ADR 0028)
+
+The PO supplied a glossy white 3D character with black pinky-finger eyes, then supplied
+`docs/디자인/store/app-icon/new-2026-09-15/icon-noback.png` with real transparency.
+This artwork supersedes the E-1 body/eye artwork described below. The Ink & Block UI,
+its colors, typography, controls and layout spacing remain unchanged.
+
+Large onboarding/login, empty, history, guidance and completion illustrations show the
+complete supplied portrait once, preserving their existing layout footprint. The portrait's
+eyes are baked in, so these portraits are static. Independent agreement-stamp hands retain
+their existing loop and reduced-motion handling, using hands extracted from the supplied art.
+Small face slots retain their existing tile/hint containers; eye-only slots use extracted eyes.
+Colored stamp-corner decorations and state/participant symbols remain independent.
+
+The launcher uses the original yellow-field image; adaptive foreground/splash use transparent
+art and monochrome uses white hand-eye alpha. The source and export scripts are documented
+in the icon directory README. Existing asset filenames are retained as stable consumer paths.
+The supplied character's soft lighting is an artwork property, not a new UI shadow token.
+
+Mobbin-inspired login/empty-state spacing changes are proposed separately in
+`docs/디자인/store/app-icon/new-2026-09-15/mobbin-improvement-proposal.md` and await PO approval.
+
 ## Product character
 
 Littlefinger is a mutual-promise recorder. Its visual character is **friendly but firm**: warm

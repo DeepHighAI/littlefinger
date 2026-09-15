@@ -14,7 +14,7 @@ function imageAccessibility(accessibilityLabel: string | undefined): {
     : { alt: accessibilityLabel };
 }
 
-/** 승인된 E-1 원본만 렌더해 웹 화면별 자산 분기를 막는다. */
+/** PO 원본을 공유해 웹 화면마다 다른 얼굴이 표시되지 않게 한다 (ADR 0028). */
 export function LfMascotFace({
   size = 'md',
   accessibilityLabel,
@@ -78,8 +78,8 @@ export function LfPinkyLoop({
 }
 
 /**
- * 타원 아트 — 잉크 & 블록의 마스코트 자리 (`.lf-oval`). web 190×152 는 안쪽 종이 타원을 갖고,
- * hint 60×56 은 종이 바탕 2px 로 카드 안에 들어간다. 장식이라 접근성 트리에서 뺀다.
+ * 큰 아트는 얼굴이 포함된 원본으로 교체하고 작은 hint 의 컨테이너는 유지한다.
+ * 장식이라 접근성 트리에서 뺀다.
  */
 export function LfOval({
   variant,
@@ -92,8 +92,9 @@ export function LfOval({
 }): React.JSX.Element {
   return (
     <div className={`lf-oval lf-oval--${variant}${muted ? ' lf-oval--muted' : ''}`} aria-hidden="true">
-      {variant === 'web' ? <span className="lf-oval__inner" /> : null}
-      {children}
+      {variant === 'web'
+        ? <img className="lf-character" src={mascotFaceUrl} alt="" />
+        : children}
     </div>
   );
 }

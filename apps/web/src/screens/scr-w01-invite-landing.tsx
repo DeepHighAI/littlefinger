@@ -11,7 +11,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 
 import { GoogleMark } from '../components/google-mark.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
-import { LfOval, LfPinkyLoop } from '../components/LfMascot.tsx';
+import { LfOval } from '../components/LfMascot.tsx';
 import { TestLoginForm } from '../components/test-login-form.tsx';
 import { INTERNAL_MESSAGE_BY_LOCALE, messageForFailure, NO_RESPONSE, readFailure, type ApiFailure } from '../lib/api-failure.ts';
 import { useLabels, useLocale } from '../lib/locale.tsx';
@@ -390,9 +390,7 @@ export function ScrW01InviteLanding(): React.JSX.Element {
  */
 export function PinkyBadge(): React.JSX.Element {
   return (
-    <LfOval variant="web">
-      <LfPinkyLoop size="eyes" />
-    </LfOval>
+    <LfOval variant="web" />
   );
 }
 

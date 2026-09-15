@@ -1,4 +1,4 @@
-import { StyleSheet, View, type ViewProps } from 'react-native';
+import { Image, StyleSheet, View, type ViewProps } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { colors, border, elevation } from '../theme/tokens';
@@ -20,7 +20,6 @@ export interface LfOvalProps extends Omit<ViewProps, 'style'> {
 type Radii = { readonly x: readonly [number, number, number, number]; readonly y: readonly [number, number, number, number] };
 
 const OUTER: Radii = { x: [62, 38, 55, 45], y: [42, 60, 40, 58] };
-const INNER: Radii = { x: [40, 60, 48, 52], y: [58, 42, 62, 38] };
 
 /** 아트 치수와 안쪽 흰 타원 inset(top right bottom left) — README 값, 토큰 없음(ADR 0020 예외) */
 const ART: Record<LfOvalVariant, {
@@ -84,7 +83,20 @@ export function LfOval({
   const art = ART[variant];
   const half = art.border / 2;
   const fill = variant === 'login' ? LOGIN_YELLOW : toneFill[tone];
-  const [top, right, bottom, left] = art.inner ?? [0, 0, 0, 0];
+
+  // 얼굴이 포함된 원본이므로 큰 아트에는 눈을 다시 겹치지 않는다.
+  if (art.inner !== null) {
+    return (
+      <View {...rest} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+        style={[
+          { width: art.width + art.shadow, height: art.height + art.shadow },
+          variant === 'login' && { transform: [{ rotate: LOGIN_TILT }] },
+        ]}>
+        <Image source={require('../../assets/images/mascot-face-e1.png') as number}
+          resizeMode="contain" style={{ width: '100%', height: '100%' }} />
+      </View>
+    );
+  }
 
   return (
     <View
@@ -106,12 +118,6 @@ export function LfOval({
           stroke={colors.text}
           strokeWidth={art.border}
         />
-        {art.inner === null ? null : (
-          <Path
-            d={ovalPath(left, top, art.width - left - right, art.height - top - bottom, INNER)}
-            fill={colors.surface}
-          />
-        )}
       </Svg>
       <View pointerEvents="none" style={[styles.overlay, { width: art.width, height: art.height }]}>
         {children}

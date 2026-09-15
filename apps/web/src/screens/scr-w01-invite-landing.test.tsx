@@ -91,7 +91,7 @@ describe('SCR-W01 초대 랜딩', () => {
 
     // 잉크 & 블록: 랜딩 마크는 로그인 블롭이 아니라 웹 타원(`.lf-oval--web`)이다
     expect(document.querySelector('.lf-oval--web')).not.toBeNull();
-    expect(document.querySelectorAll('img[src*="hand-solid.png"]')).toHaveLength(2);
+    expect(document.querySelectorAll('img[src*="mascot-face-e1.png"]')).toHaveLength(1);
   });
 
   it('invite-resolve 가 준 것만 그린다', async () => {

@@ -23,6 +23,14 @@
 .lf-mascot--md { width: var(--lf-mascot-md); height: var(--lf-mascot-md); }
 .lf-mascot--lg { width: var(--lf-mascot-lg); height: var(--lf-mascot-lg); }
 
+/* 얼굴이 포함된 PO 원본은 큰 마스코트의 몸과 눈을 한 번에 대체한다. */
+.lf-character {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 /* 마스코트 타일 — 옐로 둥근 사각형 안 얼굴 (헤더 견본 · 초대 검토) */
 .lf-mascot-tile {
   width: 72px;
@@ -2058,3 +2066,25 @@
 /* 행 제목·부제는 span 이라도 두 줄로 쌓인다 (버튼 안에서는 div 를 못 쓴다) */
 .lf-list-item__headline,
 .lf-list-item__supporting { display: block; }
+
+/* 기존 아트 영역의 크기는 유지하며 큰 몸·눈 조합만 PO 투명 마스코트로 바꾼다. */
+.lf-blob--hero,
+.lf-blob--login,
+.lf-blob--empty,
+.lf-oval--web,
+.lf-oval--history,
+.lf-oval--celebrate {
+  background: transparent url('../assets/images/mascot-face-e1.png') center / contain no-repeat;
+  border-color: transparent;
+  box-shadow: none;
+  filter: none;
+}
+
+.lf-blob--hero > *,
+.lf-blob--login > *,
+.lf-blob--empty > *,
+.lf-oval--web > :not(.lf-character),
+.lf-oval--history > *,
+.lf-oval--celebrate > * { display: none; }
+
+.lf-oval--web:has(> .lf-character) { background-image: none; }

@@ -1,6 +1,55 @@
 # Development Status
 
-Snapshot date: **2026-09-14 KST**.
+Snapshot date: **2026-09-15 KST**.
+
+## PO mascot and launcher replacement (2026-09-15, source ready)
+
+ADR 0028 replaces the mobile/acceptance-web/reference mascot with the PO-supplied transparent
+3D artwork. Large portraits, small faces, eye-only slots and agreement hands are covered;
+the existing standalone hand loop and state semantics remain. Launcher/adaptive/monochrome,
+splash and web metadata exports are regenerated. Optional Mobbin spacing improvements M1/M2
+remain unapproved and unapplied. No production app or web deployment has been performed.
+
+Verification: 2,231 Vitest and 972 mobile Jest tests passed, five-project typecheck passed,
+web production build passed, eight acceptance-web fixture routes and five reference screens
+at 360 dp/text scales 1.0/1.5 captured without page JavaScript errors. Actual alpha bounds fit
+the Android adaptive safe circle. Native runtime evidence and reproduction details are in the
+[asset rollout README](디자인/store/app-icon/new-2026-09-15/README.md).
+The x86_64 debug build passed after repairing interrupted Gradle transform caches. A read-only
+API 36.1 emulator confirmed the launcher and onboarding/login at 360 × 800 dp, native font
+scales 1.0 and 1.5. No authenticated native walkthrough or production distribution was performed.
+
+## Marketing technical foundation deployed (2026-09-15)
+
+Joint Codex/Claude research preceded the SEO/AEO/GEO strategy. The first web batch is live:
+robots, root sitemap, request-scoped canonical/noindex headers and home campaign attribution.
+The existing legal-label registry omission is fixed without changing legal wording. Reviewed
+home operator attribution and privacy static rendering shipped with it. Full verification:
+2,229 Vitest tests, 972 Jest tests, five-project typecheck, build, privacy visual diff and
+23 production HTTP checks passed. Hosting version: `0febf2c75e226e5c`, released 10:27 KST.
+See [marketing workspace](marketing/README.md) and [release evidence](marketing/verification.md).
+Solo follow-up at 11:26 KST published `/guides/promise-record`, linked from home and sitemap,
+with ko/en copy and static Korean HTML. Version: `bbdcfe65bac233e5`. Web tests: 268 passed;
+typecheck/build passed; 25 production HTTP checks passed. Static/React body visual parity:
+0 changed pixels at 360×800. Two other guides remain drafts. GSC fetch error and Bing/Naver
+registration remain unresolved; see [operator next actions](marketing/next-actions.md).
+At 12:12 KST, GSC live tests successfully fetched sitemap and guide, with crawling/indexing
+allowed and guide canonical recognized. One sitemap resubmission was accepted; the processing error
+remained visible. Guide indexing request was rejected for daily quota; retry September 16.
+14:50 KST read-only recheck confirmed the homepage is indexed; the guide is still not indexed
+and the sitemap fetch-error display is unchanged. No same-day retry or automation was started.
+OAuth branding remains deferred. Source is not yet committed.
+
+## App Links and SDK location disclosure audited (2026-09-14)
+
+Live assetlinks returned HTTP 200 and Google's association checks returned `linked: true`
+for all three recorded certificates. No Firebase Dynamic Links dependency was found.
+Code 32 has no location permissions but embeds AdMob 25.0.0, whose IP-based approximate
+location processing must not be dismissed because EXIF is stripped. Corrected the old
+operator instructions to remove location/diagnostics disclosures. The public privacy
+policy's blanket no-location wording needs a PO-approved clarification; proposed Korean
+and English text and limits are in [the audit](qa/APP_LINKS_LOCATION_AUDIT_2026-09-14.md).
+No app behavior, public policy or Play declaration was changed by this audit.
 
 ## PO accepted internal-test code 32; production candidate unchanged (2026-09-14)
 

@@ -78,7 +78,7 @@ describe('SCR-W06 링크 무효·만료 안내', () => {
     const { container } = render(<ScrW06LinkExpired reason="E_INVITE_EXPIRED" />);
     // 잉크 & 블록: 빈 화면 블롭 대신 뮤트 웹 타원(`.lf-oval--web.lf-oval--muted`)
     expect(container.querySelector('.lf-oval--web.lf-oval--muted')).not.toBeNull();
-    expect(container.querySelector('img[src*="eyes-e1.png"]')).not.toBeNull();
+    expect(container.querySelector('img[src*="mascot-face-e1.png"]')).not.toBeNull();
   });
 
   it('광고 슬롯이 없다', () => {

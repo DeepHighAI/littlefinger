@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfOval } from '../components/LfOval';
 import { LfButton } from '../components/LfButton';
-import { LfEyes } from '../components/LfMascot';
 import { LfText } from '../components/LfText';
 import { useLabels } from '../lib/locale-native';
 import { NOT_FOUND_LABEL } from '../screens/not-found-labels.ts';
@@ -32,9 +31,7 @@ export default function NotFoundScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen}>
       <View style={styles.body}>
         <View accessible accessibilityRole="image" accessibilityLabel={LABEL.badge}>
-          <LfOval variant="web" tone="muted">
-            <LfEyes size="web" />
-          </LfOval>
+          <LfOval variant="web" tone="muted" />
         </View>
         <View style={styles.copy}>
           <LfText variant="subtitle" align="center">{LABEL.title}</LfText>

@@ -3,7 +3,7 @@ const { readFileSync } = require('node:fs');
 const { resolve } = require('node:path');
 
 /**
- * E-1 마스코트 자산 — 2026-09-03 확정안(파스텔 × 잉크 & 스티커).
+ * PO 투명 마스코트 자산 — 2026-09-15 교체(ADR 0028). 기존 파일명은 소비 경로를 보존한다.
  *
  * 마스터는 design-reference 에 있고 앱·웹은 바이트 복사본을 쓴다. 한쪽만 다시 내보내면 세 표면의
  * 마스코트가 미세하게 달라지고 아무도 눈치채지 못하므로 해시로 잠근다. 바꿀 때는 마스터를 먼저
@@ -20,27 +20,27 @@ const MASTERS = {
   'mascot-face-e1.png': {
     width: 512,
     height: 512,
-    sha256: 'e08498091f8aebfc15385baf8d7bb8a03bd8ebcfe6006fd68dd33dd8c473a988',
+    sha256: '953412d85ec50c6085b81c4597890cad9a6b00810c52d6509dbf56cf830e543c',
   },
   'eyes-e1.png': {
     width: 200,
     height: 80,
-    sha256: '1df3d13008dcfa73f84f20573fa7ef14e947e90f426da17f30cf3435ac6abdeb',
+    sha256: 'a620538de1c3b8272f7435ceae62d79cf45ddef5e5637d27ffc1640ee700f840',
   },
   'hand-color.png': {
     width: 804,
     height: 763,
-    sha256: '63f3a4c83dcfbe5a11d29a476bddde4d041ad260ffe2956a072418a9f573cd7c',
+    sha256: 'd1e12aac277951dc3c3cd0b94363d8492cf0ba29beb3fb1371ffa15693f75bf1',
   },
   'hand-solid.png': {
     width: 804,
     height: 763,
-    sha256: 'e5c869d06057133d7ca4a3a7304951e3195df9baf86fe1f429e48af9cb3ed4b3',
+    sha256: 'd1e12aac277951dc3c3cd0b94363d8492cf0ba29beb3fb1371ffa15693f75bf1',
   },
   'icon-face-e1.png': {
     width: 512,
     height: 512,
-    sha256: '6470a60d64effefa5c2b9f7d9f326cfcbfc3651aa4e1c868c7acdeae53928250',
+    sha256: '0fc3725cc58e2c25f14973203e46bce8911be470198f02393bd57fcfaa1fd976',
   },
 };
 
@@ -51,7 +51,7 @@ const WEB_COPIES = ['mascot-face-e1.png', 'eyes-e1.png', 'hand-solid.png'];
 const WEB_HAND_COLOR = {
   width: 402,
   height: 382,
-  sha256: 'aad32d68101980081d951d6c7cf3dd1c7b7fe5ab1f9da2fef96a0e44ebc8ee77',
+  sha256: '6cbd1eb5b5700be9be8c238c7f297893a2ccbf85f87abbcb794f7b85819f158d',
 };
 
 function readPng(path) {

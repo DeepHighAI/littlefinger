@@ -18,10 +18,11 @@ describe('web E-1 brand components', () => {
     expect(container.querySelectorAll('img[alt=""]')).toHaveLength(2);
   });
 
-  test('renders the web oval with the solid loop inside', () => {
-    const { container } = render(<LfOval variant="web"><LfPinkyLoop size="eyes" /></LfOval>);
+  test('renders one complete character without duplicate eyes or a body', () => {
+    const { container } = render(<LfOval variant="web" />);
     expect(container.querySelector('.lf-oval--web')).not.toBeNull();
-    expect(container.querySelector('.lf-oval__inner')).not.toBeNull();
-    expect(container.querySelectorAll('img[src*="hand-solid.png"]')).toHaveLength(2);
+    expect(container.querySelector('.lf-oval__inner')).toBeNull();
+    expect(container.querySelectorAll('img')).toHaveLength(1);
+    expect(container.querySelector('img')?.getAttribute('src')).toContain('mascot-face-e1.png');
   });
 });

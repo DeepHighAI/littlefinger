@@ -12,7 +12,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LfDisclaimer } from '../components/LfDisclaimer.tsx';
 import { useLabels, useLocale } from '../lib/locale.tsx';
 import { LfIcon } from '../components/LfIcon.tsx';
-import { LfMascotFace, LfOval, LfPinkyLoop } from '../components/LfMascot.tsx';
+import { LfOval, LfPinkyLoop } from '../components/LfMascot.tsx';
 import { promisesPath } from '../routes.ts';
 import { SCR_W03_LABEL } from './scr-w03-labels.ts';
 
@@ -111,7 +111,7 @@ export function ScrW03ApprovalComplete(): React.JSX.Element {
     return (
       <div className="lf-screen" data-testid="no-result">
         <div className="lf-screen__body lf-screen__body--web lf-screen__body--centered">
-          <LfOval variant="web"><LfPinkyLoop size="eyes" /></LfOval>
+          <LfOval variant="web" />
         </div>
         <RevisitActions promiseId={null} />
       </div>

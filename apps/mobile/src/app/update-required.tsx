@@ -3,7 +3,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfOval } from '../components/LfOval';
 import { LfButton } from '../components/LfButton';
-import { LfEyes } from '../components/LfMascot';
 import { LfText } from '../components/LfText';
 import { useLabels } from '../lib/locale-native';
 import { openAndroidStore } from '../lib/minimum-app-version-native.ts';
@@ -29,9 +28,7 @@ export default function UpdateRequiredScreen(): React.JSX.Element {
     <SafeAreaView style={styles.screen}>
       <View style={styles.body}>
         <View accessible accessibilityRole="image" accessibilityLabel={LABEL.badge}>
-          <LfOval variant="web">
-            <LfEyes size="web" />
-          </LfOval>
+          <LfOval variant="web" />
         </View>
         <View style={styles.copy}>
           <LfText variant="subtitle" align="center">{LABEL.title}</LfText>

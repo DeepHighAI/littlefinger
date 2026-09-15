@@ -564,3 +564,26 @@ An isolated source copy needs Git metadata for the Firebase asset `git check-ign
 test, plus each workspace's nested dependency junction for all-project typecheck.
 Missing either can fail checks without any application-code failure. Do not copy
 concurrent acceptance-web changes into an Android snapshot just to satisfy checks.
+
+### Firebase Hosting headers on Windows (2026-09-15)
+
+firebase-tools 15.1.0 / superstatic 10.0.0 can serve files while silently matching no custom
+header rules: `glob-slash` normalizes URL paths with Windows backslashes, which minimatch treats
+as escapes. The failure affected existing `Cache-Control` as well as new canonical/noindex rules.
+Do not rewrite valid production patterns to satisfy this emulator. Prefer a POSIX runtime;
+when unavailable, an explicitly documented temporary preload overriding `glob-slash.normalize`
+with `path.posix.normalize(path.posix.join('/', value))` verified the same rules through HTTP.
+Never patch installed dependencies or claim this verifies production. See
+[`marketing/verification.md`](../marketing/verification.md) for the 23-check result and release check.
+
+### Interrupted Gradle transform cache (2026-09-15)
+
+An interrupted Android debug build left Gradle 9.3.1 transform workspaces reporting
+`immutable workspace ... modified`, followed by `Could not read workspace metadata` during
+dex/global-synthetics merging. These are user-home cache errors, not TypeScript or asset errors.
+Inspect the exact transform path from the failure. Stop only daemons verified as belonging to
+the interrupted task, then quarantine the affected cache directory with native PowerShell and
+resolved-path checks. Do not delete the entire shared Gradle cache or stop unrelated builds.
+`Move-Item` may partially move a directory while reporting a locked-file error; use
+`-ErrorAction Stop` and inspect source and destination instead of trusting the shell exit code.
+The mascot task's quarantined cache fragments live under `tmp/mascot-gradle-quarantine/`.

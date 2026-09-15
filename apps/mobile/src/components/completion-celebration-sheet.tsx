@@ -10,7 +10,6 @@ import { border, colors, elevation, radius, size, space } from '../theme/tokens.
 import { LfButton } from './LfButton.tsx';
 import { LfIcon } from './LfIcon.tsx';
 import { LfOval } from './LfOval.tsx';
-import { LfPinkyLoop } from './LfPinkyLoop.tsx';
 import { LfSheet } from './LfSheet.tsx';
 import { LfStack } from './LfStack.tsx';
 import { LfText } from './LfText.tsx';
@@ -68,15 +67,7 @@ export function CompletionCelebrationSheet({
       sheetTestID="completion-celebration-sheet"
       centered
       art={
-        <LfOval variant="celebrate">
-          <LfPinkyLoop
-            size="eyes"
-            variant="solid"
-            spark
-            accessibilityLabel={LABEL.pinky}
-            testID="completion-celebration-pinky"
-          />
-        </LfOval>
+        <LfOval variant="celebrate" testID="completion-celebration-mascot" />
       }
     >
       {celebration !== null ? (

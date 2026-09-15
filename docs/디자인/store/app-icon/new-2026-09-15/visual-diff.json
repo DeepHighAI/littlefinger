@@ -1,0 +1,7 @@
+{
+  "screen": "reference home empty",
+  "before": ".playwright-mcp/mascot-before-empty.png",
+  "after": ".playwright-mcp/mascot-after-empty.png",
+  "size": "345x984 (body capture of 360px viewport)",
+  "changedPixels": "31929 (0.0940527)"
+}

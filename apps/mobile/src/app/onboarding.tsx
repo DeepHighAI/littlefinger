@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LfBlob } from '../components/LfBlob';
 import { LfButton } from '../components/LfButton';
-import { LfPinkyLoop } from '../components/LfPinkyLoop';
 import { useLabels } from '../lib/locale-native';
 import { useMobileAuthGate } from '../lib/mobile-auth-gate.ts';
 import { completeOnboardingNative } from '../lib/onboarding-native.ts';
@@ -60,9 +59,7 @@ export default function OnboardingScreen(): React.JSX.Element {
       </View>
       <View style={styles.body}>
         <View style={styles.badge} accessible accessibilityRole="image" accessibilityLabel={LABEL.badge}>
-          <LfBlob variant="login">
-            <LfPinkyLoop size="eyes" variant="solid" spark />
-          </LfBlob>
+          <LfBlob variant="login" />
         </View>
         <View>
           <Text style={styles.headline}>{LABEL.headline}</Text>
