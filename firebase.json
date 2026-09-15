@@ -48,9 +48,121 @@
               "value": "public, max-age=3600"
             }
           ]
+        },
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Link",
+              "value": "<https://littlefinger-app.web.app/>; rel=\"canonical\""
+            }
+          ]
+        },
+        {
+          "source": "/index.html",
+          "headers": [
+            {
+              "key": "Link",
+              "value": "<https://littlefinger-app.web.app/>; rel=\"canonical\""
+            }
+          ]
+        },
+        {
+          "source": "/guides/promise-record",
+          "headers": [{ "key": "Link", "value": "<https://littlefinger-app.web.app/guides/promise-record>; rel=\"canonical\"" }]
+        },
+        {
+          "source": "/promise-guide.html",
+          "headers": [{ "key": "Link", "value": "<https://littlefinger-app.web.app/guides/promise-record>; rel=\"canonical\"" }]
+        },
+        {
+          "source": "/app.html",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "source": "/i",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "source": "/i/**",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "source": "/witness",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "source": "/witness/**",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "source": "/promises",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "source": "/promises/**",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "source": "/auth",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "source": "/auth/**",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
         }
       ],
       "rewrites": [
+        { "source": "/guides/promise-record", "destination": "/promise-guide.html" },
+        {
+          "source": "/legal/privacy",
+          "destination": "/privacy.html"
+        },
         {
           "source": "**",
           "destination": "/app.html"

@@ -13,6 +13,7 @@ export const ROUTE = {
    * 요구한다(2026-09-03) — 전에는 `/` 가 SCR-W06(E_NOT_FOUND) 로 떨어졌다.
    */
   home: '/',
+  promiseGuide: '/guides/promise-record',
   /** 공개 이용약관 초안. 인증과 초대 토큰이 필요 없다. */
   terms: legalDocumentPath('TERMS'),
   /** 공개 개인정보 처리방침 초안. 인증과 초대 토큰이 필요 없다. */

@@ -1,8 +1,7 @@
-import {
-  LEGAL_DOCUMENT_LABELS_BY_LOCALE,
-  type LegalDocumentKind,
-  type Localized,
-} from '@littlefinger/shared';
+import type { LegalDocumentKind, Localized } from '@littlefinger/shared';
+
+// 빌드 시에도 같은 문서를 읽도록 설정 번들러가 외부화하는 패키지 진입점을 피한다.
+import { LEGAL_DOCUMENT_LABELS_BY_LOCALE } from '../../../../packages/shared/src/legal.ts';
 
 /**
  * 확정판 법무 문서 전문 (버전·시행일 정본은 shared `LEGAL_DOCUMENTS`).

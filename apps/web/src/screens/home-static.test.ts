@@ -19,6 +19,9 @@ describe('공개 홈 정적 HTML — JS 없는 크롤러가 보는 첫 화면', 
     expect(HOME_STATIC_LINKS.privacy).toBe(ROUTE.privacy);
     expect(HOME_STATIC_LINKS.terms).toBe(ROUTE.terms);
     expect(HOME_STATIC_LINKS.accountDeletion).toBe(ROUTE.accountDeletion);
-    expect(HOME_STATIC_LINKS.playStore).toBe(buildPlayStoreUrl({ source: 'web', medium: 'home' }));
+    // campaign 은 Play 콘솔이 보여주는 유일한 세부 차원이라 홈 CTA 에 붙인다 (app-links.ts 참조).
+    expect(HOME_STATIC_LINKS.playStore).toBe(
+      buildPlayStoreUrl({ source: 'web', medium: 'home', campaign: 'home' }),
+    );
   });
 });

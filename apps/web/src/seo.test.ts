@@ -40,7 +40,11 @@ describe('두 개의 HTML 셸 — 홈은 index.html, 나머지 경로는 app.htm
       hosting: { target: string; rewrites?: { source: string; destination: string }[] }[];
     };
     const web = firebase.hosting.find((site) => site.target === 'web');
-    expect(web?.rewrites).toEqual([{ source: '**', destination: '/app.html' }]);
+    expect(web?.rewrites).toEqual([
+      { source: '/guides/promise-record', destination: '/promise-guide.html' },
+      { source: '/legal/privacy', destination: '/privacy.html' },
+      { source: '**', destination: '/app.html' },
+    ]);
   });
 
   test('HTML 셸은 매번 재검증하고 해시 자산만 길게 캐시한다', () => {
@@ -57,6 +61,78 @@ describe('두 개의 HTML 셸 — 홈은 index.html, 나머지 경로는 app.htm
     expect(cacheOf('/assets/**')).toBe('public, max-age=31536000, immutable');
     expect(rules.findIndex((rule) => rule.source === '**')).toBeLessThan(
       rules.findIndex((rule) => rule.source === '/assets/**'),
+    );
+  });
+});
+
+describe('크롤 문서 — robots.txt 와 sitemap.xml 은 public 의 정적 파일이다', () => {
+  // Firebase 는 실제 파일이 있으면 `**` 재작성보다 먼저 그 파일을 준다. 2026-09-15 라이브 점검에서
+  // 두 경로 모두 SPA 셸(text/html, 200)로 떨어졌고, 네이버는 HTML 로 돌아온 robots.txt 를
+  // "없음"으로 볼 수 있다고 안내한다 — 정적 텍스트 파일이 유일한 해법이다.
+  test('robots.txt 는 전체 허용 + 사이트맵 위치만 담고, 학습 크롤러 정책은 담지 않는다', () => {
+    const robots = readFileSync(resolve(WEB_ROOT, 'public/robots.txt'), 'utf8');
+    const lines = robots.split('\n').map((line) => line.trim()).filter((line) => line.length > 0);
+    expect(lines).toEqual(['User-agent: *', 'Allow: /', `Sitemap: ${CANONICAL_ORIGIN}/sitemap.xml`]);
+    // noindex 는 크롤이 돼야 보이므로(Google) 비공개 경로도 Disallow 하지 않는다.
+    // AI 학습용 봇 차단은 PO 결정 사항이라 여기 없다.
+    expect(robots).not.toMatch(/Disallow/u);
+  });
+
+  test('sitemap.xml 은 게시된 공개 정본만 담고 lastmod 를 지어내지 않는다', () => {
+    const sitemap = readFileSync(resolve(WEB_ROOT, 'public/sitemap.xml'), 'utf8');
+    expect(sitemap).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    expect([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/gu)].map((m) => m[1])).toEqual([
+      `${CANONICAL_ORIGIN}/`,
+      `${CANONICAL_ORIGIN}/guides/promise-record`,
+    ]);
+    expect(sitemap).not.toContain('<lastmod>');
+  });
+});
+
+describe('색인 경계 — HTTP 헤더로만 정한다 (SPA DOM 태그는 화면 이동 뒤에도 남는다)', () => {
+  type HeaderRule = { source: string; headers: { key: string; value: string }[] };
+  const firebase = JSON.parse(readFileSync(resolve(REPO_ROOT, 'firebase.json'), 'utf8')) as {
+    hosting: { target: string; headers?: HeaderRule[] }[];
+  };
+  const rules = firebase.hosting.find((site) => site.target === 'web')?.headers ?? [];
+  const sourcesWith = (key: string, value: string): string[] =>
+    rules
+      .filter((rule) => rule.headers.some((h) => h.key === key && h.value === value))
+      .map((rule) => rule.source);
+
+  test('rel=canonical 헤더는 루트와 루트의 index.html 별칭에만 있다', () => {
+    expect(sourcesWith('Link', `<${CANONICAL_ORIGIN}/>; rel="canonical"`)).toEqual([
+      '/',
+      '/index.html',
+    ]);
+    expect(sourcesWith('Link', `<${CANONICAL_ORIGIN}/guides/promise-record>; rel="canonical"`)).toEqual([
+      '/guides/promise-record', '/promise-guide.html',
+    ]);
+    expect(rules.filter((rule) => rule.headers.some((h) => h.key === 'Link'))).toHaveLength(4);
+  });
+
+  test('X-Robots-Tag: noindex 는 초대·증인·인증·참여 목록 경로군과 app.html 별칭에만 있다', () => {
+    // 정확한 접두사와 그 하위(끝 슬래시·쿼리 포함) 둘 다 잡으려고 `/x` 와 `/x/**` 를 쌍으로 둔다.
+    expect(sourcesWith('X-Robots-Tag', 'noindex')).toEqual([
+      '/app.html',
+      '/i',
+      '/i/**',
+      '/witness',
+      '/witness/**',
+      '/promises',
+      '/promises/**',
+      '/auth',
+      '/auth/**',
+    ]);
+  });
+
+  test('공개 페이지와 전체 매치(**)에는 noindex 가 없다', () => {
+    const noindexSources = new Set(sourcesWith('X-Robots-Tag', 'noindex'));
+    for (const publicSource of ['**', '/', '/index.html', '/legal/privacy', '/legal/terms', '/account-deletion']) {
+      expect(noindexSources.has(publicSource)).toBe(false);
+    }
+    expect(rules.filter((rule) => rule.headers.some((h) => h.key === 'X-Robots-Tag')).length).toBe(
+      noindexSources.size,
     );
   });
 });

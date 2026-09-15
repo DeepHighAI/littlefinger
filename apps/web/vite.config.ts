@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
 import { renderHomeStaticMarkup } from './src/screens/home-static.ts';
+import { renderPrivacyStaticMarkup } from './src/screens/privacy-static.ts';
+import { PROMISE_GUIDE_PATH, renderPromiseGuideHtml } from './src/screens/promise-guide-static.ts';
 
 /**
  * 공개 홈(/)의 본문을 `index.html` 에 미리 넣는다. Google OAuth 브랜드 인증의 자동 검사가
@@ -14,6 +16,27 @@ import { renderHomeStaticMarkup } from './src/screens/home-static.ts';
 function homePrerender(): Plugin {
   return {
     name: 'lf-home-prerender',
+    enforce: 'post',
+    generateBundle(_options, bundle) {
+      const shell = bundle['app.html'];
+      if (!shell || shell.type !== 'asset' || typeof shell.source !== 'string') {
+        throw new Error('Missing app.html build asset');
+      }
+      this.emitFile({
+        type: 'asset',
+        fileName: 'privacy.html',
+        source: shell.source.replace('<div id="root"></div>', `<div id="root">${renderPrivacyStaticMarkup()}</div>`),
+      });
+      this.emitFile({ type: 'asset', fileName: 'promise-guide.html', source: renderPromiseGuideHtml(shell.source) });
+    },
+    configurePreviewServer(server) {
+      // 배포의 명시적 재작성 규칙을 로컬에서도 검증한다.
+      server.middlewares.use((request, _response, next) => {
+        if (request.url?.split('?')[0] === '/legal/privacy') request.url = '/privacy.html';
+        if (request.url?.split('?')[0] === PROMISE_GUIDE_PATH) request.url = '/promise-guide.html';
+        next();
+      });
+    },
     transformIndexHtml: {
       order: 'pre',
       handler(html, context) {

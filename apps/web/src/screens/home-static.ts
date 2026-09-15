@@ -16,11 +16,12 @@ export const HOME_STATIC_LINKS = {
   privacy: '/legal/privacy',
   terms: '/legal/terms',
   accountDeletion: '/account-deletion',
+  promiseGuide: '/guides/promise-record',
   playStore:
-    'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=web&utm_medium=home',
+    'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=web&utm_medium=home&utm_campaign=home',
 } as const;
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -44,6 +45,7 @@ export function renderHomeStaticMarkup(): string {
     `<section><h2>${escapeHtml(labels.principlesTitle)}</h2>${list(labels.principles)}</section>` +
     `<p><a class="lf-btn lf-btn--filled" href="${HOME_STATIC_LINKS.playStore}">${escapeHtml(labels.playLink)}</a></p>` +
     `<section><h2>${escapeHtml(labels.linksTitle)}</h2>` +
+    `<p><a href="${HOME_STATIC_LINKS.promiseGuide}">${escapeHtml(labels.guideLink)}</a></p>` +
     `<p><a href="${HOME_STATIC_LINKS.privacy}">${escapeHtml(labels.privacyLink)}</a> · ` +
     `<a href="${HOME_STATIC_LINKS.terms}">${escapeHtml(labels.termsLink)}</a> · ` +
     `<a href="${HOME_STATIC_LINKS.accountDeletion}">${escapeHtml(labels.accountDeletionLink)}</a></p>` +

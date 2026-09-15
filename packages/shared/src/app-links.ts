@@ -13,9 +13,17 @@ export const APP_SCHEME = 'littlefinger';
 export const PLAY_STORE_BASE_URL =
   `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`;
 
-/** 설치 전환 KPI 측정용 UTM 부착 스토어 URL (02 §4-4-4). */
-export function buildPlayStoreUrl(utm: { source: string; medium: string }): string {
-  return `${PLAY_STORE_BASE_URL}&utm_source=${encodeURIComponent(utm.source)}&utm_medium=${encodeURIComponent(utm.medium)}`;
+/**
+ * 설치 전환 KPI 측정용 UTM 부착 스토어 URL (02 §4-4-4).
+ *
+ * Play Console 의 획득 보고서는 `utm_source` 와 `utm_campaign` 두 차원만 잡는다 — `utm_medium`
+ * 은 콘솔에 보이지 않는다. 그래서 campaign 을 선택 인자로 열되, 없을 때의 출력은 기존과
+ * 바이트 단위로 같아야 한다(이미 배포된 초대·승인 화면 링크가 그대로 살아 있다).
+ * 값은 화면 이름 같은 고정 문자열만 쓴다 — 토큰·약속 ID·사용자 정보는 절대 넣지 않는다.
+ */
+export function buildPlayStoreUrl(utm: { source: string; medium: string; campaign?: string }): string {
+  const base = `${PLAY_STORE_BASE_URL}&utm_source=${encodeURIComponent(utm.source)}&utm_medium=${encodeURIComponent(utm.medium)}`;
+  return utm.campaign === undefined ? base : `${base}&utm_campaign=${encodeURIComponent(utm.campaign)}`;
 }
 
 /** `/i/{token}` — 초대 경로 형태의 유일한 정의처. */

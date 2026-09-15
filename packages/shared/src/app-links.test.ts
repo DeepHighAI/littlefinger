@@ -28,6 +28,21 @@ describe('스토어 URL', () => {
     expect(ANDROID_PACKAGE_NAME).toBe('com.littlefinger.app');
     expect(PLAY_STORE_BASE_URL).toContain(`id=${ANDROID_PACKAGE_NAME}`);
   });
+
+  test('campaign 이 있으면 utm_campaign 이 마지막에 붙고, 없으면 출력이 이전과 바이트 단위로 같다', () => {
+    // Play 콘솔 획득 보고서는 utm_source·utm_campaign 만 집계한다. 기존 호출부(초대·승인 화면)는
+    // campaign 없이 그대로 두므로 그 출력이 한 글자도 달라지면 안 된다.
+    const without = buildPlayStoreUrl({ source: 'web', medium: 'home' });
+    expect(without).toBe(
+      'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=web&utm_medium=home',
+    );
+    expect(buildPlayStoreUrl({ source: 'web', medium: 'home', campaign: 'home' })).toBe(
+      `${without}&utm_campaign=home`,
+    );
+    expect(buildPlayStoreUrl({ source: 'web', medium: 'home', campaign: 'a b&c' })).toBe(
+      `${without}&utm_campaign=a%20b%26c`,
+    );
+  });
 });
 
 describe('초대 경로', () => {

@@ -1,10 +1,11 @@
 # Play Console Data Safety form — prefilled answers
 
 Operator runbook for Play Console → App content → Data safety. Every answer below is grounded
-in code on `main`; citations point at the wiring. Fill the form with these values verbatim
-unless the code has changed since 2026-08-30 (ADR 0015: rewarded ads, in-feed banner, the
-`promise_permanent_access` product, per-participant retention with purge). Re-submit the form
-together with the 0.2.0 build — the previous submission (2026-08-23) predates all of these.
+in code and SDK disclosures; citations point at the wiring. Reconcile these recommendations
+with the actual release and SDK configuration before submitting; do not copy older answers
+verbatim. The 2026-09-14 audit of code 32 found that the former instruction to omit location
+and diagnostics was incorrect for AdMob. See
+[the audit and proposed policy clarification](../qa/APP_LINKS_LOCATION_AUDIT_2026-09-14.md).
 
 ## URLs the form (and store listing) asks for
 
@@ -34,9 +35,27 @@ together with the 0.2.0 build — the previous submission (2026-08-23) predates 
 | Device or other IDs → Device or other IDs | Yes | No | **Optional** | App functionality (푸시) | notification permission can be denied without blocking app use; only an opted-in device registers an Expo push token via `device-token-register`, relayed through Expo/FCM |
 | Device or other IDs → Advertising ID | Yes (when ads shown) | **Yes → Google (AdMob)** | Optional | Advertising | `react-native-google-mobile-ads` 16.3.3 ships in the build; native units at the bottom of A02/A07/A08, one adaptive banner after the 5th A02 card, and three user-initiated rewarded units; UMP consent gate before any load (`apps/mobile/src/lib/admob-loader.ts` `createAdsGate`); exposure slots dark while `ads_enabled=false`, rewarded units gated by `rewarded_ads_enabled` |
 
-Declare **nothing** for: location (EXIF stripped by design), contacts, messages, health,
-calendar, files, browsing history, installed apps, crash logs / diagnostics (no analytics or
-crash SDK in `apps/mobile/package.json`). Financial info → **Payment info** stays undeclared:
+Additional SDK disclosures must be included when applicable:
+
+| Play category → type | Collection/sharing basis | Purpose and review requirement |
+|---|---|---|
+| Location → Approximate location | AdMob collects IP addresses that can estimate general location, even without Android location permission | Advertising, analytics and fraud prevention are documented SDK purposes. Review both collection and sharing; do not infer an exemption from missing GPS permissions or stripped photo EXIF. The public form currently lists collection only, as optional, for app functionality and advertising; reconcile purposes/sharing against actual SDK use before submission |
+| App activity → App interactions | SDK interaction events, including launches, taps and video views | Advertising, analytics and fraud prevention; account for SDK collection and sharing |
+| App info and performance → Diagnostics | SDK/app performance information | Advertising, analytics and fraud prevention; the absence of a separate crash SDK does not exclude AdMob diagnostics |
+| Device or other IDs | SDK ad/app-set identifiers, in addition to the app's push token | Account for SDK collection/sharing separately from push-only handling |
+
+Source: [Google Mobile Ads disclosure](https://developers.google.com/admob/android/privacy/play-data-disclosure).
+Code 32 embeds GMA 25.0.0; the current disclosure page documents 25.4.0, so retain the
+version distinction and verify version-specific changes before final submission.
+Optional/required answers must follow actual user choice; a remote feature flag alone is
+not a user opt-out. Non-personalized ads can still use coarse location:
+[AdMob explanation](https://support.google.com/admob/answer/7676680?hl=en).
+
+No precise/device-coordinate location permission is present in code 32. Keep precise and
+approximate location separate; do not assert that all location collection is absent.
+Declare **nothing** for the following only while the current app and SDK behavior supports
+it: contacts, messages, health, calendar, files, browsing history and installed apps.
+Financial info → **Payment info** stays undeclared:
 card or account details never reach the app or the backend.
 
 ## Notes that keep the form honest
@@ -49,10 +68,10 @@ card or account details never reach the app or the backend.
 - The pseudonymous id shared with Google for SSV is a per-request hash, not a stable user
   identifier; it expires 15 minutes after the request. Say so in review responses if asked why
   "User IDs" is marked shared.
-- IP address and User-Agent are stored **only as salted one-way hashes** server-side; Play does
-  not require declaring server log hashes, but keep this fact for review responses.
-- Data is **not sold**; the only "sharing" is the Advertising ID and the SSV pseudonymous id
-  flowing to Google.
+- App-owned approval metadata hashes IP/User-Agent. That does not describe Google's SDK
+  traffic and is not, by itself, a Data safety exemption for other processing paths.
+- Sharing is not limited to the Advertising ID and SSV pseudonymous ID: include the SDK
+  categories above. Determine any service-provider exemption from actual use and terms.
 - Deletion: besides account withdrawal, confirmed promise records (and their evidence) are
   deleted automatically after the last participant's access right expires (30 days after the
   end date / finish agreement, extendable by rewarded ads, permanent with purchase). Drafts go

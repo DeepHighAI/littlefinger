@@ -261,7 +261,7 @@ Date: 2026-09-03. `docs/setup/open-testing-release.md`(엔지니어 런북)의 �
 | # | 문제 | 경로 | 값 |
 |---|---|---|---|
 | 11-1 | 의견 URL이 Google Forms **편집** 링크(`/forms/d/…/edit`)다. 테스터는 "액세스 권한 필요"를 본다 | Forms → 보내기 → 링크 아이콘 → `forms.gle/…` 복사 → 공개 테스트 → 테스터 탭 → 의견 URL 교체 → 저장 | 응답자용 짧은 링크 |
-| 11-2 | 데이터 보안 카드에 **위치**가 "수집"으로 표시된다. 앱은 위치를 수집하지 않는다(사진 EXIF 제거) | 앱 콘텐츠 → 데이터 보안 → 관리 → 위치 항목 해제 → 제출 | `play-data-safety.md` 기준 |
+| 11-2 | Data safety lists approximate location; AdMob can derive it from IP without GPS permission | Keep the disclosure while this SDK behavior remains. Reconcile SDK purposes/sharing and clarify the privacy policy; do not uncheck location based on EXIF removal | `play-data-safety.md`; audit `APP_LINKS_LOCATION_AUDIT_2026-09-14.md` |
 | 11-3 | 개발자 연락처가 `복현서현타운` · `053-665-2667`로 나온다. 정본(`legal-content.ts`)은 `복현서한타운` · `02-3443-1028` | 설정 → 개발자 계정 → 개발자 페이지/판매자 정보에서 맞는 값으로 통일 | 어느 쪽이 맞는지 PO 확인 |
 
 1. 공개 테스트 페이지에서 **테스트 참여 링크**(`https://play.google.com/apps/testing/com.littlefinger.app`)를

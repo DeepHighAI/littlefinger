@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://littlefinger-app.web.app/sitemap.xml

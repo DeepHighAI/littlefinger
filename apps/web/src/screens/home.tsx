@@ -36,13 +36,14 @@ export function Home(): React.JSX.Element {
         <p>
           <a
             className="lf-btn lf-btn--filled"
-            href={buildPlayStoreUrl({ source: 'web', medium: 'home' })}
+            href={buildPlayStoreUrl({ source: 'web', medium: 'home', campaign: 'home' })}
           >
             {labels.playLink}
           </a>
         </p>
         <section>
           <h2>{labels.linksTitle}</h2>
+          <p><a href={ROUTE.promiseGuide}>{labels.guideLink}</a></p>
           <p>
             <Link to={ROUTE.privacy}>{labels.privacyLink}</Link>
             {' · '}

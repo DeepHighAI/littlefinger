@@ -34,12 +34,13 @@ const ko = {
     '벌칙은 적어 두는 기록일 뿐입니다. 리틀핑거는 돈을 맡아 두거나 대신 받아 주지 않아요.',
   ],
   linksTitle: '안내',
+  guideLink: '함께 약속을 기록하는 방법',
   playLink: 'Google Play에서 받기',
   privacyLink: '개인정보처리방침',
   termsLink: '이용약관',
   accountDeletionLink: '계정 삭제 안내',
   contact: '문의: task@deephigh.ai',
-  company: '주식회사 딥하이',
+  company: '리틀핑거는 주식회사 딥하이가 운영합니다.',
 };
 
 const en = {
@@ -68,12 +69,13 @@ const en = {
     'A forfeit is text you wrote down, nothing more. Littlefinger never holds or collects money.',
   ],
   linksTitle: 'Links',
+  guideLink: 'How to record a promise together',
   playLink: 'Get it on Google Play',
   privacyLink: 'Privacy Policy',
   termsLink: 'Terms of Service',
   accountDeletionLink: 'Account deletion',
   contact: 'Support: task@deephigh.ai',
-  company: 'DeepHigh Co., Ltd.',
+  company: 'Littlefinger is operated by DeepHigh Co., Ltd.',
 } satisfies typeof ko;
 
 export const HOME_LABEL: Localized<typeof ko> = { ko, en };
