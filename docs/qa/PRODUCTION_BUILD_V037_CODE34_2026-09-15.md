@@ -2,6 +2,11 @@
 
 ## Delivery
 
+**Rollout update (2026-09-15):** PO confirmed production Play publication. The held
+web artifact was then deployed as Firebase Hosting version `94998852cee368b5`.
+See [live web verification](INVITATION_HANDOFF_2026-09-15.md#production-web-rollout--2026-09-15).
+The build-time delivery state below is retained as historical evidence.
+
 This candidate supersedes code 33 for the combined mascot/icon and app invitation
 review release. The PO owns Play Console upload and publication. No Play submission
 or minimum-version flag change was performed. Web rollout waits for this app to be

@@ -34,3 +34,27 @@ Security advisor: the new server-only ledger intentionally has RLS with no clien
 ## Delivery boundary
 
 Native functionality requires the new Play build. Code 33 and older hand witness links back to the web, so publishing this handoff first would create a loop. Server additions are deployed; web output is prepared but not published. PO uploads/releases the new AAB, then the web can be switched (the installation hint also links to Play for older installed clients) and verified on a Play-installed build. Kakao in-app browser, store fallback, OAuth account restoration and real Play delivery remain device acceptance checks.
+
+
+## Production web rollout — 2026-09-15
+
+The PO confirmed 0.3.7 / code 34 is live on the production Play track. The reported
+old mascot/OAuth screenshot was the still-held web release, not missing native code.
+Deployed the previously verified, unchanged 21-file web artifact using
+`firebase deploy --only hosting:web --project littlefinger-app-philwoo --non-interactive`:
+**Deploy complete!** Hosting live version: `94998852cee368b5`.
+
+All 21 production responses match the frozen artifact SHA-256 values. HTML uses
+`public, max-age=0, must-revalidate`; hashed assets remain immutable.
+Production-host browser verification: partner, witness and desktop have zero OAuth
+buttons, a successfully loaded new `mascot-face-e1-DCchrxZG.png`, app intent and decline
+actions, no page errors and no horizontal overflow. Decline confirmation/completion
+and English/large-text screens also rendered. Only invitation API data was mocked;
+HTML, JS, CSS, fonts and artwork came from the live server. No real invitation was
+accepted or declined. Fresh screenshots: [partner](invitation-handoff-2026-09-15/live-partner.png)
+and [witness](invitation-handoff-2026-09-15/live-witness.png).
+
+The app and web rollout hold is now resolved. No new AAB or reinstall is required for
+this web publication. Existing open browser documents must reload (close/reopen the
+original Kakao invitation link) to run the newly deployed page. Real cross-device
+acceptance remains a device check; this deployment did not exercise an actual token.

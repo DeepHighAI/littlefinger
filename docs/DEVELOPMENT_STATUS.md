@@ -6,8 +6,10 @@ Snapshot date: **2026-09-15 KST**.
 
 ADR 0029 implements app review/final acceptance for partner and witness invitations,
 explicit token-holder web decline, and the Mobbin-informed invitation refinement.
-Additive server RPCs and Edge Functions are deployed. Web output is prepared and held
-until the PO publishes the new app: code 33 and older send witnesses back to the web.
+Additive server RPCs and Edge Functions are deployed. After the PO confirmed code 34
+was live on the production Play track, web version `94998852cee368b5` was published.
+All 21 deployed files match the verified artifact; production-host UI checks confirm
+the new mascot and no invitation OAuth buttons. Older apps have a Play update link.
 Verified AAB: `dist/littlefinger-production-v0.3.7-code34.aab` (83,091,861 bytes),
 SHA-256 `f2a134481327fe07aa930a9c3eab625946fdb189120ddc3271babe46da7706af`. This supersedes code 33 for PO upload.
 See [release record](qa/PRODUCTION_BUILD_V037_CODE34_2026-09-15.md) and
