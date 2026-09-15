@@ -2,6 +2,16 @@
 
 Snapshot date: **2026-09-15 KST**.
 
+## Mascot release 0.3.6 / code 33 ready for PO upload (2026-09-15)
+
+Source changes are committed and pushed to main. Use
+`dist/littlefinger-production-v0.3.6-code33.aab` (83,085,922 bytes),
+SHA-256 `e8e4cc549537cfb8a2ec80e91851d120530ce0a76a62e4316602bad91af5bdc7`. This supersedes code 32 for the new mascot/icon release.
+All tests/typechecks, upload signature, production configuration, bundled source/art,
+and 16 KB alignment checks passed. See [the artifact record](qa/PRODUCTION_BUILD_V036_CODE33_2026-09-15.md).
+The PO owns Console upload and publication; no production deployment was performed.
+Optional Mobbin improvements remain unapproved and unapplied.
+
 ## PO mascot and launcher replacement (2026-09-15, source ready)
 
 ADR 0028 replaces the mobile/acceptance-web/reference mascot with the PO-supplied transparent

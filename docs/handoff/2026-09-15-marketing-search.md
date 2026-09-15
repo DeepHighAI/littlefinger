@@ -5,7 +5,7 @@
 Resume September 16 in `C:\DEV\littlefinger`. PO priority: sitemap diagnosis → Google search
 registration → first content. Research and strategy are saved in `docs/marketing/`; do not redo.
 First guide is live: https://littlefinger-app.web.app/guides/promise-record
-Latest release: `bbdcfe65bac233e5`, September 15 11:26 KST. Source remains uncommitted.
+Latest release: `bbdcfe65bac233e5`, September 15 11:26 KST. Source committed as `987873f` and pushed to main on September 15.
 At 14:50 KST, homepage indexing confirmed; guide not indexed; sitemap list still fetch-error/0 pages.
 At 12:07/12:10 KST, Google live tests successfully fetched sitemap/guide with crawling and indexing
 allowed; guide canonical correct. One sitemap resubmission accepted. Guide indexing request rejected
