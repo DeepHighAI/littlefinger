@@ -587,3 +587,15 @@ resolved-path checks. Do not delete the entire shared Gradle cache or stop unrel
 `Move-Item` may partially move a directory while reporting a locked-file error; use
 `-ErrorAction Stop` and inspect source and destination instead of trusting the shell exit code.
 The mascot task's quarantined cache fragments live under `tmp/mascot-gradle-quarantine/`.
+
+
+### Repacked Android fixture image resources (2026-09-15)
+
+R8/resource shrinking can rename packaged drawables, so copying Metro exports into
+`drawable-mdpi/` or `res/drawable-mdpi/` does not necessarily replace an APK's image.
+Read the template's resource table with `aapt2 dump resources` and replace the actual
+file entry referenced by the resource ID. The code-30 fixture mapped
+`drawable/assets_images_mascotfacee1` to `res/Kw.png`. Leaving that entry unchanged
+showed the retired flat mascot even though the new PNG and current component source
+were present in the ZIP. Re-sign the fixture and verify a fresh runtime screenshot.
+This is fixture assembly only; inspect release artwork independently in the AAB.
