@@ -110,10 +110,10 @@ function contrastRatio(foreground: string, background: string): number {
 }
 
 describe('토큰이 하나도 누락되지 않았다', () => {
-  test('canonical tokens.css 는 잉크 & 블록 전환 후 토큰 179개를 정의한다', () => {
+  test('canonical tokens.css 는 잉크 & 블록 전환 후 토큰 180개를 정의한다', () => {
     // 2026-09-06: 파스텔 176 + 신설 3 (elevation-sm · type-appbar-size · status-tile) = 번들 tokens.css 와 동일.
     // 눌림 값은 PO 결정으로 토큰화하지 않는다(리터럴, ADR 0020 예외).
-    expect(cssTokens.size).toBe(179);
+    expect(cssTokens.size).toBe(180);
   });
 
   test('CSS 의 모든 토큰이 이식됐거나 제외 사유가 적혀 있다', () => {
@@ -163,7 +163,7 @@ describe('토큰이 하나도 누락되지 않았다', () => {
       (e) => e.token,
     );
     expect(withoutReason).toEqual([]);
-    expect(NOT_PORTED_TOKENS.length).toBe(6);
+    expect(NOT_PORTED_TOKENS.length).toBe(7);
   });
 });
 

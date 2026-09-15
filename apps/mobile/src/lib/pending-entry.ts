@@ -7,7 +7,7 @@ export function rememberEntry(path: string): string | null {
     if (url.protocol !== 'littlefinger:' &&
       !(url.protocol === 'https:' && ['littlefinger-app.web.app', 'littlefinger-app-philwoo.web.app'].includes(url.host))) return null;
     const pathname = url.protocol === 'littlefinger:' ? `/${url.host}${url.pathname}` : url.pathname;
-    if (!/^\/i\/[A-Za-z0-9_-]+$/u.test(pathname) && !/^\/promise\/[A-Za-z0-9-]+$/u.test(pathname)) return null;
+    if (!/^\/i\/[A-Za-z0-9_-]+$/u.test(pathname) && !/^\/(?:promise|witness)\/[A-Za-z0-9-]+$/u.test(pathname)) return null;
     pendingEntry = pathname;
     return pathname;
   } catch { return null; }

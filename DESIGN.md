@@ -1,5 +1,13 @@
 # Littlefinger Design System
 
+## Invitation entry refinement (2026-09-15, ADR 0029)
+
+Partner/witness web invitations group the new portrait, sender and title above one
+yellow app action and an outlined decline action. Web OAuth/review controls are removed.
+Desktop content is capped at the web-only `size-invite-content-max` token; existing
+Ink & Block tokens and mascot artwork remain. The reference W01/W02/W05 pages show
+this approved entry flow. See ADR 0029 for Mobbin sources and rollout compatibility.
+
 ## Mascot replacement (2026-09-15, ADR 0028)
 
 The PO supplied a glossy white 3D character with black pinky-finger eyes, then supplied

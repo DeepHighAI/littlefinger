@@ -329,6 +329,7 @@ export const duration = {
  * 사유 없이 여기 추가하지 않는다.
  */
 export const NOT_PORTED_TOKENS: readonly { token: string; reason: string }[] = [
+  { token: 'size-invite-content-max', reason: '넓은 브라우저의 초대 웹 최대 폭. 네이티브 화면에는 적용하지 않는다.' },
   {
     token: 'color-frame-border',
     reason: '미리보기용 기기 프레임 테두리 색. 실제 앱에는 프레임이 없다.',

@@ -1,0 +1,20 @@
+[
+  {
+    "kind": "partner",
+    "errors": [],
+    "appVisible": true,
+    "horizontalOverflow": false
+  },
+  {
+    "kind": "witness",
+    "errors": [],
+    "appVisible": true,
+    "horizontalOverflow": false
+  },
+  {
+    "kind": "desktop",
+    "errors": [],
+    "appVisible": true,
+    "horizontalOverflow": false
+  }
+]

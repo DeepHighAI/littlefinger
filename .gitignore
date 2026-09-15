@@ -3,6 +3,7 @@
 .superpowers/
 .worktrees/
 *.png
+!docs/qa/invitation-handoff-2026-09-15/*.png
 !design-reference/**/*.png
 !apps/mobile/assets/images/*.png
 !apps/web/src/assets/images/*.png

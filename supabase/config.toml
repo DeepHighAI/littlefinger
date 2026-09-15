@@ -260,3 +260,9 @@ verify_jwt = true
 # 로컬 `supabase start` 에서 카카오가 빠지는 것이 대가인데, 이 저장소에는 Docker 가 없어
 # 로컬 스택을 띄우지 않으므로 비용이 0 이다(CLAUDE.md §3).
 # ============================================================
+
+[functions.invite-decline-public]
+verify_jwt = false
+
+[functions.witness-preview]
+verify_jwt = true

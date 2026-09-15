@@ -1313,6 +1313,7 @@ export default function PromiseDetailScreen(): React.JSX.Element {
   return (
     <ScreenFrame onBack={() => backOrHome(router)} mode={visualMode}>
       <ScrollView testID="promise-detail-body" contentContainerStyle={styles.body}>
+        {detail.my_role === 'WITNESS' && <LfButton label={LABEL.witnessReviewAction} variant="outlined" onPress={() => router.push(`/witness/${detail.promise_id}`)} />}
         <View style={styles.head}>
           <View style={styles.headMain}>
             <View style={styles.statusRow}>

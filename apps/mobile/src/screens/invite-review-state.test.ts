@@ -19,10 +19,10 @@ describe('phaseAfterResolve', () => {
     expect(phaseAfterResolve(INVITE, true)).toEqual({ kind: 'REVIEW_LOADING', invite: INVITE });
   });
 
-  test('증인 토큰은 세션과 무관하게 웹 핸드오프다', () => {
+  test('증인도 로그인 후 앱에서 검토한다', () => {
     const witness = { ...INVITE, target_role: 'WITNESS' as const };
-    expect(phaseAfterResolve(witness, false).kind).toBe('HANDOFF');
-    expect(phaseAfterResolve(witness, true).kind).toBe('HANDOFF');
+    expect(phaseAfterResolve(witness, false).kind).toBe('LANDING');
+    expect(phaseAfterResolve(witness, true).kind).toBe('WITNESS_REVIEW');
   });
 });
 

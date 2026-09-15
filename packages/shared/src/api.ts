@@ -250,6 +250,7 @@ export interface InvitePreviewResponse {
  * 만료·사용됨·무효화 어느 쪽도 작성자 이름이나 제목을 싣지 않는다(EC-B01·B03·B11).
  */
 export interface InviteResolveResponse {
+  sender_nickname?: string;
   creator_nickname: string;
   title: string;
   /** 초대 발급 + `INVITE_TTL_HOURS`. SCR-W01 만료 카운트다운의 기준점이다. */
@@ -295,6 +296,11 @@ export interface WitnessInviteResponse {
   expires_at: IsoDateTime;
   /** 멱등 재생 응답에는 없다. 원문을 서버 저장소에 보관하지 않기 때문이다. */
   token?: string;
+}
+
+export interface InviteDeclinePublicResponse {
+  target_role: 'PARTNER' | 'WITNESS';
+  status: 'DECLINED';
 }
 
 export interface WitnessJoinRequest extends InviteTokenRequest {}
@@ -1043,6 +1049,8 @@ export const ENDPOINT = {
   inviteRevoke: 'invite-revoke',
   promisePendingDelete: 'promise-pending-delete',
   inviteResolve: 'invite-resolve',
+  inviteDeclinePublic: 'invite-decline-public',
+  witnessPreview: 'witness-preview',
   invitePreview: 'invite-preview',
   witnessInviteList: 'witness-invite-list',
   witnessInvite: 'witness-invite',

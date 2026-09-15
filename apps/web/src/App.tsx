@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { LocaleSwitch } from './components/LocaleSwitch.tsx';
-import { InviteAccountGate } from './components/InviteAccountGate.tsx';
 import { LocaleProvider } from './lib/locale.tsx';
 import { watchSignInProvision } from './lib/user-provision.ts';
 import { ROUTE } from './routes.ts';
@@ -12,7 +11,6 @@ import { PromiseGuide } from './screens/promise-guide.tsx';
 import { ResponseComplete } from './screens/response-complete.tsx';
 import { LegalDocument } from './screens/legal-document.tsx';
 import { ScrW01InviteLanding } from './screens/scr-w01-invite-landing.tsx';
-import { ScrW02PromiseReview } from './screens/scr-w02-promise-review.tsx';
 import { ScrW03ApprovalComplete } from './screens/scr-w03-approval-complete.tsx';
 import { ScrW04ParticipantPromises } from './screens/scr-w04-participant-promises.tsx';
 import { ScrW05WitnessConfirm } from './screens/scr-w05-witness-confirm.tsx';
@@ -41,8 +39,8 @@ export function App(): React.JSX.Element {
       <Route path={ROUTE.privacy} element={<LegalDocument kind="PRIVACY" />} />
       <Route path={ROUTE.accountDeletion} element={<AccountDeletion />} />
       <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
-      <Route path={ROUTE.review} element={<InviteAccountGate><ScrW02PromiseReview /></InviteAccountGate>} />
-      <Route path={ROUTE.witnessJoin} element={<InviteAccountGate><ScrW05WitnessConfirm /></InviteAccountGate>} />
+      <Route path={ROUTE.review} element={<ScrW01InviteLanding />} />
+      <Route path={ROUTE.witnessJoin} element={<ScrW01InviteLanding />} />
       <Route path={ROUTE.witness} element={<ScrW05WitnessConfirm />} />
       <Route path={ROUTE.approvalComplete} element={<ScrW03ApprovalComplete />} />
       <Route path={ROUTE.promises} element={<ScrW04ParticipantPromises />} />

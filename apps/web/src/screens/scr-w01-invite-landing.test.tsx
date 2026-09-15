@@ -1,465 +1,73 @@
 // @vitest-environment jsdom
-import { ENDPOINT, ERROR_HTTP_STATUS, ERROR_MESSAGE } from '@littlefinger/shared';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { invitePath, ROUTE } from '../routes.ts';
-import { formatRemaining, ScrW01InviteLanding } from './scr-w01-invite-landing.tsx';
-
-// vi.mock 은 끌어올려지므로 mock 함수도 vi.hoisted 로 만들어야 참조가 성립한다.
-const { signInWithOAuth, getSession } = vi.hoisted(() => ({
-  signInWithOAuth: vi.fn(),
-  getSession: vi.fn(),
-}));
-
-// 카카오 프로바이더는 아직 대시보드에 없어서 실서비스에서도 실패한다. 여기서는
-// `functionUrl` 은 진짜를 쓰고 인증만 바꿔 끼운다 — 함수 주소 조립이 검증 대상이다.
-vi.mock('../lib/supabase.ts', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../lib/supabase.ts')>()),
-  getSupabase: () => ({ auth: { signInWithOAuth, getSession } }),
-}));
-
-const SUPABASE_URL = 'https://test-project.supabase.co';
-const TOKEN = 'a-b_c-d_e';
-const NOW = Date.UTC(2026, 8, 9);
-
-const INVITE = {
-  creator_nickname: '지우',
-  title: '매주 화·목 아침 러닝 같이 하기',
-  expires_at: new Date(NOW + (2 * 3600 + 3 * 60 + 4) * 1000).toISOString(),
-  target_role: 'PARTNER' as const,
-};
-
+// @vitest-environment-options {"url":"https://littlefinger-app.web.app"}
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { ScrW01InviteLanding } from './scr-w01-invite-landing.tsx';
 const fetchMock = vi.fn();
-
-/** `response.ok` 와 `json()` 만 쓴다. jsdom 에 `Response` 전역이 있다고 가정하지 않는다. */
-function fakeResponse(status: number, body: unknown): Response {
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    json: async () => body,
-  } as unknown as Response;
-}
-
-function renderAt(token = TOKEN): void {
-  render(
-    <MemoryRouter initialEntries={[invitePath(token)]}>
-      <Routes>
-        <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
-        <Route path={ROUTE.terms} element={<div />} />
-        <Route path={ROUTE.privacy} element={<div />} />
-      </Routes>
-    </MemoryRouter>,
-  );
-}
-
-/** 사용자가 실제로 읽는 글자. aria-hidden(아이콘)은 뗀다. */
-function visibleText(el: Element): string {
-  const clone = el.cloneNode(true) as Element;
-  for (const hidden of clone.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
-  return clone.textContent?.replace(/\s+/g, ' ').trim() ?? '';
-}
-
+const invite = { creator_nickname: '지우', sender_nickname: '민수', title: '매일 걷기', expires_at: '2099-01-01T00:00:00Z', target_role: 'PARTNER' };
+const response = (body: unknown, status = 200) => ({ ok: status === 200, status, json: async () => body });
+function show(path = '/i/token') { return render(<MemoryRouter initialEntries={[path]}><Routes><Route path="/i/:token" element={<ScrW01InviteLanding />} /><Route path="/i/:token/review" element={<ScrW01InviteLanding />} /></Routes></MemoryRouter>); }
 beforeEach(() => {
-  // 렌더와 검증 사이 실제 1초 경계를 넘어도 같은 남은 시간을 비교한다.
-  vi.spyOn(Date, 'now').mockReturnValue(NOW);
-  vi.stubEnv('VITE_SUPABASE_URL', SUPABASE_URL);
-  vi.stubGlobal('fetch', fetchMock);
-  fetchMock.mockReset();
-  signInWithOAuth.mockReset();
-  signInWithOAuth.mockResolvedValue({ data: {}, error: null });
-  getSession.mockReset();
-  // 기본은 비로그인이다 — 이 화면의 본래 자리(§4-3-3).
-  getSession.mockResolvedValue({ data: { session: null } });
+  vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co'); vi.stubGlobal('fetch', fetchMock);
+  Object.defineProperty(navigator, 'userAgent', { value: 'Android KAKAOTALK', configurable: true });
+  fetchMock.mockResolvedValue(response(invite));
 });
-
-// Testing Library 의 자동 cleanup 은 전역 afterEach 가 있을 때만 등록된다. 이 저장소는
-// vitest `globals` 를 켜지 않으므로 직접 부른다.
-afterEach(() => {
-  cleanup();
-  vi.restoreAllMocks();
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); fetchMock.mockReset(); });
+it('EC-I02 shows sender/title, app handoff and decline without web authentication', async () => {
+  show(); await screen.findByRole('heading', { name: invite.title });
+  expect(screen.getByText('지우님이 약속을 보냈어요')).toBeTruthy();
+  expect(screen.queryByText(/로그인/)).toBeNull();
+  const app = screen.getByRole('link', { name: '앱에서 확인하기' });
+  expect(app.getAttribute('href')).toContain('package=com.littlefinger.app');
+  expect(app.getAttribute('href')).toContain('/i/token');
+  expect(decodeURIComponent(app.getAttribute('href') ?? '')).toContain('play.google.com/store');
+  expect(screen.getByRole('link', {name: '앱이 없거나 이 화면으로 돌아오면 설치·업데이트 후 초대 링크를 다시 열어주세요.'}).getAttribute('href')).toContain('play.google.com/store/apps/details');
+  expect(screen.getAllByRole('button')).toHaveLength(1);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
 });
-
-describe('SCR-W01 초대 랜딩', () => {
-  it('승인된 타원과 손 루프로 초대 브랜드를 표시한다', async () => {
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-    await screen.findByRole('heading');
-
-    // 잉크 & 블록: 랜딩 마크는 로그인 블롭이 아니라 웹 타원(`.lf-oval--web`)이다
-    expect(document.querySelector('.lf-oval--web')).not.toBeNull();
-    expect(document.querySelectorAll('img[src*="mascot-face-e1.png"]')).toHaveLength(1);
-  });
-
-  it('invite-resolve 가 준 것만 그린다', async () => {
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-
-    // 헤드라인은 디자인 요청서 §5-2 의 "○○님이 약속을 보냈어요"다. 레퍼런스의
-    // "민준님, …"은 받는 사람 이름인데 로그인 전에는 알 수 없다.
-    expect((await screen.findByRole('heading')).textContent).toBe('지우님이 약속을 보냈어요');
-
-    // 문단 전체를 고정한다. 본문·보상·벌칙이 실수로 붙으면 여기서 깨진다 — 로그인 전에
-    // 그것들을 노출하지 않는 것이 §4-3-3 의 요구다.
-    const paragraphs = [...document.querySelectorAll('p')].map(visibleText).filter((t) => t);
-    expect(paragraphs).toEqual([
-      `${formatRemaining(Date.parse(INVITE.expires_at) - Date.now())}안에 확인해 주세요`,
-      '약속 미리보기',
-      '매주 화·목 아침 러닝 같이 하기',
-      '자세한 내용은 로그인 후 볼 수 있어요',
-      '리틀핑거는 둘이 합의한 약속을 기록하고지키게 돕는 서비스예요',
-      '앱 설치 없이 3분이면 끝나요',
-    ]);
-  });
-
-  it('만료 카운트다운이 HH:MM:SS 다', async () => {
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-    const countdown = await screen.findByTestId('countdown');
-    expect(countdown.textContent).toMatch(/^\d{2}:\d{2}:\d{2}$/);
-    expect(countdown.textContent?.startsWith('02:03:0')).toBe(true);
-  });
-
-  it('남은 시간이 0 이어도 CTA 는 살아 있다', async () => {
-    // 만료 판정은 서버의 몫이다(EC-F09 — 기기 시계를 믿지 않는다). 여기서 화면을 닫으면
-    // 시계가 앞선 기기에서 멀쩡한 초대가 열리지 않는다.
-    fetchMock.mockResolvedValue(
-      fakeResponse(200, { ...INVITE, expires_at: new Date(Date.now() - 1000).toISOString() }),
-    );
-    renderAt();
-    expect(await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u })).toBeTruthy();
-    expect(screen.queryByTestId('countdown')).toBeNull();
-  });
-
-  it('함수에 필요한 것만 보낸다 — 열쇠 없이 POST, 토큰은 본문으로', async () => {
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-    await screen.findByRole('heading');
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe(`${SUPABASE_URL}/functions/v1/${ENDPOINT.inviteResolve}`);
-    expect(init.method).toBe('POST');
-    // verify_jwt = false 다. apikey·Authorization 을 요구하지 않으므로 싣지 않는다.
-    expect(init.headers).toEqual({ 'Content-Type': 'application/json' });
-    // 토큰이 쿼리스트링에 새면 프록시·히스토리·액세스 로그에 원문이 남는다(§13).
-    expect(url).not.toContain(TOKEN);
-    expect(JSON.parse(String(init.body))).toEqual({ token: TOKEN });
-  });
-
-  it.each([
-    ['E_INVITE_EXPIRED', '초대 링크가 만료되었습니다. 상대에게 새 링크를 요청해 주세요.'],
-    ['E_INVITE_USED', '이미 사용된 초대입니다.'],
-    ['E_INVITE_REVOKED', '이 초대는 취소되었습니다.'],
-    ['E_BLOCKED', '이 초대는 열 수 없습니다.'],
-    ['E_NOT_FOUND', '초대 링크를 찾을 수 없습니다.'],
-  ] as const)('%s 는 SCR-W06 으로 간다', async (code, body) => {
-    fetchMock.mockResolvedValue(fakeResponse(ERROR_HTTP_STATUS[code], { code, message: 'x' }));
-    renderAt();
-
-    expect((await screen.findByTestId('reason')).textContent).toBe(body);
-    // 실패 화면에는 약속 내용도 CTA 도 없다(EC-B01·B11).
-    expect(screen.queryByRole('button')).toBeNull();
-    expect(screen.queryByText(INVITE.title)).toBeNull();
-  });
-
-  it('E_RATE_LIMIT 은 SCR-W06 이 아니라 §2-3 문구만 띄운다', async () => {
-    // 명세 어디에도 이 코드의 화면이 없다. SCR-W06 으로 보내면 "링크가 죽었다"고
-    // 거짓말을 하게 된다 — 잠시 후에는 열린다.
-    fetchMock.mockResolvedValue(
-      fakeResponse(ERROR_HTTP_STATUS.E_RATE_LIMIT, { code: 'E_RATE_LIMIT', message: 'x' }),
-    );
-    renderAt();
-
-    const message = await screen.findByTestId('retry-message');
-    expect(message.textContent).toBe(ERROR_MESSAGE.E_RATE_LIMIT);
-    // 화면이 통째로 바뀌는 자리라 스크린리더에는 알려 줄 것이 이 문단뿐이다.
-    expect(message.getAttribute('role')).toBe('alert');
-    expect(screen.queryByTestId('reason')).toBeNull();
-  });
-
-  it('네트워크가 끊기면 EC-C02 문구로 떨어진다', async () => {
-    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
-    renderAt();
-    expect((await screen.findByTestId('retry-message')).textContent).toBe(
-      '처리 중 문제가 발생했습니다. 다시 시도해 주세요.',
-    );
-  });
-
-  it('모르는 코드도 EC-C02 문구로 뭉갠다', async () => {
-    // 서버가 500 에 싣는 `E_INTERNAL` 은 §2-3 의 14개 코드가 아니다.
-    fetchMock.mockResolvedValue(fakeResponse(500, { code: 'E_INTERNAL', message: 'x' }));
-    renderAt();
-    expect((await screen.findByTestId('retry-message')).textContent).toBe(
-      '처리 중 문제가 발생했습니다. 다시 시도해 주세요.',
-    );
-  });
-
-  it('응답 전에는 로딩이고 CTA 가 없다', async () => {
-    fetchMock.mockReturnValue(new Promise(() => {}));
-    renderAt();
-    expect(screen.getByTestId('loading').getAttribute('aria-busy')).toBe('true');
-    expect(screen.queryByRole('button')).toBeNull();
-    expect(screen.queryByTestId('reason')).toBeNull();
-  });
-
-  it('앞 토큰의 늦은 응답이 뒤 토큰의 화면을 덮지 않는다', async () => {
-    // 취소가 없으면 A 의 응답이 나중에 도착해 B 를 덮어쓴다 — 다른 약속의 초대가
-    // 열려 있는 것처럼 보이는 실패다.
-    let resolveA!: (response: Response) => void;
-    fetchMock.mockImplementationOnce(
-      () => new Promise<Response>((resolve) => (resolveA = resolve)),
-    );
-    fetchMock.mockResolvedValue(fakeResponse(200, { ...INVITE, creator_nickname: '민준' }));
-
-    const router = createMemoryRouter([{ path: ROUTE.invite, element: <ScrW01InviteLanding /> }], {
-      initialEntries: [invitePath('token-a')],
-    });
-    render(<RouterProvider router={router} />);
-    await screen.findByTestId('loading');
-
-    await act(async () => void (await router.navigate(invitePath('token-b'))));
-    expect((await screen.findByRole('heading')).textContent).toBe('민준님이 약속을 보냈어요');
-
-    resolveA(fakeResponse(200, { ...INVITE, creator_nickname: '지우' }));
-    await act(async () => {});
-    expect(screen.getByRole('heading').textContent).toBe('민준님이 약속을 보냈어요');
-  });
-
-  it('화면을 떠나면 진행 중이던 요청을 취소한다', async () => {
-    fetchMock.mockReturnValue(new Promise(() => {}));
-    const { unmount } = render(
-      <MemoryRouter initialEntries={[invitePath(TOKEN)]}>
-        <Routes>
-          <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
-        </Routes>
-      </MemoryRouter>,
-    );
-    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal?.aborted).toBe(false);
-
-    unmount();
-    expect(init.signal?.aborted).toBe(true);
-  });
-
-  it('200 이어도 형태가 어긋나면 EC-C02 로 떨어진다', async () => {
-    // 이름 없는 초대를 그리느니 실패를 말한다.
-    fetchMock.mockResolvedValue(fakeResponse(200, { title: '러닝' }));
-    renderAt();
-    expect((await screen.findByTestId('retry-message')).textContent).toBe(
-      '처리 중 문제가 발생했습니다. 다시 시도해 주세요.',
-    );
-    expect(screen.queryByRole('heading')).toBeNull();
-  });
-
-  it('카카오 CTA 가 이 초대 URL 로 되돌아오게 로그인시킨다', async () => {
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u }));
-
-    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
-    expect(signInWithOAuth).toHaveBeenCalledWith({
-      provider: 'kakao',
-      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}`, queryParams: { prompt: 'login' } },
-    });
-    // 토큰이 왕복해야 로그인 후 SCR-W02 로 이어진다. OAuth `state` 는 supabase-js 가
-    // PKCE 검증에 쓰므로 쓸 수 없다(G10).
-    const [request] = signInWithOAuth.mock.calls[0] as [{ options: { redirectTo: string } }];
-    const { redirectTo } = request.options;
-    expect(new URL(redirectTo).pathname).toBe(invitePath(TOKEN));
-  });
-
-  it('Google CTA 도 이 초대 URL 로 되돌아오게 로그인시킨다', async () => {
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: /Google 로그인하고 내용 보기/u }));
-
-    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalledTimes(1));
-    expect(signInWithOAuth).toHaveBeenCalledWith({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}${invitePath(TOKEN)}`, queryParams: { prompt: 'select_account' } },
-    });
-  });
-
-  it.each([
-    ['이용약관', '/legal/terms'],
-    ['개인정보 처리방침', '/legal/privacy'],
-  ])('%s 링크는 OAuth 없이 같은 origin 문서로 이동한다', async (label, href) => {
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-    const link = await screen.findByRole('link', { name: label });
-    expect(link.getAttribute('href')).toBe(href);
-    fireEvent.click(link);
-    expect(signInWithOAuth).not.toHaveBeenCalled();
-  });
-
-  it('EC-I02 카카오톡 안에서도 계정 자동 선택 없이 Google의 외부 브라우저 경로를 제공한다', async () => {
-    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 KAKAOTALK 11.4.0');
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-    const button = await screen.findByRole('button', { name: /Google 로그인하고 내용 보기/u });
-    expect(signInWithOAuth).not.toHaveBeenCalled();
-    fireEvent.click(button);
-    expect(await screen.findByText('기본 브라우저에서 열어 주세요.')).toBeTruthy();
-    expect(screen.getByText(/Google로 로그인해 주세요/u)).toBeTruthy();
-    expect(signInWithOAuth).not.toHaveBeenCalled();
-  });
-
-  it('안드로이드에서는 앱으로 계속하기가 스토어 폴백을 품은 인텐트 링크로 뜬다', async () => {
-    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
-      'Mozilla/5.0 (Linux; Android 14) Chrome/120',
-    );
-    vi.stubGlobal('location', { origin: 'https://littlefinger-app.web.app' });
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-
-    renderAt();
-
-    const cta = await screen.findByTestId('continue-in-app');
-    const store = encodeURIComponent(
-      'https://play.google.com/store/apps/details?id=com.littlefinger.app&utm_source=littlefinger_web&utm_medium=invite_landing',
-    );
-    expect(cta.getAttribute('href')).toBe(
-      `intent://littlefinger-app.web.app/i/${TOKEN}` +
-        `#Intent;scheme=https;package=com.littlefinger.app;S.browser_fallback_url=${store};end`,
-    );
-    // 웹 승인 경로는 보조 동선으로 남는다(01 P6).
-    expect(screen.getByText('웹으로 계속하기')).toBeTruthy();
-    expect(screen.getByRole('button', { name: /카카오 로그인하고 내용 보기/u })).toBeTruthy();
-  });
-
-  it('아이폰에서는 앱 유도 없이 웹 로그인만 보인다 (EC-I03)', async () => {
-    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
-    );
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-
-    renderAt();
-
-    expect(await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u })).toBeTruthy();
-    expect(screen.queryByTestId('continue-in-app')).toBeNull();
-    expect(screen.queryByText('웹으로 계속하기')).toBeNull();
-  });
-
-  it('로그인이 실패해도 CTA 는 남고 안내만 바뀐다', async () => {
-    // 카카오 프로바이더가 아직 대시보드에 없어서 오늘은 이 경로가 실제로 돈다.
-    signInWithOAuth.mockResolvedValue({ data: {}, error: new Error('provider not enabled') });
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderAt();
-    fireEvent.click(await screen.findByRole('button', { name: /카카오 로그인하고 내용 보기/u }));
-
-    // 라이브 리전은 실패 **전부터** 붙어 있어야 읽힌다. 문구와 함께 나타나면 놓친다.
-    const live = screen.getByRole('alert');
-    await waitFor(() =>
-      expect(live.textContent).toBe('처리 중 문제가 발생했습니다. 다시 시도해 주세요.'),
-    );
-    expect(screen.getByRole('button', { name: /카카오 로그인하고 내용 보기/u })).toBeTruthy();
-  });
-
-  it('광고 슬롯이 없다', async () => {
-    // CLAUDE.md §8-1 — 수락 웹 전체에 광고가 없다.
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    const { container } = render(
-      <MemoryRouter initialEntries={[invitePath(TOKEN)]}>
-        <Routes>
-          <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
-        </Routes>
-      </MemoryRouter>,
-    );
-    await screen.findByRole('heading');
-    // `[class*="ad"]` 로 찾으면 lf-pinky-b**ad**ge 가 걸린다. 광고가 실제로 타는 형태만 본다.
-    expect(container.querySelector('ins, iframe, .lf-ad')).toBeNull();
-  });
+it('witness invitation shows the actual sender and uses the same handoff', async () => {
+  fetchMock.mockResolvedValue(response({ ...invite, target_role: 'WITNESS' })); show();
+  await screen.findByText('민수님이 증인으로 초대했어요');
+  expect(screen.getByRole('link', { name: '앱에서 확인하기' })).toBeTruthy();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
 });
-
-describe('SCR-W01 로그인 후 분기', () => {
-  /** 리다이렉트가 실제로 일어났는지 보려면 도착지가 있어야 한다. */
-  function renderWithReview(): void {
-    render(
-      <MemoryRouter initialEntries={[invitePath(TOKEN)]}>
-        <Routes>
-          <Route path={ROUTE.invite} element={<ScrW01InviteLanding />} />
-          <Route path={ROUTE.review} element={<div data-testid="w02" />} />
-          <Route path={ROUTE.witnessJoin} element={<div data-testid="w05-join" />} />
-        </Routes>
-      </MemoryRouter>,
-    );
-  }
-
-  it('세션이 있는 상대방은 SCR-W02 로 넘어간다', async () => {
-    // 이 분기가 없으면 로그인이 `redirectTo` 로 이 화면에 되돌려 놓고, 사용자는 같은
-    // 랜딩을 영원히 다시 본다.
-    getSession.mockResolvedValue({ data: { session: { access_token: 'jwt' } } });
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderWithReview();
-
-    expect(await screen.findByTestId('w02')).toBeTruthy();
-    expect(screen.queryByRole('button')).toBeNull();
-  });
-
-  it('세션이 없으면 랜딩에 그대로 있다', async () => {
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderWithReview();
-
-    expect((await screen.findByRole('heading')).textContent).toBe('지우님이 약속을 보냈어요');
-    expect(screen.queryByTestId('w02')).toBeNull();
-  });
-
-  it('세션이 있는 증인은 SCR-W05 결합 경로로 넘어간다', async () => {
-    getSession.mockResolvedValue({ data: { session: { access_token: 'jwt' } } });
-    fetchMock.mockResolvedValue(fakeResponse(200, { ...INVITE, target_role: 'WITNESS' }));
-    renderWithReview();
-
-    expect(await screen.findByTestId('w05-join')).toBeTruthy();
-    expect(screen.queryByTestId('w02')).toBeNull();
-  });
-
-  it('세션을 아직 모르는 동안에는 랜딩을 그리지 않는다', async () => {
-    // 먼저 그렸다가 넘기면 화면이 한 번 번쩍인다. 링크를 누른 직후 3초 목표의 화면이다.
-    getSession.mockReturnValue(new Promise(() => {}));
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderWithReview();
-
-    expect(await screen.findByTestId('loading')).toBeTruthy();
-    expect(screen.queryByRole('heading')).toBeNull();
-  });
-
-  it('세션 조회가 실패해도 랜딩은 열린다', async () => {
-    getSession.mockRejectedValue(new Error('storage unavailable'));
-    fetchMock.mockResolvedValue(fakeResponse(200, INVITE));
-    renderWithReview();
-
-    expect(await screen.findByRole('heading')).toBeTruthy();
-  });
-
-  it('링크가 죽었으면 세션이 있어도 SCR-W06 이다', async () => {
-    getSession.mockResolvedValue({ data: { session: { access_token: 'jwt' } } });
-    fetchMock.mockResolvedValue(
-      fakeResponse(ERROR_HTTP_STATUS.E_INVITE_USED, { code: 'E_INVITE_USED', message: 'x' }),
-    );
-    renderWithReview();
-
-    expect((await screen.findByTestId('reason')).textContent).toBe('이미 사용된 초대입니다.');
-    expect(screen.queryByTestId('w02')).toBeNull();
-  });
+it('only explicit confirmation declines, without Authorization', async () => {
+  show(); await screen.findByText(invite.title);
+  fireEvent.click(screen.getByRole('button', { name: '거절하기' }));
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', { name: '돌아가기' }));
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', { name: '거절하기' }));
+  fetchMock.mockResolvedValue(response({ status: 'DECLINED', target_role: 'PARTNER' }));
+  fireEvent.click(screen.getByRole('button', { name: '거절하기' }));
+  await screen.findByRole('heading', { name: '초대를 거절했어요' });
+  const [url, init] = fetchMock.mock.calls[1] as [string, RequestInit];
+  expect(url).toContain('invite-decline-public'); expect(init.headers).toEqual({ 'Content-Type': 'application/json' });
+  expect(init.body).toBe(JSON.stringify({ token: 'token' }));
+  expect(screen.queryByRole('link', { name: '앱에서 확인하기' })).toBeNull();
 });
-
-describe('formatRemaining', () => {
-  it.each([
-    [0, '00:00:00'],
-    [-5000, '00:00:00'],
-    [1000, '00:00:01'],
-    [(71 * 3600 + 59 * 60 + 59) * 1000, '71:59:59'],
-    // INVITE_TTL_HOURS = 72. 발급 직후가 상한이다.
-    [72 * 3600 * 1000, '72:00:00'],
-  ])('%i ms → %s', (ms, expected) => {
-    expect(formatRemaining(ms)).toBe(expected);
-  });
-
-  it('남은 밀리초는 내림한다', () => {
-    // 올림하면 마지막 1초가 00:00:01 에서 멈춘 것처럼 보인다.
-    expect(formatRemaining(1999)).toBe('00:00:01');
-  });
+it('decline failure preserves confirmation and supports retry', async () => {
+  show(); await screen.findByText(invite.title); fireEvent.click(screen.getByText('거절하기'));
+  fetchMock.mockRejectedValueOnce(new Error('offline')); fireEvent.click(screen.getByText('거절하기'));
+  await waitFor(() => expect(screen.getByRole('alert').textContent).not.toBe(''));
+  expect(screen.getByRole('button', { name: '거절하기' }).hasAttribute('disabled')).toBe(false);
+});
+it.each(['E_INVITE_EXPIRED', 'E_INVITE_USED', 'E_INVITE_REVOKED', 'E_NOT_FOUND', 'E_BLOCKED'])('does not expose invitation on %s', async code => {
+  fetchMock.mockResolvedValue(response({ code, message: '사용할 수 없는 초대' }, 410)); show();
+  await waitFor(() => expect(screen.queryByRole('status')).toBeNull());
+  expect(screen.queryByText(invite.title)).toBeNull(); expect(screen.queryByText('거절하기')).toBeNull();
+});
+it('retries malformed server response', async () => {
+  fetchMock.mockResolvedValueOnce(response({ title: 'incomplete' })); show();
+  fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }));
+  await screen.findByText(invite.title);
+});
+it('legacy review route displays the same public landing', async () => {
+  show('/i/token/review'); await screen.findByText(invite.title); expect(screen.queryByText(/로그인/)).toBeNull();
+});
+it('non-Android visitors get an explicit Android availability explanation', async () => {
+  Object.defineProperty(navigator, 'userAgent', { value: 'iPhone', configurable: true }); show();
+  await screen.findByText(invite.title); expect(screen.getByText(/현재 Android 앱/)).toBeTruthy();
+  expect(screen.getByRole('link', { name: '앱에서 확인하기' }).getAttribute('href')).toContain('play.google.com');
 });

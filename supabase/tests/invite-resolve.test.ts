@@ -34,7 +34,7 @@ let db: TestDb;
 const MIGRATION = join(__dirname, '../migrations/20260726000005_invite_resolve.sql');
 
 /** 응답에 허용된 키. 목록이 아니라 **전부**다 — 하나라도 더 있으면 실패한다. */
-const ALLOWED_KEYS = ['creator_nickname', 'expires_at', 'target_role', 'title'] as const;
+const ALLOWED_KEYS = ['creator_nickname', 'expires_at', 'sender_nickname', 'target_role', 'title'] as const;
 
 async function resolve(tokenHash: string): Promise<Record<string, unknown>> {
   const { rows } = await db.asAdmin(`select public.lf_invite_resolve($1) as r`, [tokenHash]);

@@ -1,3 +1,4 @@
+jest.mock('../components/WitnessReview.tsx', () => ({ WitnessReview: () => { const {Text} = require('react-native'); return <Text>증인 앱 검토</Text>; } }));
 jest.mock('../components/InviteAccountGate.tsx', () => ({ InviteAccountGate: ({ children }: { children: React.ReactNode }) => children }));
 import { LEGAL_DISCLAIMER } from '@littlefinger/shared';
 import { act, fireEvent, render, within } from '@testing-library/react-native';
@@ -163,14 +164,13 @@ describe('EC-I01 앱 내 초대 검토', () => {
     expect(view.getByText(/수정 제안을 보냈어요/u)).toBeTruthy();
   });
 
-  test('증인 토큰은 세션과 무관하게 기본 브라우저로 핸드오프한다', async () => {
+  test('증인 토큰도 로그인 후 앱에서 검토한다', async () => {
     resolveMock.mockResolvedValue({ ...INVITE, target_role: 'WITNESS' });
     const view = await render(<InviteReviewScreen />);
     await emitSession(true);
 
-    expect(view.getByText('초대 확인은 웹에서 이어져요')).toBeTruthy();
-    await fireEvent.press(view.getByRole('button', { name: '기본 브라우저에서 열기' }));
-    expect(openBrowserMock).toHaveBeenCalledWith('a-b_c');
+    expect(view.getByText('증인 앱 검토')).toBeTruthy();
+    expect(openBrowserMock).not.toHaveBeenCalled();
     expect(previewMock).not.toHaveBeenCalled();
   });
 

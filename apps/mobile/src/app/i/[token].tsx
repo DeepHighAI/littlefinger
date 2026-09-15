@@ -27,7 +27,7 @@ import { LfOval } from '../../components/LfOval';
 import { LfText } from '../../components/LfText';
 import { LfTextarea } from '../../components/LfTextarea';
 import { formatInviteCountdown } from '../../lib/invite-flow.ts';
-import { openInviteInBrowserNative } from '../../lib/invite-link-native.ts';
+import { WitnessReview } from '../../components/WitnessReview.tsx';
 import {
   approveInviteNative,
   createInviteReviewIdempotencyKey,
@@ -119,7 +119,6 @@ function InviteReviewScreen(): React.JSX.Element {
   const [amendComment, setAmendComment] = useState('');
   const [pending, setPending] = useState<PendingAction>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [handoffFailed, setHandoffFailed] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [reloadNonce, setReloadNonce] = useState(0);
   // 엔드포인트마다 화면 진입 시 한 번 — 두 번 눌린 액션이 서버에 한 요청으로 접힌다(§7-3.6).
@@ -340,30 +339,7 @@ function InviteReviewScreen(): React.JSX.Element {
     );
   }
 
-  if (phase.kind === 'HANDOFF') {
-    return (
-      <SafeAreaView style={styles.screen}>
-        <View style={[styles.scroll, styles.centered]}>
-          <LfText variant="title" align="center">{L.handoffTitle}</LfText>
-          <LfText variant="body" secondary align="center">{L.handoffBody}</LfText>
-          {handoffFailed && (
-            <LfText variant="caption" align="center" accessibilityRole="alert">
-              {L.handoffFailure}
-            </LfText>
-          )}
-          <LfButton
-            label={L.handoffAction}
-            size="cta"
-            block
-            onPress={() => {
-              setHandoffFailed(false);
-              openInviteInBrowserNative(tokenValue).catch(() => setHandoffFailed(true));
-            }}
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
+  if (phase.kind === 'WITNESS_REVIEW') return <WitnessReview key={tokenValue} token={tokenValue} />;
 
   if (phase.kind === 'LANDING') {
     const remaining = formatInviteCountdown(phase.invite.expires_at, now);

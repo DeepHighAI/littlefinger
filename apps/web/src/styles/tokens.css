@@ -24,6 +24,7 @@
 }
 
 :root {
+  --lf-size-invite-content-max: 480px;
   /* COLOR — 잉크 #221C13 · 종이 #FFFDF4 · 캔버스 #FBF8F1 · 4색(옐로/민트/핑크/스카이) 채도 상향 */
   --lf-color-primary:              #221C13;
   --lf-color-primary-hover:        #16120C;

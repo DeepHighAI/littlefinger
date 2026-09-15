@@ -2088,3 +2088,16 @@
 .lf-oval--celebrate > * { display: none; }
 
 .lf-oval--web:has(> .lf-character) { background-image: none; }
+
+/* 초대는 발송자·제목을 한 그룹으로 읽고 다음 행동을 선택하는 화면이다. */
+.lf-invite-landing__body { justify-content: center; align-items: center; text-align: center; gap: var(--lf-space-5); }
+.lf-invite-landing__sender { margin-top: 0; overflow-wrap: anywhere; }
+.lf-invite-landing__title { margin: 0; overflow-wrap: anywhere; text-wrap: balance; }
+.lf-invite-landing__actions { gap: var(--lf-space-5); }
+.lf-invite-landing__confirm { display: flex; flex-direction: column; gap: var(--lf-space-7); text-align: center; }
+
+.lf-invite-landing__body, .lf-invite-landing__actions { width: 100%; max-width: var(--lf-size-invite-content-max); align-self: center; }
+.lf-invite-landing__actions .lf-btn { text-decoration: none; }
+.lf-invite-landing__actions .lf-caption { word-break: keep-all; text-wrap: pretty; }
+
+.lf-invite-landing__actions .lf-caption a { color: inherit; }

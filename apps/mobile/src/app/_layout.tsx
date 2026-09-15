@@ -118,7 +118,7 @@ export default function RootLayout(): React.JSX.Element {
     }
     const entry = readPendingEntry();
     if (entry !== null && onboardingComplete && (session !== null || entry.startsWith('/i/'))) {
-      if (pathname !== entry) router.replace(entry as `/i/${string}` | `/promise/${string}`);
+      if (pathname !== entry) router.replace(entry as `/i/${string}` | `/promise/${string}` | `/witness/${string}`);
       if (session !== null && pathname === entry && !entry.startsWith('/i/')) clearPendingEntry();
       return;
     }
@@ -221,6 +221,7 @@ export default function RootLayout(): React.JSX.Element {
           <Stack.Screen name="promise/edit" />
           <Stack.Screen name="promise/[promise_id]" />
           <Stack.Screen name="invite" />
+          <Stack.Screen name="witness/[promise_id]" />
           <Stack.Screen name="fulfillment/[promise_id]" />
           <Stack.Screen name="notifications" />
           <Stack.Screen name="profile" />

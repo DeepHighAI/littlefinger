@@ -87,11 +87,15 @@ describe('App 라우팅', () => {
   });
 
   it.each([
-    witnessJoinPath('abc123'),
     witnessPath('11111111-1111-4111-8111-111111111111'),
   ])('증인 결합·계정 경로 %s를 SCR-W05로 연결한다', async (path) => {
     renderAt(path);
     expect(await screen.findByRole('heading', { level: 1, name: '증인으로 약속을 확인해 주세요' })).toBeTruthy();
+  });
+
+  it('기존 증인 초대 경로는 공개 앱 안내로 연결한다', () => {
+    renderAt(witnessJoinPath('abc123'));
+    expect(sentToken()).toBe('abc123');
   });
 
   it('초대 경로가 토큰을 뽑아 SCR-W01 로 넘긴다', () => {

@@ -2,6 +2,16 @@
 
 Snapshot date: **2026-09-15 KST**.
 
+## App invitation review and public decline (2026-09-15)
+
+ADR 0029 implements app review/final acceptance for partner and witness invitations,
+explicit token-holder web decline, and the Mobbin-informed invitation refinement.
+Additive server RPCs and Edge Functions are deployed. Web output is prepared and held
+until the PO publishes the new app: code 33 and older send witnesses back to the web.
+Version 0.3.7 / code 34 is reserved for the new AAB. See
+[verification evidence](qa/INVITATION_HANDOFF_2026-09-15.md). Optional older M1/M2 mobile
+spacing proposals remain outside the invitation approval.
+
 ## Mascot release 0.3.6 / code 33 ready for PO upload (2026-09-15)
 
 Source changes are committed and pushed to main. Use
